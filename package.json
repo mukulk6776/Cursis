@@ -1,26 +1,23 @@
 {
-  "name": "cursis",
-  "version": "0.1.0",
+  "name": "cursis-platform-root",
+  "version": "1.0.0",
   "private": true,
+  "description": "Cursis Startup Operations Platform — Unified Monorepo Root",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "next": "16.3.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev --prefix Backend",
+    "dev:frontend": "npm run dev --prefix \"Frontend/cursis frontend\"",
+    "build": "npm run build --prefix Backend && npm run build --prefix \"Frontend/cursis frontend\"",
+    "build:backend": "npm run build --prefix Backend",
+    "build:frontend": "npm run build --prefix \"Frontend/cursis frontend\"",
+    "start:backend": "npm run start --prefix Backend",
+    "start:frontend": "npm run start --prefix \"Frontend/cursis frontend\"",
+    "db:seed": "npm run seed --prefix Backend"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "firebase": "^12.18.0"
   }
 }

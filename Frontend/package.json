@@ -1,0 +1,13 @@
+{
+  "name": "dataora-root",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "cursis frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=\"cursis frontend\"",
+    "dev": "npm run dev --workspace=\"cursis frontend\"",
+    "start": "npm run start --workspace=\"cursis frontend\""
+  }
+}

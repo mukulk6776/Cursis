@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: cursis-backend
+    runtime: node
+    rootDir: Backend
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npx prisma db push && npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      # SQLite is suitable for a demo only. For persistent production data,
+      # replace this with a managed LibSQL/Turso database URL and credentials.
+      - key: DATABASE_URL
+        value: file:./dev.db

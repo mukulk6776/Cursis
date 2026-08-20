@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npm run build --workspace=\"cursis frontend\"",
+  "outputDirectory": "cursis frontend/.next",
+  "framework": "nextjs"
+}
