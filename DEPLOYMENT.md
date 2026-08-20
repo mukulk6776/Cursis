@@ -1,39 +1,28 @@
-# Deploy Cursis: Render backend + Vercel frontend
+# Deploy Cursis on Vercel
 
-The frontend uses the internal route `/api/backend/*`. On Vercel, that route is
-rewritten server-side to the Render backend, so the browser does not need a CORS
-exception or a public API URL.
+The website and Firestore-backed API are deployed together as one Next.js Vercel
+project. The browser uses internal routes under `/api/backend/*`.
 
 ## 1. Push this repository to GitHub
 
-Both providers deploy from the same repository. Do not commit `.env` or
-`.env.local` files.
+Do not commit `.env` or `.env.local` files.
 
-## 2. Deploy the backend to Render
+## 2. Deploy the website and API together
 
-1. In Render, select **New > Blueprint** and choose this repository.
-2. Render detects `render.yaml`. Keep the generated `JWT_SECRET` and deploy.
-3. When deployment finishes, copy the service URL, for example
-   `https://cursis-backend.onrender.com`.
-4. Check `https://<your-render-service>/api/health`. It should return a healthy
-   JSON response.
-
-The blueprint runs `prisma db push` at service start so a first deployment has
-the tables it needs. Its bundled SQLite database is ephemeral on Render. This is
-fine for testing, but use a managed database before relying on backend records
-in production.
-
-## 3. Deploy the frontend to Vercel
-
-1. In Vercel, import the same Git repository.
+1. In Vercel, select **Add New > Project** and import this repository.
 2. Set **Root Directory** to `Frontend`.
-3. Add this environment variable for **Production**, **Preview**, and
-   **Development**:
+3. In Firebase Console, open **Project settings > Service accounts**, generate a
+   new private key, and add these values in Vercel for Production, Preview, and
+   Development:
 
    ```text
-   BACKEND_URL=https://<your-render-service>.onrender.com
+   FIREBASE_PROJECT_ID=<your-firebase-project-id>
+   FIREBASE_CLIENT_EMAIL=<service-account-client-email>
+   FIREBASE_PRIVATE_KEY=<service-account-private-key>
+   JWT_SECRET=<a-long-random-secret>
    ```
 
+   Paste the private key exactly as downloaded, including its newline characters.
 4. Add the existing Firebase variables from your local frontend `.env.local` if
    Firebase sign-in and cloud data are required:
 
@@ -50,7 +39,7 @@ in production.
 5. Deploy. The existing `Frontend/vercel.json` uses the correct workspace build
    configuration for this repository.
 
-## 4. Verify they are connected
+## 3. Verify Firestore is connected
 
 Open this on the deployed Vercel site:
 
@@ -58,13 +47,10 @@ Open this on the deployed Vercel site:
 https://<your-vercel-domain>/api/backend/health
 ```
 
-It should return the JSON from Render. If it does not, confirm `BACKEND_URL`
-contains the full Render HTTPS URL, with no trailing slash, then redeploy Vercel.
+It should return a healthy JSON response from the Firebase-backed API.
 
-## Production database note
+## Firestore data note
 
-Render's filesystem is not durable for the `file:./dev.db` SQLite database.
-The frontend already prioritizes Firestore for many data operations, but the
-backend API and health endpoint also use Prisma. Before production use, connect
-Prisma's LibSQL adapter to a managed LibSQL/Turso database or migrate the Prisma
-schema to a managed PostgreSQL database.
+All backend API data is now read from and written to Firebase Firestore. There
+is no external database, Prisma migration, or SQLite file required for the
+Vercel deployment.

@@ -1,61 +1,11 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { firestore } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const userCount = await prisma.user.count();
-    const projectCount = await prisma.project.count();
-    const taskCount = await prisma.task.count();
-
-    return NextResponse.json(
-      {
-        status: "healthy",
-        service: "cursis-backend",
-        version: "1.0.0",
-        timestamp: new Date().toISOString(),
-        database: {
-          status: "connected",
-          counts: {
-            users: userCount,
-            projects: projectCount,
-            tasks: taskCount,
-          },
-        },
-      },
-      {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS",
-        },
-      }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        service: "cursis-backend",
-        error: error instanceof Error ? error.message : "Database check failed",
-        timestamp: new Date().toISOString(),
-      },
-      {
-        status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
-    );
-  }
-}
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
-  });
+    await firestore.collection("_health").limit(1).get();
+    return NextResponse.json({ status: "healthy", service: "cursis-firebase-backend", version: "1.0.0", timestamp: new Date().toISOString(), database: { status: "connected", provider: "firestore" } });
+  } catch (error) { return NextResponse.json({ status: "error", service: "cursis-firebase-backend", error: error instanceof Error ? error.message : "Firestore unavailable", timestamp: new Date().toISOString() }, { status: 500 }); }
 }

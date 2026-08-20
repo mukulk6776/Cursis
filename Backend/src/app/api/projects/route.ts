@@ -1,97 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { documentData, firestore, serverTimestamp } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
+const headers = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
 
 export async function GET() {
   try {
-    const projects = await prisma.project.findMany({
-      include: {
-        _count: {
-          select: { tasks: true },
-        },
-        tasks: {
-          select: {
-            id: true,
-            status: true,
-            priority: true,
-            estimatedHours: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return NextResponse.json(projects, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-      },
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch projects" },
-      { status: 500, headers: { "Access-Control-Allow-Origin": "*" } }
-    );
-  }
+    const [projectsSnapshot, tasksSnapshot] = await Promise.all([firestore.collection("projects").get(), firestore.collection("tasks").get()]);
+    const taskCount = new Map<string, number>();
+    tasksSnapshot.docs.forEach((task) => { const projectId = task.data().projectId; if (projectId) taskCount.set(projectId, (taskCount.get(projectId) || 0) + 1); });
+    const projects = projectsSnapshot.docs.map((project) => ({ ...documentData(project.id, project.data()), _count: { tasks: taskCount.get(project.id) || 0 } }));
+    return NextResponse.json(projects, { headers });
+  } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch projects" }, { status: 500, headers }); }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, description, status = "ACTIVE", priority = "MEDIUM", color = "#6366f1", organizationId, startDate, endDate } = body;
-
-    if (!name) {
-      return NextResponse.json(
-        { error: "Project name is required." },
-        { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
-      );
-    }
-
-    let targetOrgId = organizationId;
-    if (!targetOrgId) {
-      const firstOrg = await prisma.organization.findFirst();
-      if (!firstOrg) {
-        return NextResponse.json(
-          { error: "No organization found to attach project to." },
-          { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
-        );
-      }
-      targetOrgId = firstOrg.id;
-    }
-
-    const project = await prisma.project.create({
-      data: {
-        name,
-        description: description || null,
-        status,
-        priority,
-        color,
-        organizationId: targetOrgId,
-        startDate: startDate ? new Date(startDate) : new Date(),
-        endDate: endDate ? new Date(endDate) : null,
-      },
-    });
-
-    return NextResponse.json(project, {
-      status: 201,
-      headers: { "Access-Control-Allow-Origin": "*" },
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create project" },
-      { status: 500, headers: { "Access-Control-Allow-Origin": "*" } }
-    );
-  }
+    if (!body.name) return NextResponse.json({ error: "Project name is required." }, { status: 400, headers });
+    const payload = { name: body.name, description: body.description || "", status: body.status || "ACTIVE", priority: body.priority || "MEDIUM", color: body.color || "#6366f1", startDate: body.startDate || new Date().toISOString(), endDate: body.endDate || null, userId: body.userId || null, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+    const ref = await firestore.collection("projects").add(payload);
+    return NextResponse.json({ id: ref.id, ...body, status: body.status || "ACTIVE", priority: body.priority || "MEDIUM", color: body.color || "#6366f1", createdAt: new Date().toISOString() }, { status: 201, headers });
+  } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to create project" }, { status: 500, headers }); }
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
-  });
-}
+export async function OPTIONS() { return new NextResponse(null, { status: 204, headers }); }

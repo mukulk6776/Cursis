@@ -1,167 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { documentData, firestore, serverTimestamp } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
+const headers = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS" };
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const projectId = searchParams.get("projectId");
-    const status = searchParams.get("status");
-    const assigneeId = searchParams.get("assigneeId");
-
-    const where: Record<string, unknown> = {};
-    if (projectId) where.projectId = projectId;
-    if (status) where.status = status;
-    if (assigneeId) where.assigneeId = assigneeId;
-
-    const tasks = await prisma.task.findMany({
-      where,
-      include: {
-        assignee: {
-          select: { id: true, name: true, email: true, avatarUrl: true },
-        },
-        project: {
-          select: { id: true, name: true, color: true },
-        },
-        comments: {
-          include: {
-            author: { select: { id: true, name: true, avatarUrl: true } },
-          },
-          orderBy: { createdAt: "asc" },
-        },
-      },
-      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-    });
-
-    return NextResponse.json(tasks, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-      },
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch tasks" },
-      { status: 500, headers: { "Access-Control-Allow-Origin": "*" } }
-    );
-  }
+    const tasks = (await firestore.collection("tasks").get()).docs.map((task) => documentData(task.id, task.data())).filter((task) => !searchParams.get("projectId") || task.projectId === searchParams.get("projectId")).filter((task) => !searchParams.get("status") || task.status === searchParams.get("status")).filter((task) => !searchParams.get("assigneeId") || task.assigneeId === searchParams.get("assigneeId"));
+    return NextResponse.json(tasks, { headers });
+  } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch tasks" }, { status: 500, headers }); }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, status = "TODO", priority = "MEDIUM", estimatedHours = 0, dueDate, projectId, assigneeId, order = 0 } = body;
-
-    if (!title || !projectId) {
-      return NextResponse.json(
-        { error: "Title and projectId are required." },
-        { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
-      );
-    }
-
-    const task = await prisma.task.create({
-      data: {
-        title,
-        description: description || null,
-        status,
-        priority,
-        estimatedHours: Number(estimatedHours) || 0,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        projectId,
-        assigneeId: assigneeId || null,
-        order: Number(order) || 0,
-      },
-      include: {
-        assignee: { select: { id: true, name: true, email: true, avatarUrl: true } },
-        project: { select: { id: true, name: true, color: true } },
-      },
-    });
-
-    return NextResponse.json(task, {
-      status: 201,
-      headers: { "Access-Control-Allow-Origin": "*" },
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create task" },
-      { status: 500, headers: { "Access-Control-Allow-Origin": "*" } }
-    );
-  }
+    if (!body.title || !body.projectId) return NextResponse.json({ error: "Title and projectId are required." }, { status: 400, headers });
+    const payload = { title: body.title, description: body.description || "", status: body.status || "TODO", priority: body.priority || "MEDIUM", estimatedHours: Number(body.estimatedHours) || 0, dueDate: body.dueDate || null, projectId: body.projectId, projectName: body.projectName || "General", assigneeId: body.assigneeId || null, assigneeName: body.assigneeName || "Unassigned", order: Number(body.order) || 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+    const ref = await firestore.collection("tasks").add(payload);
+    return NextResponse.json({ id: ref.id, ...body, estimatedHours: Number(body.estimatedHours) || 0, status: body.status || "TODO", priority: body.priority || "MEDIUM", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, { status: 201, headers });
+  } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to create task" }, { status: 500, headers }); }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { id, ...updates } = body;
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "Task id is required." },
-        { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
-      );
-    }
-
-    const dataToUpdate: Record<string, unknown> = { ...updates };
-    if (dataToUpdate.dueDate !== undefined) {
-      dataToUpdate.dueDate = dataToUpdate.dueDate ? new Date(dataToUpdate.dueDate as string) : null;
-    }
-    if (dataToUpdate.completedAt !== undefined) {
-      dataToUpdate.completedAt = dataToUpdate.completedAt ? new Date(dataToUpdate.completedAt as string) : null;
-    }
-    if (dataToUpdate.estimatedHours !== undefined) {
-      dataToUpdate.estimatedHours = Number(dataToUpdate.estimatedHours);
-    }
-
-    const task = await prisma.task.update({
-      where: { id },
-      data: dataToUpdate,
-      include: {
-        assignee: { select: { id: true, name: true, email: true, avatarUrl: true } },
-        project: { select: { id: true, name: true, color: true } },
-      },
-    });
-
-    return NextResponse.json(task, {
-      headers: { "Access-Control-Allow-Origin": "*" },
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to update task" },
-      { status: 500, headers: { "Access-Control-Allow-Origin": "*" } }
-    );
-  }
+    const { id, ...updates } = await request.json();
+    if (!id) return NextResponse.json({ error: "Task id is required." }, { status: 400, headers });
+    const ref = firestore.collection("tasks").doc(id);
+    await ref.set({ ...updates, updatedAt: serverTimestamp() }, { merge: true });
+    const updated = await ref.get();
+    return NextResponse.json(documentData(updated.id, updated.data() || {}), { headers });
+  } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to update task" }, { status: 500, headers }); }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "Task id is required." },
-        { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
-      );
-    }
-
-    await prisma.task.delete({ where: { id } });
-    return NextResponse.json({ success: true, id }, { headers: { "Access-Control-Allow-Origin": "*" } });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to delete task" },
-      { status: 500, headers: { "Access-Control-Allow-Origin": "*" } }
-    );
-  }
+    const id = new URL(request.url).searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Task id is required." }, { status: 400, headers });
+    await firestore.collection("tasks").doc(id).delete();
+    return NextResponse.json({ success: true, id }, { headers });
+  } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to delete task" }, { status: 500, headers }); }
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
-  });
-}
+export async function OPTIONS() { return new NextResponse(null, { status: 204, headers }); }

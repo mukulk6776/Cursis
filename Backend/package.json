@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev -p 6969",
     "build": "next build",
-    "start": "next start -p ${PORT:-6969}",
-    "lint": "eslint"
+    "start": "next start -p 6969",
+    "lint": "eslint",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.232",
@@ -17,6 +19,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "dotenv": "^17.4.2",
+    "firebase-admin": "^14.3.0",
     "jose": "^6.2.8",
     "lucide-react": "^1.31.0",
     "next": "16.3.0",
