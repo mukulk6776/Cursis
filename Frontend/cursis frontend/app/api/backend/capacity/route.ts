@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { firestore, withId } from "@/lib/firebase-admin";
+import { getFirestoreDb, withId } from "@/lib/firebase-admin";
 
 export async function GET() {
   try {
-    const [users, tasks] = await Promise.all([firestore.collection("users").get(), firestore.collection("tasks").get()]);
+    const database = getFirestoreDb();
+    const [users, tasks] = await Promise.all([database.collection("users").get(), database.collection("tasks").get()]);
     const taskData = tasks.docs.map((doc) => withId(doc.id, doc.data()));
     return NextResponse.json(users.docs.map((doc) => {
       const user = withId(doc.id, doc.data());

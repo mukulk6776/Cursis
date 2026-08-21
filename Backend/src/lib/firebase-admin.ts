@@ -1,5 +1,5 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, type Firestore } from "firebase-admin/firestore";
 
 function getFirebaseAdminApp() {
   if (getApps().length) return getApps()[0];
@@ -17,9 +17,24 @@ function getFirebaseAdminApp() {
   return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
 }
 
-export const firestore = getFirestore(getFirebaseAdminApp());
+export function getFirestoreDb(): Firestore {
+  return getFirestore(getFirebaseAdminApp());
+}
+
+export const firestore: Firestore = new Proxy({} as Firestore, {
+  get(_target, prop, receiver) {
+    const db = getFirestoreDb();
+    const val = Reflect.get(db, prop, receiver);
+    if (typeof val === "function") {
+      return val.bind(db);
+    }
+    return val;
+  },
+});
+
 export const serverTimestamp = FieldValue.serverTimestamp;
 
 export function documentData<T extends Record<string, unknown>>(id: string, data: T) {
   return { id, ...data };
 }
+

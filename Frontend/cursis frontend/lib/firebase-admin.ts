@@ -10,6 +10,8 @@ function app() {
   return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
 }
 
-export const firestore = getFirestore(app());
+export function getFirestoreDb() {
+  return getFirestore(app());
+}
 export const serverTimestamp = FieldValue.serverTimestamp;
 export const withId = <T extends Record<string, unknown>>(id: string, data: T) => ({ id, ...data });

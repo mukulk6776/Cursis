@@ -10,7 +10,7 @@ Do not commit `.env` or `.env.local` files.
 ## 2. Deploy the website and API together
 
 1. In Vercel, select **Add New > Project** and import this repository.
-2. Set **Root Directory** to `Frontend`.
+2. Set **Root Directory** to `Frontend/cursis frontend`.
 3. In Firebase Console, open **Project settings > Service accounts**, generate a
    new private key, and add these values in Vercel for Production, Preview, and
    Development:
@@ -36,8 +36,8 @@ Do not commit `.env` or `.env.local` files.
    NEXT_PUBLIC_FIREBASE_APP_ID=<value>
    ```
 
-5. Deploy. The existing `Frontend/vercel.json` uses the correct workspace build
-   configuration for this repository.
+5. Deploy. The app includes its own Vercel configuration, which installs the
+   required Next.js dependencies before the production build.
 
 ## 3. Verify Firestore is connected
 
