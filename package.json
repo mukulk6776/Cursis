@@ -6,16 +6,18 @@
   "scripts": {
     "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm run dev --prefix Backend",
-    "dev:frontend": "npm run dev --prefix \"Frontend/cursis frontend\"",
-    "build": "npm run build --prefix Backend && npm run build --prefix \"Frontend/cursis frontend\"",
+    "dev:frontend": "npm run dev --prefix Frontend",
+    "build": "npm run build --prefix Frontend",
+    "build:all": "npm run build --prefix Backend && npm run build --prefix Frontend",
     "build:backend": "npm run build --prefix Backend",
-    "build:frontend": "npm run build --prefix \"Frontend/cursis frontend\"",
+    "build:frontend": "npm run build --prefix Frontend",
     "start:backend": "npm run start --prefix Backend",
-    "start:frontend": "npm run start --prefix \"Frontend/cursis frontend\"",
+    "start:frontend": "npm run start --prefix Frontend",
     "db:seed": "npm run seed --prefix Backend"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
   }
 }
+
 

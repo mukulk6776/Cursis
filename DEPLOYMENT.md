@@ -10,7 +10,7 @@ Do not commit `.env` or `.env.local` files.
 ## 2. Deploy the website and API together
 
 1. In Vercel, select **Add New > Project** and import this repository.
-2. Set **Root Directory** to `Frontend/cursis frontend`.
+2. Set **Root Directory** to `Frontend`.
 3. In Firebase Console, open **Project settings > Service accounts**, generate a
    new private key, and add these values in Vercel for Production, Preview, and
    Development:
