@@ -53,7 +53,7 @@ export default function LoginPage() {
           throw new Error(EMAIL_RESTRICTION_MESSAGE);
         }
 
-        await fetch("/api/auth/session", {
+        const response = await fetch("/api/auth/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -63,13 +63,19 @@ export default function LoginPage() {
           }),
         });
 
+        if (!response.ok) {
+          throw new Error("Backend configuration error. Did you add AUTH_SESSION_SECRET to Vercel?");
+        }
+
         await refreshSession();
         const redirect = new URLSearchParams(window.location.search).get("redirect");
         router.replace(redirect?.startsWith("/") ? redirect : "/dashboard");
       }
     } catch (error) {
       console.error("Google login error:", error);
-      setFormError(formatAuthError(error));
+      setFormError(
+        error instanceof Error ? error.message : "Google login failed"
+      );
     } finally {
       setIsGoogleLoading(false);
     }
@@ -86,7 +92,7 @@ export default function LoginPage() {
           throw new Error(EMAIL_RESTRICTION_MESSAGE);
         }
 
-        await fetch("/api/auth/session", {
+        const response = await fetch("/api/auth/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -96,13 +102,19 @@ export default function LoginPage() {
           }),
         });
 
+        if (!response.ok) {
+          throw new Error("Backend configuration error. Did you add AUTH_SESSION_SECRET to Vercel?");
+        }
+
         await refreshSession();
         const redirect = new URLSearchParams(window.location.search).get("redirect");
         router.replace(redirect?.startsWith("/") ? redirect : "/dashboard");
       }
     } catch (error) {
       console.error("Microsoft login error:", error);
-      setFormError(formatAuthError(error));
+      setFormError(
+        error instanceof Error ? error.message : "Microsoft login failed"
+      );
     } finally {
       setIsMicrosoftLoading(false);
     }

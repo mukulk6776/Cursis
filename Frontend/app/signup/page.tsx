@@ -54,7 +54,7 @@ export default function SignupPage() {
           throw new Error(EMAIL_RESTRICTION_MESSAGE);
         }
 
-        await fetch("/api/auth/session", {
+        const response = await fetch("/api/auth/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -64,13 +64,19 @@ export default function SignupPage() {
           }),
         });
 
+        if (!response.ok) {
+          throw new Error("Backend configuration error. Did you add AUTH_SESSION_SECRET to Vercel?");
+        }
+
         await refreshSession();
         const redirect = new URLSearchParams(window.location.search).get("redirect");
         router.replace(redirect?.startsWith("/") ? redirect : "/workspace-setup");
       }
     } catch (error) {
       console.error("Google signup error:", error);
-      setFormError(formatAuthError(error));
+      setFormError(
+        error instanceof Error ? error.message : "Google signup failed"
+      );
     } finally {
       setIsGoogleLoading(false);
     }
@@ -87,7 +93,7 @@ export default function SignupPage() {
           throw new Error(EMAIL_RESTRICTION_MESSAGE);
         }
 
-        await fetch("/api/auth/session", {
+        const response = await fetch("/api/auth/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -97,13 +103,19 @@ export default function SignupPage() {
           }),
         });
 
+        if (!response.ok) {
+          throw new Error("Backend configuration error. Did you add AUTH_SESSION_SECRET to Vercel?");
+        }
+
         await refreshSession();
         const redirect = new URLSearchParams(window.location.search).get("redirect");
         router.replace(redirect?.startsWith("/") ? redirect : "/workspace-setup");
       }
     } catch (error) {
       console.error("Microsoft signup error:", error);
-      setFormError(formatAuthError(error));
+      setFormError(
+        error instanceof Error ? error.message : "Microsoft signup failed"
+      );
     } finally {
       setIsMicrosoftLoading(false);
     }
