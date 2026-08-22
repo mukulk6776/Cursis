@@ -11,6 +11,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { DataoraLogo } from "@/components/brand/DataoraLogo";
 import { loginWithEmail, loginWithGoogle, loginWithMicrosoft } from "@/lib/auth/firebase";
 import { isAllowedEmailDomain, EMAIL_RESTRICTION_MESSAGE } from "@/lib/auth/email-validation";
+import { formatAuthError } from "@/lib/auth/auth-errors";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -68,9 +69,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Google login error:", error);
-      setFormError(
-        error instanceof Error ? error.message : "Unable to authenticate with Google."
-      );
+      setFormError(formatAuthError(error));
     } finally {
       setIsGoogleLoading(false);
     }
@@ -103,9 +102,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Microsoft login error:", error);
-      setFormError(
-        error instanceof Error ? error.message : "Unable to authenticate with Microsoft."
-      );
+      setFormError(formatAuthError(error));
     } finally {
       setIsMicrosoftLoading(false);
     }

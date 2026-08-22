@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const [customization, setCustomization] = useState<WorkspaceCustomization>(getWorkspaceCustomization());
   const [tasks, setTasks] = useState<BackendTask[]>([]);
   const [projects, setProjects] = useState<BackendProject[]>([]);
-  const [capacity, setCapacity] = useState<BackendCapacity | null>(null);
+  const [capacity, setCapacity] = useState<BackendCapacity[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [tempEnabledModules, setTempEnabledModules] = useState<string[]>([]);
@@ -225,10 +225,10 @@ export default function DashboardPage() {
               <Users className="size-4 text-emerald-500" />
             </div>
             <p className="mt-2 text-2xl font-bold text-slate-950">
-              {capacity?.metrics?.totalCapacityHours ? `${capacity.metrics.totalCapacityHours}h` : "40h"}
+              {capacity.length > 0 ? `${capacity.reduce((acc, u) => acc + (u.weeklyCapacityHours || 40), 0)}h` : "40h"}
             </p>
             <p className="mt-1 text-[11px] text-slate-500">
-              {capacity?.members?.length || 3} team members active
+              {capacity.length > 0 ? `${capacity.length} team members active` : "3 team members active"}
             </p>
           </div>
         </div>

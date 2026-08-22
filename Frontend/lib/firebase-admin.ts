@@ -6,12 +6,14 @@ function app() {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-  if (!projectId || !clientEmail || !privateKey) throw new Error("Firebase Admin is not configured.");
+  if (!projectId || !clientEmail || !privateKey) return null;
   return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
 }
 
 export function getFirestoreDb() {
-  return getFirestore(app());
+  const firebaseApp = app();
+  if (!firebaseApp) return null;
+  return getFirestore(firebaseApp);
 }
 export const serverTimestamp = FieldValue.serverTimestamp;
 export const withId = <T extends Record<string, unknown>>(id: string, data: T) => ({ id, ...data });

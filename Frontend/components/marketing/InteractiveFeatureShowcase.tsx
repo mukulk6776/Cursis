@@ -101,7 +101,7 @@ function FeatureVisual({ feature }: { feature: Feature }) {
         height={feature.image.height}
         sizes="(max-width: 1024px) 82vw, 48vw"
         className="h-auto max-h-[21rem] w-auto max-w-full rounded-[1.5rem] object-contain shadow-[0_28px_70px_-38px_rgba(41,53,70,0.55)] ring-1 ring-white/80 sm:max-h-[26rem]"
-        priority={feature.title === "Products"}
+        priority={feature.title === "Team"}
       />
     </div>
   );
@@ -193,7 +193,7 @@ export function InteractiveFeatureShowcase() {
                   <div className="max-w-md">
                     <p className="text-xs font-semibold tracking-[0.16em] text-slate-600 uppercase">CURSIS {activeFeature.title}</p>
                     <h3 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                      {activeFeature.title === "AI"
+                      {activeFeature.title === "Ordis AI"
                         ? "Meet Ordis AI in your daily workflow."
                         : `${activeFeature.title}, unified and clear.`}
                     </h3>

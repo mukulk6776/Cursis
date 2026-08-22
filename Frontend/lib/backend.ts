@@ -73,6 +73,8 @@ export interface BackendCapacityUser {
   activeTasksCount: number;
 }
 
+export type BackendCapacity = BackendCapacityUser;
+
 export interface BackendHealth {
   status: "healthy" | "error";
   service: string;
