@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <!-- C Arc -->
+  <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#18181b" stroke-width="142" stroke-linecap="round" fill="none" />
+  <!-- Accent Orange Squircle -->
+  <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#ff5710" />
+</svg>

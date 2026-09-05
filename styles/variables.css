@@ -1,0 +1,154 @@
+/* ============================================
+   CURSIS — Design Tokens (Somba Neo-Brutalist)
+   ============================================ */
+
+:root {
+  /* ---- Colors ---- */
+  --c-near-black: #000000;
+  --c-dark: #111111;
+  --c-dark-2: #222222;
+  --c-white: #ffffff;
+  
+  /* Backgrounds */
+  --c-bg: #f4f3ed; /* Warm off-white/beige */
+  
+  /* Grays */
+  --c-gray-100: #e8e7e1;
+  --c-gray-200: #dcdbd5;
+  --c-gray-300: #c1c0ba;
+  --c-gray-400: #a3a29d;
+  --c-gray-500: #888782;
+  --c-gray-600: #666561;
+  --c-gray-700: #444441;
+  
+  /* Brand Accents */
+  --c-brand: #0f4cff;      /* Bright somba blue */
+  --c-brand-light: #4d7aff;
+  --c-brand-dark: #0036d6;
+  --c-brand-bg: #e6ecff;
+  
+  --c-accent: #ccff00;     /* Bright lime green */
+  --c-accent-light: #e0ff66;
+  
+  /* Status */
+  --c-success: #00b341;
+  --c-success-bg: #e6f7ec;
+  --c-warning: #ff7700;
+  --c-warning-bg: #fff1e6;
+  --c-error: #e60000;
+  --c-error-bg: #fce6e6;
+  --c-info: var(--c-brand);
+  --c-info-bg: var(--c-brand-bg);
+  --c-purple: #8800ff;
+  --c-purple-bg: #f3e6ff;
+  
+  /* ---- Typography ---- */
+  --font-family: var(--font-inter), 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--font-mono), 'JetBrains Mono', monospace;
+  
+  /* Font Sizes */
+  --fs-xs: 0.75rem;     /* 12px */
+  --fs-sm: 0.875rem;    /* 14px */
+  --fs-base: 1rem;      /* 16px */
+  --fs-md: 1.125rem;    /* 18px */
+  --fs-lg: 1.25rem;     /* 20px */
+  --fs-xl: 1.5rem;      /* 24px */
+  --fs-2xl: 1.875rem;   /* 30px */
+  --fs-3xl: 2.5rem;     /* 40px */
+  --fs-4xl: 3.5rem;     /* 56px - Huge */
+  
+  /* Font Weights */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 800;
+  --fw-black: 900;
+  
+  /* Line Heights */
+  --lh-tight: 1.1;
+  --lh-normal: 1.4;
+  --lh-relaxed: 1.6;
+  
+  /* Letter Spacing */
+  --ls-tight: -0.04em;
+  --ls-normal: 0;
+  --ls-wide: 0.05em;
+  
+  /* ---- Semantic Colors ---- */
+  --text-primary: var(--c-near-black);
+  --text-secondary: var(--c-gray-700);
+  --text-tertiary: var(--c-gray-500);
+  
+  --surface-primary: var(--c-bg);
+  --surface-secondary: var(--c-white);
+  --surface-tertiary: var(--c-gray-100);
+  
+  --border-color: var(--c-near-black);
+  --border-light: var(--c-near-black);
+  
+  --surface-sidebar: var(--c-bg);
+  --surface-topbar: var(--c-bg);
+  --surface-card: var(--c-white);
+  --surface-modal: var(--c-white);
+  --surface-overlay: rgba(0, 0, 0, 0.4);
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  
+  /* ---- Layout & Geometry ---- */
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 72px;
+  --topbar-height: 64px;
+  --content-max-width: 1200px;
+  
+  /* Spacing */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-8: 3rem;
+  --sp-10: 4rem;
+  --sp-16: 6rem;
+  
+  /* Borders & Shadows - Modern Refined Aesthetic */
+  --border-radius-xs: 4px;
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-2xl: 20px;
+  --border-radius-full: 9999px;
+  
+  --shadow-sm: 1px 1px 0px 0px rgba(0, 0, 0, 0.7);
+  --shadow-md: 2px 2px 0px 0px rgba(0, 0, 0, 0.75);
+  --shadow-lg: 3px 3px 0px 0px rgba(0, 0, 0, 0.8);
+  --shadow-xl: 5px 5px 0px 0px rgba(0, 0, 0, 0.85);
+  --shadow-2xl: 8px 8px 0px 0px rgba(0, 0, 0, 0.85);
+  
+  --shadow-card-hover: 3px 3px 0px 0px rgba(0, 0, 0, 0.85);
+  --shadow-brand: 2px 2px 0px 0px var(--c-brand-dark);
+  
+  --border-width: 1px;
+  
+  /* ---- Motion (Fast and snappy) ---- */
+  --dur-fast: 0.1s;
+  --dur-normal: 0.2s;
+  --dur-slow: 0.3s;
+  --dur-slower: 0.4s;
+  
+  --ease-default: ease-out;
+  --ease-in: ease-in;
+  --ease-out: ease-out;
+  --ease-in-out: ease-in-out;
+  --ease-spring: cubic-bezier(0, 0, 0.2, 1);
+  
+  /* ---- Z-Index ---- */
+  --z-base: 1;
+  --z-dropdown: 40;
+  --z-topbar: 50;
+  --z-sidebar: 60;
+  --z-overlay: 100;
+  --z-modal: 110;
+  --z-tooltip: 120;
+  --z-command: 200;
+}

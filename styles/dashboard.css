@@ -1,0 +1,10 @@
+/* ============================================
+   CURSIS — Unified Design System & Dashboard CSS
+   ============================================ */
+
+@import './variables.css';
+@import './reset.css';
+@import './layout.css';
+@import './components.css';
+@import './animations.css';
+@import './pages.css';

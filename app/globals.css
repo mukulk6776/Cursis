@@ -1,0 +1,29 @@
+/* ============================================
+   CURSIS — Global Reset & Setup
+   ============================================ */
+
+/* Keep base clean so that dashboard.css tokens and layout take full effect */
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body:has(.app) {
+  overflow: hidden;
+  height: 100vh;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
