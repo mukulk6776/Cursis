@@ -1,5 +1,6 @@
 import { adminDb } from '@/lib/auth/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { inMemoryStore } from './store';
 
 export interface WorkflowData {
   userId: string;
@@ -10,14 +11,15 @@ export interface WorkflowData {
   name?: string;
   desc?: string;
   time?: string;
-  createdAt?: FieldValue | Date;
+  createdAt?: FieldValue | Date | string;
 }
 
+const localWorkflows = new Map<string, WorkflowData & { id: string }>();
+
 export async function createWorkflow(userId: string, prompt: string, name?: string) {
-  const workflowsRef = adminDb.collection('workflows');
-  
-  const newWorkflowRef = workflowsRef.doc();
-  await newWorkflowRef.set({
+  const id = 'wf_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  const newWorkflow: WorkflowData & { id: string } = {
+    id,
     userId,
     prompt,
     name: name || 'New Workflow',
@@ -25,21 +27,46 @@ export async function createWorkflow(userId: string, prompt: string, name?: stri
     type: 'running',
     runs: 0,
     time: 'Just now',
-    createdAt: FieldValue.serverTimestamp(),
-  });
+    createdAt: new Date().toISOString(),
+  };
 
-  return newWorkflowRef.id;
+  localWorkflows.set(id, newWorkflow);
+
+  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
+    try {
+      const workflowsRef = adminDb.collection('workflows');
+      await workflowsRef.doc(id).set({
+        ...newWorkflow,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    } catch (err) {
+      console.warn('Firestore createWorkflow error:', err);
+    }
+  }
+
+  return id;
 }
 
 export async function getUserWorkflows(userId: string) {
-  const snapshot = await adminDb
-    .collection('workflows')
-    .where('userId', '==', userId)
-    .orderBy('createdAt', 'desc')
-    .get();
+  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
+    try {
+      const snapshot = await adminDb
+        .collection('workflows')
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .get();
 
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as any)
-  } as WorkflowData & { id: string }));
+      if (!snapshot.empty) {
+        return snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...(doc.data() as any)
+        } as WorkflowData & { id: string }));
+      }
+    } catch (err) {
+      console.warn('Firestore getUserWorkflows error:', err);
+    }
+  }
+
+  return Array.from(localWorkflows.values()).filter(w => w.userId === userId);
 }
+

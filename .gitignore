@@ -44,4 +44,4 @@ scripts/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
+scratch.html
