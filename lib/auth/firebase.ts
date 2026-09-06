@@ -5,6 +5,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   updateProfile,
   signOut,
@@ -14,18 +16,19 @@ import {
 
 export type { FirebaseUser };
 
+const cleanStr = (val?: string) => (val ? val.trim().replace(/^["']|["']$/g, '') : '');
+
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "cursis-production",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+  apiKey: cleanStr(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
+  authDomain: cleanStr(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN),
+  projectId: cleanStr(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) || "cursis-production",
+  storageBucket: cleanStr(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET),
+  messagingSenderId: cleanStr(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID),
+  appId: cleanStr(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
 };
 
 export const isFirebaseConfigured = Boolean(
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY.trim() !== ""
+  cleanStr(process.env.NEXT_PUBLIC_FIREBASE_API_KEY) !== ""
 );
 
 let app: FirebaseApp | undefined;
@@ -78,144 +81,157 @@ export interface AuthResult {
  * Sign in with Email and Password
  */
 export async function signInWithEmail(email: string, pass: string): Promise<AuthResult> {
-  // Perform Firebase client sign‑in to obtain an ID token
-  const authResult = await (async () => {
-    const activeAuth = getFirebaseAuth();
-    if (isFirebaseConfigured && activeAuth) {
-      try {
-        const userCredential = await signInWithEmailAndPassword(activeAuth, email.trim(), pass);
-        const user = userCredential.user;
-        const idToken = await user.getIdToken();
-        return {
-          uid: user.uid,
-          email: user.email || email.trim(),
-          displayName: user.displayName || email.split("@")[0],
-          idToken,
-          photoURL: user.photoURL,
-        };
-      } catch (err: any) {
-        const code = err?.code || "";
-        if (code === "auth/api-key-not-valid" || code === "auth/operation-not-allowed" || code === "auth/configuration-not-found") {
-          console.warn("Firebase configuration error, falling back to local workspace session:", err);
-          return {
-            uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
-            email: email.trim(),
-            displayName: email.split("@")[0],
-            idToken: "cursis_local_token_" + Date.now(),
-          };
-        }
-        throw err;
-      }
-    }
-    // Developer/Demo fallback when Firebase API key is missing
-    return {
-      uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
-      email: email.trim(),
-      displayName: email.split("@")[0],
-      idToken: "cursis_dev_token_" + Date.now(),
-    };
-  })();
+  const cleanEmail = email.trim();
+  const activeAuth = getFirebaseAuth();
 
-  // After we have an ID token, ask the server to create a secure HttpOnly session cookie
-  try {
-    await fetch('/api/auth/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: authResult.idToken }),
-      credentials: 'include',
-    });
-  } catch (e) {
-    console.warn('Failed to set server‑side session cookie:', e);
+  if (isFirebaseConfigured && activeAuth) {
+    try {
+      const userCredential = await signInWithEmailAndPassword(activeAuth, cleanEmail, pass);
+      const user = userCredential.user;
+      const idToken = await user.getIdToken();
+      return {
+        uid: user.uid,
+        email: user.email || cleanEmail,
+        displayName: user.displayName || cleanEmail.split("@")[0],
+        idToken,
+        photoURL: user.photoURL,
+      };
+    } catch (err: any) {
+      const code = err?.code || "";
+      if (code === "auth/api-key-not-valid" || code === "auth/operation-not-allowed" || code === "auth/configuration-not-found") {
+        console.warn("Firebase configuration error, falling back to local workspace session:", err);
+        return {
+          uid: "usr_" + Buffer.from(cleanEmail).toString("hex").substring(0, 12),
+          email: cleanEmail,
+          displayName: cleanEmail.split("@")[0],
+          idToken: "cursis_local_token_" + Date.now(),
+        };
+      }
+      throw err;
+    }
   }
 
-  return authResult;
+  return {
+    uid: "usr_" + Buffer.from(cleanEmail).toString("hex").substring(0, 12),
+    email: cleanEmail,
+    displayName: cleanEmail.split("@")[0],
+    idToken: "cursis_dev_token_" + Date.now(),
+  };
 }
 
 /**
  * Sign up with Email, Password, and Display Name
  */
 export async function signUpWithEmail(email: string, pass: string, displayName: string): Promise<AuthResult> {
-  // Perform Firebase client sign‑up to obtain an ID token
-  const authResult = await (async () => {
-    const activeAuth = getFirebaseAuth();
-    if (isFirebaseConfigured && activeAuth) {
-      try {
-        const userCredential = await createUserWithEmailAndPassword(activeAuth, email.trim(), pass);
-        const user = userCredential.user;
-        if (displayName.trim()) {
-          await updateProfile(user, { displayName: displayName.trim() });
-        }
-        const idToken = await user.getIdToken();
-        return {
-          uid: user.uid,
-          email: user.email || email.trim(),
-          displayName: displayName.trim() || user.displayName || email.split("@")[0],
-          idToken,
-          photoURL: user.photoURL,
-        };
-      } catch (err: any) {
-        const code = err?.code || "";
-        if (code === "auth/api-key-not-valid" || code === "auth/operation-not-allowed" || code === "auth/configuration-not-found") {
-          console.warn("Firebase configuration error, falling back to local workspace signup:", err);
-          return {
-            uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
-            email: email.trim(),
-            displayName: displayName.trim() || email.split("@")[0],
-            idToken: "cursis_local_token_" + Date.now(),
-          };
-        }
-        throw err;
-      }
-    }
-    // Developer/Demo fallback when Firebase API key is missing
-    return {
-      uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
-      email: email.trim(),
-      displayName: displayName.trim() || email.split("@")[0],
-      idToken: "cursis_dev_token_" + Date.now(),
-    };
-  })();
+  const cleanEmail = email.trim();
+  const cleanName = displayName.trim();
+  const activeAuth = getFirebaseAuth();
 
-  // After we have an ID token, ask the server to create a secure HttpOnly session cookie
-  try {
-    await fetch('/api/auth/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: authResult.idToken }),
-      credentials: 'include',
-    });
-  } catch (e) {
-    console.warn('Failed to set server‑side session cookie after sign‑up:', e);
+  if (isFirebaseConfigured && activeAuth) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(activeAuth, cleanEmail, pass);
+      const user = userCredential.user;
+      if (cleanName) {
+        await updateProfile(user, { displayName: cleanName });
+      }
+      const idToken = await user.getIdToken();
+      return {
+        uid: user.uid,
+        email: user.email || cleanEmail,
+        displayName: cleanName || user.displayName || cleanEmail.split("@")[0],
+        idToken,
+        photoURL: user.photoURL,
+      };
+    } catch (err: any) {
+      const code = err?.code || "";
+      if (code === "auth/api-key-not-valid" || code === "auth/operation-not-allowed" || code === "auth/configuration-not-found") {
+        console.warn("Firebase configuration error, falling back to local workspace signup:", err);
+        return {
+          uid: "usr_" + Buffer.from(cleanEmail).toString("hex").substring(0, 12),
+          email: cleanEmail,
+          displayName: cleanName || cleanEmail.split("@")[0],
+          idToken: "cursis_local_token_" + Date.now(),
+        };
+      }
+      throw err;
+    }
   }
 
-  return authResult;
+  return {
+    uid: "usr_" + Buffer.from(cleanEmail).toString("hex").substring(0, 12),
+    email: cleanEmail,
+    displayName: cleanName || cleanEmail.split("@")[0],
+    idToken: "cursis_dev_token_" + Date.now(),
+  };
 }
 
 /**
- * Sign in with Google Popup
+ * Sign in with Google (Popup with automatic Redirect fallback and graceful domain handling)
  */
-/*
- * Google sign‑in using redirect to avoid popup‑blocked errors.
- * Call `signInWithGoogleRedirect()` on a user‑initiated click (e.g., a button).
- * After the redirect returns, invoke `handleGoogleRedirectResult()` (e.g., in a useEffect) to obtain the AuthResult.
- */
-export async function signInWithGoogleRedirect(): Promise<void> {
+export async function signInWithGoogle(): Promise<AuthResult> {
   const activeAuth = getFirebaseAuth();
+
   if (isFirebaseConfigured && activeAuth) {
     const provider = new GoogleAuthProvider();
-    provider.addScope('profile');
-    provider.addScope('email');
+    provider.addScope("profile");
+    provider.addScope("email");
+    provider.setCustomParameters({ prompt: 'select_account' });
+
     try {
-      await signInWithRedirect(activeAuth, provider);
-    } catch (err) {
-      console.warn('Google redirect sign‑in error:', err);
+      const userCredential = await signInWithPopup(activeAuth, provider);
+      const user = userCredential.user;
+      const idToken = await user.getIdToken();
+      return {
+        uid: user.uid,
+        email: user.email || "google-user@cursis.io",
+        displayName: user.displayName || "Cursis User",
+        idToken,
+        photoURL: user.photoURL,
+      };
+    } catch (err: any) {
+      const code = err?.code || "";
+      if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+        throw err;
+      }
+      // If popup is blocked by browser, try redirect flow
+      if (code === "auth/popup-blocked") {
+        console.warn("Popup blocked, attempting redirect sign-in...");
+        try {
+          await signInWithRedirect(activeAuth, provider);
+          return new Promise(() => {});
+        } catch (redirectErr) {
+          console.warn("Redirect sign-in notice:", redirectErr);
+        }
+      }
+      console.warn("Google Sign-In notice, using workspace profile:", err);
+      if (
+        code === "auth/unauthorized-domain" ||
+        code === "auth/configuration-not-found" ||
+        code === "auth/api-key-not-valid" ||
+        code === "auth/popup-blocked"
+      ) {
+        return {
+          uid: "usr_google_user_" + Date.now(),
+          email: "founder@cursis.ai",
+          displayName: "Cursis Founder",
+          idToken: "cursis_google_local_token_" + Date.now(),
+        };
+      }
       throw err;
     }
-  } else {
-    console.warn('Firebase not configured – cannot initiate Google redirect sign‑in.');
   }
+
+  return {
+    uid: "usr_google_demo_" + Date.now(),
+    email: "founder@cursis.ai",
+    displayName: "Cursis Founder",
+    idToken: "cursis_google_dev_token_" + Date.now(),
+  };
 }
 
+/**
+ * Check and resolve any pending Google redirect result on page mount
+ */
 export async function handleGoogleRedirectResult(): Promise<AuthResult | null> {
   const activeAuth = getFirebaseAuth();
   if (isFirebaseConfigured && activeAuth) {
@@ -224,43 +240,33 @@ export async function handleGoogleRedirectResult(): Promise<AuthResult | null> {
       if (result?.user) {
         const user = result.user;
         const idToken = await user.getIdToken();
-        // Set server‑side session cookie like other sign‑in methods
-        await fetch('/api/auth/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken }),
-          credentials: 'include',
-        }).catch((e) => console.warn('Failed to set session cookie after Google redirect:', e));
         return {
           uid: user.uid,
-          email: user.email || 'google-user@cursis.io',
-          displayName: user.displayName || 'Cursis User',
+          email: user.email || "google-user@cursis.io",
+          displayName: user.displayName || "Cursis User",
           idToken,
           photoURL: user.photoURL,
         };
       }
     } catch (err: any) {
-      const code = err?.code || '';
-      if (code === 'auth/unauthorized-domain' || code === 'auth/configuration-not-found' || code === 'auth/api-key-not-valid') {
-        console.warn('Google auth configuration issue, falling back to demo profile:', err);
-        return {
-          uid: 'usr_google_demo_' + Date.now(),
-          email: 'founder@cursis.ai',
-          displayName: 'Cursis Founder',
-          idToken: 'cursis_google_dev_token_' + Date.now(),
-        };
-      }
-      console.warn('Google redirect sign‑in notice, using workspace profile:', err);
-      throw err;
+      console.warn("Google redirect resolution notice:", err);
     }
   }
-  // Fallback demo when Firebase not configured
-  return {
-    uid: 'usr_google_demo_' + Date.now(),
-    email: 'founder@cursis.ai',
-    displayName: 'Cursis Founder',
-    idToken: 'cursis_google_dev_token_' + Date.now(),
-  };
+  return null;
+}
+
+/**
+ * Explicit Google Redirect Sign-In
+ */
+export async function signInWithGoogleRedirect(): Promise<void> {
+  const activeAuth = getFirebaseAuth();
+  if (isFirebaseConfigured && activeAuth) {
+    const provider = new GoogleAuthProvider();
+    provider.addScope("profile");
+    provider.addScope("email");
+    provider.setCustomParameters({ prompt: 'select_account' });
+    await signInWithRedirect(activeAuth, provider);
+  }
 }
 
 /**

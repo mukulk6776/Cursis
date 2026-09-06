@@ -14,20 +14,32 @@ export default function DashboardPage() {
 
     async function verifyAuth() {
       try {
-        const res = await fetch('/api/auth/session', { credentials: 'include' });
+        const storedToken = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+        const headers: Record<string, string> = {};
+        if (storedToken) {
+          headers['Authorization'] = `Bearer ${storedToken}`;
+        }
+
+        const res = await fetch('/api/auth/session', {
+          headers,
+          credentials: 'include',
+        });
+
         if (res.ok) {
           if (isMounted) {
             setIsAuthenticated(true);
             setCheckingAuth(false);
           }
         } else {
-          // Unauthenticated or invalid session: clear stale cookie and redirect to login
+          // Unauthenticated or invalid session: clear stale state and redirect to login
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('cursis_token');
+          }
           await fetch('/api/auth/session', { method: 'DELETE' }).catch(() => {});
           window.location.href = '/login?redirect=/dashboard';
         }
       } catch (err) {
-        console.warn('Auth verification failed, redirecting to login:', err);
-        await fetch('/api/auth/session', { method: 'DELETE' }).catch(() => {});
+        console.warn('Auth verification notice:', err);
         window.location.href = '/login?redirect=/dashboard';
       }
     }

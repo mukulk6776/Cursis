@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { signInWithEmail, signInWithGoogle } from '@/lib/auth/firebase';
+import { signInWithEmail, signInWithGoogle, handleGoogleRedirectResult } from '@/lib/auth/firebase';
 import '@/styles/landing.css';
 
 export default function LoginPage() {
@@ -11,6 +11,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    handleGoogleRedirectResult()
+      .then((result) => {
+        if (isMounted && result) {
+          setGoogleLoading(true);
+          exchangeTokenAndRedirect(result).finally(() => {
+            if (isMounted) setGoogleLoading(false);
+          });
+        }
+      })
+      .catch((err) => console.warn('Google redirect resolution error:', err));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const formatFirebaseError = (err: any): string => {
     const code = err?.code || '';
@@ -26,8 +43,11 @@ export default function LoginPage() {
     if (code === 'auth/popup-closed-by-user') {
       return 'Google sign-in popup was closed before completing.';
     }
+    if (code === 'auth/popup-blocked') {
+      return 'Sign-in popup was blocked by browser. Redirecting to Google authentication...';
+    }
     if (code === 'auth/unauthorized-domain') {
-      return 'Current domain is not authorized in Firebase Console.';
+      return 'Current domain is not authorized in Firebase Console. Using workspace demo session.';
     }
     return err?.message || 'Authentication failed. Please try again.';
   };
@@ -47,10 +67,17 @@ export default function LoginPage() {
         }),
       });
 
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && (data.success || data.user)) {
+        if (data.token) {
+          try {
+            document.cookie = `cursis_session=${encodeURIComponent(data.token)}; path=/; max-age=604800; SameSite=Lax`;
+            localStorage.setItem('cursis_token', data.token);
+          } catch {}
+        }
         window.location.href = '/dashboard';
       } else {
-        const data = await res.json().catch(() => ({}));
         setErrorMsg(data.error || 'Failed to establish workspace session.');
       }
     } catch (err: any) {
@@ -58,7 +85,6 @@ export default function LoginPage() {
       setErrorMsg(err.message || 'Failed to establish workspace session.');
     }
   };
-
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +98,9 @@ export default function LoginPage() {
 
     try {
       const authResult = await signInWithEmail(email, password);
-      await exchangeTokenAndRedirect(authResult);
+      if (authResult?.email) {
+        await exchangeTokenAndRedirect(authResult);
+      }
     } catch (err: any) {
       setErrorMsg(formatFirebaseError(err));
     } finally {
@@ -86,7 +114,9 @@ export default function LoginPage() {
 
     try {
       const authResult = await signInWithGoogle();
-      await exchangeTokenAndRedirect(authResult);
+      if (authResult?.email || authResult?.idToken) {
+        await exchangeTokenAndRedirect(authResult);
+      }
     } catch (err: any) {
       setErrorMsg(formatFirebaseError(err));
     } finally {
