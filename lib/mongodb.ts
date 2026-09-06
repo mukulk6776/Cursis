@@ -36,31 +36,20 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-if (process.env.NODE_ENV === 'development') {
-  // In development mode, use a global variable so that the value
-  // is preserved across module reloads caused by HMR (Hot Module Replacement).
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(MONGODB_URI, options);
-    global._mongoClientPromise = client.connect().then((c) => {
-      console.log(`✓ MongoDB Connected successfully to: ${isAtlasCluster ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${DB_NAME})`);
-      return c;
-    }).catch((err) => {
-      console.warn('Notice: MongoDB connection attempt in dev mode:', err.message || err);
-      return client;
-    });
-  }
-  clientPromise = global._mongoClientPromise;
-} else {
-  // In production mode, initialize directly
+// In both development and Vercel serverless production environments,
+// reuse the client promise cached on the global object to prevent connection leaks
+// across hot-reloads and warm serverless lambda invocations.
+if (!global._mongoClientPromise) {
   client = new MongoClient(MONGODB_URI, options);
-  clientPromise = client.connect().then((c) => {
-    console.log(`✓ MongoDB Connected successfully (DB: ${DB_NAME})`);
+  global._mongoClientPromise = client.connect().then((c) => {
+    console.log(`✓ MongoDB Connected successfully to: ${isAtlasCluster ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${DB_NAME})`);
     return c;
   }).catch((err) => {
-    console.warn('Notice: MongoDB connection attempt in prod mode:', err.message || err);
+    console.warn('Notice: MongoDB connection attempt:', err.message || err);
     return client;
   });
 }
+clientPromise = global._mongoClientPromise;
 
 export default clientPromise;
 
