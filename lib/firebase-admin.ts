@@ -1,2 +1,2 @@
-export { adminAuth, adminDb } from './auth/firebase-admin';
+export { adminAuth } from './auth/firebase-admin';
 

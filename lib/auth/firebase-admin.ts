@@ -1,12 +1,10 @@
-let adminAuth: any;
-let adminDb: any;
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getAuth, type Auth } from 'firebase-admin/auth';
+
+let adminAuth: Auth | null = null;
 
 try {
   if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    const { getApps, initializeApp, cert } = require('firebase-admin/app');
-    const { getAuth } = require('firebase-admin/auth');
-    const { getFirestore } = require('firebase-admin/firestore');
-
     const app = !getApps().length
       ? initializeApp({
           credential: cert({
@@ -20,15 +18,13 @@ try {
     try {
       adminAuth = getAuth(app);
     } catch {}
-
-    try {
-      adminDb = getFirestore(app);
-    } catch {}
   }
 } catch (error) {
   console.warn('Firebase Admin SDK initialization skipped or error:', error);
 }
 
-export { adminAuth, adminDb };
+export { adminAuth };
+
+
 
 

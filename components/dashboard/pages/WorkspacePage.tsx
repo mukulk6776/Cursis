@@ -501,15 +501,27 @@ export default function WorkspacePage() {
                     />
                   </div>
                 </div>
-                <div className="input-group">
-                  <label className="input-label">Email</label>
-                  <input
-                    className="input"
-                    type="email"
-                    placeholder="john@company.com"
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
+                  <div className="input-group">
+                    <label className="input-label">Email</label>
+                    <input
+                      className="input"
+                      type="email"
+                      placeholder="john@company.com"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Phone</label>
+                    <input
+                      className="input"
+                      type="tel"
+                      placeholder="+1-555-0199"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
               <div className="modal-footer">

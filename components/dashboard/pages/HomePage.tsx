@@ -108,7 +108,7 @@ export default function HomePage() {
           <input
             className="input"
             style={{ flex: 1 }}
-            placeholder="Ask Ordis: e.g. 'Create task for Mukul', 'What is my team working on?', 'Schedule team sync'..."
+            placeholder={`Ask Ordis: e.g. '${employees[0]?.name ? `Create task for ${employees[0].name.split(' ')[0]}` : 'Create task: Review roadmap'}', 'What is my team working on?', 'Schedule team sync'...`}
             value={aiInput}
             onChange={(e) => setAiInput(e.target.value)}
             onKeyDown={(e) => {
@@ -131,7 +131,7 @@ export default function HomePage() {
         <div style={{ display: 'flex', gap: 'var(--sp-2)', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', fontWeight: 'var(--fw-bold)', color: 'var(--text-tertiary)' }}>QUICK COMMANDS:</span>
           {[
-            'Create task for Mukul',
+            employees[0]?.name ? `Create task for ${employees[0].name.split(' ')[0]}` : 'Create task: Finalize sprint roadmap',
             'What is my team working on?',
             'Show upcoming deadlines',
             'Schedule a meeting',
@@ -197,7 +197,9 @@ export default function HomePage() {
             {projects.length}
           </div>
           <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-brand)', fontWeight: 'var(--fw-medium)' }}>
-            Average 82% sprint velocity
+            {projects.length > 0
+              ? `${Math.round(projects.reduce((acc, p) => acc + (p.progress || 0), 0) / projects.length)}% average progress`
+              : 'No active projects'}
           </div>
         </div>
 
@@ -206,10 +208,10 @@ export default function HomePage() {
             TEAM PRESENCE
           </div>
           <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 'var(--fw-black)', margin: 'var(--sp-1) 0' }}>
-            {employees.filter((e) => e.status === 'online').length} / {employees.length}
+            {employees.length > 0 ? `${employees.filter((e) => e.status === 'online').length} / ${employees.length}` : '1 / 1'}
           </div>
           <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-success)', fontWeight: 'var(--fw-medium)' }}>
-            Team active &amp; ready
+            {employees.length > 1 ? 'Team active & ready' : 'Workspace active'}
           </div>
         </div>
       </div>

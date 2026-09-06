@@ -7,6 +7,7 @@ export default function AutomationsPage() {
   const {
     user,
     automations,
+    auditLogs,
     toggleAutomation,
     addAutomation,
     updateAutomation,
@@ -72,13 +73,14 @@ export default function AutomationsPage() {
     setActiveTab('rules');
   };
 
-  const executionHistory = [
-    { rule: 'Deadline Reminder', time: '10 min ago', status: 'Success', details: 'Reminded Rahul and Sarah of 2 tasks due tomorrow' },
-    { rule: 'Task Completion Alert', time: '1 hr ago', status: 'Success', details: 'Notified Priya on task "Set up CI/CD pipeline"' },
-    { rule: 'Client Onboarding Paperwork Engine', time: '2 hrs ago', status: 'Success', details: 'Auto-generated MSA for Horizon Digital' },
-    { rule: 'CRM Follow-up Scheduler', time: '5 hrs ago', status: 'Success', details: 'Created follow-up reminder for Emma Davis' },
-    { rule: 'Meeting Notes Distribution', time: 'Yesterday', status: 'Success', details: 'Dispatched AI summary to 6 participants' },
-  ];
+  const executionHistory = auditLogs
+    .filter((a) => a.action.includes('automation') || a.action.includes('workflow') || a.action.includes('triggered'))
+    .map((a) => ({
+      rule: a.target || 'Automation Rule',
+      time: a.timestamp ? new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
+      status: 'Success',
+      details: a.details || 'Executed rule action',
+    }));
 
   return (
     <div className="page active" id="page-automations" style={{ display: 'block' }}>
@@ -471,32 +473,40 @@ export default function AutomationsPage() {
       {activeTab === 'history' && (
         <div className="card" style={{ padding: 'var(--sp-4)' }}>
           <h3 style={{ marginBottom: 'var(--sp-3)' }}>Automation Run Log</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-            {executionHistory.map((h, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: 'var(--sp-2) var(--sp-3)',
-                  borderBottom: '1px solid var(--c-gray-100)',
-                  fontSize: 'var(--fs-xs)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
-                  <span className="badge badge-success" style={{ fontSize: '9px' }}>
-                    {h.status}
-                  </span>
-                  <div>
-                    <div style={{ fontWeight: 'var(--fw-bold)' }}>{h.rule}</div>
-                    <div style={{ color: 'var(--text-tertiary)', marginTop: '2px' }}>{h.details}</div>
+          {executionHistory.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 'var(--sp-6)', color: 'var(--text-tertiary)' }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚡</div>
+              <div style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>No automation runs recorded yet</div>
+              <div style={{ fontSize: 'var(--fs-xs)', marginTop: '4px' }}>Active workflow triggers and rule executions will log here in real time.</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
+              {executionHistory.map((h, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: 'var(--sp-2) var(--sp-3)',
+                    borderBottom: '1px solid var(--c-gray-100)',
+                    fontSize: 'var(--fs-xs)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+                    <span className="badge badge-success" style={{ fontSize: '9px' }}>
+                      {h.status}
+                    </span>
+                    <div>
+                      <div style={{ fontWeight: 'var(--fw-bold)' }}>{h.rule}</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginTop: '2px' }}>{h.details}</div>
+                    </div>
                   </div>
+                  <div style={{ color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{h.time}</div>
                 </div>
-                <div style={{ color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{h.time}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -528,7 +538,7 @@ export default function AutomationsPage() {
                   <textarea
                     className="input"
                     rows={3}
-                    placeholder="e.g., When an urgent bug task is created in Mobile App, assign it to Rahul and notify team in #website-redesign."
+                    placeholder="e.g., When an urgent task is created in Core Sprint, notify the project lead and create a follow-up reminder."
                     value={nlText}
                     onChange={(e) => setNlText(e.target.value)}
                     required
@@ -544,9 +554,9 @@ export default function AutomationsPage() {
                 >
                   <strong>Examples:</strong>
                   <br />
-                  - &quot;When a contract is signed, move deal to Won and create implementation project.&quot;
+                  - &quot;When a contract document is generated, move deal to Won and create kickoff project.&quot;
                   <br />
-                  - &quot;Every Friday at 5 PM, generate weekly analytics report and send to Alex.&quot;
+                  - &quot;Every Friday at 5 PM, compile sprint velocity report and dispatch to announcements.&quot;
                 </div>
               </div>
               <div className="modal-footer">

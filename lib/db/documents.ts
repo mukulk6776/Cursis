@@ -1,10 +1,28 @@
 import { inMemoryStore } from './store';
 import { DocumentItem } from './types';
+import { getCollection } from '@/lib/mongodb';
 
 export async function getDocuments(
   workspaceId: string,
   filter?: { projectId?: string; category?: string; isCompanyBrain?: boolean }
 ): Promise<DocumentItem[]> {
+  try {
+    const col = await getCollection<DocumentItem>('documents');
+    if (col) {
+      const query: any = { workspaceId };
+      if (filter?.projectId) query.projectId = filter.projectId;
+      if (filter?.category) query.category = filter.category;
+      if (filter?.isCompanyBrain !== undefined) query.isCompanyBrainResource = filter.isCompanyBrain;
+      const docs = await col.find(query).sort({ updatedAt: -1 }).toArray();
+      if (docs.length > 0) {
+        docs.forEach((d) => inMemoryStore.documents.set(d.id, d));
+        return docs;
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getDocuments notice:', e);
+  }
+
   return Array.from(inMemoryStore.documents.values())
     .filter((doc) => {
       if (doc.workspaceId !== workspaceId) return false;
@@ -17,7 +35,21 @@ export async function getDocuments(
 }
 
 export async function getDocumentById(id: string): Promise<DocumentItem | null> {
-  return inMemoryStore.documents.get(id) || null;
+  const doc = inMemoryStore.documents.get(id);
+  if (doc) return doc;
+
+  try {
+    const col = await getCollection<DocumentItem>('documents');
+    if (col) {
+      const found = await col.findOne({ id });
+      if (found) {
+        inMemoryStore.documents.set(id, found);
+        return found;
+      }
+    }
+  } catch {}
+
+  return null;
 }
 
 export async function createDocument(workspaceId: string, data: Partial<DocumentItem>): Promise<DocumentItem> {
@@ -30,7 +62,7 @@ export async function createDocument(workspaceId: string, data: Partial<Document
     content: data.content || '',
     category: data.category || 'general',
     tags: data.tags || [],
-    authorId: data.authorId || 'usr_owner_demo',
+    authorId: data.authorId || 'usr_author',
     authorName: data.authorName || 'Cursis Team',
     version: 1,
     isCompanyBrainResource: data.isCompanyBrainResource ?? true,
@@ -40,6 +72,16 @@ export async function createDocument(workspaceId: string, data: Partial<Document
   };
 
   inMemoryStore.documents.set(id, doc);
+
+  try {
+    const col = await getCollection<DocumentItem>('documents');
+    if (col) {
+      await col.insertOne(doc);
+    }
+  } catch (e) {
+    console.warn('MongoDB insert document notice:', e);
+  }
+
   return doc;
 }
 
@@ -55,6 +97,16 @@ export async function updateDocument(id: string, updates: Partial<DocumentItem>)
   };
 
   inMemoryStore.documents.set(id, updated);
+
+  try {
+    const col = await getCollection<DocumentItem>('documents');
+    if (col) {
+      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+    }
+  } catch (e) {
+    console.warn('MongoDB update document notice:', e);
+  }
+
   return updated;
 }
 

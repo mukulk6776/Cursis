@@ -97,45 +97,35 @@ export async function processMeetingWithOrdis(
   if (!meeting) throw new Error('Meeting not found');
 
   const team = await getWorkspaceTeam(workspaceId);
-  const textContent = `${meeting.title}\n${meeting.notes || ''}\n${meeting.transcript || ''}`;
 
   // 1. Generate Intelligent Summary
   if (!meeting.summary) {
-    meeting.summary = `Meeting concluded covering scope alignment, deliverables, and timeline milestones. Aligned on execution velocity and client deliverables.`;
+    meeting.summary = meeting.notes
+      ? `Summary based on notes: ${meeting.notes.slice(0, 150)}...`
+      : `Meeting concluded covering scope alignment, deliverables, and timeline milestones. Aligned on execution velocity and client deliverables.`;
   }
 
   // 2. Extract Action Items & Assign Tasks Automatically
   const createdTasks: Task[] = [];
+  const primaryAssignee = team[0] || { id: meeting.hostId || 'usr_host', displayName: 'Meeting Host' };
+  const secondaryAssignee = team[1] || primaryAssignee;
+
   const actionItemsData = meeting.actionItems.length > 0
     ? meeting.actionItems
     : [
         {
           id: `ai_${Date.now()}_1`,
-          text: `Prepare technical kickoff specification for ${meeting.title}`,
-          assigneeName: 'Priya Mehta',
-          assigneeId: team.find((t) => t.skills.includes('Next.js'))?.id || 'usr_dev_1',
+          text: `Prepare action items and deliverable specifications for "${meeting.title}"`,
+          assigneeName: primaryAssignee.displayName,
+          assigneeId: primaryAssignee.id,
           dueDate: new Date(Date.now() + 86400000).toISOString(),
         },
         {
           id: `ai_${Date.now()}_2`,
-          text: `Draft proposal and service agreement milestones`,
-          assigneeName: 'Neha Kapoor',
-          assigneeId: team.find((t) => t.skills.includes('Sales'))?.id || 'usr_sales_1',
-          dueDate: new Date(Date.now() + 86400000).toISOString(),
-        },
-        {
-          id: `ai_${Date.now()}_3`,
-          text: `Set up sprint review recurring cadence on calendar`,
-          assigneeName: 'Aarav Sharma',
-          assigneeId: 'usr_owner_demo',
+          text: `Follow up with meeting participants on milestones and deliverables`,
+          assigneeName: secondaryAssignee.displayName,
+          assigneeId: secondaryAssignee.id,
           dueDate: new Date(Date.now() + 2 * 86400000).toISOString(),
-        },
-        {
-          id: `ai_${Date.now()}_4`,
-          text: `Configure client portal and webhook integration test`,
-          assigneeName: 'Priya Mehta',
-          assigneeId: 'usr_dev_1',
-          dueDate: new Date(Date.now() + 3 * 86400000).toISOString(),
         },
       ];
 

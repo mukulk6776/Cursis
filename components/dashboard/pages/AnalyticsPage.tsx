@@ -128,8 +128,9 @@ export default function AnalyticsPage() {
               </span>
             </div>
             <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', lineHeight: 'var(--lh-normal)' }}>
-              Team velocity is up 14% week-over-week. Website Redesign is at 80% completion. Mobile App v2 is progressing
-              toward beta on Sept 1st.
+              {projects.length > 0
+                ? `${tasks.length} sprint items tracked across ${projects.length} active initiative${projects.length > 1 ? 's' : ''}. ${completed} delivered (${tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0}% velocity). Top initiative: "${projects[0].name}" is at ${projects[0].progress}% completion.`
+                : 'Workspace telemetry is live. Create projects and sprint deliverables to track live velocity, completion ratios, and team workload in real time.'}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>

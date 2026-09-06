@@ -11,7 +11,6 @@ export default function ModulesSection() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            let start = 0;
             const end = 17;
             const duration = 1000;
             let startTime: number | null = null;

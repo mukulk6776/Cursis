@@ -2,12 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { signInWithEmail, signInWithGoogle, isFirebaseConfigured } from '@/lib/auth/firebase';
+import { signInWithEmail, signInWithGoogle } from '@/lib/auth/firebase';
 import '@/styles/landing.css';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -93,23 +91,6 @@ export default function LoginPage() {
       setErrorMsg(formatFirebaseError(err));
     } finally {
       setGoogleLoading(false);
-    }
-  };
-
-  const handleDemoAccess = async () => {
-    setLoading(true);
-    setErrorMsg('');
-    try {
-      await exchangeTokenAndRedirect({
-        email: 'alex@cursis.io',
-        displayName: 'Alex Morgan',
-        idToken: 'demo_session_authenticated',
-        uid: 'u1',
-      });
-    } catch {
-      window.location.href = '/dashboard';
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -271,22 +252,6 @@ export default function LoginPage() {
             disabled={loading || googleLoading}
           >
             {loading ? 'Authenticating...' : 'Sign In with Email'}
-          </button>
-
-          <div style={{ textAlign: 'center', margin: '6px 0' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 800 }}>
-              — Developer Access —
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ width: '100%' }}
-            onClick={handleDemoAccess}
-            disabled={loading}
-          >
-            Enter Workspace as Alex Morgan →
           </button>
         </form>
 

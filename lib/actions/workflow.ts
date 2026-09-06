@@ -1,7 +1,7 @@
 'use server';
 
 import { createWorkflow as dbCreateWorkflow } from '@/lib/db/workflows';
-import { OrdisEngine } from '@/lib/ordis/engine';
+import { OrdisEngine } from '@/lib/ordis/server';
 import { getAuthenticatedUser } from '@/lib/auth/session';
 import { revalidatePath } from 'next/cache';
 

@@ -168,7 +168,6 @@ export default function CalendarPage() {
   }
 
   for (let i = 1; i <= daysInMonth; i++) {
-    const curr = new Date(year, month, i);
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
     calendarDays.push({
       day: i,
@@ -592,7 +591,7 @@ export default function CalendarPage() {
                       </span>
                     </div>
                     <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      Minimal overlap with Rahul&apos;s focus coding block.
+                      Minimal overlap with team focus coding blocks.
                     </div>
                   </div>
                 </div>

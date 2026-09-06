@@ -127,7 +127,12 @@ export default function LandingNav() {
         <div className="lp-nav-actions">
           {isAuthenticated ? (
             <>
-              <Link href="/dashboard" className="btn btn-primary btn-sm lp-hide-mobile" style={{ fontWeight: 800 }}>
+              <Link
+                href="/dashboard"
+                className="btn btn-primary btn-sm lp-hide-mobile"
+                style={{ fontWeight: 800 }}
+                title={userEmail ? `Signed in as ${userEmail}` : 'Open Dashboard'}
+              >
                 Open Dashboard →
               </Link>
               <button

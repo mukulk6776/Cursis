@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import { formatChatMarkdown } from '@/lib/dashboard/data';
 import { OrdisAgent, AuditLogItem } from '@/lib/dashboard/types';
+import ChatActionCardView from '@/components/dashboard/chat/ChatActionCardView';
 
 export default function OrdisPage() {
   const {
@@ -13,7 +15,6 @@ export default function OrdisPage() {
     ordisAgents,
     auditLogs,
     tasks,
-    projects,
     employees,
     meetings,
     showToast,
@@ -39,46 +40,82 @@ export default function OrdisPage() {
   };
 
   const handleRunAgent = (agent: OrdisAgent) => {
-    addAuditEntry('Alex Morgan', 'ordis.agent.triggered', agent.name, 'Manual mini-agent execution trigger');
+    addAuditEntry(user.name, 'ordis.agent.triggered', agent.name, 'Manual mini-agent execution trigger');
     showToast(`Autonomous Agent "${agent.name}" executed successfully ✓`);
   };
 
+  const dynamicMember = employees.length > 0 ? employees[0].name.split(' ')[0] : 'team';
+
   const operationalCommands = [
     {
-      title: 'Create Task for Mukul',
-      desc: 'Assigns sprint deliverable directly to Mukul',
-      prompt: 'Create task for Mukul: Implement responsive checkout UI with high priority',
+      title: dynamicMember !== 'team' ? `Create Task for ${dynamicMember}` : 'Create Sprint Task',
+      desc: dynamicMember !== 'team' ? `Assigns deliverable directly to ${dynamicMember}` : 'Creates deliverable in sprint queue',
+      prompt: dynamicMember !== 'team' ? `Create task for ${dynamicMember}: Implement responsive checkout UI with high priority` : 'Create task: Implement responsive checkout UI with high priority',
       icon: '⚡',
+      badge: 'Tasks',
     },
     {
       title: 'What is my team working on?',
       desc: 'Live workload & bandwidth scan',
       prompt: 'What is my team working on right now?',
       icon: '👥',
+      badge: 'Team',
+    },
+    {
+      title: 'Schedule a team sync',
+      desc: 'Generates Google Meet room & calendar invites',
+      prompt: 'Schedule meeting: Weekly Sprint & Product Architecture Sync',
+      icon: '🎥',
+      badge: 'Meetings',
+    },
+    {
+      title: 'Create CRM Deal ($45k)',
+      desc: 'Adds enterprise deal to sales pipeline',
+      prompt: 'Create deal: Acme Global Enterprise Expansion $45000 in proposal stage',
+      icon: '💼',
+      badge: 'CRM',
+    },
+    {
+      title: 'Create Knowledge Document',
+      desc: 'Authors docs in Engineering section',
+      prompt: 'Create document: Production Architecture & Database Guide in Engineering',
+      icon: '📄',
+      badge: 'Docs',
+    },
+    {
+      title: 'Create Auto-Assign Automation',
+      desc: 'Installs urgent task routing workflow rule',
+      prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer',
+      icon: '⚙️',
+      badge: 'Automations',
+    },
+    {
+      title: 'Generate Workspace Velocity',
+      desc: 'Executive summary across initiatives',
+      prompt: 'Generate workspace executive summary and sprint velocity report',
+      icon: '📊',
+      badge: 'Analytics',
+    },
+    {
+      title: 'Set Indigo Theme Accent',
+      desc: 'Updates workspace accent to #6366f1',
+      prompt: 'Set workspace accent color to #6366f1',
+      icon: '🎨',
+      badge: 'Settings',
+    },
+    {
+      title: 'Generate Developer API Key',
+      desc: 'Creates live scoped production secret',
+      prompt: 'Generate new API key named Production Webhook Ingestion',
+      icon: '🔑',
+      badge: 'Developer',
     },
     {
       title: 'Show upcoming deadlines',
       desc: 'Scans for overdue & approaching milestones',
       prompt: 'Show upcoming deadlines for active tasks',
       icon: '📅',
-    },
-    {
-      title: 'Schedule a team sync',
-      desc: 'Generates Google Meet room & invites',
-      prompt: 'Schedule meeting: Weekly Sprint & Product Architecture Sync',
-      icon: '🎥',
-    },
-    {
-      title: 'Organize today\'s work',
-      desc: 'Prioritized daily agenda for Alex',
-      prompt: 'Organize today\'s work and prioritize my open tasks',
-      icon: '🎯',
-    },
-    {
-      title: 'Summarize project progress',
-      desc: 'Completion velocity across initiatives',
-      prompt: 'Summarize project progress and milestone completion',
-      icon: '📊',
+      badge: 'Tasks',
     },
   ];
 
@@ -221,9 +258,16 @@ export default function OrdisPage() {
                     e.currentTarget.style.borderColor = 'var(--border-color)';
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-                    <span>{cmd.icon}</span>
-                    <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>{cmd.title}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--sp-2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+                      <span>{cmd.icon}</span>
+                      <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>{cmd.title}</span>
+                    </div>
+                    {cmd.badge && (
+                      <span className="badge badge-subtle" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                        {cmd.badge}
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{cmd.desc}</div>
                 </button>
@@ -284,10 +328,7 @@ export default function OrdisPage() {
                 );
               }
 
-              const formatted = (msg.text || '')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/\n/g, '<br />');
+              const formatted = formatChatMarkdown(msg.text || '');
 
               return (
                 <div
@@ -335,6 +376,47 @@ export default function OrdisPage() {
                       style={{ fontSize: 'var(--fs-sm)', lineHeight: 'var(--lh-relaxed)' }}
                       dangerouslySetInnerHTML={{ __html: formatted }}
                     />
+
+                    {/* Interactive Action Card */}
+                    {msg.actionCard && (
+                      <div style={{ marginTop: '8px' }}>
+                        <ChatActionCardView card={msg.actionCard} />
+                      </div>
+                    )}
+
+                    {/* Suggested Follow-up Chips */}
+                    {msg.suggestedFollowUps && msg.suggestedFollowUps.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+                        {msg.suggestedFollowUps.map((chip, chipIdx) => (
+                          <button
+                            key={chipIdx}
+                            type="button"
+                            onClick={() => handleSend(chip)}
+                            style={{
+                              padding: '4px 10px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              borderRadius: '9999px',
+                              background: 'rgba(15, 76, 255, 0.1)',
+                              color: '#0f4cff',
+                              border: '1px solid rgba(15, 76, 255, 0.25)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#0f4cff';
+                              e.currentTarget.style.color = '#ffffff';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(15, 76, 255, 0.1)';
+                              e.currentTarget.style.color = '#0f4cff';
+                            }}
+                          >
+                            {chip} ➔
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -348,7 +430,7 @@ export default function OrdisPage() {
               <input
                 className="input"
                 style={{ flex: 1 }}
-                placeholder="Ask Ordis: e.g. 'Create task for Mukul', 'Show upcoming deadlines', 'Schedule sprint sync'..."
+                placeholder={`Ask Ordis: e.g. '${dynamicMember !== 'team' ? `Create task for ${dynamicMember}` : 'Create task: Implement checkout'}', 'Show upcoming deadlines', 'Schedule sprint sync'...`}
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={(e) => {

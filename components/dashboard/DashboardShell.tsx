@@ -10,6 +10,7 @@ import CommandPalette from './CommandPalette';
 import NotificationPanel from './NotificationPanel';
 import ProfilePanel from './ProfilePanel';
 import ToastContainer from './ToastContainer';
+import OrdisFloatingChat from './panels/OrdisFloatingChat';
 
 import TaskModal from './modals/TaskModal';
 import ProjectModal from './modals/ProjectModal';
@@ -34,6 +35,8 @@ import WorkspacePage from './pages/WorkspacePage';
 import AutomationsPage from './pages/AutomationsPage';
 import OrdisPage from './pages/OrdisPage';
 import DocumentsPage from './pages/DocumentsPage';
+import MessagesPage from './pages/MessagesPage';
+import IntegrationsPage from './pages/IntegrationsPage';
 import SettingsPage from './pages/SettingsPage';
 
 export default function DashboardShell() {
@@ -63,6 +66,10 @@ export default function DashboardShell() {
         return <OrdisPage />;
       case 'documents':
         return <DocumentsPage />;
+      case 'messages':
+        return <MessagesPage />;
+      case 'integrations':
+        return <IntegrationsPage />;
       case 'settings':
         return <SettingsPage />;
       default:
@@ -99,6 +106,9 @@ export default function DashboardShell() {
       <InviteModal />
       <DocumentModal />
       <GenericModal />
+
+      {/* Global Floating Ordis AI Chatbot */}
+      <OrdisFloatingChat />
 
       {/* Toast Notifications */}
       <ToastContainer />

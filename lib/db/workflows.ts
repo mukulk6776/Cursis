@@ -1,5 +1,4 @@
-import { adminDb } from '@/lib/auth/firebase-admin';
-import { inMemoryStore } from './store';
+import { getCollection } from '@/lib/mongodb';
 
 export interface WorkflowData {
   userId: string;
@@ -10,7 +9,7 @@ export interface WorkflowData {
   name?: string;
   desc?: string;
   time?: string;
-  createdAt?: Date | string | any;
+  createdAt?: string;
 }
 
 const localWorkflows = new Map<string, WorkflowData & { id: string }>();
@@ -31,39 +30,33 @@ export async function createWorkflow(userId: string, prompt: string, name?: stri
 
   localWorkflows.set(id, newWorkflow);
 
-  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-    try {
-      const workflowsRef = adminDb.collection('workflows');
-      await workflowsRef.doc(id).set(newWorkflow);
-    } catch (err) {
-      console.warn('Firestore createWorkflow error:', err);
+  try {
+    const col = await getCollection<WorkflowData & { id: string }>('workflows');
+    if (col) {
+      await col.insertOne(newWorkflow);
     }
+  } catch (err) {
+    console.warn('MongoDB createWorkflow notice:', err);
   }
 
   return id;
 }
 
-
 export async function getUserWorkflows(userId: string) {
-  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-    try {
-      const snapshot = await adminDb
-        .collection('workflows')
-        .where('userId', '==', userId)
-        .orderBy('createdAt', 'desc')
-        .get();
-
-      if (!snapshot.empty) {
-        return snapshot.docs.map((doc: any) => ({
-          id: doc.id,
-          ...(doc.data() as any)
-        } as WorkflowData & { id: string }));
+  try {
+    const col = await getCollection<WorkflowData & { id: string }>('workflows');
+    if (col) {
+      const docs = await col.find({ userId }).sort({ createdAt: -1 }).toArray();
+      if (docs.length > 0) {
+        docs.forEach((w) => localWorkflows.set(w.id, w));
+        return docs;
       }
-    } catch (err) {
-      console.warn('Firestore getUserWorkflows error:', err);
     }
+  } catch (err) {
+    console.warn('MongoDB getUserWorkflows notice:', err);
   }
 
-  return Array.from(localWorkflows.values()).filter(w => w.userId === userId);
+  return Array.from(localWorkflows.values()).filter((w) => w.userId === userId);
 }
+
 

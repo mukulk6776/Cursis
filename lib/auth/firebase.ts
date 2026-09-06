@@ -9,9 +9,10 @@ import {
   updateProfile,
   signOut,
   Auth,
-  User as FirebaseUser,
+  type User as FirebaseUser,
 } from "firebase/auth";
-import { getFirestore, Firestore } from "firebase/firestore";
+
+export type { FirebaseUser };
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
@@ -29,7 +30,6 @@ export const isFirebaseConfigured = Boolean(
 
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
-let db: Firestore | undefined;
 
 export function getFirebaseApp(): FirebaseApp | null {
   if (typeof window === "undefined" && !isFirebaseConfigured) return null;
@@ -59,26 +59,12 @@ export function getFirebaseAuth(): Auth | null {
   return null;
 }
 
-export function getFirebaseDb(): Firestore | null {
-  try {
-    const fApp = getFirebaseApp();
-    if (fApp) {
-      if (!db) db = getFirestore(fApp);
-      return db;
-    }
-  } catch (err) {
-    console.warn("Firebase Firestore retrieval notice:", err);
-  }
-  return null;
-}
-
 // Initial client-side warm up
 if (typeof window !== "undefined" && isFirebaseConfigured) {
   getFirebaseAuth();
-  getFirebaseDb();
 }
 
-export { app, auth, db };
+export { app, auth };
 
 export interface AuthResult {
   uid: string;

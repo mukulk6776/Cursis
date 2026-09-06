@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { DashboardPageType } from '@/lib/dashboard/types';
 
 interface CommandAction {
   id: string;
@@ -20,6 +19,7 @@ export default function CommandPalette() {
     openModal,
     setCurrentPage,
     signOut,
+    sendOrdisMessage,
   } = useDashboard();
 
   const [query, setQuery] = useState('');
@@ -37,6 +37,19 @@ export default function CommandPalette() {
 
   const actions: CommandAction[] = [
     // Quick Actions
+    {
+      id: 'ordis-exec',
+      group: 'Quick Actions',
+      icon: '⚡',
+      text: query ? `Ask Ordis: "${query}"` : 'Ask Ordis Autonomous Copilot',
+      shortcut: '/ordis',
+      action: () => {
+        if (query.trim()) {
+          sendOrdisMessage(query.trim());
+        }
+        setCurrentPage('ordis');
+      },
+    },
     {
       id: 'new-task',
       group: 'Quick Actions',
@@ -60,6 +73,22 @@ export default function CommandPalette() {
       text: 'Upload Document & Run OCR',
       shortcut: '/doc',
       action: () => openModal('document-modal'),
+    },
+    {
+      id: 'new-crm-deal',
+      group: 'Quick Actions',
+      icon: '💼',
+      text: 'Open CRM Sales Pipeline',
+      shortcut: '/crm',
+      action: () => setCurrentPage('workspace'),
+    },
+    {
+      id: 'new-automation',
+      group: 'Quick Actions',
+      icon: '⚙️',
+      text: 'Manage Workflows & Automations',
+      shortcut: '/auto',
+      action: () => setCurrentPage('automations'),
     },
     {
       id: 'agency-req',
@@ -144,11 +173,46 @@ export default function CommandPalette() {
       action: () => setCurrentPage('meetings'),
     },
     {
+      id: 'go-messages',
+      group: 'Navigate',
+      icon: '💬',
+      text: 'Go to Team Messages & Channels',
+      action: () => setCurrentPage('messages'),
+    },
+    {
+      id: 'go-workspace',
+      group: 'Navigate',
+      icon: '💼',
+      text: 'Go to CRM & Agency Pipeline',
+      action: () => setCurrentPage('workspace'),
+    },
+    {
+      id: 'go-documents',
+      group: 'Navigate',
+      icon: '📄',
+      text: 'Go to Documents & Paperwork Studio',
+      action: () => setCurrentPage('documents'),
+    },
+    {
+      id: 'go-automations',
+      group: 'Navigate',
+      icon: '⚙️',
+      text: 'Go to Automations & Workflows',
+      action: () => setCurrentPage('automations'),
+    },
+    {
       id: 'go-analytics',
       group: 'Navigate',
       icon: 'A',
       text: 'Go to Analytics & Velocity',
       action: () => setCurrentPage('analytics'),
+    },
+    {
+      id: 'go-integrations',
+      group: 'Navigate',
+      icon: '🔑',
+      text: 'Go to Integrations & API Keys',
+      action: () => setCurrentPage('integrations'),
     },
     {
       id: 'go-settings',

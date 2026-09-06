@@ -60,7 +60,7 @@ export async function findSmartOpenSlots(
 
   const now = new Date();
   // Start from next morning 10:00 AM or today afternoon
-  let checkDate = new Date(now);
+  const checkDate = new Date(now);
   if (checkDate.getHours() >= 17) {
     checkDate.setDate(checkDate.getDate() + 1);
     checkDate.setHours(10, 0, 0, 0);

@@ -1,25 +1,29 @@
 import { inMemoryStore } from './store';
-import { UserProfile, UserRole } from './types';
-import { adminDb } from '@/lib/auth/firebase-admin';
+import { UserProfile } from './types';
+import { getCollection } from '@/lib/mongodb';
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   const user = inMemoryStore.users.get(uid);
   if (user) return user;
 
-  // Check by email
+  // Check by email in memory
   for (const u of inMemoryStore.users.values()) {
     if (u.email === uid || u.uid === uid || u.id === uid) return u;
   }
 
-  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-    try {
-      const doc = await adminDb.collection('users').doc(uid).get();
-      if (doc.exists) {
-        return { id: doc.id, ...doc.data() } as UserProfile;
+  try {
+    const col = await getCollection<UserProfile>('users');
+    if (col) {
+      const doc = await col.findOne({
+        $or: [{ uid }, { id: uid }, { email: uid }],
+      });
+      if (doc) {
+        inMemoryStore.users.set(doc.uid || doc.id, doc);
+        return doc;
       }
-    } catch (e) {
-      console.warn('Firestore getUserProfile error:', e);
     }
+  } catch (e) {
+    console.warn('MongoDB getUserProfile notice:', e);
   }
 
   return null;
@@ -37,8 +41,8 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
     department: data.department || existing?.department || 'General',
     title: data.title || existing?.title || 'Team Member',
     skills: data.skills || existing?.skills || ['General'],
-    workspaceIds: data.workspaceIds || existing?.workspaceIds || ['ws_cursis_demo'],
-    activeWorkspaceId: data.activeWorkspaceId || existing?.activeWorkspaceId || 'ws_cursis_demo',
+    workspaceIds: data.workspaceIds || existing?.workspaceIds || ['ws_cursis_main'],
+    activeWorkspaceId: data.activeWorkspaceId || existing?.activeWorkspaceId || 'ws_cursis_main',
     onboardingStatus: data.onboardingStatus || existing?.onboardingStatus || 'completed',
     onboardingChecklist: data.onboardingChecklist || existing?.onboardingChecklist || [
       { id: 'ob_1', title: 'Complete profile setup', completed: true },
@@ -51,12 +55,13 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
 
   inMemoryStore.users.set(uid, updatedUser);
 
-  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-    try {
-      await adminDb.collection('users').doc(uid).set(updatedUser, { merge: true });
-    } catch (e) {
-      console.warn('Firestore createUserProfile error:', e);
+  try {
+    const col = await getCollection<UserProfile>('users');
+    if (col) {
+      await col.updateOne({ uid }, { $set: updatedUser }, { upsert: true });
     }
+  } catch (e) {
+    console.warn('MongoDB createUserProfile notice:', e);
   }
 
   return updatedUser;
@@ -74,12 +79,13 @@ export async function updateUserProfile(uid: string, updates: Partial<UserProfil
 
   inMemoryStore.users.set(uid, updated);
 
-  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-    try {
-      await adminDb.collection('users').doc(uid).set(updated, { merge: true });
-    } catch (e) {
-      console.warn('Firestore updateUserProfile error:', e);
+  try {
+    const col = await getCollection<UserProfile>('users');
+    if (col) {
+      await col.updateOne({ uid }, { $set: updated }, { upsert: true });
     }
+  } catch (e) {
+    console.warn('MongoDB updateUserProfile notice:', e);
   }
 
   return updated;

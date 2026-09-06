@@ -10,10 +10,8 @@ export default function SettingsPage() {
   const {
     user,
     employees,
-    roles,
     invitations,
     openModal,
-    showToast,
     openProfilePanel,
     workspaceSettings,
     updateWorkspaceSettings,
@@ -34,9 +32,6 @@ export default function SettingsPage() {
     signOut,
     resetSettingsToDefault,
     sendTestNotification,
-    activeWorkspace,
-    workspaces,
-    switchWorkspace,
   } = useDashboard();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('workspace');
@@ -1097,7 +1092,7 @@ export default function SettingsPage() {
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
                 <div>
                   <div style={{ fontWeight: 'var(--fw-bold)' }}>Allow Creating &amp; Assigning Tasks</div>
-                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Allow prompts like "Create task for Mukul" to directly insert tasks into projects</div>
+                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Allow natural language prompts to directly create and assign tasks in your workspace projects</div>
                 </div>
                 <input
                   type="checkbox"

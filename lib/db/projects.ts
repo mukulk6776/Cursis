@@ -1,14 +1,42 @@
 import { inMemoryStore } from './store';
-import { Project, ProjectHealth } from './types';
+import { Project } from './types';
+import { getCollection } from '@/lib/mongodb';
 
 export async function getProjects(workspaceId: string): Promise<Project[]> {
+  try {
+    const col = await getCollection<Project>('projects');
+    if (col) {
+      const docs = await col.find({ workspaceId }).sort({ createdAt: -1 }).toArray();
+      if (docs.length > 0) {
+        docs.forEach((p) => inMemoryStore.projects.set(p.id, p));
+        return docs;
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getProjects notice:', e);
+  }
+
   return Array.from(inMemoryStore.projects.values())
     .filter((p) => p.workspaceId === workspaceId)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getProjectById(id: string): Promise<Project | null> {
-  return inMemoryStore.projects.get(id) || null;
+  const project = inMemoryStore.projects.get(id);
+  if (project) return project;
+
+  try {
+    const col = await getCollection<Project>('projects');
+    if (col) {
+      const found = await col.findOne({ id });
+      if (found) {
+        inMemoryStore.projects.set(id, found);
+        return found;
+      }
+    }
+  } catch {}
+
+  return null;
 }
 
 export async function createProject(workspaceId: string, data: Partial<Project>): Promise<Project> {
@@ -29,8 +57,8 @@ export async function createProject(workspaceId: string, data: Partial<Project>)
     health: data.health || 'on_track',
     healthReason: data.healthReason,
     progressPercent: data.progressPercent || 0,
-    ownerId: data.ownerId || 'usr_owner_demo',
-    teamMemberIds: data.teamMemberIds || ['usr_owner_demo'],
+    ownerId: data.ownerId || 'usr_owner',
+    teamMemberIds: data.teamMemberIds || [],
     milestones: data.milestones || [
       { id: 'ms_1', title: 'Discovery & Spec Alignment', dueDate: new Date(Date.now() + 7 * 86400000).toISOString(), completed: false },
       { id: 'ms_2', title: 'Alpha Milestone Delivery', dueDate: new Date(Date.now() + 21 * 86400000).toISOString(), completed: false },
@@ -43,6 +71,16 @@ export async function createProject(workspaceId: string, data: Partial<Project>)
   };
 
   inMemoryStore.projects.set(id, project);
+
+  try {
+    const col = await getCollection<Project>('projects');
+    if (col) {
+      await col.insertOne(project);
+    }
+  } catch (e) {
+    console.warn('MongoDB insert project notice:', e);
+  }
+
   return project;
 }
 
@@ -78,9 +116,28 @@ export async function updateProject(id: string, updates: Partial<Project>): Prom
   }
 
   inMemoryStore.projects.set(id, updated);
+
+  try {
+    const col = await getCollection<Project>('projects');
+    if (col) {
+      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+    }
+  } catch (e) {
+    console.warn('MongoDB update project notice:', e);
+  }
+
   return updated;
 }
 
 export async function deleteProject(id: string): Promise<boolean> {
-  return inMemoryStore.projects.delete(id);
+  const deleted = inMemoryStore.projects.delete(id);
+  try {
+    const col = await getCollection<Project>('projects');
+    if (col) {
+      await col.deleteOne({ id });
+    }
+  } catch (e) {
+    console.warn('MongoDB delete project notice:', e);
+  }
+  return deleted;
 }

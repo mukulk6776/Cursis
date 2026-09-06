@@ -69,7 +69,7 @@ export async function executeAutomationRule(
   // 2. Execute Actions
   const actionResults: any[] = [];
   for (const action of rule.actions) {
-    let result = { actionType: action.type, status: 'success', timestamp: new Date().toISOString() };
+    const result = { actionType: action.type, status: 'success', timestamp: new Date().toISOString() };
     actionResults.push(result);
   }
 

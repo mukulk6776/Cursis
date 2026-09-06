@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/session';
-import { OrdisEngine } from '@/lib/ordis/engine';
+import { OrdisEngine } from '@/lib/ordis/server';
 
 export async function GET(request: Request) {
   try {

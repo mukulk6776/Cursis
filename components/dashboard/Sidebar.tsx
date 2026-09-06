@@ -13,6 +13,9 @@ export default function Sidebar() {
     tasks,
     meetings,
     employees,
+    documents,
+    automations,
+    customCrm,
     openProfilePanel,
     user,
     activeWorkspace,
@@ -219,6 +222,77 @@ export default function Sidebar() {
           {upcomingMeetingsCount > 0 && <span className="sidebar-item-badge">{upcomingMeetingsCount}</span>}
         </div>
 
+        {/* Messages */}
+        <div
+          className={`sidebar-item ${currentPage === 'messages' ? 'active' : ''}`}
+          onClick={() => handleNav('messages')}
+          title="Team Communication & Channels"
+        >
+          <span className="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </span>
+          <span className="sidebar-item-text">Messages</span>
+        </div>
+
+        <div className="sidebar-divider" />
+        <div className="sidebar-section-title">Operations &amp; Growth</div>
+
+        {/* CRM & Agency Sales Pipeline */}
+        <div
+          className={`sidebar-item ${currentPage === 'workspace' ? 'active' : ''}`}
+          onClick={() => handleNav('workspace')}
+          title="CRM & Agency Pipeline"
+        >
+          <span className="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+            </svg>
+          </span>
+          <span className="sidebar-item-text">CRM &amp; Sales</span>
+          {customCrm?.deals?.length > 0 && <span className="sidebar-item-badge">{customCrm.deals.length}</span>}
+        </div>
+
+        {/* Documents */}
+        <div
+          className={`sidebar-item ${currentPage === 'documents' ? 'active' : ''}`}
+          onClick={() => handleNav('documents')}
+          title="Paperwork Studio & Documents"
+        >
+          <span className="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+          </span>
+          <span className="sidebar-item-text">Documents</span>
+          {documents?.length > 0 && <span className="sidebar-item-badge">{documents.length}</span>}
+        </div>
+
+        {/* Automations */}
+        <div
+          className={`sidebar-item ${currentPage === 'automations' ? 'active' : ''}`}
+          onClick={() => handleNav('automations')}
+          title="Workflows & Automations"
+        >
+          <span className="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+          </span>
+          <span className="sidebar-item-text">Automations</span>
+          {automations?.filter((a) => a.active).length > 0 && (
+            <span className="sidebar-item-badge" style={{ background: '#f59e0b', color: '#000' }}>
+              {automations.filter((a) => a.active).length}
+            </span>
+          )}
+        </div>
+
         {/* Analytics */}
         <div
           className={`sidebar-item ${currentPage === 'analytics' ? 'active' : ''}`}
@@ -233,6 +307,29 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Analytics</span>
+        </div>
+
+        {/* Integrations */}
+        <div
+          className={`sidebar-item ${currentPage === 'integrations' ? 'active' : ''}`}
+          onClick={() => handleNav('integrations')}
+          title="Integrations & Developer Hub"
+        >
+          <span className="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+              <rect x="9" y="9" width="6" height="6" />
+              <line x1="9" y1="1" x2="9" y2="4" />
+              <line x1="15" y1="1" x2="15" y2="4" />
+              <line x1="9" y1="20" x2="9" y2="23" />
+              <line x1="15" y1="20" x2="15" y2="23" />
+              <line x1="20" y1="9" x2="23" y2="9" />
+              <line x1="20" y1="14" x2="23" y2="14" />
+              <line x1="1" y1="9" x2="4" y2="9" />
+              <line x1="1" y1="14" x2="4" y2="14" />
+            </svg>
+          </span>
+          <span className="sidebar-item-text">Integrations</span>
         </div>
       </nav>
 

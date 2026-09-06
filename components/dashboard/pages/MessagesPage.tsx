@@ -22,11 +22,17 @@ export default function MessagesPage() {
     { id: 'c_announcements', name: 'announcements', desc: 'Major company milestones & executive briefs', unread: 0, linkedProject: null },
   ]);
 
-  const [dms] = useState<DirectMessage[]>([
-    { id: 'dm_u2', name: 'Sarah Chen', user: 'u2', status: 'online', unread: 1 },
-    { id: 'dm_u3', name: 'Marcus Johnson', user: 'u3', status: 'busy', unread: 0 },
-    { id: 'dm_u4', name: 'Elena Rostova', user: 'u4', status: 'offline', unread: 0 },
-  ]);
+  const [dms] = useState<DirectMessage[]>(
+    employees
+      .filter((e) => e.id !== user.id)
+      .map((e) => ({
+        id: `dm_${e.id}`,
+        name: e.name,
+        user: e.id,
+        status: e.status,
+        unread: 0,
+      }))
+  );
 
   const [activeChannelId, setActiveChannelId] = useState<string>('c_general');
   const [threadOpenMessageId, setThreadOpenMessageId] = useState<string | null>(null);
@@ -40,90 +46,21 @@ export default function MessagesPage() {
     c_general: [
       {
         id: 'msg_1',
-        user: 'u1',
-        text: 'Welcome to the Cursis team communication channel! All project discussions, threads, and actionable tasks can be orchestrated directly from here.',
-        time: '09:15 AM',
-        threads: [
-          { id: 'th_1', user: 'u2', text: 'Excited for the upcoming sprint release!', time: '09:18 AM' },
-        ],
+        user: user.id || 'u1',
+        text: 'Welcome to the Cursis workspace communication hub! All team discussions, sprint planning, and actionable initiatives can be coordinated directly from here.',
+        time: 'Just now',
+        threads: [],
         attachments: [],
       },
-      {
-        id: 'msg_2',
-        user: 'u2',
-        text: 'We need to finalize the client onboarding workflow by Friday for Acme Global. Can someone verify the paperwork pipeline?',
-        time: '10:02 AM',
-        isTaskCandidate: true,
-        proposedTask: {
-          name: 'Finalize client onboarding paperwork pipeline',
-          project: 'p1',
-          assignee: 'u1',
-          deadline: '2026-09-12',
-        },
-        threads: [],
-        attachments: ['Client_Onboarding_Specs_v2.pdf'],
-      },
     ],
-    c_engineering: [
-      {
-        id: 'msg_eng_1',
-        user: 'u3',
-        text: 'Completed the API endpoint tests. Latency is down to 42ms across all regional clusters.',
-        time: '11:20 AM',
-        threads: [],
-        attachments: ['benchmark_report.json'],
-      },
-      {
-        id: 'msg_eng_2',
-        user: 'u1',
-        text: 'Great work @Marcus. Lets make sure the documentation reflects the new schema changes.',
-        time: '11:45 AM',
-        threads: [],
-      },
-    ],
-    c_product: [
-      {
-        id: 'msg_prd_1',
-        user: 'u2',
-        text: 'Figma prototypes for the dynamic widget system are ready for review.',
-        time: 'Yesterday',
-        threads: [],
-        attachments: ['Widget_System_Preview.png'],
-      },
-    ],
+    c_engineering: [],
+    c_product: [],
     c_announcements: [
       {
         id: 'msg_ann_1',
-        user: 'u1',
-        text: '🚀 Cursis Public Workplace is officially live with full multi-workspace capabilities and zero subscription barriers!',
-        time: 'Yesterday',
-        threads: [],
-      },
-    ],
-    dm_u2: [
-      {
-        id: 'msg_dm2_1',
-        user: 'u2',
-        text: `Hey ${user.name.split(' ')[0]}, do you have 5 minutes later to review the custom CRM pipeline setup?`,
-        time: '10:45 AM',
-        threads: [],
-      },
-    ],
-    dm_u3: [
-      {
-        id: 'msg_dm3_1',
-        user: 'u3',
-        text: 'The webhook worker queue is fully operational.',
-        time: '08:30 AM',
-        threads: [],
-      },
-    ],
-    dm_u4: [
-      {
-        id: 'msg_dm4_1',
-        user: 'u4',
-        text: 'I uploaded the quarterly financial forecasts to the Documents vault.',
-        time: 'Yesterday',
+        user: user.id || 'u1',
+        text: '🚀 Cursis Workplace is active. Multi-workspace collaboration, AI actions, and live integrations are ready.',
+        time: 'Just now',
         threads: [],
       },
     ],

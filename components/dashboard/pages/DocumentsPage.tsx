@@ -50,8 +50,22 @@ export default function DocumentsPage() {
 
   const handleKbQuery = () => {
     if (!kbQuery.trim()) return;
+    if (documents.length === 0) {
+      setKbAnswer(
+        'No documents have been added to this workspace yet. Upload or generate contracts, proposals, and specifications to enable intelligent semantic search and clause extraction.'
+      );
+      return;
+    }
+    const match = documents.find((d) =>
+      d.name.toLowerCase().includes(kbQuery.toLowerCase()) ||
+      d.aiSummary.toLowerCase().includes(kbQuery.toLowerCase()) ||
+      (d.tags && d.tags.some((t) => t.toLowerCase().includes(kbQuery.toLowerCase()))) ||
+      (d.keyClauses && d.keyClauses.some((c) => c.toLowerCase().includes(kbQuery.toLowerCase())))
+    ) || documents[0];
+
+    const clauses = match.keyClauses?.length ? `Key extracted clauses: ${match.keyClauses.join(' · ')}` : match.aiSummary;
     setKbAnswer(
-      `Based on Master Services Agreement — Acme Global.pdf and indexed workspace policies: Payment terms are structured as Net 30 upon milestone approval. Custom AI models developed by Cursis Agency are assigned with full IP ownership transferred to the client upon final balance clearance.`
+      `Based on indexed document "${match.name}":\n\n${clauses}`
     );
   };
 
@@ -218,7 +232,7 @@ export default function DocumentsPage() {
         <input
           className="input"
           style={{ flex: 1, minWidth: '220px', fontSize: 'var(--fs-xs)', padding: 'var(--sp-2)' }}
-          placeholder="Ask anything across all company documents (e.g., 'What are Acme payment terms?')"
+          placeholder="Ask anything across all company documents (e.g., 'What are the payment and deliverable terms?')"
           value={kbQuery}
           onChange={(e) => setKbQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -252,11 +266,11 @@ export default function DocumentsPage() {
           <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 'var(--fw-bold)', marginBottom: '4px' }}>
             Query: &quot;{kbQuery}&quot;
           </div>
-          <div style={{ fontSize: 'var(--fs-xs)', lineHeight: 'var(--lh-relaxed)', color: 'var(--text-primary)' }}>
+          <div style={{ fontSize: 'var(--fs-xs)', lineHeight: 'var(--lh-relaxed)', color: 'var(--text-primary)', whiteSpace: 'pre-line' }}>
             {kbAnswer}
           </div>
           <div style={{ marginTop: 'var(--sp-2)', fontSize: '10px', color: 'var(--text-tertiary)' }}>
-            Sources: Master Services Agreement — Acme Global.pdf (Page 2, Section 4.1) · Brand Guidelines.pdf
+            Sources: {documents.length > 0 ? documents.slice(0, 3).map((d) => d.name).join(' · ') : 'Workspace Document Vault'}
           </div>
         </div>
       )}

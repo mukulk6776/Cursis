@@ -60,6 +60,23 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface WorkspaceInvitation {
+  id: string;
+  workspaceId: string;
+  email: string;
+  name?: string;
+  roleTitle?: string;
+  workspaceRole: UserRole | string;
+  department: string;
+  team?: string | null;
+  status: 'pending' | 'accepted' | 'declined' | 'revoked';
+  token: string;
+  note?: string;
+  sentAt: string;
+  expiresAt: string;
+  invitedBy: string;
+}
+
 
 // ==========================================
 // 4. TASK MANAGEMENT MODULE

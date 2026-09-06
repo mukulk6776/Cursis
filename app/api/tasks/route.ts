@@ -1,5 +1,5 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
-import { getTasks, createTask } from '@/lib/db/tasks';
+import { getTasks, createTask, updateTask, deleteTask } from '@/lib/db/tasks';
 
 export async function GET(request: Request) {
   try {
@@ -45,5 +45,47 @@ export async function POST(request: Request) {
     return apiSuccess({ task }, 201);
   } catch (error: any) {
     return apiError(error.message || 'Failed to create task', 500);
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const auth = await getAuthOrError(request);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const body = await request.json().catch(() => ({}));
+    const id = body.id || body.taskId;
+
+    if (!id) {
+      return apiError('Task ID is required for update', 400);
+    }
+
+    const updated = await updateTask(id, body);
+    if (!updated) {
+      return apiError('Task not found', 404);
+    }
+
+    return apiSuccess({ task: updated });
+  } catch (error: any) {
+    return apiError(error.message || 'Failed to update task', 500);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await getAuthOrError(request);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return apiError('Task ID is required for deletion', 400);
+    }
+
+    const success = await deleteTask(id);
+    return apiSuccess({ success, message: 'Task deleted successfully' });
+  } catch (error: any) {
+    return apiError(error.message || 'Failed to delete task', 500);
   }
 }

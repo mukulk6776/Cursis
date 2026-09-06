@@ -1,33 +1,53 @@
 import { inMemoryStore } from './store';
-import { Workspace, WorkspaceTier, OrdisMode } from './types';
-import { adminDb } from '@/lib/auth/firebase-admin';
+import { Workspace } from './types';
+import { getCollection } from '@/lib/mongodb';
 
 export async function getWorkspace(id: string): Promise<Workspace | null> {
   const ws = inMemoryStore.workspaces.get(id);
   if (ws) return ws;
 
-  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-    try {
-      const doc = await adminDb.collection('workspaces').doc(id).get();
-      if (doc.exists) {
-        return { id: doc.id, ...doc.data() } as Workspace;
+  try {
+    const col = await getCollection<Workspace>('workspaces');
+    if (col) {
+      const doc = await col.findOne({ id });
+      if (doc) {
+        inMemoryStore.workspaces.set(id, doc);
+        return doc;
       }
-    } catch (e) {
-      console.warn('Firestore getWorkspace error:', e);
     }
+  } catch (e) {
+    console.warn('MongoDB getWorkspace notice:', e);
   }
 
   return null;
 }
 
 export async function getAllWorkspaces(): Promise<Workspace[]> {
+  try {
+    const col = await getCollection<Workspace>('workspaces');
+    if (col) {
+      const docs = await col.find({}).toArray();
+      if (docs.length > 0) {
+        docs.forEach((w) => inMemoryStore.workspaces.set(w.id, w));
+        return docs;
+      }
+    }
+  } catch {}
   return Array.from(inMemoryStore.workspaces.values());
 }
 
 export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
-  return Array.from(inMemoryStore.workspaces.values()).filter(
-    (ws) => ws.ownerId === userId || ws.id === 'ws_cursis_demo'
-  );
+  try {
+    const col = await getCollection<Workspace>('workspaces');
+    if (col) {
+      const docs = await col.find({ ownerId: userId }).toArray();
+      if (docs.length > 0) {
+        docs.forEach((w) => inMemoryStore.workspaces.set(w.id, w));
+        return docs;
+      }
+    }
+  } catch {}
+  return Array.from(inMemoryStore.workspaces.values()).filter((ws) => ws.ownerId === userId);
 }
 
 export async function createWorkspace(userId: string, data: Partial<Workspace>): Promise<string> {
@@ -74,12 +94,13 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
 
   inMemoryStore.workspaces.set(id, newWorkspace);
 
-  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-    try {
-      await adminDb.collection('workspaces').doc(id).set(newWorkspace);
-    } catch (e) {
-      console.warn('Firestore set workspace error:', e);
+  try {
+    const col = await getCollection<Workspace>('workspaces');
+    if (col) {
+      await col.insertOne(newWorkspace);
     }
+  } catch (e) {
+    console.warn('MongoDB insert workspace notice:', e);
   }
 
   return id;
@@ -111,12 +132,13 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
 
   inMemoryStore.workspaces.set(id, updated);
 
-  if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-    try {
-      await adminDb.collection('workspaces').doc(id).set(updated, { merge: true });
-    } catch (e) {
-      console.warn('Firestore update workspace error:', e);
+  try {
+    const col = await getCollection<Workspace>('workspaces');
+    if (col) {
+      await col.updateOne({ id }, { $set: updated }, { upsert: true });
     }
+  } catch (e) {
+    console.warn('MongoDB update workspace notice:', e);
   }
 
   return updated;

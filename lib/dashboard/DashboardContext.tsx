@@ -40,7 +40,6 @@ import {
 import {
   INITIAL_USER,
   INITIAL_WORKSPACES,
-  INITIAL_WORKSPACE,
   INITIAL_WORKSPACE_SUMMARY,
   INITIAL_DEPARTMENTS,
   INITIAL_TEAMS,
@@ -67,9 +66,8 @@ import {
   INITIAL_NOTIFICATION_SETTINGS,
   INITIAL_MEETING_CALENDAR_SETTINGS,
   INITIAL_ORDIS_SETTINGS,
-  formatDate,
-  isOverdue,
 } from './data';
+import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
 
 interface ToastItem {
   id: string;
@@ -107,6 +105,11 @@ interface DashboardContextType {
   notificationsOpen: boolean;
   toggleNotifications: () => void;
   closeNotifications: () => void;
+  ordisFloatingOpen: boolean;
+  setOrdisFloatingOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleOrdisFloating: () => void;
+  voiceMode: boolean;
+  toggleVoiceMode: () => void;
   profilePanelEmployeeId: string | null;
   openProfilePanel: (employeeId: string) => void;
   closeProfilePanel: () => void;
@@ -203,6 +206,7 @@ interface DashboardContextType {
   removeEmployee: (id: string) => void;
   sendInvitation: (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null }) => void;
   revokeInvitation: (id: string) => void;
+  acceptInvitation: (invitationIdOrToken: string) => void;
   sendOrdisMessage: (text: string) => void;
   markNotificationsRead: () => void;
 
@@ -228,10 +232,27 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState<boolean>(false);
   const [notificationsOpen, setNotificationsOpen] = useState<boolean>(false);
+  const [ordisFloatingOpen, setOrdisFloatingOpen] = useState<boolean>(false);
+  const [voiceMode, setVoiceMode] = useState<boolean>(false);
   const [selectedMeetingNotes, setSelectedMeetingNotes] = useState<Meeting | null>(null);
   const [genericModal, setGenericModal] = useState<GenericModalState | null>(null);
   const [profilePanelEmployeeId, setProfilePanelEmployeeId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const toggleOrdisFloating = () => setOrdisFloatingOpen((prev) => !prev);
+  const toggleVoiceMode = () => setVoiceMode((prev) => !prev);
+
+  // Global Ctrl+J / Cmd+J shortcut for Ordis floating assistant
+  useEffect(() => {
+    const handleGlobalShortcuts = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        setOrdisFloatingOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalShortcuts);
+    return () => window.removeEventListener('keydown', handleGlobalShortcuts);
+  }, []);
 
   // Multi-Workspace State
   const [workspaces, setWorkspaces] = useState<Workspace[]>(INITIAL_WORKSPACES);
@@ -250,7 +271,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(INITIAL_USER);
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [departments] = useState<Department[]>(INITIAL_DEPARTMENTS);
-  const [teams, setTeams] = useState<Team[]>(INITIAL_TEAMS);
+  const [teams] = useState<Team[]>(INITIAL_TEAMS);
   const [invitations, setInvitations] = useState<Invitation[]>(INITIAL_INVITATIONS);
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
@@ -279,7 +300,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     {
       role: 'ai',
-      text: "⚡ **Ordis Workspace Copilot Online**\n\nI am connected to your workspace data. You can instruct me to:\n• *\"Create a task for Mukul due tomorrow\"*\n• *\"What is my team working on?\"*\n• *\"Show upcoming deadlines\"*\n• *\"Schedule a team sync for Friday\"*\n• *\"Summarize project progress\"*\n\nHow can I help you operate your day?",
+      text: "⚡ **Ordis Workspace Copilot Online**\n\nI am connected to your live workspace. You can instruct me to:\n• *\"Create a task: Complete sprint review due Friday\"*\n• *\"What is my team working on?\"*\n• *\"Show upcoming deadlines\"*\n• *\"Schedule a team sync for tomorrow\"*\n• *\"Summarize project progress\"*\n\nHow can I help you operate your workspace today?",
     },
   ]);
 
@@ -774,65 +795,187 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const addEmployee = (empData: Partial<Employee> & { name: string; role: string; department: string }) => {
     const initials = empData.name
       .split(' ')
+      .filter(Boolean)
       .map((n) => n[0])
       .join('')
       .toUpperCase()
-      .substring(0, 2);
+      .substring(0, 2) || 'CU';
+
     const newEmp: Employee = {
       id: 'u_' + Date.now(),
       name: empData.name,
       initials,
-      role: empData.role,
+      role: empData.role || 'Team Member',
       department: empData.department,
-      departmentId: empData.departmentId || 'dept_engineering',
+      departmentId: empData.departmentId || 'dept_' + empData.department.toLowerCase().replace(/\s+/g, '_'),
       teamIds: empData.teamIds || ['team_core'],
       workspaceRole: empData.workspaceRole || teamSettings.defaultRole,
-      status: 'online',
-      color: '#0f4cff',
+      status: empData.status || 'online',
+      color: empData.color || '#0f4cff',
       tasks: 0,
       projects: 0,
       email: empData.email || `${empData.name.toLowerCase().replace(/\s+/g, '.')}@cursis.io`,
-      skills: empData.skills || ['General'],
+      skills: empData.skills && empData.skills.length > 0 ? empData.skills : ['General'],
       joinedAt: new Date().toISOString().split('T')[0],
       invitedBy: user.id,
     };
+
     setEmployees((prev) => [...prev, newEmp]);
+    addAuditEntry(user.name, 'team.member.added', newEmp.name, `Added ${newEmp.name} as ${newEmp.role} in ${newEmp.department}`);
+
+    // Asynchronously persist to MongoDB
+    try {
+      fetch('/api/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspaceId: activeWorkspaceId,
+          name: newEmp.name,
+          displayName: newEmp.name,
+          email: newEmp.email,
+          role: newEmp.workspaceRole,
+          department: newEmp.department,
+          title: newEmp.role,
+          skills: newEmp.skills,
+          presence: newEmp.status,
+        }),
+      }).catch(() => {});
+    } catch {}
+
     showToast(`Added ${newEmp.name} to team ✓`);
   };
 
   const updateEmployee = (id: string, updates: Partial<Employee>) => {
     setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
+    const emp = employees.find((e) => e.id === id);
+    addAuditEntry(user.name, 'team.member.updated', emp?.name || id, `Updated profile / role details`);
+
+    try {
+      fetch('/api/team', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: id, updates }),
+      }).catch(() => {});
+    } catch {}
+
     showToast('Team member updated ✓');
   };
 
   const removeEmployee = (id: string) => {
     const emp = employees.find((e) => e.id === id);
     setEmployees((prev) => prev.filter((e) => e.id !== id));
+    addAuditEntry(user.name, 'team.member.removed', emp?.name || id, `Removed member from workspace`);
+
+    try {
+      fetch(`/api/team?userId=${id}&workspaceId=${activeWorkspaceId}`, {
+        method: 'DELETE',
+      }).catch(() => {});
+    } catch {}
+
     showToast(`Removed ${emp?.name || 'member'} from workspace`);
   };
 
   const sendInvitation = (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null }) => {
+    const token = 'tok_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
     const newInv: Invitation = {
       id: 'inv_' + Date.now(),
-      email: inv.email,
+      email: inv.email.toLowerCase(),
       name: inv.name || inv.email.split('@')[0],
       roleTitle: inv.roleTitle || 'Team Member',
       workspaceRole: inv.workspaceRole || teamSettings.defaultRole,
       department: inv.department,
       team: inv.team,
       status: 'pending',
-      token: 'tok_' + Math.random().toString(36).substring(2, 10),
+      token,
       sentAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
       invitedBy: user.id,
     };
+
     setInvitations((prev) => [newInv, ...prev]);
+    addAuditEntry(user.name, 'team.invitation.sent', newInv.email, `Dispatched 7-day invite to ${newInv.email} (${newInv.workspaceRole})`);
+
+    try {
+      fetch('/api/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'invite',
+          workspaceId: activeWorkspaceId,
+          email: newInv.email,
+          name: newInv.name,
+          roleTitle: newInv.roleTitle,
+          workspaceRole: newInv.workspaceRole,
+          department: newInv.department,
+          team: newInv.team,
+        }),
+      }).catch(() => {});
+    } catch {}
+
     showToast(`Invitation sent to ${inv.email} ✓`);
   };
 
   const revokeInvitation = (id: string) => {
+    const inv = invitations.find((i) => i.id === id);
     setInvitations((prev) => prev.filter((i) => i.id !== id));
+    addAuditEntry(user.name, 'team.invitation.revoked', inv?.email || id, `Revoked invitation token`);
+
+    try {
+      fetch(`/api/team?invitationId=${id}&workspaceId=${activeWorkspaceId}`, {
+        method: 'DELETE',
+      }).catch(() => {});
+    } catch {}
+
     showToast('Invitation revoked');
+  };
+
+  const acceptInvitation = (invitationIdOrToken: string) => {
+    const inv = invitations.find((i) => i.id === invitationIdOrToken || i.token === invitationIdOrToken);
+    if (!inv) {
+      showToast('Invitation not found or expired');
+      return;
+    }
+
+    const initials = inv.name
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2) || 'CU';
+
+    const newEmp: Employee = {
+      id: 'u_' + Date.now(),
+      name: inv.name,
+      initials,
+      role: inv.roleTitle || 'Team Member',
+      department: inv.department,
+      departmentId: 'dept_' + inv.department.toLowerCase().replace(/\s+/g, '_'),
+      teamIds: inv.team ? [inv.team] : ['team_core'],
+      workspaceRole: inv.workspaceRole || teamSettings.defaultRole,
+      status: 'online',
+      color: '#10b981',
+      tasks: 0,
+      projects: 0,
+      email: inv.email,
+      skills: ['Collaboration', 'Cursis'],
+      joinedAt: new Date().toISOString().split('T')[0],
+      invitedBy: inv.invitedBy || user.id,
+    };
+
+    setEmployees((prev) => [...prev, newEmp]);
+    setInvitations((prev) => prev.filter((i) => i.id !== inv.id));
+    addAuditEntry(inv.name, 'team.invitation.accepted', inv.email, `Accepted workspace invitation as ${newEmp.role}`);
+
+    try {
+      fetch('/api/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'accept', token: inv.token }),
+      }).catch(() => {});
+    } catch {}
+
+    showToast(`Welcome ${newEmp.name} to the team! 🎉`);
   };
 
   const markNotificationsRead = () => {
@@ -843,141 +986,159 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   // ---- Ordis Natural Language Commander ----
   const sendOrdisMessage = (text: string) => {
     if (!text.trim()) return;
-    const userMsg: ChatMessage = { role: 'user', text };
+    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMsg: ChatMessage = { role: 'user', text, time: nowStr };
     const typingMsg: ChatMessage = { role: 'ai', text: null, typing: true };
     setChatHistory((prev) => [...prev, userMsg, typingMsg]);
 
+    const ordisState: OrdisContextState = {
+      user,
+      workspace: { name: activeWorkspace.name, plan: 'Enterprise Pro' },
+      activeWorkspace,
+      employees,
+      projects,
+      tasks,
+      meetings,
+      notifications,
+      activity,
+      automations,
+      documents,
+      crm,
+      integrations,
+      webhooks,
+      apiKeys,
+      workspaceSettings,
+      teamSettings,
+      notificationSettings,
+      meetingCalendarSettings,
+      ordisSettings,
+    };
+
     setTimeout(() => {
       setChatHistory((prev) => prev.filter((m) => !m.typing));
-      const lower = text.toLowerCase();
-      let responseText = '';
+      const result = executeOrdisCommand(text, ordisState);
 
-      // 1. Action: Create Task
-      if (lower.includes('create task') || lower.includes('add task') || lower.includes('task for')) {
-        let taskName = 'New initiative';
-        let assigneeId = user.id;
-        let priority: 'urgent' | 'high' | 'medium' | 'low' = 'high';
-
-        // Extract assignee from prompt
-        for (const emp of employees) {
-          const firstName = emp.name.split(' ')[0].toLowerCase();
-          if (lower.includes(firstName)) {
-            assigneeId = emp.id;
-            break;
-          }
-        }
-
-        // Extract task title
-        if (text.includes(':')) {
-          taskName = text.split(':')[1].trim();
-        } else {
-          taskName = text
-            .replace(/create task|add task|for mukul|for sarah|for alex|for rahul|for james/gi, '')
-            .trim();
-          if (!taskName) taskName = 'Follow-up task';
-        }
-
-        if (lower.includes('urgent')) priority = 'urgent';
-        else if (lower.includes('low')) priority = 'low';
-
-        // Actually create task
-        const newTask: Task = {
-          id: 't_' + Date.now(),
-          name: taskName,
-          project: projects[0]?.id || 'p1',
-          assignee: assigneeId,
-          assignees: [assigneeId],
-          priority,
-          status: 'todo',
-          deadline: '2026-09-12',
-          tags: ['Ordis Action'],
-          description: `Created automatically by Ordis from prompt: "${text}"`,
-        };
-
-        setTasks((prev) => [newTask, ...prev]);
-        const assignedEmployee = employees.find((e) => e.id === assigneeId);
-
-        responseText = `⚡ **Task Created & Assigned**\n\n• **Title**: "${newTask.name}"\n• **Assignee**: ${assignedEmployee ? assignedEmployee.name : 'You'}\n• **Priority**: ${priority.toUpperCase()}\n• **Project**: ${projects[0]?.name || 'Core Sprint'}\n• **Deadline**: ${formatDate(newTask.deadline)}\n\n✓ Added to the active workspace queue.`;
-        showToast(`Ordis created task: "${taskName}" ✓`);
+      // In-app navigation if requested
+      if (result.navigateToPage) {
+        setCurrentPage(result.navigateToPage);
       }
-      // 2. Query: Team Activity / Workload
-      else if (lower.includes('team working on') || lower.includes('team status') || lower.includes('team workload') || lower.includes('who is online')) {
-        const onlineEmps = employees.filter((e) => e.status === 'online');
-        const busyEmps = employees.filter((e) => e.status === 'busy');
 
-        const breakdown = employees.map((emp) => {
-          const empTasks = tasks.filter((t) => t.assignee === emp.id && t.status !== 'completed');
-          const taskList = empTasks.map((t) => `"${t.name}"`).slice(0, 2).join(', ');
-          return `• **${emp.name}** (${emp.status.toUpperCase()}): ${empTasks.length} active tasks ${taskList ? `— ${taskList}` : '(Bandwidth available)'}`;
-        }).join('\n');
-
-        responseText = `👥 **Live Team Workload & Activity**\n\n${breakdown}\n\n**Summary**: ${onlineEmps.length} online, ${busyEmps.length} busy. Overall workload is well-distributed.`;
-      }
-      // 3. Query: Upcoming Deadlines
-      else if (lower.includes('deadline') || lower.includes('due') || lower.includes('schedule')) {
-        const sortedTasks = [...tasks]
-          .filter((t) => t.status !== 'completed')
-          .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-
-        if (sortedTasks.length === 0) {
-          responseText = '✅ **No Pending Deadlines**\n\nAll current tasks are completed! Your workspace is ahead of schedule.';
-        } else {
-          const list = sortedTasks.slice(0, 4).map((t, i) => {
-            const emp = employees.find((e) => e.id === t.assignee);
-            const overdue = isOverdue(t.deadline);
-            return `${i + 1}. **${t.name}** — ${emp ? emp.name : 'Unassigned'} (Due: ${formatDate(t.deadline)}) ${overdue ? '⚠️ OVERDUE' : t.priority === 'urgent' ? '🔴 URGENT' : '🟡 ON TRACK'}`;
-          }).join('\n');
-
-          responseText = `📅 **Upcoming Deadlines (${sortedTasks.length} in progress)**\n\n${list}\n\nWould you like me to send reminders or rebalance any urgent items?`;
+      // Apply any state mutations returned by Ordis
+      if (result.stateMutations) {
+        const m = result.stateMutations;
+        if (m.createdTask) {
+          setTasks((prev) => [m.createdTask!, ...prev]);
+        }
+        if (m.updatedTasks) {
+          setTasks(m.updatedTasks);
+        }
+        if (m.createdProject) {
+          setProjects((prev) => [m.createdProject!, ...prev]);
+        }
+        if (m.updatedProjects) {
+          setProjects(m.updatedProjects);
+        }
+        if (m.createdMeeting) {
+          setMeetings((prev) => [m.createdMeeting!, ...prev]);
+        }
+        if (m.createdDocument) {
+          setDocuments((prev) => [m.createdDocument!, ...prev]);
+        }
+        if (m.createdAutomation) {
+          setAutomations((prev) => [m.createdAutomation!, ...prev]);
+        }
+        if (m.updatedAutomations) {
+          setAutomations(m.updatedAutomations);
+        }
+        if (m.createdDeal) {
+          setCrm((prev) => ({
+            ...prev,
+            deals: [m.createdDeal!, ...prev.deals],
+          }));
+        }
+        if (m.createdContact) {
+          setCrm((prev) => ({
+            ...prev,
+            contacts: [m.createdContact!, ...prev.contacts],
+          }));
+        }
+        if (m.createdInvitation) {
+          setInvitations((prev) => [m.createdInvitation!, ...prev]);
+        }
+        if (m.createdEmployee) {
+          setEmployees((prev) => [...prev, m.createdEmployee!]);
+        }
+        if (m.updatedEmployees) {
+          setEmployees(m.updatedEmployees);
+        }
+        if (m.createdApiKey) {
+          setApiKeys((prev) => [m.createdApiKey!, ...prev]);
+        }
+        if (m.createdWebhook) {
+          setWebhooks((prev) => [m.createdWebhook!, ...prev]);
+        }
+        if (m.updatedWorkspaceSettings) {
+          updateWorkspaceSettings(m.updatedWorkspaceSettings);
+        }
+        if (m.updatedNotificationSettings) {
+          updateNotificationSettings(m.updatedNotificationSettings);
+        }
+        if (m.updatedMeetingCalendarSettings) {
+          updateMeetingCalendarSettings(m.updatedMeetingCalendarSettings);
+        }
+        if (m.updatedOrdisSettings) {
+          updateOrdisSettings(m.updatedOrdisSettings);
+        }
+        if (m.updatedTeamSettings) {
+          updateTeamSettings(m.updatedTeamSettings);
         }
       }
-      // 4. Action: Schedule Meeting
-      else if (lower.includes('schedule meeting') || lower.includes('book meeting') || lower.includes('sync')) {
-        const meetingName = text.includes(':') ? text.split(':')[1].trim() : 'Team Strategy & Sprint Sync';
-        const newM: Meeting = {
-          id: 'm_' + Date.now(),
-          name: meetingName,
-          title: meetingName,
-          platform: meetingCalendarSettings.defaultPlatform,
-          meetingUrl: 'https://meet.google.com/crs-' + Math.random().toString(36).substring(2, 6),
-          date: '2026-09-09',
-          time: '14:00',
-          duration: meetingCalendarSettings.defaultDuration,
-          participants: employees.slice(0, 3).map((e) => e.id),
-          hostId: user.id,
-          hostName: user.name,
-          project: projects[0]?.id || null,
-          status: 'scheduled',
-          agenda: '1. Auto-populated by Ordis from open milestones\n2. Blockers and priority alignment\n3. Next sprint deliverables',
-        };
 
-        setMeetings((prev) => [newM, ...prev]);
-        responseText = `📅 **Meeting Booked & Synced to Calendar**\n\n• **Title**: "${newM.name}"\n• **Platform**: Google Meet\n• **Date & Time**: ${newM.date} at ${newM.time} (${newM.duration} min)\n• **Participants**: ${employees.slice(0, 3).map((e) => e.name).join(', ')}\n• **Agenda**: Auto-populated from open sprint tasks.\n\n✓ Calendar invites generated.`;
-        showToast(`Meeting "${newM.name}" scheduled ✓`);
-      }
-      // 5. Query: Project Progress Summary
-      else if (lower.includes('project') || lower.includes('summary') || lower.includes('progress')) {
-        const projSummaries = projects.map((p) => {
-          const pTasks = tasks.filter((t) => t.project === p.id);
-          const done = pTasks.filter((t) => t.status === 'completed').length;
-          return `• **${p.name}**: ${p.progress}% complete (${done}/${pTasks.length} tasks delivered)`;
-        }).join('\n');
-
-        const activeCount = tasks.filter((t) => t.status !== 'completed').length;
-        responseText = `📊 **Workspace Project Progress Summary**\n\n${projSummaries}\n\n**Total Tasks in Flight**: ${activeCount} active tasks across ${projects.length} initiatives.\n**Top Velocity**: "${projects[0]?.name || 'Website Redesign'}" is leading with high momentum.`;
-      }
-      // 6. Action: Organize Today's Work
-      else if (lower.includes('organize') || lower.includes('my day') || lower.includes('prioritize')) {
-        const userTasks = tasks.filter((t) => t.assignee === user.id && t.status !== 'completed');
-        responseText = `🎯 **Ordis Daily Action Plan for ${user.name}**\n\nHere is your recommended execution sequence for today:\n\n1. 🔴 **Review Q3 sprint deliverables** (Urgent leadership milestone)\n2. 🟡 **Integrate live Ordis conversational actions** (In Progress)\n3. 📅 **Weekly Product & Sprint Sync** at 2:00 PM (Google Meet)\n\nEstimated focus time: 4.5 hours. All blockers have been cleared.`;
-      }
-      // Default Fallback
-      else {
-        responseText = `I have parsed your request: "${text}".\n\nI can execute workspace operations directly — try asking me to **"Create a task for Mukul"**, **"Show upcoming deadlines"**, **"Schedule a team sync"**, or **"Summarize project progress"**.`;
+      if (result.toastMessage) {
+        showToast(result.toastMessage);
       }
 
-      setChatHistory((prev) => [...prev, { role: 'ai', text: responseText }]);
-    }, 600);
+      if (result.auditEntry) {
+        addAuditEntry(
+          result.auditEntry.actor,
+          result.auditEntry.action,
+          result.auditEntry.target,
+          result.auditEntry.details
+        );
+      }
+
+      // Add AI response to chat history
+      const aiTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          role: 'ai',
+          text: result.responseText,
+          time: aiTimeStr,
+          actionCard: result.actionCard,
+          suggestedFollowUps: result.suggestedFollowUps,
+        },
+      ]);
+
+      // Asynchronously log execution to MongoDB audit trail endpoint
+      try {
+        fetch('/api/ordis/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            command: text,
+            workspaceId: activeWorkspaceId,
+            userId: user.id,
+            userName: user.name,
+            context: {
+              taskCount: tasks.length,
+              projectCount: projects.length,
+              meetingCount: meetings.length,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
+    }, 400);
   };
 
   // Lookups
@@ -1197,6 +1358,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         notificationsOpen,
         toggleNotifications,
         closeNotifications,
+        ordisFloatingOpen,
+        setOrdisFloatingOpen,
+        toggleOrdisFloating,
+        voiceMode,
+        toggleVoiceMode,
         profilePanelEmployeeId,
         openProfilePanel,
         closeProfilePanel,
@@ -1275,6 +1441,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         removeEmployee,
         sendInvitation,
         revokeInvitation,
+        acceptInvitation,
         sendOrdisMessage,
         markNotificationsRead,
         getEmployee,

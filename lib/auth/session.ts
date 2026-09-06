@@ -1,7 +1,7 @@
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { adminAuth } from '@/lib/auth/firebase-admin';
 import { inMemoryStore } from '@/lib/db/store';
-import { UserProfile, UserRole } from '@/lib/db/types';
+import { UserRole } from '@/lib/db/types';
 
 export interface AuthenticatedUser {
   uid: string;
@@ -94,32 +94,6 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
     }
 
 
-    // Demo or dev session fallback
-    if (
-      sessionToken === 'demo_session_authenticated' ||
-      sessionToken?.startsWith('dev_session_') ||
-      sessionToken === 'demo_token_cursis_access'
-    ) {
-      const defaultUser = inMemoryStore.users.get('usr_owner_demo') || {
-        id: 'usr_owner_demo',
-        uid: 'usr_owner_demo',
-        email: 'founder@cursis.ai',
-        displayName: 'Aarav Sharma',
-        role: 'owner',
-        workspaceIds: ['ws_cursis_demo'],
-        activeWorkspaceId: 'ws_cursis_demo',
-      };
-
-      return {
-        uid: defaultUser.uid,
-        email: defaultUser.email,
-        displayName: defaultUser.displayName,
-        role: (defaultUser.role as UserRole) || 'owner',
-        workspaceId: defaultUser.activeWorkspaceId || 'ws_cursis_demo',
-        isDev: true,
-      };
-    }
-
     // If Firebase Admin Auth is active and sessionToken exists
     if (sessionToken && adminAuth && typeof adminAuth.verifySessionCookie === 'function' && process.env.FIREBASE_PROJECT_ID) {
       try {
@@ -128,12 +102,12 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
         return {
           uid: decoded.uid,
           email: decoded.email || 'user@cursis.ai',
-          displayName: decoded.name || 'Cursis Team Member',
+          displayName: decoded.name || (decoded.email ? decoded.email.split('@')[0] : 'Workspace Member'),
           role: userDoc?.role || 'member',
-          workspaceId: userDoc?.activeWorkspaceId || 'ws_cursis_demo',
+          workspaceId: userDoc?.activeWorkspaceId || 'ws_cursis_main',
         };
       } catch (err) {
-        console.warn('Session verification fallback to demo user in dev environment');
+        console.warn('Session verification notice:', err);
       }
     }
 

@@ -42,7 +42,7 @@ export async function createCustomBuildRequest(
     requirements: data.requirements,
     status: 'proposal_generated',
     timelineEstimate: '3-5 Weeks',
-    assignedEngineer: 'Aarav Sharma (Principal AI Architect)',
+    assignedEngineer: 'Principal AI Solutions Architect',
     proposalDocId: proposalDoc.id,
     milestones: [
       { title: 'Requirements & Architecture Call', completed: true, targetDate: new Date(Date.now() + 2 * 86400000).toISOString() },

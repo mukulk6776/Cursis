@@ -11,8 +11,6 @@ type FilterMode = 'all' | 'overdue' | 'high-priority' | 'assigned-to-me' | 'upco
 export default function TasksPage() {
   const {
     tasks,
-    projects,
-    employees,
     user,
     getProject,
     getEmployee,

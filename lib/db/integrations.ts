@@ -44,7 +44,7 @@ export async function executeExternalAction(
   const ws = inMemoryStore.workspaces.get(workspaceId);
   const isAutonomous = ws?.tier === 'paid' && ws?.ordisMode === 'full_power';
 
-  let externalReferenceId = `ext_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const externalReferenceId = `ext_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   let responseMessage = '';
 
   switch (actionType) {

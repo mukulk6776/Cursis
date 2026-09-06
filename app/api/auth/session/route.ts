@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-import { adminAuth, adminDb } from '@/lib/auth/firebase-admin';
+import { adminAuth } from '@/lib/auth/firebase-admin';
 import { cookies } from 'next/headers';
 import { createUserProfile } from '@/lib/db/users';
 import { apiSuccess, apiError } from '@/lib/api/response';
@@ -28,15 +28,25 @@ export async function POST(request: Request) {
     const idToken = body.idToken || '';
     const photoURL = body.photoURL || '';
 
-    if (!idToken && !email && !uid) {
-      return apiError('Missing credentials or ID token', 400);
+    let userEmail = email;
+    let decodedUser: any = null;
+
+    if (idToken && adminAuth) {
+      try {
+        decodedUser = await adminAuth.verifyIdToken(idToken);
+        if (decodedUser?.email) {
+          userEmail = decodedUser.email;
+        }
+      } catch (authErr) {
+        console.warn('Firebase token verification note (falling back to direct session payload):', authErr);
+      }
     }
 
-    // 5-day expiration in seconds (for Web Cookies)
-    const maxAgeSeconds = 60 * 60 * 24 * 5; // 432,000s
+    if (!userEmail && !uid) {
+      return apiError('Invalid session payload - email or uid required', 400);
+    }
 
-    // Build session data for authenticated user
-    const userEmail = email || 'user@cursis.io';
+    const maxAgeSeconds = 60 * 60 * 24 * 7; // 7 days
     const userName = displayName || (userEmail.split('@')[0]);
     const userUid = uid || ('usr_' + Buffer.from(userEmail).toString('hex').substring(0, 14));
 
@@ -53,16 +63,14 @@ export async function POST(request: Request) {
     // Always create a self-contained, tamper-proof session token for 100% reliable edge/serverless validation
     const sessionToken = 'cursis_usr_' + Buffer.from(JSON.stringify(sessionPayload)).toString('base64url');
 
-    // Asynchronously save/update user in Firestore if Firebase Admin is connected
-    if (adminDb && typeof adminDb.collection === 'function' && process.env.FIREBASE_PROJECT_ID) {
-      createUserProfile(userUid, {
-        uid: userUid,
-        email: userEmail,
-        displayName: userName,
-        photoURL: photoURL || undefined,
-        role: 'owner',
-      }).catch((e) => console.warn('Non-blocking Firestore user sync error:', e));
-    }
+    // Asynchronously save/update user in MongoDB database
+    createUserProfile(userUid, {
+      uid: userUid,
+      email: userEmail,
+      displayName: userName,
+      photoURL: photoURL || undefined,
+      role: 'owner',
+    }).catch((e) => console.warn('Non-blocking MongoDB user sync notice:', e));
 
     const cookieOptions = {
       maxAge: maxAgeSeconds,

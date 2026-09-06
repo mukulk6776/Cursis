@@ -1,6 +1,7 @@
 import { inMemoryStore } from './store';
 import { Task, TaskPriority, TaskStatus } from './types';
 import { findBestMatchingHelpers } from './team';
+import { getCollection } from '@/lib/mongodb';
 
 export async function getTasks(
   workspaceId: string,
@@ -12,6 +13,25 @@ export async function getTasks(
     isAtRisk?: boolean;
   }
 ): Promise<Task[]> {
+  try {
+    const col = await getCollection<Task>('tasks');
+    if (col) {
+      const query: any = { workspaceId };
+      if (filter?.projectId) query.projectId = filter.projectId;
+      if (filter?.assigneeId) query.assigneeId = filter.assigneeId;
+      if (filter?.status) query.status = filter.status;
+      if (filter?.priority) query.priority = filter.priority;
+      if (filter?.isAtRisk !== undefined) query.isAtRisk = filter.isAtRisk;
+      const docs = await col.find(query).sort({ dueDate: 1 }).toArray();
+      if (docs.length > 0) {
+        docs.forEach((t) => inMemoryStore.tasks.set(t.id, t));
+        return docs;
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getTasks notice:', e);
+  }
+
   return Array.from(inMemoryStore.tasks.values())
     .filter((t) => {
       if (t.workspaceId !== workspaceId) return false;
@@ -26,7 +46,21 @@ export async function getTasks(
 }
 
 export async function getTaskById(id: string): Promise<Task | null> {
-  return inMemoryStore.tasks.get(id) || null;
+  const task = inMemoryStore.tasks.get(id);
+  if (task) return task;
+
+  try {
+    const col = await getCollection<Task>('tasks');
+    if (col) {
+      const found = await col.findOne({ id });
+      if (found) {
+        inMemoryStore.tasks.set(id, found);
+        return found;
+      }
+    }
+  } catch {}
+
+  return null;
 }
 
 export async function createTask(workspaceId: string, data: Partial<Task>): Promise<Task> {
@@ -68,7 +102,7 @@ export async function createTask(workspaceId: string, data: Partial<Task>): Prom
     priority: data.priority || 'medium',
     assigneeId: data.assigneeId,
     assigneeName,
-    creatorId: data.creatorId || 'usr_owner_demo',
+    creatorId: data.creatorId || 'usr_creator',
     dueDate,
     estimatedHours: data.estimatedHours || 4,
     actualHours: data.actualHours || 0,
@@ -84,11 +118,36 @@ export async function createTask(workspaceId: string, data: Partial<Task>): Prom
   };
 
   inMemoryStore.tasks.set(id, task);
+
+  try {
+    const col = await getCollection<Task>('tasks');
+    if (col) {
+      await col.insertOne(task);
+    }
+  } catch (e) {
+    console.warn('MongoDB insert task notice:', e);
+  }
+
   return task;
 }
 
 export async function updateTask(id: string, updates: Partial<Task>): Promise<Task | null> {
-  const task = inMemoryStore.tasks.get(id);
+  let task = inMemoryStore.tasks.get(id);
+  if (!task) {
+    try {
+      const col = await getCollection<Task>('tasks');
+      if (col) {
+        const found = await col.findOne({ id });
+        if (found) {
+          task = found;
+          inMemoryStore.tasks.set(id, found);
+        }
+      }
+    } catch (e) {
+      console.warn('MongoDB fetch task notice:', e);
+    }
+  }
+
   if (!task) return null;
 
   if (updates.assigneeId && !updates.assigneeName) {
@@ -96,7 +155,7 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     if (user) updates.assigneeName = user.displayName;
   }
 
-  if (updates.status === 'done') {
+  if (updates.status === 'done' || updates.status === ('completed' as any)) {
     updates.completionPercent = 100;
     updates.isAtRisk = false;
   }
@@ -109,21 +168,42 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
 
   // Re-evaluate risk
   const isDueSoon = new Date(updated.dueDate).getTime() - Date.now() < 2 * 86400000;
-  if (isDueSoon && updated.completionPercent < 30 && updated.status !== 'done') {
+  if (isDueSoon && updated.completionPercent < 30 && updated.status !== 'done' && updated.status !== ('completed' as any)) {
     updated.isAtRisk = true;
     if (!updated.riskReason) {
       updated.riskReason = `Deadline within 48 hours and completion is at ${updated.completionPercent}%.`;
     }
-  } else if (updated.status === 'done' || updated.completionPercent >= 80) {
+  } else if (updated.status === 'done' || updated.status === ('completed' as any) || updated.completionPercent >= 80) {
     updated.isAtRisk = false;
   }
 
   inMemoryStore.tasks.set(id, updated);
+
+  try {
+    const col = await getCollection<Task>('tasks');
+    if (col) {
+      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+    }
+  } catch (e) {
+    console.warn('MongoDB update task notice:', e);
+  }
+
   return updated;
 }
 
 export async function deleteTask(id: string): Promise<boolean> {
-  return inMemoryStore.tasks.delete(id);
+  const deletedMem = inMemoryStore.tasks.delete(id);
+  let deletedMongo = false;
+  try {
+    const col = await getCollection<Task>('tasks');
+    if (col) {
+      const res = await col.deleteOne({ id });
+      deletedMongo = res.deletedCount > 0;
+    }
+  } catch (e) {
+    console.warn('MongoDB delete task notice:', e);
+  }
+  return deletedMem || deletedMongo;
 }
 
 // Reassign task or pair helper (Real-life example from document)
@@ -152,5 +232,15 @@ export async function reassignOrPairHelper(
 
   task.updatedAt = new Date().toISOString();
   inMemoryStore.tasks.set(taskId, task);
+
+  try {
+    const col = await getCollection<Task>('tasks');
+    if (col) {
+      await col.updateOne({ id: taskId }, { $set: task });
+    }
+  } catch (e) {
+    console.warn('MongoDB reassign task notice:', e);
+  }
+
   return task;
 }

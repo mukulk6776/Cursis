@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { Project } from '@/lib/dashboard/types';
 
 export default function ProjectsPage() {
   const {

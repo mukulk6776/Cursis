@@ -2,25 +2,25 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
+const STEPS = [
+  { num: 1, text: 'You invite ', highlight: 'sarah@design.co', suffix: ' to join your workspace' },
+  { num: 2, text: 'Sarah accepts. She\'s now a ', highlight: 'Designer', suffix: ' on your team' },
+  { num: 3, text: 'You create the ', highlight: '"Brand Refresh"', suffix: ' project' },
+  { num: 4, text: 'You assign Sarah to ', highlight: '"Design new logo"', suffix: '' },
+  { num: 5, text: 'Sarah opens ', highlight: 'My Work', suffix: ' and sees her task waiting' },
+  { num: 6, text: 'Ordis tracks progress and ', highlight: 'nudges if it stalls', suffix: '' },
+];
+
 export default function TeamDemoSection() {
   const [activeStep, setActiveStep] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const steps = [
-    { num: 1, text: 'You invite ', highlight: 'sarah@design.co', suffix: ' to join your workspace' },
-    { num: 2, text: 'Sarah accepts. She\'s now a ', highlight: 'Designer', suffix: ' on your team' },
-    { num: 3, text: 'You create the ', highlight: '"Brand Refresh"', suffix: ' project' },
-    { num: 4, text: 'You assign Sarah to ', highlight: '"Design new logo"', suffix: '' },
-    { num: 5, text: 'Sarah opens ', highlight: 'My Work', suffix: ' and sees her task waiting' },
-    { num: 6, text: 'Ordis tracks progress and ', highlight: 'nudges if it stalls', suffix: '' },
-  ];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            steps.forEach((_, i) => {
+            STEPS.forEach((_, i) => {
               setTimeout(() => {
                 setActiveStep((prev) => Math.max(prev, i + 1));
               }, i * 500);
@@ -37,7 +37,7 @@ export default function TeamDemoSection() {
     }
 
     return () => observer.disconnect();
-  }, [steps.length]);
+  }, []);
 
   return (
     <section className="lp-section" id="team">
@@ -51,7 +51,7 @@ export default function TeamDemoSection() {
       <div className="lp-demo-container lp-reveal-scale" ref={containerRef}>
         <div className="lp-demo-header">Team Setup Demo</div>
         <div className="lp-demo-body">
-          {steps.map((step) => {
+          {STEPS.map((step) => {
             const isActive = activeStep >= step.num;
             return (
               <div

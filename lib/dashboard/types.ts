@@ -191,11 +191,33 @@ export interface AutomationRule {
   lastRun?: string | null;
 }
 
+export interface ChatActionCard {
+  type: 'task' | 'project' | 'meeting' | 'deal' | 'doc' | 'automation' | 'apikey' | 'theme' | 'navigation' | 'team';
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  badgeColor?: string;
+  meta?: Record<string, any>;
+  primaryAction?: {
+    label: string;
+    actionType: 'navigate' | 'toggle_status' | 'open_modal' | 'copy' | 'link';
+    target?: string;
+  };
+  secondaryAction?: {
+    label: string;
+    actionType: 'navigate' | 'toggle_status' | 'open_modal' | 'copy' | 'link';
+    target?: string;
+  };
+}
+
 export interface ChatMessage {
   id?: string;
   role: 'user' | 'ai';
   text: string | null;
   typing?: boolean;
+  time?: string;
+  actionCard?: ChatActionCard;
+  suggestedFollowUps?: string[];
 }
 
 // ---- Communication & Messaging Types ----

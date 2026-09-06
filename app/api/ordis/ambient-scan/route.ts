@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/session';
-import { OrdisEngine } from '@/lib/ordis/engine';
+import { OrdisEngine } from '@/lib/ordis/server';
 import { inMemoryStore } from '@/lib/db/store';
 
 export async function POST(request: Request) {
