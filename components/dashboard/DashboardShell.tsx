@@ -34,7 +34,6 @@ import WorkspacePage from './pages/WorkspacePage';
 import AutomationsPage from './pages/AutomationsPage';
 import OrdisPage from './pages/OrdisPage';
 import DocumentsPage from './pages/DocumentsPage';
-import IntegrationsPage from './pages/IntegrationsPage';
 import SettingsPage from './pages/SettingsPage';
 
 export default function DashboardShell() {
@@ -64,8 +63,6 @@ export default function DashboardShell() {
         return <OrdisPage />;
       case 'documents':
         return <DocumentsPage />;
-      case 'integrations':
-        return <IntegrationsPage />;
       case 'settings':
         return <SettingsPage />;
       default:

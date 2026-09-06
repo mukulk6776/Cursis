@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="lp-footer-inner">
         <div className="lp-footer-brand">
           <div className="lp-footer-logo">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="28" height="28">
               <path
                 d="M 545 240 A 282 282 0 1 0 782 566"
                 stroke="#ffffff"
@@ -22,72 +22,45 @@ export default function Footer() {
                 height="156"
                 rx="42"
                 transform="rotate(-10 703 274)"
-                fill="#ff5710"
+                fill="#0f4cff"
               />
             </svg>
-            <span>Cursis</span>
+            <span className="lp-footer-logo-text">Cursis</span>
           </div>
           <p className="lp-footer-tagline">
-            Your free AI-powered workspace. Built by creators, for creators. Powered by Ordis.
+            The clean, intelligent workspace for modern teams and creators. Powered by Ordis.
           </p>
         </div>
 
-        <div>
-          <div className="lp-footer-col-title">Product</div>
-          <a href="#features" className="lp-footer-link">
-            Features
-          </a>
-          <a href="#ordis" className="lp-footer-link">
-            Ordis AI
-          </a>
-          <a href="#modules" className="lp-footer-link">
-            Modules
-          </a>
-          <a href="#free" className="lp-footer-link">
-            Pricing
-          </a>
-          <a href="#how-it-works" className="lp-footer-link">
-            How It Works
-          </a>
-        </div>
+        <div className="lp-footer-links-group">
+          <div className="lp-footer-col">
+            <div className="lp-footer-col-title">Product</div>
+            <a href="#features" className="lp-footer-link">Core Features</a>
+            <a href="#ordis" className="lp-footer-link">Ordis AI Operations</a>
+            <a href="#problem" className="lp-footer-link">Why Cursis</a>
+            <a href="#pricing" className="lp-footer-link">100% Free Pricing</a>
+          </div>
 
-        <div>
-          <div className="lp-footer-col-title">Use Cases</div>
-          <a href="#team" className="lp-footer-link">
-            Teams
-          </a>
-          <a href="#creators" className="lp-footer-link">
-            Creators
-          </a>
-          <Link href="/signup" className="lp-footer-link">
-            Startups
-          </Link>
-          <a href="#agency" className="lp-footer-link">
-            Agencies
-          </a>
-          <Link href="/signup" className="lp-footer-link">
-            Freelancers
-          </Link>
-        </div>
+          <div className="lp-footer-col">
+            <div className="lp-footer-col-title">Workspace</div>
+            <Link href="/dashboard" className="lp-footer-link">Dashboard</Link>
+            <Link href="/login" className="lp-footer-link">Sign In</Link>
+            <Link href="/signup" className="lp-footer-link">Get Started Free</Link>
+          </div>
 
-        <div>
-          <div className="lp-footer-col-title">Company</div>
-          <a href="#agency" className="lp-footer-link">
-            Agency Services
-          </a>
-          <Link href="/dashboard" className="lp-footer-link">
-            Dashboard
-          </Link>
-          <a href="mailto:contact@cursis.io" className="lp-footer-link">
-            Contact Us
-          </a>
+          <div className="lp-footer-col">
+            <div className="lp-footer-col-title">Connect</div>
+            <a href="mailto:support@cursis.app" className="lp-footer-link">Contact Support</a>
+            <span className="lp-footer-link" style={{ color: 'var(--c-gray-500)', cursor: 'default' }}>Version 2.0 (Stable)</span>
+          </div>
         </div>
       </div>
 
       <div className="lp-footer-bottom">
         <span>© 2026 Cursis. All rights reserved.</span>
-        <span>Built with purpose.</span>
+        <span>Built with intention &amp; craft.</span>
       </div>
     </footer>
   );
 }
+

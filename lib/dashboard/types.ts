@@ -378,6 +378,76 @@ export interface AgencyCaseStudy {
 }
 
 // ---- Settings & Organization Types ----
+export interface WorkspaceSettings {
+  name: string;
+  tagline: string;
+  industry: string;
+  timezone: string;
+  language: string;
+  dateFormat: string;
+  accentColor: string;
+  density: 'compact' | 'comfortable' | 'spacious';
+  layoutDensity?: 'comfortable' | 'compact' | 'spacious';
+  allowGuestAccess?: boolean;
+}
+
+export interface TeamSettings {
+  defaultRole: string;
+  allowMemberInvites: boolean;
+  autoAssignNewMembers: boolean;
+  departmentNotifications: boolean;
+  allowGuestAccess: boolean;
+  requireAdminApprovalForInvites: boolean;
+  autoAssignTasks: boolean;
+}
+
+export interface NotificationSettings {
+  tasksEnabled: boolean;
+  projectsEnabled: boolean;
+  meetingsEnabled: boolean;
+  calendarEnabled: boolean;
+  deadlinesEnabled: boolean;
+  ordisAlertsEnabled: boolean;
+  emailDigest: boolean;
+  soundEnabled: boolean;
+  browserSound?: boolean;
+}
+
+export interface MeetingCalendarSettings {
+  defaultPlatform: MeetingPlatform;
+  defaultDuration: number;
+  schedulingLeadTimeMinutes: number;
+  reminderLeadMinutes?: number;
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  syncTasksToCalendar: boolean;
+  autoAgenda: boolean;
+  autoGenerateAgendas?: boolean;
+  autoRecordAndSummarize: boolean;
+}
+
+export interface OrdisSettings {
+  mode: 'proactive' | 'collaborative' | 'manual';
+  assistanceMode?: 'autonomous' | 'confirmation' | 'silent' | 'proactive' | 'collaborative' | 'manual';
+  tone: 'concise' | 'executive' | 'detailed' | 'friendly';
+  personality?: 'direct' | 'collaborative' | 'detailed' | 'concise' | 'executive' | 'friendly';
+  briefingTime: string;
+  proactiveScanner: boolean;
+  proactiveBottleneckDetection?: boolean;
+  morningBriefing: boolean;
+  morningBriefingEnabled?: boolean;
+  naturalLanguageActionsEnabled?: boolean;
+  allowTaskCreation: boolean;
+  allowMeetingScheduling: boolean;
+  allowWorkloadRebalancing: boolean;
+  actionPermissions?: {
+    canCreateTasks: boolean;
+    canScheduleMeetings: boolean;
+    canReassignTasks: boolean;
+    canDraftMessages: boolean;
+  };
+}
+
 export interface OrgSettings {
   name: string;
   industry: string;
@@ -432,6 +502,7 @@ export interface OrdisAgent {
 
 export type DashboardPageType =
   | 'home'
+  | 'ordis'
   | 'tasks'
   | 'projects'
   | 'team'
@@ -440,7 +511,9 @@ export type DashboardPageType =
   | 'analytics'
   | 'workspace'
   | 'automations'
-  | 'ordis'
   | 'documents'
+  | 'messages'
   | 'integrations'
   | 'settings';
+
+

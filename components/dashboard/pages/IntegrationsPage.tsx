@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import { IntegrationItem, WebhookItem, ApiKeyItem } from '@/lib/dashboard/types';
 
 export default function IntegrationsPage() {
   const {
@@ -31,13 +32,13 @@ export default function IntegrationsPage() {
   const [keyName, setKeyName] = useState('');
   const [keyScopes, setKeyScopes] = useState<string[]>(['read:tasks', 'write:tasks']);
 
-  const connectedCount = integrations.filter((i) => i.status === 'connected').length;
-  const categories = ['all', ...Array.from(new Set(integrations.map((i) => i.category)))];
+  const connectedCount = integrations.filter((i: IntegrationItem) => i.status === 'connected').length;
+  const categories: string[] = ['all', ...Array.from(new Set(integrations.map((i: IntegrationItem) => i.category)))];
 
   const filteredIntegrations =
     filterCategory === 'all'
       ? integrations
-      : integrations.filter((i) => i.category === filterCategory);
+      : integrations.filter((i: IntegrationItem) => i.category === filterCategory);
 
   const handleCreateWebhook = (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +189,7 @@ export default function IntegrationsPage() {
               gap: 'var(--sp-3)',
             }}
           >
-            {filteredIntegrations.map((int) => {
+            {filteredIntegrations.map((int: IntegrationItem) => {
               const isConnected = int.status === 'connected';
               return (
                 <div
@@ -286,7 +287,7 @@ export default function IntegrationsPage() {
               </tr>
             </thead>
             <tbody>
-              {webhooks.map((wh) => (
+              {webhooks.map((wh: WebhookItem) => (
                 <tr key={wh.id} style={{ borderBottom: '1px solid var(--c-gray-200)' }}>
                   <td style={{ padding: 'var(--sp-3)' }}>
                     <div style={{ fontWeight: 'var(--fw-bold)' }}>{wh.name}</div>
@@ -296,7 +297,7 @@ export default function IntegrationsPage() {
                   </td>
                   <td style={{ padding: 'var(--sp-3)' }}>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {wh.events.map((ev, i) => (
+                      {wh.events.map((ev: string, i: number) => (
                         <span key={i} className="badge badge-brand" style={{ fontSize: '9px' }}>
                           {ev}
                         </span>
@@ -341,7 +342,7 @@ export default function IntegrationsPage() {
               </tr>
             </thead>
             <tbody>
-              {apiKeys.map((key) => (
+              {apiKeys.map((key: ApiKeyItem) => (
                 <tr key={key.id} style={{ borderBottom: '1px solid var(--c-gray-200)' }}>
                   <td style={{ padding: 'var(--sp-3)' }}>
                     <div style={{ fontWeight: 'var(--fw-bold)' }}>{key.name}</div>

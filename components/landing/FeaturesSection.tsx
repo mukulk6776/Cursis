@@ -1,100 +1,82 @@
 import React from 'react';
 
 export default function FeaturesSection() {
-  const features = [
+  const corePillars = [
     {
-      icon: 'P',
-      bg: 'var(--c-brand-bg)',
-      name: 'Projects',
-      desc: 'Organize work into projects with timelines, milestones, and team assignments.',
+      number: '01',
+      tag: 'PRIMARY FEATURE',
+      tagClass: 'badge-brand',
+      name: 'Ordis Workspace Intelligence',
+      desc: 'An AI engine that operates your workspace. Detects stalled projects, creates and assigns tasks, prepares agendas, and answers questions using your live workspace data.',
+      highlights: ['Proactive bottleneck detection', 'Natural language task creation', 'Automated meeting agendas'],
     },
     {
-      icon: 'T',
-      bg: 'var(--c-accent)',
-      name: 'Tasks',
-      desc: 'Create, assign, prioritize, and track tasks. Board, list, or calendar view.',
+      number: '02',
+      tag: 'COLLABORATION',
+      tagClass: 'badge-neutral',
+      name: 'Team & Workload Management',
+      desc: 'See who is working on what, track real-time active statuses, manage roles and permissions, and maintain balanced workloads across every department.',
+      highlights: ['Live online/busy presence', 'Capacity & workload balancing', 'Role-based access control'],
     },
     {
-      icon: 'M',
-      bg: 'var(--c-brand-bg)',
-      name: 'Messages',
-      desc: 'Real-time team messaging with channels, threads, and file sharing built in.',
+      number: '03',
+      tag: 'EXECUTION',
+      tagClass: 'badge-neutral',
+      name: 'Projects & Tasks',
+      desc: 'Move seamlessly between Kanban boards, list views, and milestone roadmaps. Assign tasks, track subtasks, set urgency priorities, and never miss a delivery.',
+      highlights: ['Interactive Kanban & list views', 'Milestone & deadline tracking', 'Selective assignment & subtasks'],
     },
     {
-      icon: 'D',
-      bg: 'var(--c-success-bg)',
-      name: 'Docs',
-      desc: 'Collaborative documents with rich editing, linked to projects and tasks.',
+      number: '04',
+      tag: 'SCHEDULES',
+      tagClass: 'badge-neutral',
+      name: 'Meetings & Calendar',
+      desc: 'Keep schedules, client syncs, and team standups connected directly to your tasks. Generate agendas automatically and convert meeting summaries into actionable items.',
+      highlights: ['Google Meet & Zoom launch', 'AI-generated meeting agendas', 'Unified schedule & milestones'],
     },
     {
-      icon: 'F',
-      bg: 'var(--c-warning-bg)',
-      name: 'Files',
-      desc: 'Central file storage. Upload, organize, preview. Every file has context.',
-    },
-    {
-      icon: 'C',
-      bg: 'var(--c-purple-bg)',
-      name: 'Calendar',
-      desc: 'Unified calendar with deadlines, meetings, milestones. Syncs with your tasks.',
-    },
-    {
-      icon: 'N',
-      bg: 'var(--c-brand-bg)',
-      name: 'Notes',
-      desc: 'Quick notes, meeting minutes, and personal docs. All searchable.',
-    },
-    {
-      icon: 'W',
-      bg: 'var(--c-accent)',
-      name: 'My Work',
-      desc: 'Your personal command center. See everything assigned to you across all projects.',
-    },
-    {
-      icon: 'R',
-      bg: 'var(--c-error-bg)',
-      name: 'Reports',
-      desc: 'Team velocity, project health, task completion. Real-time dashboards.',
-    },
-    {
-      icon: 'L',
-      bg: 'var(--c-success-bg)',
-      name: 'Time Log',
-      desc: "Track time on tasks. See where your team's hours go. Built-in timers.",
-    },
-    {
-      icon: 'I',
-      bg: 'var(--c-info-bg)',
-      name: 'Invoices',
-      desc: 'Create invoices from tracked time and projects. Send directly to clients.',
-    },
-    {
-      icon: 'O',
-      bg: 'var(--c-accent)',
-      name: 'Ordis AI',
-      desc: 'Your intelligent assistant that watches, suggests, and keeps work moving.',
+      number: '05',
+      tag: 'CLARITY',
+      tagClass: 'badge-neutral',
+      name: 'Overview & Productivity Analytics',
+      desc: 'A high-level command view of company velocity, completed deliverables, upcoming deadlines, and team output without drowning in complex reporting menus.',
+      highlights: ['Sprint velocity tracking', 'Real-time completion metrics', 'Burnout & risk warnings'],
     },
   ];
 
   return (
     <section className="lp-section" id="features">
-      <div className="lp-section-label lp-reveal">Core Features</div>
-      <h2 className="lp-section-title lp-reveal">Everything you need. Nothing you don't.</h2>
-      <p className="lp-section-subtitle lp-reveal">
-        12 integrated tools that work together as one system. No plugins. No add-ons. No extra cost.
-      </p>
+      <div className="lp-section-header">
+        <div className="lp-section-label">Core System</div>
+        <h2 className="lp-section-title">The 5 Core Pillars of Cursis</h2>
+        <p className="lp-section-subtitle">
+          Everything your team needs to plan, execute, and deliver — built as one cohesive system without feature bloat or complicated configuration.
+        </p>
+      </div>
 
-      <div className="lp-features-grid lp-stagger">
-        {features.map((item) => (
-          <div key={item.name} className="lp-feature-card">
-            <div className="lp-feature-icon" style={{ background: item.bg }}>
-              {item.icon}
+      <div className="lp-pillars-showcase-grid">
+        {corePillars.map((pillar) => (
+          <div key={pillar.number} className={`lp-pillar-showcase-card ${pillar.number === '01' ? 'featured' : ''}`}>
+            <div className="lp-card-topbar">
+              <span className="lp-card-num">{pillar.number}</span>
+              <span className={`badge ${pillar.tagClass}`}>{pillar.tag}</span>
             </div>
-            <div className="lp-feature-name">{item.name}</div>
-            <div className="lp-feature-desc">{item.desc}</div>
+
+            <h3 className="lp-pillar-name">{pillar.name}</h3>
+            <p className="lp-pillar-text">{pillar.desc}</p>
+
+            <div className="lp-pillar-highlights">
+              {pillar.highlights.map((h, i) => (
+                <div key={i} className="lp-highlight-item">
+                  <span className="lp-highlight-dot" />
+                  <span>{h}</span>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
     </section>
   );
 }
+

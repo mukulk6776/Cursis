@@ -1,34 +1,27 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 
 export default function HeroSection() {
-  const [highlightIndex, setHighlightIndex] = useState(0);
-  const [visibleNotifs, setVisibleNotifs] = useState<number[]>([0]);
+  const [activeTab, setActiveTab] = useState<'tasks' | 'team' | 'meetings'>('tasks');
+  const [demoTasks, setDemoTasks] = useState([
+    { id: 1, title: 'Finalize brand design system', priority: 'High', status: 'In Progress', assignee: 'Mukul K.' },
+    { id: 2, title: 'Review Q3 client deliverables', priority: 'Urgent', status: 'Pending', assignee: 'Sarah T.' },
+    { id: 3, title: 'Prep team sprint retrospective', priority: 'Medium', status: 'Done', assignee: 'Alex R.' },
+  ]);
+  const [ordisActionApplied, setOrdisActionApplied] = useState(false);
 
-  // Demo cycling effect from landing.js
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHighlightIndex((prev) => {
-        const next = (prev + 1) % 6;
-        if (next === 0) {
-          setVisibleNotifs([0]);
-        } else if (next === 3) {
-          setVisibleNotifs([0, 1]);
-        } else if (next === 4) {
-          setVisibleNotifs([0, 1, 2]);
-        }
-        return next;
-      });
-    }, 2200);
+  const handleApplyOrdisAction = () => {
+    setOrdisActionApplied(true);
+    setDemoTasks((prev) =>
+      prev.map((t) => (t.id === 2 ? { ...t, status: 'In Progress', priority: 'High' } : t))
+    );
+  };
 
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleScrollToFeatures = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleScrollToOrdis = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    const el = document.querySelector('#features');
+    const el = document.querySelector('#ordis');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -36,270 +29,253 @@ export default function HeroSection() {
 
   return (
     <section className="lp-section lp-hero" id="hero">
-      <div className="lp-reveal lp-visible">
-        <h1 className="lp-hero-title">
-          One workspace.
-          <br />
-          <span className="lp-highlight">Everything connected.</span>
-          <br />
-          Free forever.
-        </h1>
-      </div>
-
-      <p className="lp-hero-text lp-reveal lp-visible" style={{ transitionDelay: '100ms' }}>
-        Cursis gives your team a complete workspace — projects, tasks, messages, docs, files, and
-        an AI assistant called Ordis that watches everything and keeps work moving.
-      </p>
-
-      <div className="lp-hero-ctas lp-reveal lp-visible" style={{ transitionDelay: '200ms' }}>
-        <Link href="/signup" className="btn btn-brand btn-lg">
-          Start Free Workspace
-        </Link>
-        <a href="#features" onClick={handleScrollToFeatures} className="btn btn-secondary btn-lg">
-          See How It Works
-        </a>
-      </div>
-
-      <p className="lp-hero-note lp-reveal lp-visible" style={{ transitionDelay: '300ms' }}>
-        No credit card. No trial. No subscription. Free.
-      </p>
-
-      {/* Dashboard Mockup Frame */}
-      <div className="lp-hero-mockup lp-reveal-scale lp-visible" style={{ transitionDelay: '400ms' }}>
-        {/* Browser Chrome Bar */}
-        <div className="lp-mockup-topbar">
-          <div className="lp-mockup-topbar-left">
-            <div className="lp-mockup-topbar-dot red" />
-            <div className="lp-mockup-topbar-dot yellow" />
-            <div className="lp-mockup-topbar-dot green" />
-          </div>
-          <div
-            style={{
-              fontSize: '11px',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              color: 'var(--text-tertiary)',
-            }}
-          >
-            cursis.app/workspace
-          </div>
-          <div />
+      <div className="lp-hero-header">
+        <div className="lp-badge-clean">
+          <span>Intelligent Workspace</span>
+          <span className="lp-badge-dot" />
+          <span className="lp-badge-accent">Powered by Ordis</span>
         </div>
 
-        {/* Mockup Body */}
+        <h1 className="lp-hero-title">
+          One workspace.<br />
+          <span className="lp-highlight">Everything connected.</span><br />
+          Free forever.
+        </h1>
+
+        <p className="lp-hero-text">
+          Cursis gives your team a clean, unified workspace for projects, tasks, team activity, 
+          and meetings — with <strong>Ordis</strong>, the built-in AI assistant that helps you operate your day.
+        </p>
+
+        <div className="lp-hero-ctas">
+          <Link href="/signup" className="btn btn-primary btn-lg">
+            Start Free Workspace
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </Link>
+          <a href="#ordis" onClick={handleScrollToOrdis} className="btn btn-secondary btn-lg">
+            See Ordis in Action
+          </a>
+        </div>
+
+        <div className="lp-hero-benefits">
+          <span className="lp-benefit-item">✓ 100% Free Forever</span>
+          <span className="lp-benefit-sep">•</span>
+          <span className="lp-benefit-item">✓ Unlimited Projects &amp; Tasks</span>
+          <span className="lp-benefit-sep">•</span>
+          <span className="lp-benefit-item">✓ Ordis AI Included</span>
+        </div>
+      </div>
+
+      {/* Interactive Product Preview Frame */}
+      <div className="lp-hero-mockup">
+        {/* Mockup Window Chrome */}
+        <div className="lp-mockup-topbar">
+          <div className="lp-mockup-topbar-left">
+            <span className="lp-mockup-dot red" />
+            <span className="lp-mockup-dot yellow" />
+            <span className="lp-mockup-dot green" />
+            <span className="lp-mockup-tag">workspace / demo</span>
+          </div>
+          <div className="lp-mockup-url">
+            <span>cursis.app/workspace</span>
+          </div>
+          <div className="lp-mockup-status">
+            <span className="lp-status-live-dot" />
+            <span>Connected</span>
+          </div>
+        </div>
+
+        {/* Mockup Inner Body */}
         <div className="lp-mockup-body">
-          {/* Sidebar */}
+          {/* Mockup Sidebar */}
           <div className="lp-mockup-sidebar">
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginBottom: '12px',
-                padding: '4px 8px',
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="20" height="20">
-                <path
-                  d="M 545 240 A 282 282 0 1 0 782 566"
-                  stroke="#18181b"
-                  strokeWidth="142"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <rect
-                  x="625"
-                  y="196"
-                  width="156"
-                  height="156"
-                  rx="42"
-                  transform="rotate(-10 703 274)"
-                  fill="#ff5710"
-                />
-              </svg>
-              <span style={{ fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}>Cursis</span>
-            </div>
-            <div className="lp-mockup-sidebar-item active">Dashboard</div>
-            <div className="lp-mockup-sidebar-item">Projects</div>
-            <div className="lp-mockup-sidebar-item">Tasks</div>
-            <div className="lp-mockup-sidebar-item">Messages</div>
-            <div className="lp-mockup-sidebar-item">Team</div>
-            <div className="lp-mockup-sidebar-item">Files</div>
-            <div className="lp-mockup-sidebar-item">Calendar</div>
-            <div className="lp-mockup-sidebar-item">Notes</div>
-            <div className="lp-mockup-sidebar-item">Ordis AI</div>
-          </div>
-
-          {/* Main Workspace Area */}
-          <div className="lp-mockup-main">
-            {/* Stat Cards Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-              <div className={`lp-mockup-card ${highlightIndex === 0 ? 'lp-card-highlight' : ''}`} style={{ padding: '10px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
-                  Active Tasks
-                </div>
-                <div style={{ fontSize: '22px', fontWeight: 900 }}>24</div>
-              </div>
-              <div className={`lp-mockup-card ${highlightIndex === 1 ? 'lp-card-highlight' : ''}`} style={{ padding: '10px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
-                  Projects
-                </div>
-                <div style={{ fontSize: '22px', fontWeight: 900 }}>8</div>
-              </div>
-              <div className={`lp-mockup-card ${highlightIndex === 2 ? 'lp-card-highlight' : ''}`} style={{ padding: '10px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
-                  Team
-                </div>
-                <div style={{ fontSize: '22px', fontWeight: 900 }}>12</div>
-              </div>
+            <div className="lp-mockup-brand">
+              <span className="lp-mockup-brand-badge">C</span>
+              <span className="lp-mockup-brand-name">Acme Studio</span>
             </div>
 
-            {/* Tasks List */}
-            <div className={`lp-mockup-card ${highlightIndex === 3 ? 'lp-card-highlight' : ''}`}>
-              <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
-                Today's Tasks
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: 'var(--c-bg)', border: '1px solid var(--c-near-black)', fontSize: '11px', fontWeight: 700 }}>
-                  <span style={{ width: '14px', height: '14px', border: '2px solid var(--c-brand)', display: 'inline-flex', flexShrink: 0 }} />
-                  Design homepage layout
-                  <span style={{ marginLeft: 'auto', fontSize: '9px', padding: '2px 6px', background: 'var(--c-warning)', color: '#fff', border: '1px solid var(--c-near-black)', fontWeight: 800, textTransform: 'uppercase' }}>
-                    High
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: 'var(--c-bg)', border: '1px solid var(--c-near-black)', fontSize: '11px', fontWeight: 700 }}>
-                  <span style={{ width: '14px', height: '14px', border: '2px solid var(--c-brand)', display: 'inline-flex', flexShrink: 0 }} />
-                  Review team pull requests
-                  <span style={{ marginLeft: 'auto', fontSize: '9px', padding: '2px 6px', background: 'var(--c-accent)', color: 'var(--c-near-black)', border: '1px solid var(--c-near-black)', fontWeight: 800, textTransform: 'uppercase' }}>
-                    Medium
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: 'var(--c-bg)', border: '1px solid var(--c-near-black)', fontSize: '11px', fontWeight: 700 }}>
-                  <span style={{ width: '14px', height: '14px', background: 'var(--c-brand)', border: '2px solid var(--c-near-black)', display: 'inline-flex', flexShrink: 0 }} />
-                  <span style={{ textDecoration: 'line-through', color: 'var(--text-tertiary)' }}>Prepare client proposal</span>
-                  <span style={{ marginLeft: 'auto', fontSize: '9px', padding: '2px 6px', background: 'var(--c-success)', color: '#fff', border: '1px solid var(--c-near-black)', fontWeight: 800, textTransform: 'uppercase' }}>
-                    Done
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Project Progress */}
-            <div className={`lp-mockup-card ${highlightIndex === 4 ? 'lp-card-highlight' : ''}`}>
-              <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
-                Project: Website Redesign
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div className="progress" style={{ height: '10px', flex: 1 }}>
-                  <div className="progress-fill blue" style={{ width: '72%' }} />
-                </div>
-                <span style={{ fontSize: '11px', fontWeight: 900 }}>72%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Panel: Ordis AI */}
-          <div className="lp-mockup-panel">
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                paddingBottom: '8px',
-                borderBottom: '1px solid var(--c-near-black)',
-                marginBottom: '4px',
-              }}
-            >
-              <span
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'var(--c-accent)',
-                  border: '1px solid var(--c-near-black)',
-                  fontSize: '10px',
-                  fontWeight: 900,
-                }}
+            <div className="lp-mockup-nav">
+              <div
+                className={`lp-mockup-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
+                onClick={() => setActiveTab('tasks')}
               >
-                O
-              </span>
-              <span style={{ fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' }}>Ordis AI</span>
-              <span
-                className="lp-pulse"
-                style={{
-                  marginLeft: 'auto',
-                  width: '6px',
-                  height: '6px',
-                  background: 'var(--c-success)',
-                  border: '1px solid var(--c-near-black)',
-                }}
-              />
-            </div>
-
-            {/* Notification 1 */}
-            <div
-              className="lp-ordis-notif"
-              style={{
-                opacity: visibleNotifs.includes(0) ? 1 : 0,
-                transform: visibleNotifs.includes(0) ? 'translateY(0)' : 'translateY(8px)',
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                marginBottom: '6px',
-                padding: '8px',
-                borderRadius: 0,
-              }}
-            >
-              <div className="lp-ordis-notif-icon" style={{ width: '22px', height: '22px', fontSize: '9px' }}>
-                O
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 11l3 3L22 4" />
+                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                </svg>
+                <span>Tasks &amp; Projects</span>
               </div>
-              <div className="lp-ordis-notif-text" style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
-                <strong style={{ color: 'var(--text-primary)' }}>3 tasks</strong> due today.{' '}
-                "Design homepage" is <strong style={{ color: 'var(--c-warning)' }}>high priority</strong>.
+              <div
+                className={`lp-mockup-nav-item ${activeTab === 'team' ? 'active' : ''}`}
+                onClick={() => setActiveTab('team')}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                </svg>
+                <span>Team (6)</span>
+              </div>
+              <div
+                className={`lp-mockup-nav-item ${activeTab === 'meetings' ? 'active' : ''}`}
+                onClick={() => setActiveTab('meetings')}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span>Meetings &amp; Calendar</span>
               </div>
             </div>
 
-            {/* Notification 2 */}
-            <div
-              className="lp-ordis-notif"
-              style={{
-                opacity: visibleNotifs.includes(1) ? 1 : 0,
-                transform: visibleNotifs.includes(1) ? 'translateY(0)' : 'translateY(8px)',
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s',
-                marginBottom: '6px',
-                padding: '8px',
-                borderRadius: 0,
-              }}
-            >
-              <div className="lp-ordis-notif-icon" style={{ width: '22px', height: '22px', fontSize: '9px' }}>
-                O
+            <div className="lp-mockup-sidebar-ordis-badge">
+              <div className="lp-ordis-mini-header">
+                <span className="lp-ordis-chip">ORDIS</span>
+                <span className="lp-pulse-ring" />
               </div>
-              <div className="lp-ordis-notif-text" style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
-                Sarah hasn't updated "<strong style={{ color: 'var(--text-primary)' }}>Brand Assets</strong>" in 5 days.{' '}
-                <span style={{ color: 'var(--c-brand)' }}>Nudge?</span>
+              <p className="lp-ordis-mini-text">Scanning workspace for bottlenecks &amp; deadlines</p>
+            </div>
+          </div>
+
+          {/* Mockup Main View */}
+          <div className="lp-mockup-main">
+            {activeTab === 'tasks' && (
+              <div className="lp-mockup-view">
+                <div className="lp-mockup-view-header">
+                  <div>
+                    <h3 className="lp-mockup-view-title">Active Sprint Overview</h3>
+                    <span className="lp-mockup-view-subtitle">3 of 8 tasks remaining • 1 deadline tomorrow</span>
+                  </div>
+                  <span className="badge badge-brand">78% ON TRACK</span>
+                </div>
+
+                {/* Task Cards */}
+                <div className="lp-mockup-task-list">
+                  {demoTasks.map((t) => (
+                    <div key={t.id} className="lp-mockup-task-row">
+                      <div className="lp-mockup-task-check">
+                        <input
+                          type="checkbox"
+                          checked={t.status === 'Done'}
+                          onChange={() => {
+                            setDemoTasks((prev) =>
+                              prev.map((item) =>
+                                item.id === t.id
+                                  ? { ...item, status: item.status === 'Done' ? 'In Progress' : 'Done' }
+                                  : item
+                              )
+                            );
+                          }}
+                        />
+                      </div>
+                      <div className="lp-mockup-task-details">
+                        <span className={`lp-mockup-task-name ${t.status === 'Done' ? 'completed' : ''}`}>
+                          {t.title}
+                        </span>
+                        <div className="lp-mockup-task-meta">
+                          <span className="lp-mockup-assignee">{t.assignee}</span>
+                          <span className={`badge badge-sm ${t.priority === 'Urgent' ? 'badge-error' : t.priority === 'High' ? 'badge-warning' : 'badge-neutral'}`}>
+                            {t.priority}
+                          </span>
+                          <span className="badge badge-sm badge-neutral">{t.status}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'team' && (
+              <div className="lp-mockup-view">
+                <div className="lp-mockup-view-header">
+                  <div>
+                    <h3 className="lp-mockup-view-title">Team Bandwidth &amp; Workload</h3>
+                    <span className="lp-mockup-view-subtitle">4 online • 2 offline • 0 overloaded</span>
+                  </div>
+                </div>
+                <div className="lp-mockup-team-grid">
+                  <div className="lp-mockup-member-card">
+                    <div className="lp-avatar-sm" style={{ background: '#0f4cff', color: '#fff' }}>MK</div>
+                    <div>
+                      <div className="lp-member-name">Mukul Kumar</div>
+                      <div className="lp-member-role">Lead Product Engineer • 3 tasks</div>
+                    </div>
+                    <span className="lp-status-online">Online</span>
+                  </div>
+                  <div className="lp-mockup-member-card">
+                    <div className="lp-avatar-sm" style={{ background: '#ccff00', color: '#000' }}>ST</div>
+                    <div>
+                      <div className="lp-member-name">Sarah Taylor</div>
+                      <div className="lp-member-role">Brand Designer • 2 tasks</div>
+                    </div>
+                    <span className="lp-status-online">Online</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'meetings' && (
+              <div className="lp-mockup-view">
+                <div className="lp-mockup-view-header">
+                  <div>
+                    <h3 className="lp-mockup-view-title">Upcoming Schedule</h3>
+                    <span className="lp-mockup-view-subtitle">2 meetings scheduled for today</span>
+                  </div>
+                </div>
+                <div className="lp-mockup-meeting-card">
+                  <div className="lp-meeting-time">2:00 PM (30m)</div>
+                  <div className="lp-meeting-info">
+                    <strong>Weekly Design Sync &amp; Retrospective</strong>
+                    <span>Attendees: Mukul K., Sarah T., Alex R. • Agenda generated by Ordis</span>
+                  </div>
+                  <span className="badge badge-brand">Google Meet</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Mockup Right Panel: Real Ordis AI Action */}
+          <div className="lp-mockup-ordis-panel">
+            <div className="lp-ordis-panel-header">
+              <div className="lp-ordis-icon-box">O</div>
+              <div>
+                <span className="lp-ordis-title">Ordis Workspace Copilot</span>
+                <span className="lp-ordis-subtitle">Live Workspace Action</span>
               </div>
             </div>
 
-            {/* Notification 3 */}
-            <div
-              className="lp-ordis-notif"
-              style={{
-                opacity: visibleNotifs.includes(2) ? 1 : 0,
-                transform: visibleNotifs.includes(2) ? 'translateY(0)' : 'translateY(8px)',
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.4s',
-                marginBottom: '6px',
-                padding: '8px',
-                borderRadius: 0,
-              }}
-            >
-              <div className="lp-ordis-notif-icon" style={{ width: '22px', height: '22px', fontSize: '9px' }}>
-                O
-              </div>
-              <div className="lp-ordis-notif-text" style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
-                Meeting with <strong style={{ color: 'var(--text-primary)' }}>Dev Team</strong> in 30 min.{' '}
-                <span style={{ color: 'var(--c-brand)' }}>Agenda ready.</span>
-              </div>
+            <div className="lp-ordis-action-box">
+              <div className="lp-ordis-tag">PROACTIVE NOTICE</div>
+              <p className="lp-ordis-msg">
+                <strong>"Review Q3 client deliverables"</strong> is marked urgent and has an upcoming deadline tomorrow.
+              </p>
+
+              {!ordisActionApplied ? (
+                <div className="lp-ordis-action-footer">
+                  <span className="lp-ordis-suggestion">Recommended Action:</span>
+                  <button className="btn btn-brand btn-sm" onClick={handleApplyOrdisAction}>
+                    ⚡ Rebalance &amp; Start Task
+                  </button>
+                </div>
+              ) : (
+                <div className="lp-ordis-success-box">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00b341" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Action executed: Task updated &amp; priority aligned.</span>
+                </div>
+              )}
+            </div>
+
+            <div className="lp-ordis-quick-prompts">
+              <span className="lp-prompts-label">Try asking Ordis:</span>
+              <div className="lp-prompt-pill">"What is my team working on?"</div>
+              <div className="lp-prompt-pill">"Show all upcoming deadlines"</div>
             </div>
           </div>
         </div>
@@ -307,3 +283,4 @@ export default function HeroSection() {
     </section>
   );
 }
+
