@@ -26,7 +26,7 @@ export default function DashboardPage() {
         });
 
         // Self-healing attempt: If initial check was 401 but we have a valid stored token, re-establish session cookie
-        if (!res.ok && storedToken && storedToken.startsWith('cursis_usr_')) {
+        if (!res.ok && storedToken && storedToken.startsWith('cursis_')) {
           try {
             const reAuthRes = await fetch('/api/auth/session', {
               method: 'POST',

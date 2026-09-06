@@ -43,6 +43,8 @@ export interface UserProfile {
   displayName: string;
   photoURL?: string;
   role: UserRole;
+  passwordHash?: string;
+  salt?: string;
   department?: string;
   title?: string;
   skills: string[]; // e.g. ["Next.js", "UI/UX", "Copywriting", "Sales", "Accounting"]
