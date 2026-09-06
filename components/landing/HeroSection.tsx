@@ -243,7 +243,7 @@ export default function HeroSection() {
           <div className="lp-mockup-ordis-panel">
             <div className="lp-ordis-panel-header">
               <div className="lp-ordis-icon-box">O</div>
-              <div>
+              <div className="lp-ordis-header-text">
                 <span className="lp-ordis-title">Ordis Workspace Copilot</span>
                 <span className="lp-ordis-subtitle">Live Workspace Action</span>
               </div>
@@ -274,8 +274,22 @@ export default function HeroSection() {
 
             <div className="lp-ordis-quick-prompts">
               <span className="lp-prompts-label">Try asking Ordis:</span>
-              <div className="lp-prompt-pill">"What is my team working on?"</div>
-              <div className="lp-prompt-pill">"Show all upcoming deadlines"</div>
+              <div
+                className="lp-prompt-pill"
+                onClick={() => setActiveTab('team')}
+                role="button"
+                tabIndex={0}
+              >
+                "What is my team working on?"
+              </div>
+              <div
+                className="lp-prompt-pill"
+                onClick={() => setActiveTab('tasks')}
+                role="button"
+                tabIndex={0}
+              >
+                "Show all upcoming deadlines"
+              </div>
             </div>
           </div>
         </div>

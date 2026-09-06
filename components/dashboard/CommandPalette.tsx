@@ -19,6 +19,7 @@ export default function CommandPalette() {
     closeCommandPalette,
     openModal,
     setCurrentPage,
+    signOut,
   } = useDashboard();
 
   const [query, setQuery] = useState('');
@@ -82,6 +83,14 @@ export default function CommandPalette() {
       icon: 'U',
       text: 'Add Team Member',
       action: () => openModal('invite-modal'),
+    },
+    {
+      id: 'sign-out-command',
+      group: 'Quick Actions',
+      icon: '⎋',
+      text: 'Sign Out of Cursis Workspace',
+      shortcut: '/logout',
+      action: () => signOut(),
     },
 
     // Navigation

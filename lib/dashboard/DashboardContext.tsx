@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { signOutUser } from '@/lib/auth/firebase';
 import {
   DashboardPageType,
   User,
@@ -144,6 +145,8 @@ interface DashboardContextType {
   updateMeetingCalendarSettings: (updates: Partial<MeetingCalendarSettings>) => void;
   ordisSettings: OrdisSettings;
   updateOrdisSettings: (updates: Partial<OrdisSettings>) => void;
+  resetSettingsToDefault: (category?: 'workspace' | 'team' | 'notifications' | 'meetings' | 'ordis' | 'security' | 'all') => void;
+  sendTestNotification: (title?: string, message?: string) => void;
 
   // Integrations & Developer Hub
   integrations: IntegrationItem[];
@@ -213,6 +216,7 @@ interface DashboardContextType {
   getCompletedMeetings: () => Meeting[];
   updateOrgSettings: (updates: Partial<OrgSettings>) => void;
   toggleAgent: (id: string) => void;
+  signOut: () => Promise<void>;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -279,6 +283,91 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     },
   ]);
 
+  // Sync authenticated user from session on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadAuthSession() {
+      try {
+        const res = await fetch('/api/auth/session', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          const sessUser = data.data?.user || data.user;
+          if (sessUser && isMounted) {
+            const displayName = sessUser.displayName || sessUser.email.split('@')[0];
+            const initials = displayName
+              .split(' ')
+              .filter(Boolean)
+              .map((n: string) => n[0])
+              .join('')
+              .toUpperCase()
+              .substring(0, 2) || 'CU';
+
+            const activeUser: User = {
+              id: sessUser.uid || 'u1',
+              name: displayName,
+              email: sessUser.email,
+              initials,
+              role: sessUser.role === 'owner' ? 'Founder & CEO' : 'Team Member',
+              avatar: sessUser.photoURL || null,
+              color: '#0f4cff',
+              photoURL: sessUser.photoURL,
+            };
+
+            setUser(activeUser);
+
+            // Ensure current user is in employees list
+            setEmployees((prev) => {
+              const existingIdx = prev.findIndex((e) => e.id === activeUser.id || e.email === activeUser.email || e.id === 'u1');
+              if (existingIdx !== -1) {
+                const updated = [...prev];
+                updated[existingIdx] = {
+                  ...updated[existingIdx],
+                  id: activeUser.id,
+                  name: activeUser.name,
+                  email: activeUser.email,
+                  initials: activeUser.initials,
+                };
+                return updated;
+              } else {
+                return [
+                  {
+                    id: activeUser.id,
+                    name: activeUser.name,
+                    initials: activeUser.initials,
+                    role: activeUser.role,
+                    department: 'Leadership',
+                    departmentId: 'dept_leadership',
+                    teamIds: ['team_core'],
+                    workspaceRole: 'owner',
+                    status: 'online',
+                    color: '#0f4cff',
+                    tasks: 0,
+                    projects: 0,
+                    email: activeUser.email,
+                    skills: ['Strategy', 'Leadership'],
+                    joinedAt: new Date().toISOString().split('T')[0],
+                  },
+                  ...prev,
+                ];
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Session sync notice:', err);
+      }
+    }
+    loadAuthSession();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    showToast('Signing out of workspace...');
+    await signOutUser('/login?logout=true');
+  };
+
   const showToast = (message: string) => {
     const id = 'toast_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5);
     setToasts((prev) => [...prev, { id, message }]);
@@ -300,45 +389,215 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const closeGenericModal = () => setGenericModal(null);
   const clearChatHistory = () => setChatHistory([]);
 
-  // ---- Settings Mutation Handlers ----
+  // Helper to play notification chime
+  const playNotificationChime = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.25);
+    } catch {
+      // Ignore audio autoplay restrictions
+    }
+  };
+
+  // Hydrate settings from localStorage on client mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const savedWs = localStorage.getItem('cursis_workspace_settings');
+      if (savedWs) {
+        const parsed = JSON.parse(savedWs);
+        setWorkspaceSettings((prev) => ({ ...prev, ...parsed }));
+      }
+      const savedTeam = localStorage.getItem('cursis_team_settings');
+      if (savedTeam) {
+        const parsed = JSON.parse(savedTeam);
+        setTeamSettings((prev) => ({ ...prev, ...parsed }));
+      }
+      const savedNotif = localStorage.getItem('cursis_notification_settings');
+      if (savedNotif) {
+        const parsed = JSON.parse(savedNotif);
+        setNotificationSettings((prev) => ({ ...prev, ...parsed }));
+      }
+      const savedMeet = localStorage.getItem('cursis_meeting_calendar_settings');
+      if (savedMeet) {
+        const parsed = JSON.parse(savedMeet);
+        setMeetingCalendarSettings((prev) => ({ ...prev, ...parsed }));
+      }
+      const savedOrdis = localStorage.getItem('cursis_ordis_settings');
+      if (savedOrdis) {
+        const parsed = JSON.parse(savedOrdis);
+        setOrdisSettings((prev) => ({ ...prev, ...parsed }));
+      }
+      const savedOrg = localStorage.getItem('cursis_org_settings');
+      if (savedOrg) {
+        const parsed = JSON.parse(savedOrg);
+        setOrgSettings((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch (e) {
+      console.warn('Notice: Could not load cached settings:', e);
+    }
+  }, []);
+
+  // Dynamically apply workspace accent color & layout density to DOM
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    if (workspaceSettings.accentColor) {
+      root.style.setProperty('--c-brand', workspaceSettings.accentColor);
+      root.style.setProperty('--c-brand-hover', workspaceSettings.accentColor);
+      root.style.setProperty('--c-info', workspaceSettings.accentColor);
+    }
+    if (workspaceSettings.density) {
+      root.setAttribute('data-density', workspaceSettings.density);
+    }
+  }, [workspaceSettings.accentColor, workspaceSettings.density]);
+
+  // ---- Settings Mutation Handlers with Persistence ----
   const updateWorkspaceSettings = (updates: Partial<WorkspaceSettings>) => {
     setWorkspaceSettings((prev) => {
       const next = { ...prev, ...updates };
-      // Sync workspace name with active workspace and org settings
-      if (updates.name) {
-        setWorkspaces((ws) =>
-          ws.map((w) => (w.id === activeWorkspaceId ? { ...w, name: updates.name!, shortName: updates.name! } : w))
-        );
-        setOrgSettings((org) => ({ ...org, name: updates.name! }));
+      try {
+        localStorage.setItem('cursis_workspace_settings', JSON.stringify(next));
+      } catch {}
+
+      // Sync active workspace attributes (name, tagline, accentColor)
+      setWorkspaces((wsList) =>
+        wsList.map((w) => {
+          if (w.id === activeWorkspaceId) {
+            return {
+              ...w,
+              ...(updates.name ? { name: updates.name, shortName: updates.name } : {}),
+              ...(updates.tagline ? { tagline: updates.tagline } : {}),
+              ...(updates.accentColor ? { color: updates.accentColor } : {}),
+            };
+          }
+          return w;
+        })
+      );
+
+      if (updates.name || updates.industry || updates.timezone || updates.language || updates.dateFormat) {
+        setOrgSettings((org) => {
+          const nextOrg: OrgSettings = {
+            ...org,
+            ...(updates.name ? { name: updates.name } : {}),
+            ...(updates.industry ? { industry: updates.industry } : {}),
+            ...(updates.timezone ? { timezone: updates.timezone } : {}),
+            ...(updates.language ? { language: updates.language } : {}),
+            ...(updates.dateFormat ? { dateFormat: updates.dateFormat } : {}),
+          };
+          try {
+            localStorage.setItem('cursis_org_settings', JSON.stringify(nextOrg));
+          } catch {}
+          return nextOrg;
+        });
       }
+
       return next;
     });
-    addAuditEntry('Alex Morgan', 'workspace.settings.updated', 'Workspace Settings', 'Updated workspace customization and profile');
+    addAuditEntry(user.name, 'workspace.settings.updated', 'Workspace Settings', 'Updated workspace customization, identity, and theme');
     showToast('Workspace settings saved ✓');
   };
 
   const updateTeamSettings = (updates: Partial<TeamSettings>) => {
-    setTeamSettings((prev) => ({ ...prev, ...updates }));
-    addAuditEntry('Alex Morgan', 'team.settings.updated', 'Team Settings', 'Updated team governance and invite policies');
+    setTeamSettings((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('cursis_team_settings', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    addAuditEntry(user.name, 'team.settings.updated', 'Team Settings', 'Updated team governance, member permissions, and invite policies');
     showToast('Team settings updated ✓');
   };
 
   const updateNotificationSettings = (updates: Partial<NotificationSettings>) => {
-    setNotificationSettings((prev) => ({ ...prev, ...updates }));
-    addAuditEntry('Alex Morgan', 'notifications.settings.updated', 'Notifications', 'Updated notification alerts and sound');
+    setNotificationSettings((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('cursis_notification_settings', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    addAuditEntry(user.name, 'notifications.settings.updated', 'Notifications', 'Updated notification alerts and sound channels');
     showToast('Notification preferences saved ✓');
   };
 
   const updateMeetingCalendarSettings = (updates: Partial<MeetingCalendarSettings>) => {
-    setMeetingCalendarSettings((prev) => ({ ...prev, ...updates }));
-    addAuditEntry('Alex Morgan', 'calendar.settings.updated', 'Meeting & Calendar', 'Updated scheduling lead times and defaults');
+    setMeetingCalendarSettings((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('cursis_meeting_calendar_settings', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    addAuditEntry(user.name, 'calendar.settings.updated', 'Meeting & Calendar', 'Updated scheduling lead times, platform, and defaults');
     showToast('Calendar preferences saved ✓');
   };
 
   const updateOrdisSettings = (updates: Partial<OrdisSettings>) => {
-    setOrdisSettings((prev) => ({ ...prev, ...updates }));
-    addAuditEntry('Alex Morgan', 'ordis.settings.updated', 'Ordis AI', 'Updated autonomous action permissions and mode');
+    setOrdisSettings((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('cursis_ordis_settings', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    addAuditEntry(user.name, 'ordis.settings.updated', 'Ordis AI', 'Updated autonomous action permissions, mode, and briefing');
     showToast('Ordis AI settings updated ✓');
+  };
+
+  const resetSettingsToDefault = (category?: 'workspace' | 'team' | 'notifications' | 'meetings' | 'ordis' | 'security' | 'all') => {
+    if (!category || category === 'all' || category === 'workspace') {
+      setWorkspaceSettings(INITIAL_WORKSPACE_SETTINGS);
+      try { localStorage.removeItem('cursis_workspace_settings'); } catch {}
+    }
+    if (!category || category === 'all' || category === 'team') {
+      setTeamSettings(INITIAL_TEAM_SETTINGS);
+      try { localStorage.removeItem('cursis_team_settings'); } catch {}
+    }
+    if (!category || category === 'all' || category === 'notifications') {
+      setNotificationSettings(INITIAL_NOTIFICATION_SETTINGS);
+      try { localStorage.removeItem('cursis_notification_settings'); } catch {}
+    }
+    if (!category || category === 'all' || category === 'meetings') {
+      setMeetingCalendarSettings(INITIAL_MEETING_CALENDAR_SETTINGS);
+      try { localStorage.removeItem('cursis_meeting_calendar_settings'); } catch {}
+    }
+    if (!category || category === 'all' || category === 'ordis') {
+      setOrdisSettings(INITIAL_ORDIS_SETTINGS);
+      try { localStorage.removeItem('cursis_ordis_settings'); } catch {}
+    }
+    if (!category || category === 'all' || category === 'security') {
+      setOrgSettings(INITIAL_ORG_SETTINGS);
+      try { localStorage.removeItem('cursis_org_settings'); } catch {}
+    }
+    addAuditEntry(user.name, 'settings.reset', 'Settings', `Reset ${category || 'all'} preferences to system defaults`);
+    showToast(`Reset ${category || 'all'} preferences to defaults ✓`);
+  };
+
+  const sendTestNotification = (title?: string, message?: string) => {
+    const text = title ? `${title}: ${message || ''}` : 'Test alert: Workspace notifications are working seamlessly!';
+    setNotifications((prev) => [
+      { id: 'notif_' + Date.now(), type: 'system', text, time: 'Just now', read: false, icon: '🔔' },
+      ...prev,
+    ]);
+    if (notificationSettings.soundEnabled) {
+      playNotificationChime();
+    }
+    showToast('🔔 Test notification sent to drawer!');
   };
 
   // ---- Audit Log Mutation ----
@@ -731,8 +990,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const getCompletedMeetings = () => meetings.filter((m) => m.status === 'completed');
 
   const updateOrgSettings = (updates: Partial<OrgSettings>) => {
-    setOrgSettings((prev) => ({ ...prev, ...updates }));
-    showToast('Settings saved ✓');
+    setOrgSettings((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('cursis_org_settings', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    addAuditEntry(user.name, 'security.settings.updated', 'Security Policies', 'Updated workspace security policies and organization settings');
+    showToast('Security & compliance settings saved ✓');
   };
 
   const toggleAgent = (id: string) => {
@@ -983,6 +1249,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         updateMeetingCalendarSettings,
         ordisSettings,
         updateOrdisSettings,
+        resetSettingsToDefault,
+        sendTestNotification,
         orgSettings,
         roles,
         auditLogs,
@@ -1018,6 +1286,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         getCompletedMeetings,
         updateOrgSettings,
         toggleAgent,
+        signOut: handleSignOut,
       }}
     >
       {children}

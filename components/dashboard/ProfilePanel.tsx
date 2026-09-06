@@ -10,6 +10,8 @@ export default function ProfilePanel() {
     getEmployee,
     getTasksForEmployee,
     projects,
+    user,
+    signOut,
   } = useDashboard();
 
   if (!profilePanelEmployeeId) return null;
@@ -143,6 +145,50 @@ export default function ProfilePanel() {
           ))
         ) : (
           <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-sm)' }}>No projects</p>
+        )}
+
+        {/* Account Session Actions (If Current User or Workspace Owner) */}
+        {(emp.id === user.id || emp.email === user.email) && (
+          <div
+            style={{
+              marginTop: 'var(--sp-6)',
+              paddingTop: 'var(--sp-5)',
+              borderTop: '1px solid var(--border-light)',
+            }}
+          >
+            <h4 style={{ margin: '0 0 var(--sp-2) 0', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>Account &amp; Session</h4>
+            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--sp-3)' }}>
+              Logged in as <strong>{user.email}</strong>
+            </p>
+            <button
+              type="button"
+              id="profile-panel-sign-out-btn"
+              className="btn btn-secondary"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                color: 'var(--c-error)',
+                borderColor: '#fca5a5',
+                background: '#fff5f5',
+                fontWeight: 700,
+                fontSize: 'var(--fs-sm)',
+              }}
+              onClick={() => {
+                closeProfilePanel();
+                signOut();
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Sign Out of Cursis
+            </button>
+          </div>
         )}
       </div>
     </div>

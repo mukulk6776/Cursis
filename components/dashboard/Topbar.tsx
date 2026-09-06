@@ -15,10 +15,15 @@ export default function Topbar() {
     switchWorkspace,
     openModal,
     setMobileSidebarOpen,
+    setCurrentPage,
+    signOut,
   } = useDashboard();
 
   const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -26,6 +31,9 @@ export default function Topbar() {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setWorkspaceDropdownOpen(false);
+      }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target as Node)) {
+        setUserDropdownOpen(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -173,13 +181,109 @@ export default function Topbar() {
           )}
         </div>
 
-        {/* User Profile Trigger */}
+        {/* User Profile Trigger & Dropdown */}
         <div
           className="topbar-user"
-          onClick={() => openProfilePanel(user.id)}
-          style={{ cursor: 'pointer' }}
+          ref={userDropdownRef}
+          onClick={(e) => {
+            e.stopPropagation();
+            setUserDropdownOpen((prev) => !prev);
+          }}
+          style={{ cursor: 'pointer', position: 'relative' }}
+          title={`${user.name} - Account Options`}
         >
           <div className="topbar-avatar" style={{ background: user.color }}>{user.initials}</div>
+
+          {userDropdownOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '8px',
+                background: 'var(--c-white)',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                borderRadius: '6px',
+                padding: '6px',
+                zIndex: 100,
+                minWidth: '220px',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--c-gray-200)', marginBottom: '4px' }}>
+                <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--c-near-black)' }}>{user.name}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.email}
+                </div>
+                <div style={{ marginTop: '4px' }}>
+                  <span className="badge badge-brand" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                    {user.role}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ width: '100%', justifyContent: 'flex-start', fontSize: '12px', gap: '8px', padding: '6px 10px' }}
+                onClick={() => {
+                  setUserDropdownOpen(false);
+                  openProfilePanel(user.id);
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Profile Drawer
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ width: '100%', justifyContent: 'flex-start', fontSize: '12px', gap: '8px', padding: '6px 10px' }}
+                onClick={() => {
+                  setUserDropdownOpen(false);
+                  setCurrentPage('settings');
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                Workspace Settings
+              </button>
+
+              <div style={{ height: '1px', background: 'var(--c-gray-200)', margin: '4px 0' }} />
+
+              <button
+                type="button"
+                id="topbar-sign-out-btn"
+                className="btn btn-ghost btn-sm"
+                style={{
+                  width: '100%',
+                  justifyContent: 'flex-start',
+                  fontSize: '12px',
+                  gap: '8px',
+                  padding: '6px 10px',
+                  color: 'var(--c-error)',
+                  fontWeight: 700,
+                }}
+                onClick={() => {
+                  setUserDropdownOpen(false);
+                  signOut();
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

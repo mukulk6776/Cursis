@@ -104,10 +104,12 @@ export async function DELETE() {
   try {
     const cookieStore = await cookies();
     cookieStore.delete('cursis_session');
+    cookieStore.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
   } catch {}
 
   const response = apiSuccess({ message: 'Session terminated successfully' });
   response.cookies.delete('cursis_session');
+  response.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
   return response;
 }
 

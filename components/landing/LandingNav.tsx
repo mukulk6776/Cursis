@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { signOutUser } from '@/lib/auth/firebase';
 
 export default function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     let ticking = false;
@@ -19,6 +22,22 @@ export default function LandingNav() {
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Check if user is currently authenticated
+    fetch('/api/auth/session', { credentials: 'include' })
+      .then((res) => {
+        if (res.ok) return res.json();
+        return null;
+      })
+      .then((data) => {
+        if (data && (data.user || data.data?.user)) {
+          setIsAuthenticated(true);
+          const u = data.user || data.data?.user;
+          setUserEmail(u.email || null);
+        }
+      })
+      .catch(() => {});
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -31,11 +50,15 @@ export default function LandingNav() {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOutUser('/?logout=true');
+  };
+
   return (
     <nav className={`lp-nav ${scrolled ? 'lp-nav-scrolled' : ''}`} id="lp-nav">
       <div className="lp-nav-container">
         <Link href="/" className="lp-nav-logo">
-          <svg viewBox="0 0 1024 1024" fill="none" width="28" height="28">
+          <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32">
             <path
               d="M 545 240 A 282 282 0 1 0 782 566"
               stroke="#000000"
@@ -69,23 +92,64 @@ export default function LandingNav() {
           <a href="#pricing" onClick={(e) => handleAnchorClick(e, '#pricing')} className="lp-nav-link">
             Pricing
           </a>
+
           <div className="lp-nav-mobile-actions">
-            <Link href="/login" className="btn btn-secondary btn-sm" onClick={() => setMobileOpen(false)}>
-              Sign In
-            </Link>
-            <Link href="/signup" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
-              Get Started Free
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
+                  Open Dashboard →
+                </Link>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  style={{ color: 'var(--c-error)', fontWeight: 700 }}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleSignOut();
+                  }}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="btn btn-secondary btn-sm" onClick={() => setMobileOpen(false)}>
+                  Sign In
+                </Link>
+                <Link href="/signup" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
+                  Get Started Free
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
         <div className="lp-nav-actions">
-          <Link href="/login" className="btn btn-ghost btn-sm lp-hide-mobile">
-            Sign In
-          </Link>
-          <Link href="/signup" className="btn btn-primary btn-sm">
-            Get Started Free
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link href="/dashboard" className="btn btn-primary btn-sm lp-hide-mobile" style={{ fontWeight: 800 }}>
+                Open Dashboard →
+              </Link>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm lp-hide-mobile"
+                style={{ color: 'var(--c-error)', fontWeight: 700 }}
+                onClick={handleSignOut}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="btn btn-ghost btn-sm lp-hide-mobile">
+                Sign In
+              </Link>
+              <Link href="/signup" className="btn btn-primary btn-sm lp-hide-mobile">
+                Get Started Free
+              </Link>
+            </>
+          )}
+
           <button
             className="lp-nav-mobile-toggle"
             id="lp-mobile-toggle"

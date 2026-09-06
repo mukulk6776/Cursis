@@ -13,6 +13,7 @@ export interface User {
   avatar: string | null;
   color: string;
   workspaceRole?: string;
+  photoURL?: string | null;
 }
 
 export interface Workspace {
@@ -161,7 +162,7 @@ export interface Meeting {
 
 export interface NotificationItem {
   id: string;
-  type: 'task' | 'mention' | 'meeting' | 'deadline' | 'ai' | 'project' | 'team' | 'automation' | 'agent' | 'security';
+  type: 'task' | 'mention' | 'meeting' | 'deadline' | 'ai' | 'project' | 'team' | 'automation' | 'agent' | 'security' | 'system';
   text: string;
   time: string;
   read: boolean;

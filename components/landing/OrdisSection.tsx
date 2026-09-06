@@ -251,7 +251,7 @@ export default function OrdisSection() {
         </div>
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: 'var(--sp-8)' }}>
+      <div className="lp-ordis-cta-wrapper">
         <Link href="/signup" className="btn btn-primary btn-lg">
           Experience Ordis for Free
         </Link>

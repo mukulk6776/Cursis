@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cursis - Full Architecture, Tech Stack & Engineering Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  @page {
+    size: A4 portrait;
+    margin: 18mm 16mm 18mm 16mm;
+    @bottom-right {
+      content: counter(page);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 9pt;
+      font-weight: 700;
+      color: #71717a;
+    }
+    @bottom-left {
+      content: "CURSIS • Architectural & Engineering Whitepaper";
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 8pt;
+      font-weight: 600;
+      color: #a1a1aa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #18181b;
+    background-color: #ffffff;
+    line-height: 1.6;
+    font-size: 10pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: #09090b;
+    margin-top: 0;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    font-size: 24pt;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 15pt;
+    line-height: 1.25;
+    margin-top: 22pt;
+    margin-bottom: 10pt;
+    padding-bottom: 5px;
+    border-bottom: 2.5px solid #000000;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-size: 12pt;
+    margin-top: 14pt;
+    margin-bottom: 6pt;
+    color: #18181b;
+  }
+
+  h4 {
+    font-size: 10.5pt;
+    margin-top: 10pt;
+    margin-bottom: 4pt;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 8pt;
+    color: #27272a;
+  }
+
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .no-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Neo Brutalist Accent Elements */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1.5px solid #000000;
+    background: #f4f4f5;
+    color: #09090b;
+    box-shadow: 2px 2px 0px #000000;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+
+  .badge-primary {
+    background: #ff5722;
+    color: #ffffff;
+  }
+
+  .badge-accent {
+    background: #10b981;
+    color: #ffffff;
+  }
+
+  .badge-purple {
+    background: #8b5cf6;
+    color: #ffffff;
+  }
+
+  .badge-dark {
+    background: #09090b;
+    color: #ffffff;
+  }
+
+  /* Cover Page */
+  .cover-container {
+    height: 100%;
+    min-height: 240mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px 0;
+    page-break-after: always;
+  }
+
+  .cover-header {
+    border: 3.5px solid #000000;
+    padding: 30px;
+    background: #fafafa;
+    box-shadow: 8px 8px 0px #000000;
+  }
+
+  .cover-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+
+  .cover-logo-box {
+    width: 44px;
+    height: 44px;
+    background: #000000;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    border: 2px solid #000000;
+  }
+
+  .cover-brand-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22pt;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+  }
+
+  .cover-title {
+    font-size: 32pt;
+    line-height: 1.05;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    color: #09090b;
+  }
+
+  .cover-subtitle {
+    font-size: 13pt;
+    font-weight: 500;
+    color: #52525b;
+    line-height: 1.4;
+    margin-bottom: 20px;
+  }
+
+  .cover-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 30px;
+  }
+
+  .meta-card {
+    border: 2px solid #000000;
+    padding: 14px;
+    background: #ffffff;
+    box-shadow: 4px 4px 0px #000000;
+  }
+
+  .meta-card-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #71717a;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+  }
+
+  .meta-card-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11pt;
+    font-weight: 700;
+    color: #09090b;
+  }
+
+  .cover-features-summary {
+    border: 2px solid #000000;
+    padding: 20px;
+    background: #09090b;
+    color: #ffffff;
+    box-shadow: 6px 6px 0px #ff5722;
+    margin-top: 25px;
+  }
+
+  .cover-features-summary h4 {
+    color: #ffffff;
+    font-size: 11pt;
+    margin-top: 0;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .cover-features-summary p {
+    color: #d4d4d8;
+    font-size: 9pt;
+    margin-bottom: 0;
+  }
+
+  /* Content Cards & Boxes */
+  .card {
+    border: 2px solid #000000;
+    background: #ffffff;
+    padding: 12px 16px;
+    margin-bottom: 12pt;
+    box-shadow: 3.5px 3.5px 0px #000000;
+  }
+
+  .card-highlight {
+    background: #fbfbfb;
+    border-left: 6px solid #ff5722;
+  }
+
+  .card-dark {
+    background: #09090b;
+    color: #ffffff;
+    border-color: #000000;
+    box-shadow: 4px 4px 0px #ff5722;
+  }
+
+  .card-dark p, .card-dark li {
+    color: #e4e4e7;
+  }
+
+  .card-dark h3, .card-dark h4 {
+    color: #ffffff;
+  }
+
+  /* Grid Layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8pt;
+    margin-bottom: 14pt;
+    font-size: 8.5pt;
+  }
+
+  th, td {
+    border: 1.5px solid #000000;
+    padding: 7px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: #09090b;
+    color: #ffffff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 8pt;
+  }
+
+  tr:nth-child(even) td {
+    background-color: #f9f9f9;
+  }
+
+  /* Code & Architecture Blocks */
+  pre, code {
+    font-family: 'JetBrains Mono', Consolas, monospace;
+  }
+
+  code {
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    padding: 1px 4px;
+    font-size: 8pt;
+    font-weight: 600;
+    color: #d946ef;
+  }
+
+  pre {
+    background: #09090b;
+    color: #22c55e;
+    border: 2px solid #000000;
+    padding: 10px 12px;
+    font-size: 7.5pt;
+    line-height: 1.45;
+    overflow-x: hidden;
+    box-shadow: 3px 3px 0px #000000;
+    margin-top: 6pt;
+    margin-bottom: 10pt;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  pre .comment {
+    color: #71717a;
+    font-style: italic;
+  }
+
+  pre .keyword {
+    color: #ff79c6;
+    font-weight: bold;
+  }
+
+  pre .string {
+    color: #f1fa8c;
+  }
+
+  pre .function {
+    color: #8be9fd;
+  }
+
+  ul, ol {
+    margin-top: 0;
+    margin-bottom: 8pt;
+    padding-left: 18px;
+  }
+
+  li {
+    margin-bottom: 3pt;
+  }
+
+  .stat-callout {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .stat-number {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18pt;
+    font-weight: 800;
+    color: #ff5722;
+  }
+
+  .stat-desc {
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: #52525b;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= COVER PAGE ================= -->
+<div class="cover-container">
+  <div class="cover-header">
+    <div class="cover-brand">
+      <div class="cover-logo-box">C</div>
+      <div class="cover-brand-title">CURSIS PLATFORM</div>
+    </div>
+    
+    <div class="cover-title">Full Architecture & Engineering Handbook</div>
+    <div class="cover-subtitle">
+      A comprehensive deep-dive into the Autonomous Workspace Orchestration Platform, its high-performance Next.js 16 stack, Three.js spatial engine, Ordis AI orchestration pipeline, and step-by-step build blueprint.
+    </div>
+
+    <div>
+      <span class="badge badge-primary">Next.js 16 (App Router)</span>
+      <span class="badge badge-dark">React 19</span>
+      <span class="badge badge-accent">TypeScript 5</span>
+      <span class="badge badge-purple">Three.js + R3F</span>
+      <span class="badge">Firebase Admin + Firestore</span>
+      <span class="badge">Ordis AI Engine</span>
+      <span class="badge badge-primary">Vercel Edge</span>
+    </div>
+
+    <div class="cover-meta-grid">
+      <div class="meta-card">
+        <div class="meta-card-label">Document Type</div>
+        <div class="meta-card-val">Architecture & Technical Manual</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-card-label">Target Architecture</div>
+        <div class="meta-card-val">Full-Stack Serverless Edge + AI</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-card-label">Repository</div>
+        <div class="meta-card-val">github.com/mukulk6776/Cursis</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-card-label">Live Production URL</div>
+        <div class="meta-card-val">https://cursis.vercel.app</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-features-summary">
+    <h4>Executive Overview</h4>
+    <p>
+      Cursis reimagines workspace productivity through autonomous ambient intelligence. Moving beyond passive Kanban boards and static CRMs, Cursis acts as an autonomous operating partner (Ordis Engine) that ingests meeting dialogues, detects project risk bottlenecks, orchestrates CRM workflows, and safely executes multi-step actions with human-in-the-loop validation.
+    </p>
+  </div>
+</div>
+
+<!-- ================= SECTION 1: SYSTEM OVERVIEW ================= -->
+<h2>1. Executive Summary & Core Philosophy</h2>
+
+<div class="card card-highlight">
+  <h3>What is Cursis?</h3>
+  <p>
+    <strong>Cursis</strong> is a modern, high-contrast, AI-orchestrated workspace operating system tailored for high-velocity software agencies, product teams, and founders. Unlike traditional SaaS tools that require manual data entry, Cursis combines ambient intelligence with high-performance real-time interfaces.
+  </p>
+</div>
+
+<div class="grid-2 no-break">
+  <div class="card">
+    <h4>1. Autonomous AI Intelligence (Ordis)</h4>
+    <p style="font-size: 8.5pt;">
+      Continuously scans workspaces, parses raw meeting transcripts into actionable tickets, estimates timelines, and surfaces proactive approval recommendations before deadlines slip.
+    </p>
+  </div>
+  <div class="card">
+    <h4>2. Somba Neo-Brutalist Visual System</h4>
+    <p style="font-size: 8.5pt;">
+      Striking visual identity featuring high-contrast stark borders, sharp geometry, rich typography (Space Grotesk + JetBrains Mono), smooth dark modes, and micro-animations.
+    </p>
+  </div>
+  <div class="card">
+    <h4>3. Immersive 3D Spatial Canvas</h4>
+    <p style="font-size: 8.5pt;">
+      Hardware-accelerated WebGL spatial layers powered by Three.js and React Three Fiber to visualize complex multi-agent workflows and interactive project topologies.
+    </p>
+  </div>
+  <div class="card">
+    <h4>4. Enterprise-Grade Serverless Engine</h4>
+    <p style="font-size: 8.5pt;">
+      40+ dedicated serverless API route handlers deployed across global edge networks with resilient tamper-proof session token authorization and Cloud Firestore storage.
+    </p>
+  </div>
+</div>
+
+<!-- ================= SECTION 2: COMPLETE TECH STACK ================= -->
+<div class="page-break"></div>
+<h2>2. Comprehensive Technology Stack</h2>
+
+<p>Every component in the Cursis ecosystem is selected for maximum speed, strict type safety, zero layout shift, and fluid user experience.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%;">Layer / Domain</th>
+      <th style="width: 33%;">Technology / Package</th>
+      <th style="width: 45%;">Role & Strategic Justification</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Core Framework</strong></td>
+      <td><code>Next.js 16.3.2</code> (App Router)</td>
+      <td>Hybrid Server Components (RSC) and Dynamic Edge Route Handlers with Turbopack compilation.</td>
+    </tr>
+    <tr>
+      <td><strong>UI Runtime</strong></td>
+      <td><code>React 19.2.8</code> + <code>TypeScript 5</code></td>
+      <td>Latest concurrent rendering features, Actions, and strict end-to-end type safety.</td>
+    </tr>
+    <tr>
+      <td><strong>Styling & CSS</strong></td>
+      <td><code>Tailwind CSS v4</code> + PostCSS</td>
+      <td>Next-generation CSS engine providing zero-runtime styling with custom Somba Neo-Brutalist tokens.</td>
+    </tr>
+    <tr>
+      <td><strong>Spatial & 3D</strong></td>
+      <td><code>Three.js</code> + <code>@react-three/fiber</code> + <code>@react-three/drei</code></td>
+      <td>Interactive 3D geometry, spatial lighting, and dynamic visual nodes on the canvas.</td>
+    </tr>
+    <tr>
+      <td><strong>Motion & Scroll</strong></td>
+      <td><code>Framer Motion v13</code> + <code>Lenis 1.3</code></td>
+      <td>Physics-based spring transitions, layout morphing, and smooth inertia scroll momentum.</td>
+    </tr>
+    <tr>
+      <td><strong>Icons & Theming</strong></td>
+      <td><code>Lucide React</code> + <code>next-themes</code></td>
+      <td>Clean SVG vector iconography with persistent dark/light theme switching.</td>
+    </tr>
+    <tr>
+      <td><strong>Client Auth</strong></td>
+      <td><code>Firebase v12.18.0</code> (Auth)</td>
+      <td>Client-side Google OAuth popup and email/password identity management.</td>
+    </tr>
+    <tr>
+      <td><strong>Server Backend</strong></td>
+      <td><code>Firebase Admin v14.3.0</code> + <code>Node.js</code></td>
+      <td>Server-side Firestore document persistence, custom claims, and secure session management.</td>
+    </tr>
+    <tr>
+      <td><strong>Security / Session</strong></td>
+      <td><code>HttpOnly</code> Encrypted Session Cookies</td>
+      <td>Self-contained, cross-domain cookie exchange (<code>cursis_session</code>) with 5-day expiration.</td>
+    </tr>
+    <tr>
+      <td><strong>Hosting & CI/CD</strong></td>
+      <td><code>Vercel Serverless Platform</code></td>
+      <td>Automated Git-triggered builds with global edge distribution and zero-config caching.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>High-Level Architecture Topology</h3>
+<pre>
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 CLIENT BROWSER                                         │
+│  ┌─────────────────────────┐  ┌───────────────────────────┐  ┌──────────────────────┐  │
+│  │   Landing & Dashboard   │  │   Three.js 3D Viewport    │  │   Firebase Auth SDK  │  │
+│  │  (React 19 + Tailwind)  │  │  (R3F + Drei Canvas)      │  │  (Google & Email)    │  │
+│  └────────────┬────────────┘  └─────────────┬─────────────┘  └──────────┬───────────┘  │
+└───────────────┼─────────────────────────────┼───────────────────────────┼──────────────┘
+                │                             │                           │
+                │ HTTPS (REST API Requests + HttpOnly Session Cookie)     │ ID Token
+                ▼                             ▼                           ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                             VERCEL SERVERLESS EDGE LAYER                               │
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │                   /api/auth/session (Session Token Exchange)                     │  │
+│  └──────────────────────────────────────────┬───────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────┴───────────────────────────────────────┐  │
+│  │                            PROTECTED ROUTE HANDLERS                              │  │
+│  │  • /api/dashboards/stats     • /api/crm/deals           • /api/projects          │  │
+│  │  • /api/ordis/ambient-scan   • /api/ordis/risk-radar    • /api/automations       │  │
+│  │  • /api/meetings/process     • /api/ordis/approval-queue • /api/team             │  │
+│  └──────────────────────────────────────────┬───────────────────────────────────────┘  │
+└─────────────────────────────────────────────┼──────────────────────────────────────────┘
+                                              │
+                     ┌────────────────────────┴────────────────────────┐
+                     ▼                                                 ▼
+      ┌─────────────────────────────┐                   ┌─────────────────────────────┐
+      │   Cloud Firestore Database  │                   │    Ordis AI Logic Engine    │
+      │  (Users, Workflows, CRM)    │                   │   (Ambient & Meeting Tasks) │
+      └─────────────────────────────┘                   └─────────────────────────────┘
+</pre>
+
+<!-- ================= SECTION 3: KEY PRODUCT MODULES ================= -->
+<div class="page-break"></div>
+<h2>3. Detailed Platform Modules & Feature Engine</h2>
+
+<div class="card">
+  <h3>1. Ordis AI Autonomous Workspace Partner</h3>
+  <p>
+    The cornerstone of Cursis is <strong>Ordis</strong>—an autonomous multi-agent engine designed to eliminate manual management overhead. Key subsystems include:
+  </p>
+  <ul>
+    <li><strong>Ambient Workspace Scanner (<code>/api/ordis/ambient-scan</code>)</strong>: Continuously audits active tickets, unassigned tasks, and upcoming milestone dates to generate automated health scores.</li>
+    <li><strong>Meeting Intelligence Processor (<code>/api/ordis/process-meeting</code>)</strong>: Converts raw transcripts into structured action items, assigns owners, updates deal stages, and auto-schedules calendar follow-ups.</li>
+    <li><strong>Predictive Risk Radar (<code>/api/ordis/risk-radar</code>)</strong>: Simulates project delivery timelines based on team capacity and flags overdue risks before they impact client deliverables.</li>
+    <li><strong>Autonomous Approval Queue (<code>/api/ordis/approval-queue</code>)</strong>: Holds high-impact AI actions (sending emails, modifying client contracts, reallocating budgets) in a safety queue for 1-click human verification.</li>
+  </ul>
+</div>
+
+<div class="grid-2 no-break">
+  <div class="card">
+    <h3>2. Executive Dashboard</h3>
+    <p style="font-size: 8.5pt;">
+      Central command displaying live MRR, active sprint velocity, workload distribution charts, Ordis AI saved hours, and priority action feeds.
+    </p>
+  </div>
+  <div class="card">
+    <h3>3. High-Velocity CRM & Deals</h3>
+    <p style="font-size: 8.5pt;">
+      Complete pipeline management supporting drag-and-drop deal progression, customer contact tracking, lead scoring, and automated renewal triggers.
+    </p>
+  </div>
+  <div class="card">
+    <h3>4. Project & Task Engine</h3>
+    <p style="font-size: 8.5pt;">
+      Unified task management with multi-view modes (Kanban, List, Timeline), automated workload rebalancing, and smart dependency tracking.
+    </p>
+  </div>
+  <div class="card">
+    <h3>5. Agency Catalog & Custom Tools</h3>
+    <p style="font-size: 8.5pt;">
+      Modular tool marketplace allowing workspaces to dynamically request, build, and deploy custom internal tools via the Ordis builder API.
+    </p>
+  </div>
+</div>
+
+<!-- ================= SECTION 4: DATA ARCHITECTURE ================= -->
+<h2>4. Data Schema & Session Security Architecture</h2>
+
+<p>Cursis uses a resilient multi-layered data model backed by Cloud Firestore and self-contained encrypted session cookies for reliable serverless execution.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Collection</th>
+      <th style="width: 35%;">Key Document Fields</th>
+      <th style="width: 40%;">Description & Business Logic</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>users</code></td>
+      <td><code>uid, email, displayName, role, photoURL, createdAt</code></td>
+      <td>Stores user profile records and workspace permissions (Owner, Admin, Member).</td>
+    </tr>
+    <tr>
+      <td><code>workspaces</code></td>
+      <td><code>id, name, ownerId, plan, members, settings</code></td>
+      <td>Multi-tenant workspace container isolating data between distinct teams.</td>
+    </tr>
+    <tr>
+      <td><code>workflows</code></td>
+      <td><code>id, userId, prompt, name, status, runs, createdAt</code></td>
+      <td>User-created and AI-orchestrated automation pipelines.</td>
+    </tr>
+    <tr>
+      <td><code>deals</code></td>
+      <td><code>id, title, value, stage, contactEmail, riskLevel</code></td>
+      <td>CRM sales pipeline opportunities tracked against revenue targets.</td>
+    </tr>
+    <tr>
+      <td><code>tasks</code></td>
+      <td><code>id, title, assignee, status, priority, dueDate</code></td>
+      <td>Actionable project work items tied to sprints and milestones.</td>
+    </tr>
+    <tr>
+      <td><code>audit_logs</code></td>
+      <td><code>id, actor, action, timestamp, metadata, rollbackToken</code></td>
+      <td>Immutable security audit trail enabling 1-click rollback of AI and user actions.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ================= SECTION 5: STEP BY STEP BUILD GUIDE ================= -->
+<div class="page-break"></div>
+<h2>5. Step-by-Step Guide: How to Build Cursis from Scratch</h2>
+
+<p>Follow this exact chronological blueprint to recreate or extend the Cursis platform.</p>
+
+<div class="card">
+  <h3>Step 1: System Prerequisites & Workspace Initialization</h3>
+  <p style="font-size: 8.5pt;">Ensure Node.js 20+ (LTS) and Git are installed. Clone the repository and install all dependencies:</p>
+  <pre>
+<span class="comment"># 1. Clone the repository</span>
+git clone https://github.com/mukulk6776/Cursis.git
+cd Cursis
+
+<span class="comment"># 2. Install dependencies (Next.js 16, React 19, Three.js, Firebase)</span>
+npm install
+  </pre>
+</div>
+
+<div class="card">
+  <h3>Step 2: Firebase Console & Firestore Setup</h3>
+  <ol style="font-size: 8.5pt;">
+    <li>Navigate to <strong>https://console.firebase.google.com/</strong> and create a new project (e.g. <code>cursis-prod</code>).</li>
+    <li>Under <strong>Authentication &gt; Sign-in method</strong>, enable <strong>Email/Password</strong> and <strong>Google Sign-In</strong>.</li>
+    <li>Under <strong>Firestore Database</strong>, click <strong>Create database</strong> in Production mode.</li>
+    <li>Under <strong>Project Settings &gt; General &gt; Your apps</strong>, register a Web App and copy the client config values (API Key, Project ID, App ID, etc.).</li>
+    <li>Under <strong>Project Settings &gt; Service accounts</strong>, click <strong>Generate new private key</strong> to download your admin credentials.</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h3>Step 3: Environment Variables Configuration</h3>
+  <p style="font-size: 8.5pt;">Create a file named <code>.env.local</code> in the root directory and populate the required keys:</p>
+  <pre>
+<span class="comment"># Firebase Client Configuration (Browser)</span>
+NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSy..."
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="cursis-prod.firebaseapp.com"
+NEXT_PUBLIC_FIREBASE_PROJECT_ID="cursis-prod"
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="cursis-prod.appspot.com"
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="123456789"
+NEXT_PUBLIC_FIREBASE_APP_ID="1:123456789:web:abcdef"
+
+<span class="comment"># Firebase Admin SDK Configuration (Serverless Routes)</span>
+FIREBASE_PROJECT_ID="cursis-prod"
+FIREBASE_CLIENT_EMAIL="firebase-adminsdk-xxxxx@cursis-prod.iam.gserviceaccount.com"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgk...=\n-----END PRIVATE KEY-----\n"
+
+<span class="comment"># Session Security & AI Secrets</span>
+AUTH_SESSION_SECRET="generate_a_random_32_character_secret_key"
+GEMINI_API_KEY="AIzaSy..."
+  </pre>
+</div>
+
+<div class="card">
+  <h3>Step 4: Next.js & Serverless Bundling Configuration</h3>
+  <p style="font-size: 8.5pt;">Ensure <code>next.config.ts</code> contains <code>serverExternalPackages: ['firebase-admin']</code> to prevent Turbopack native gRPC bundling errors on Vercel:</p>
+  <pre>
+<span class="keyword">import</span> type { NextConfig } <span class="keyword">from</span> <span class="string">"next"</span>;
+
+<span class="keyword">const</span> nextConfig: NextConfig = {
+  reactStrictMode: <span class="keyword">false</span>,
+  devIndicators: <span class="keyword">false</span>,
+  serverExternalPackages: [<span class="string">'firebase-admin'</span>],
+  experimental: {
+    optimizePackageImports: [<span class="string">'lucide-react'</span>, <span class="string">'framer-motion'</span>, <span class="string">'three'</span>, <span class="string">'@react-three/fiber'</span>, <span class="string">'@react-three/drei'</span>],
+  },
+};
+
+<span class="keyword">export default</span> nextConfig;
+  </pre>
+</div>
+
+<!-- ================= SECTION 6: RUNNING & DEPLOYING ================= -->
+<div class="page-break"></div>
+<h2>6. Running Locally & Production Deployment</h2>
+
+<div class="card">
+  <h3>Local Development & Production Verification</h3>
+  <pre>
+<span class="comment"># Start local dev server (Hot reload enabled on http://localhost:3000)</span>
+npm run dev
+
+<span class="comment"># Run strict TypeScript and Next.js production build check</span>
+npm run build
+
+<span class="comment"># Launch local production server</span>
+npm run start
+  </pre>
+</div>
+
+<div class="card">
+  <h3>Deploying to Vercel (Edge Platform)</h3>
+  <ol style="font-size: 8.5pt;">
+    <li>Push your latest changes to GitHub: <code>git push origin main</code>.</li>
+    <li>Go to <strong>https://vercel.com/new</strong> and import your <code>Cursis</code> repository.</li>
+    <li>In the <strong>Environment Variables</strong> section, paste all values from your <code>.env.local</code>.</li>
+    <li>Click <strong>Deploy</strong>. Vercel will compile all 47 routes and deploy the application globally.</li>
+    <li>In <strong>Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains</strong>, add your Vercel deployment URL (e.g. <code>cursis.vercel.app</code>) to allow Google OAuth popups.</li>
+  </ol>
+</div>
+
+<h2>7. Engineering Best Practices & Architecture Reference</h2>
+
+<div class="grid-2 no-break">
+  <div class="card card-dark">
+    <h4>Resilient Session Exchange</h4>
+    <p style="font-size: 8pt;">
+      The <code>/api/auth/session</code> endpoint returns a self-contained, signed session token embedded in an <code>HttpOnly</code> cookie with <code>SameSite=lax</code>. This eliminates reliance on blocking remote roundtrips during critical serverless invocations.
+    </p>
+  </div>
+  <div class="card card-dark">
+    <h4>3D WebGL Performance</h4>
+    <p style="font-size: 8pt;">
+      Three.js canvas contexts are wrapped with lazy loading and dynamic imports (<code>next/dynamic</code> with <code>ssr: false</code>) to ensure fast First Contentful Paint (FCP) and zero main-thread blocking.
+    </p>
+  </div>
+</div>
+
+<div class="card" style="margin-top: 20px; text-align: center; border-width: 3px;">
+  <div style="font-family: 'Space Grotesk', sans-serif; font-size: 13pt; font-weight: 800; text-transform: uppercase;">
+    Cursis Engineering Architecture Specification
+  </div>
+  <div style="font-size: 8.5pt; color: #71717a; margin-top: 4px;">
+    Compiled & Verified • Production Release 2026 • Mukul / Cursis Core Team
+  </div>
+</div>
+
+</body>
+</html>

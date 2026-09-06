@@ -5,14 +5,14 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { MeetingPlatform } from '@/lib/dashboard/types';
 
 export default function MeetingModal() {
-  const { activeModal, closeModal, addMeeting, projects, employees, showToast } = useDashboard();
+  const { activeModal, closeModal, addMeeting, projects, employees, meetingCalendarSettings, showToast } = useDashboard();
 
   const [name, setName] = useState('');
-  const [platform, setPlatform] = useState<MeetingPlatform>('google_meet');
+  const [platform, setPlatform] = useState<MeetingPlatform>(meetingCalendarSettings?.defaultPlatform || 'google_meet');
   const [meetingUrl, setMeetingUrl] = useState('https://meet.google.com/new');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('11:00');
-  const [duration, setDuration] = useState<number>(30);
+  const [duration, setDuration] = useState<number>(meetingCalendarSettings?.defaultDuration || 30);
   const [project, setProject] = useState(projects[0]?.id || '');
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>(['u1']);
   const [agenda, setAgenda] = useState('');
