@@ -67,19 +67,22 @@ export default function LoginPage() {
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (res.ok && (data.success || data.user)) {
-        if (data.token) {
-          try {
-            document.cookie = `cursis_session=${encodeURIComponent(data.token)}; path=/; max-age=604800; SameSite=Lax`;
+      if (res.ok) {
+        // Server set the HttpOnly cookie. Also persist token client-side as backup.
+        try {
+          const data = await res.json().catch(() => ({}));
+          if (data.token) {
             localStorage.setItem('cursis_token', data.token);
-          } catch {}
-        }
+            document.cookie = `cursis_session=${encodeURIComponent(data.token)}; path=/; max-age=604800; SameSite=Lax`;
+          }
+        } catch {}
         window.location.href = '/dashboard';
-      } else {
-        setErrorMsg(data.error || 'Failed to establish workspace session.');
+        return;
       }
+
+      // Non-ok response — try to read error
+      const errData = await res.json().catch(() => ({}));
+      setErrorMsg(errData.error || 'Failed to establish workspace session.');
     } catch (err: any) {
       console.error('Session exchange error:', err);
       setErrorMsg(err.message || 'Failed to establish workspace session.');
