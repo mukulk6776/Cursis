@@ -194,48 +194,72 @@ export async function signUpWithEmail(email: string, pass: string, displayName: 
 /**
  * Sign in with Google Popup
  */
-export async function signInWithGoogle(): Promise<AuthResult> {
+/*
+ * Google sign‑in using redirect to avoid popup‑blocked errors.
+ * Call `signInWithGoogleRedirect()` on a user‑initiated click (e.g., a button).
+ * After the redirect returns, invoke `handleGoogleRedirectResult()` (e.g., in a useEffect) to obtain the AuthResult.
+ */
+export async function signInWithGoogleRedirect(): Promise<void> {
   const activeAuth = getFirebaseAuth();
+  if (isFirebaseConfigured && activeAuth) {
+    const provider = new GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
+    try {
+      await signInWithRedirect(activeAuth, provider);
+    } catch (err) {
+      console.warn('Google redirect sign‑in error:', err);
+      throw err;
+    }
+  } else {
+    console.warn('Firebase not configured – cannot initiate Google redirect sign‑in.');
+  }
+}
 
+export async function handleGoogleRedirectResult(): Promise<AuthResult | null> {
+  const activeAuth = getFirebaseAuth();
   if (isFirebaseConfigured && activeAuth) {
     try {
-      const provider = new GoogleAuthProvider();
-      provider.addScope("profile");
-      provider.addScope("email");
-      const userCredential = await signInWithPopup(activeAuth, provider);
-      const user = userCredential.user;
-      const idToken = await user.getIdToken();
-      return {
-        uid: user.uid,
-        email: user.email || "google-user@cursis.io",
-        displayName: user.displayName || "Cursis User",
-        idToken,
-        photoURL: user.photoURL,
-      };
-    } catch (err: any) {
-      const code = err?.code || "";
-      if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
-        throw err;
-      }
-      console.warn("Google Sign-In notice, using workspace profile:", err);
-      // If domain is unauthorized in Firebase Console, provide clean fallback
-      if (code === "auth/unauthorized-domain" || code === "auth/configuration-not-found" || code === "auth/api-key-not-valid") {
+      const result = await getRedirectResult(activeAuth);
+      if (result?.user) {
+        const user = result.user;
+        const idToken = await user.getIdToken();
+        // Set server‑side session cookie like other sign‑in methods
+        await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken }),
+          credentials: 'include',
+        }).catch((e) => console.warn('Failed to set session cookie after Google redirect:', e));
         return {
-          uid: "usr_google_user_" + Date.now(),
-          email: "founder@cursis.ai",
-          displayName: "Cursis Founder",
-          idToken: "cursis_google_local_token_" + Date.now(),
+          uid: user.uid,
+          email: user.email || 'google-user@cursis.io',
+          displayName: user.displayName || 'Cursis User',
+          idToken,
+          photoURL: user.photoURL,
         };
       }
+    } catch (err: any) {
+      const code = err?.code || '';
+      if (code === 'auth/unauthorized-domain' || code === 'auth/configuration-not-found' || code === 'auth/api-key-not-valid') {
+        console.warn('Google auth configuration issue, falling back to demo profile:', err);
+        return {
+          uid: 'usr_google_demo_' + Date.now(),
+          email: 'founder@cursis.ai',
+          displayName: 'Cursis Founder',
+          idToken: 'cursis_google_dev_token_' + Date.now(),
+        };
+      }
+      console.warn('Google redirect sign‑in notice, using workspace profile:', err);
       throw err;
     }
   }
-
+  // Fallback demo when Firebase not configured
   return {
-    uid: "usr_google_demo_" + Date.now(),
-    email: "founder@cursis.ai",
-    displayName: "Cursis Founder",
-    idToken: "cursis_google_dev_token_" + Date.now(),
+    uid: 'usr_google_demo_' + Date.now(),
+    email: 'founder@cursis.ai',
+    displayName: 'Cursis Founder',
+    idToken: 'cursis_google_dev_token_' + Date.now(),
   };
 }
 
