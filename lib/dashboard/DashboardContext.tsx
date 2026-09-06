@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { signOutUser } from '@/lib/auth/firebase';
 import {
   DashboardPageType,
@@ -226,7 +227,28 @@ interface DashboardContextType {
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const [currentPage, setCurrentPage] = useState<DashboardPageType>('home');
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const getPageFromPathname = (path: string | null): DashboardPageType => {
+    if (!path || path === '/dashboard' || path === '/dashboard/') return 'home';
+    const segment = path.replace(/^\/dashboard\/?/, '').split('/')[0];
+    const validPages: DashboardPageType[] = [
+      'home', 'ordis', 'tasks', 'projects', 'team', 'calendar',
+      'meetings', 'analytics', 'documents', 'messages', 'settings'
+    ];
+    if (validPages.includes(segment as DashboardPageType)) {
+      return segment as DashboardPageType;
+    }
+    return 'home';
+  };
+
+  const currentPage = getPageFromPathname(pathname);
+
+  const setCurrentPage = (page: DashboardPageType) => {
+    const target = page === 'home' ? '/dashboard' : `/dashboard/${page}`;
+    router.push(target);
+  };
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);

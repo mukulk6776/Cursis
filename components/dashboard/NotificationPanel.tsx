@@ -47,7 +47,6 @@ export default function NotificationPanel() {
               else if (n.type === 'meeting') setCurrentPage('meetings');
               else if (n.type === 'project') setCurrentPage('projects');
               else if (n.type === 'team') setCurrentPage('team');
-              else if (n.type === 'automation') setCurrentPage('automations');
               else if (n.type === 'ai') setCurrentPage('ordis');
               closeNotifications();
             }}

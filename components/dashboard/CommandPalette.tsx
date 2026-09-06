@@ -74,22 +74,7 @@ export default function CommandPalette() {
       shortcut: '/doc',
       action: () => openModal('document-modal'),
     },
-    {
-      id: 'new-crm-deal',
-      group: 'Quick Actions',
-      icon: '💼',
-      text: 'Open CRM Sales Pipeline',
-      shortcut: '/crm',
-      action: () => setCurrentPage('workspace'),
-    },
-    {
-      id: 'new-automation',
-      group: 'Quick Actions',
-      icon: '⚙️',
-      text: 'Manage Workflows & Automations',
-      shortcut: '/auto',
-      action: () => setCurrentPage('automations'),
-    },
+
     {
       id: 'agency-req',
       group: 'Quick Actions',
@@ -180,13 +165,6 @@ export default function CommandPalette() {
       action: () => setCurrentPage('messages'),
     },
     {
-      id: 'go-workspace',
-      group: 'Navigate',
-      icon: '💼',
-      text: 'Go to CRM & Agency Pipeline',
-      action: () => setCurrentPage('workspace'),
-    },
-    {
       id: 'go-documents',
       group: 'Navigate',
       icon: '📄',
@@ -194,25 +172,11 @@ export default function CommandPalette() {
       action: () => setCurrentPage('documents'),
     },
     {
-      id: 'go-automations',
-      group: 'Navigate',
-      icon: '⚙️',
-      text: 'Go to Automations & Workflows',
-      action: () => setCurrentPage('automations'),
-    },
-    {
       id: 'go-analytics',
       group: 'Navigate',
       icon: 'A',
       text: 'Go to Analytics & Velocity',
       action: () => setCurrentPage('analytics'),
-    },
-    {
-      id: 'go-integrations',
-      group: 'Navigate',
-      icon: '🔑',
-      text: 'Go to Integrations & API Keys',
-      action: () => setCurrentPage('integrations'),
     },
     {
       id: 'go-settings',
