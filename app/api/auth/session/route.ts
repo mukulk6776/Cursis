@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+import { NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/auth/firebase-admin';
 import { cookies } from 'next/headers';
 import { createUserProfile } from '@/lib/db/users';
@@ -96,10 +97,20 @@ export async function POST(request: Request) {
     }).catch(() => {});
 
     const isProduction = process.env.NODE_ENV === 'production';
-    const cookieValue = `cursis_session=${sessionToken}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${isProduction ? '; Secure' : ''}`;
+    const cookieOptions = {
+      maxAge: maxAgeSeconds,
+      httpOnly: false,
+      secure: isProduction,
+      path: '/',
+      sameSite: 'lax' as const,
+    };
 
-    // Build response with Set-Cookie header directly (most reliable method)
-    const responseBody = JSON.stringify({
+    try {
+      const cookieStore = await cookies();
+      cookieStore.set('cursis_session', sessionToken, cookieOptions);
+    } catch {}
+
+    const response = NextResponse.json({
       success: true,
       user: {
         uid: userUid,
@@ -111,20 +122,14 @@ export async function POST(request: Request) {
       token: sessionToken,
     });
 
-    const response = new Response(responseBody, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Set-Cookie': cookieValue,
-      },
-    });
+    response.cookies.set('cursis_session', sessionToken, cookieOptions);
 
     return response;
   } catch (error: any) {
     console.error('Session creation error:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message || 'Internal Server Error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    return NextResponse.json(
+      { success: false, error: error.message || 'Internal Server Error' },
+      { status: 500 }
     );
   }
 }

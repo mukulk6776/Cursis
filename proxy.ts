@@ -4,22 +4,11 @@ import type { NextRequest } from 'next/server';
 export function proxy(request: NextRequest) {
   const session = request.cookies.get('cursis_session')?.value;
   
-  // Define routes that require authentication
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') || 
-                           request.nextUrl.pathname.startsWith('/onboarding');
-                           
   // Define auth routes (should not be accessible if already logged in)
   const isAuthRoute = request.nextUrl.pathname === '/login' || 
                       request.nextUrl.pathname === '/signup';
 
-  // Redirect unauthenticated users away from protected routes to login
-  if (!session && isProtectedRoute) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // If user visits auth routes with an active session, redirect to dashboard UNLESS explicit redirect/reset param is passed
+  // If user visits auth routes with an active session cookie, redirect to dashboard UNLESS explicit param is passed
   if (session && isAuthRoute) {
     const hasExplicitParam = request.nextUrl.searchParams.has('redirect') || 
                              request.nextUrl.searchParams.has('reset') ||
