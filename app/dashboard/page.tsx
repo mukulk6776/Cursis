@@ -20,10 +20,28 @@ export default function DashboardPage() {
           headers['Authorization'] = `Bearer ${storedToken}`;
         }
 
-        const res = await fetch('/api/auth/session', {
+        let res = await fetch('/api/auth/session', {
           headers,
           credentials: 'include',
         });
+
+        // Self-healing attempt: If initial check was 401 but we have a valid stored token, re-establish session cookie
+        if (!res.ok && storedToken && storedToken.startsWith('cursis_usr_')) {
+          try {
+            const reAuthRes = await fetch('/api/auth/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ idToken: storedToken }),
+            });
+            if (reAuthRes.ok) {
+              res = await fetch('/api/auth/session', {
+                headers,
+                credentials: 'include',
+              });
+            }
+          } catch {}
+        }
 
         if (res.ok) {
           if (isMounted) {
@@ -31,7 +49,7 @@ export default function DashboardPage() {
             setCheckingAuth(false);
           }
         } else {
-          // Unauthenticated or invalid session: clear stale state and redirect to login
+          // Unauthenticated: clear stale local token and redirect to login
           if (typeof window !== 'undefined') {
             localStorage.removeItem('cursis_token');
           }

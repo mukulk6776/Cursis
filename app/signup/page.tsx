@@ -72,13 +72,13 @@ export default function SignupPage() {
       if (res.ok) {
         try {
           const data = await res.json().catch(() => ({}));
-          token = data.token || '';
+          token = data.token || (data.data && data.data.token) || '';
         } catch {}
       }
 
       if (!token) {
         const fallbackPayload = {
-          uid: authResult.uid || ('usr_' + Date.now()),
+          uid: authResult.uid || ('usr_' + Date.now().toString(36)),
           email: authResult.email || 'workspace-user@cursis.ai',
           displayName: authResult.displayName || (authResult.email ? authResult.email.split('@')[0] : 'Cursis User'),
           photoURL: authResult.photoURL,
@@ -86,7 +86,9 @@ export default function SignupPage() {
           workspaceId: 'ws_cursis_user',
           createdAt: Date.now(),
         };
-        token = 'cursis_usr_' + btoa(unescape(encodeURIComponent(JSON.stringify(fallbackPayload))));
+        const jsonStr = JSON.stringify(fallbackPayload);
+        const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
+        token = 'cursis_usr_' + b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       }
 
       try {
@@ -98,7 +100,7 @@ export default function SignupPage() {
     } catch (err: any) {
       console.warn('Session exchange notice, using local workspace token:', err);
       const fallbackPayload = {
-        uid: authResult.uid || ('usr_' + Date.now()),
+        uid: authResult.uid || ('usr_' + Date.now().toString(36)),
         email: authResult.email || 'workspace-user@cursis.ai',
         displayName: authResult.displayName || 'Cursis User',
         photoURL: authResult.photoURL,
@@ -106,7 +108,9 @@ export default function SignupPage() {
         workspaceId: 'ws_cursis_user',
         createdAt: Date.now(),
       };
-      const token = 'cursis_usr_' + btoa(unescape(encodeURIComponent(JSON.stringify(fallbackPayload))));
+      const jsonStr = JSON.stringify(fallbackPayload);
+      const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
+      const token = 'cursis_usr_' + b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       try {
         localStorage.setItem('cursis_token', token);
         document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
