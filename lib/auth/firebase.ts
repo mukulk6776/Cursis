@@ -78,87 +78,117 @@ export interface AuthResult {
  * Sign in with Email and Password
  */
 export async function signInWithEmail(email: string, pass: string): Promise<AuthResult> {
-  const activeAuth = getFirebaseAuth();
-
-  if (isFirebaseConfigured && activeAuth) {
-    try {
-      const userCredential = await signInWithEmailAndPassword(activeAuth, email.trim(), pass);
-      const user = userCredential.user;
-      const idToken = await user.getIdToken();
-      return {
-        uid: user.uid,
-        email: user.email || email.trim(),
-        displayName: user.displayName || email.split("@")[0],
-        idToken,
-        photoURL: user.photoURL,
-      };
-    } catch (err: any) {
-      const code = err?.code || "";
-      // If Firebase project credentials are uninitialized/unauthorized, fallback to demo/dev session
-      if (code === "auth/api-key-not-valid" || code === "auth/operation-not-allowed" || code === "auth/configuration-not-found") {
-        console.warn("Firebase configuration error, falling back to local workspace session:", err);
+  // Perform Firebase client sign‑in to obtain an ID token
+  const authResult = await (async () => {
+    const activeAuth = getFirebaseAuth();
+    if (isFirebaseConfigured && activeAuth) {
+      try {
+        const userCredential = await signInWithEmailAndPassword(activeAuth, email.trim(), pass);
+        const user = userCredential.user;
+        const idToken = await user.getIdToken();
         return {
-          uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
-          email: email.trim(),
-          displayName: email.split("@")[0],
-          idToken: "cursis_local_token_" + Date.now(),
+          uid: user.uid,
+          email: user.email || email.trim(),
+          displayName: user.displayName || email.split("@")[0],
+          idToken,
+          photoURL: user.photoURL,
         };
+      } catch (err: any) {
+        const code = err?.code || "";
+        if (code === "auth/api-key-not-valid" || code === "auth/operation-not-allowed" || code === "auth/configuration-not-found") {
+          console.warn("Firebase configuration error, falling back to local workspace session:", err);
+          return {
+            uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
+            email: email.trim(),
+            displayName: email.split("@")[0],
+            idToken: "cursis_local_token_" + Date.now(),
+          };
+        }
+        throw err;
       }
-      throw err;
     }
+    // Developer/Demo fallback when Firebase API key is missing
+    return {
+      uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
+      email: email.trim(),
+      displayName: email.split("@")[0],
+      idToken: "cursis_dev_token_" + Date.now(),
+    };
+  })();
+
+  // After we have an ID token, ask the server to create a secure HttpOnly session cookie
+  try {
+    await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: authResult.idToken }),
+      credentials: 'include',
+    });
+  } catch (e) {
+    console.warn('Failed to set server‑side session cookie:', e);
   }
 
-  // Developer/Demo fallback when Firebase API key is unpopulated
-  return {
-    uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
-    email: email.trim(),
-    displayName: email.split("@")[0],
-    idToken: "cursis_dev_token_" + Date.now(),
-  };
+  return authResult;
 }
 
 /**
  * Sign up with Email, Password, and Display Name
  */
 export async function signUpWithEmail(email: string, pass: string, displayName: string): Promise<AuthResult> {
-  const activeAuth = getFirebaseAuth();
-
-  if (isFirebaseConfigured && activeAuth) {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(activeAuth, email.trim(), pass);
-      const user = userCredential.user;
-      if (displayName.trim()) {
-        await updateProfile(user, { displayName: displayName.trim() });
-      }
-      const idToken = await user.getIdToken();
-      return {
-        uid: user.uid,
-        email: user.email || email.trim(),
-        displayName: displayName.trim() || user.displayName || email.split("@")[0],
-        idToken,
-        photoURL: user.photoURL,
-      };
-    } catch (err: any) {
-      const code = err?.code || "";
-      if (code === "auth/api-key-not-valid" || code === "auth/operation-not-allowed" || code === "auth/configuration-not-found") {
-        console.warn("Firebase configuration error, falling back to local workspace signup:", err);
+  // Perform Firebase client sign‑up to obtain an ID token
+  const authResult = await (async () => {
+    const activeAuth = getFirebaseAuth();
+    if (isFirebaseConfigured && activeAuth) {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(activeAuth, email.trim(), pass);
+        const user = userCredential.user;
+        if (displayName.trim()) {
+          await updateProfile(user, { displayName: displayName.trim() });
+        }
+        const idToken = await user.getIdToken();
         return {
-          uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
-          email: email.trim(),
-          displayName: displayName.trim() || email.split("@")[0],
-          idToken: "cursis_local_token_" + Date.now(),
+          uid: user.uid,
+          email: user.email || email.trim(),
+          displayName: displayName.trim() || user.displayName || email.split("@")[0],
+          idToken,
+          photoURL: user.photoURL,
         };
+      } catch (err: any) {
+        const code = err?.code || "";
+        if (code === "auth/api-key-not-valid" || code === "auth/operation-not-allowed" || code === "auth/configuration-not-found") {
+          console.warn("Firebase configuration error, falling back to local workspace signup:", err);
+          return {
+            uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
+            email: email.trim(),
+            displayName: displayName.trim() || email.split("@")[0],
+            idToken: "cursis_local_token_" + Date.now(),
+          };
+        }
+        throw err;
       }
-      throw err;
     }
+    // Developer/Demo fallback when Firebase API key is missing
+    return {
+      uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
+      email: email.trim(),
+      displayName: displayName.trim() || email.split("@")[0],
+      idToken: "cursis_dev_token_" + Date.now(),
+    };
+  })();
+
+  // After we have an ID token, ask the server to create a secure HttpOnly session cookie
+  try {
+    await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: authResult.idToken }),
+      credentials: 'include',
+    });
+  } catch (e) {
+    console.warn('Failed to set server‑side session cookie after sign‑up:', e);
   }
 
-  return {
-    uid: "usr_" + Buffer.from(email).toString("hex").substring(0, 12),
-    email: email.trim(),
-    displayName: displayName.trim() || email.split("@")[0],
-    idToken: "cursis_dev_token_" + Date.now(),
-  };
+  return authResult;
 }
 
 /**
