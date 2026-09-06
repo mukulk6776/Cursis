@@ -34,25 +34,33 @@ export default function LoginPage() {
     return err?.message || 'Authentication failed. Please try again.';
   };
 
-  const exchangeTokenAndRedirect = async (authResult: { email: string; displayName: string; idToken: string; uid?: string }) => {
-    const res = await fetch('/api/auth/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: authResult.email,
-        displayName: authResult.displayName,
-        idToken: authResult.idToken,
-        uid: authResult.uid,
-      }),
-    });
+  const exchangeTokenAndRedirect = async (authResult: { email: string; displayName: string; idToken: string; uid?: string; photoURL?: string | null }) => {
+    try {
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: authResult.email,
+          displayName: authResult.displayName,
+          idToken: authResult.idToken,
+          uid: authResult.uid,
+          photoURL: authResult.photoURL,
+        }),
+      });
 
-    if (res.ok) {
-      window.location.href = '/dashboard';
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setErrorMsg(data.error || 'Failed to establish workspace session.');
+      if (res.ok) {
+        window.location.href = '/dashboard';
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setErrorMsg(data.error || 'Failed to establish workspace session.');
+      }
+    } catch (err: any) {
+      console.error('Session exchange error:', err);
+      setErrorMsg(err.message || 'Failed to establish workspace session.');
     }
   };
+
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();

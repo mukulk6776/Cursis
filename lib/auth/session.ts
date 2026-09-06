@@ -44,6 +44,15 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
       }
     }
 
+    if (sessionToken) {
+      sessionToken = sessionToken.trim().replace(/^["']|["']$/g, '');
+      if (sessionToken.startsWith('%22') || sessionToken.includes('%')) {
+        try {
+          sessionToken = decodeURIComponent(sessionToken).replace(/^["']|["']$/g, '');
+        } catch {}
+      }
+    }
+
     // User session payload decoding
     if (sessionToken?.startsWith('cursis_usr_')) {
       try {
@@ -57,6 +66,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
               uid: parsed.uid,
               email: parsed.email,
               displayName: parsed.displayName,
+              photoURL: parsed.photoURL,
               role: (parsed.role as UserRole) || 'owner',
               workspaceIds: [parsed.workspaceId || 'ws_cursis_user'],
               activeWorkspaceId: parsed.workspaceId || 'ws_cursis_user',
@@ -82,6 +92,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
         console.warn('Failed to parse cursis_usr_ session token:', err);
       }
     }
+
 
     // Demo or dev session fallback
     if (
