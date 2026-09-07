@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (all environment files are private)
 .env*
+!.env.example
 
 # internal docs & scripts
 project_context_prompt.md
