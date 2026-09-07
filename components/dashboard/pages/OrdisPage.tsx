@@ -20,9 +20,12 @@ export default function OrdisPage() {
     showToast,
     addAuditEntry,
     openModal,
+    ordisPlan,
+    toggleOrdisPlan,
+    dynamicFeatures,
   } = useDashboard();
 
-  const [activeView, setActiveView] = useState<'commander' | 'agents' | 'transparency'>('commander');
+  const [activeView, setActiveView] = useState<'commander' | 'dynamic_features' | 'agents' | 'transparency'>('commander');
   const [inputVal, setInputVal] = useState('');
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
@@ -46,78 +49,95 @@ export default function OrdisPage() {
 
   const dynamicMember = employees.length > 0 ? employees[0].name.split(' ')[0] : 'team';
 
-  const operationalCommands = [
-    {
-      title: dynamicMember !== 'team' ? `Create Task for ${dynamicMember}` : 'Create Sprint Task',
-      desc: dynamicMember !== 'team' ? `Assigns deliverable directly to ${dynamicMember}` : 'Creates deliverable in sprint queue',
-      prompt: dynamicMember !== 'team' ? `Create task for ${dynamicMember}: Implement responsive checkout UI with high priority` : 'Create task: Implement responsive checkout UI with high priority',
-      icon: '⚡',
-      badge: 'Tasks',
-    },
-    {
-      title: 'What is my team working on?',
-      desc: 'Live workload & bandwidth scan',
-      prompt: 'What is my team working on right now?',
-      icon: '👥',
-      badge: 'Team',
-    },
-    {
-      title: 'Schedule a team sync',
-      desc: 'Generates Google Meet room & calendar invites',
-      prompt: 'Schedule meeting: Weekly Sprint & Product Architecture Sync',
-      icon: '🎥',
-      badge: 'Meetings',
-    },
-    {
-      title: 'Create CRM Deal ($45k)',
-      desc: 'Adds enterprise deal to sales pipeline',
-      prompt: 'Create deal: Acme Global Enterprise Expansion $45000 in proposal stage',
-      icon: '💼',
-      badge: 'CRM',
-    },
-    {
-      title: 'Create Knowledge Document',
-      desc: 'Authors docs in Engineering section',
-      prompt: 'Create document: Production Architecture & Database Guide in Engineering',
-      icon: '📄',
-      badge: 'Docs',
-    },
-    {
-      title: 'Create Auto-Assign Automation',
-      desc: 'Installs urgent task routing workflow rule',
-      prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer',
-      icon: '⚙️',
-      badge: 'Automations',
-    },
-    {
-      title: 'Generate Workspace Velocity',
-      desc: 'Executive summary across initiatives',
-      prompt: 'Generate workspace executive summary and sprint velocity report',
-      icon: '📊',
-      badge: 'Analytics',
-    },
-    {
-      title: 'Set Indigo Theme Accent',
-      desc: 'Updates workspace accent to #6366f1',
-      prompt: 'Set workspace accent color to #6366f1',
-      icon: '🎨',
-      badge: 'Settings',
-    },
-    {
-      title: 'Generate Developer API Key',
-      desc: 'Creates live scoped production secret',
-      prompt: 'Generate new API key named Production Webhook Ingestion',
-      icon: '🔑',
-      badge: 'Developer',
-    },
-    {
-      title: 'Show upcoming deadlines',
-      desc: 'Scans for overdue & approaching milestones',
-      prompt: 'Show upcoming deadlines for active tasks',
-      icon: '📅',
-      badge: 'Tasks',
-    },
-  ];
+  const operationalCommands = ordisPlan === 'basic'
+    ? [
+        {
+          title: 'How do I use Tasks & Kanban?',
+          desc: 'Step-by-step guidance on task management',
+          prompt: 'How do I use the Task Kanban and priority filters in Cursis?',
+          icon: '📋',
+          badge: 'Basic Guide',
+        },
+        {
+          title: 'How does Creator Pipeline work?',
+          desc: '5-stage production house workflow & roles',
+          prompt: 'How does the Creator Content Pipeline work and what are the roles?',
+          icon: '🎬',
+          badge: 'Creators',
+        },
+        {
+          title: 'Summarize Active Sprint',
+          desc: 'Executive summary across open deliverables',
+          prompt: 'Summarize the current sprint status, open blockers, and deadlines',
+          icon: '📊',
+          badge: 'Summary',
+        },
+        {
+          title: 'List All 17 Modules',
+          desc: 'Complete roster of integrated tools',
+          prompt: 'List all 17 Cursis features and core modules',
+          icon: '📑',
+          badge: 'List',
+        },
+        {
+          title: 'What is the secret of the void?',
+          desc: 'Enigmatic question with zero errors',
+          prompt: 'What is the secret of the cosmic void, and why does the cursor blink in the dark?',
+          icon: '🌌',
+          badge: 'Mysterious',
+        },
+        {
+          title: 'List Creator Team Roles',
+          desc: 'SE, VE, TD, SM, and VO roles and duties',
+          prompt: 'List all Creator production team roles and duties',
+          icon: '👥',
+          badge: 'Team Roles',
+        },
+      ]
+    : [
+        {
+          title: 'Make Feature: CSAT Surveys',
+          desc: 'Synthesizes live client feedback collector',
+          prompt: 'Make a new feature for Client CSAT & NPS Feedback Surveys with 1-click rating',
+          icon: '🚀',
+          badge: 'Make Feature',
+        },
+        {
+          title: 'Build Feature: Expense Approvals',
+          desc: 'Deploys receipt & cost audit tool',
+          prompt: 'Build a new feature for Receipt & Expense Approvals with receipt URLs',
+          icon: '💰',
+          badge: 'Make Feature',
+        },
+        {
+          title: 'Make Feature: Team Bounty Coins',
+          desc: 'Installs member reward coin system',
+          prompt: 'Build a new feature for Team Bounty Coins for completing urgent tasks',
+          icon: '🏆',
+          badge: 'Make Feature',
+        },
+        {
+          title: 'Deep Ambient Telemetry Scan',
+          desc: 'Omniscient audit across all 13 systems',
+          prompt: 'Inspect all 13 systems, run deep ambient scan, audit CRM deals, and check API dispatch',
+          icon: '🔍',
+          badge: 'Omniscience',
+        },
+        {
+          title: 'Calculate CRM Pipeline Total',
+          desc: 'Inspects deals, stages, and forecast revenue',
+          prompt: 'Show active CRM pipeline and calculate total deal values',
+          icon: '💼',
+          badge: 'CRM Pro',
+        },
+        {
+          title: 'Create Auto-Assign Automation',
+          desc: 'Installs urgent task routing workflow rule',
+          prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer',
+          icon: '⚙️',
+          badge: 'Automations',
+        },
+      ];
 
   const activeTaskCount = tasks.filter((t) => t.status !== 'completed').length;
   const onlineMembers = employees.filter((e) => e.status === 'online').length;
@@ -138,7 +158,24 @@ export default function OrdisPage() {
           </p>
         </div>
 
-        <div className="page-actions" style={{ display: 'flex', gap: 'var(--sp-2)' }}>
+        <div className="page-actions" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+          {/* Plan Toggle Button */}
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={toggleOrdisPlan}
+            style={{
+              background: ordisPlan === 'paid' ? 'linear-gradient(135deg, #0f4cff, #8b5cf6)' : '#ffffff',
+              color: ordisPlan === 'paid' ? '#ffffff' : '#000000',
+              border: '2px solid #000000',
+              fontWeight: 900,
+              boxShadow: '3px 3px 0 #000000',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+            }}
+          >
+            {ordisPlan === 'paid' ? '🚀 Pro Plan ($1B Autonomous)' : '⚡ Basic Plan (Free Chatbot)'}
+          </button>
           <button type="button" className="btn btn-secondary btn-sm" onClick={clearChatHistory}>
             Clear History
           </button>
@@ -206,6 +243,13 @@ export default function OrdisPage() {
           onClick={() => setActiveView('commander')}
         >
           Conversational Commander
+        </button>
+        <button
+          type="button"
+          className={`tab ${activeView === 'dynamic_features' ? 'active' : ''}`}
+          onClick={() => setActiveView('dynamic_features')}
+        >
+          Dynamic Features ({dynamicFeatures.length})
         </button>
         <button
           type="button"
@@ -454,7 +498,190 @@ export default function OrdisPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 2. DEDICATED MINI-AGENTS VIEW */}
+      {/* 2. DYNAMIC CUSTOM FEATURES VIEW (Task 4: Make New Feature) */}
+      {/* ========================================================================= */}
+      {activeView === 'dynamic_features' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+          {/* Header Banner */}
+          <div className="card" style={{ padding: 'var(--sp-4)', background: '#fafaf8', border: '2px solid #000', boxShadow: '4px 4px 0 #000' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <span className="badge badge-brand" style={{ fontSize: '10px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  AUTONOMOUS DYNAMIC EXTENSIONS
+                </span>
+                <h3 style={{ fontSize: '18px', fontWeight: 900, textTransform: 'uppercase', color: '#000' }}>
+                  Custom Dynamic Features Synthesized by Ordis Pro
+                </h3>
+                <p style={{ fontSize: '13px', color: '#555', marginTop: '4px' }}>
+                  Unlike rigid SaaS tools, Ordis Pro invents and builds brand new features according to your requirements on the fly.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => handleSend('Make a new feature for Client CSAT Surveys')}
+                  style={{ border: '1.5px solid #000', boxShadow: '2px 2px 0 #000', fontWeight: 800 }}
+                >
+                  + Make CSAT Feature
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => handleSend('Build a new feature for Team Bounty Coins')}
+                  style={{ border: '1.5px solid #000', boxShadow: '2px 2px 0 #000', fontWeight: 800 }}
+                >
+                  + Make Bounty Feature
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Dynamic Feature Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--sp-4)' }}>
+            {dynamicFeatures.map((feat) => (
+              <div
+                key={feat.id}
+                className="card"
+                style={{
+                  padding: '20px',
+                  background: '#ffffff',
+                  border: '2px solid #000000',
+                  boxShadow: '4px 4px 0px #000000',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        border: '1.5px solid #000',
+                        background: '#f4f3ed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '18px',
+                      }}
+                    >
+                      {feat.icon}
+                    </span>
+                    <div>
+                      <h4 style={{ fontSize: '15px', fontWeight: 900, textTransform: 'uppercase', color: '#000' }}>
+                        {feat.name}
+                      </h4>
+                      <span style={{ fontSize: '11px', color: '#666', fontWeight: 600 }}>{feat.category}</span>
+                    </div>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '9px',
+                      fontWeight: 900,
+                      padding: '2px 6px',
+                      background: '#dcfce7',
+                      color: '#15803d',
+                      border: '1px solid #15803d',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    ACTIVE
+                  </span>
+                </div>
+
+                <p style={{ fontSize: '12px', color: '#444', lineHeight: 1.5 }}>
+                  {feat.description}
+                </p>
+
+                {/* Simulated Interactive Input Schema */}
+                <div style={{ background: '#f9f9f6', border: '1px solid #ddd', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: '#888' }}>
+                    Dynamic Form Schema ({feat.fields.length} fields)
+                  </span>
+                  {feat.fields.map((f, fIdx) => (
+                    <div key={fIdx}>
+                      <label style={{ display: 'block', fontSize: '10px', fontWeight: 800, color: '#333' }}>
+                        {f.name}
+                      </label>
+                      <input
+                        type={f.type === 'number' ? 'number' : f.type === 'email' ? 'email' : 'text'}
+                        placeholder={f.placeholder}
+                        defaultValue=""
+                        style={{
+                          width: '100%',
+                          padding: '6px 8px',
+                          border: '1px solid #ccc',
+                          background: '#fff',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                  {feat.actions.map((act, actIdx) => (
+                    <button
+                      key={actIdx}
+                      type="button"
+                      onClick={() => showToast(`Executed: ${act.label} on "${feat.name}" ✓`)}
+                      className={`btn btn-${act.style === 'primary' ? 'primary' : 'secondary'} btn-sm`}
+                      style={{
+                        flex: 1,
+                        fontSize: '11px',
+                        fontWeight: 900,
+                        border: '1.5px solid #000',
+                        boxShadow: '2px 2px 0 #000',
+                        padding: '8px',
+                      }}
+                    >
+                      {act.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Prompt Box to Build Next Feature */}
+          <div className="card" style={{ padding: 'var(--sp-4)', background: '#ffffff', border: '2px solid #000', boxShadow: '4px 4px 0 #000' }}>
+            <div style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', color: '#0f4cff', marginBottom: '8px' }}>
+              ⚡ Tell Ordis Pro to Make Any Other Feature:
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                className="input"
+                style={{ flex: 1, border: '1.5px solid #000', fontSize: '13px' }}
+                placeholder="e.g. 'Build a feature for Social Media Multi-Post Scheduler with character limits'..."
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => handleSend()}
+                style={{ border: '2px solid #000', boxShadow: '3px 3px 0 #000', fontWeight: 900 }}
+              >
+                Synthesize Feature →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. DEDICATED MINI-AGENTS VIEW */}
       {/* ========================================================================= */}
       {activeView === 'agents' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--sp-4)' }}>

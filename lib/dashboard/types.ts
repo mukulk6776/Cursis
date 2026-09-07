@@ -191,8 +191,23 @@ export interface AutomationRule {
   lastRun?: string | null;
 }
 
+export type OrdisPlanType = 'basic' | 'paid';
+
+export interface DynamicFeature {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  icon: string;
+  fields: { name: string; type: string; placeholder: string }[];
+  actions: { label: string; actionKey: string; style?: 'primary' | 'secondary' | 'accent' }[];
+  status: 'active' | 'draft';
+  createdAt: string;
+  builtBy: 'ordis_pro';
+}
+
 export interface ChatActionCard {
-  type: 'task' | 'project' | 'meeting' | 'deal' | 'doc' | 'automation' | 'apikey' | 'theme' | 'navigation' | 'team';
+  type: 'task' | 'project' | 'meeting' | 'deal' | 'doc' | 'automation' | 'apikey' | 'theme' | 'navigation' | 'team' | 'feature';
   title: string;
   subtitle?: string;
   badge?: string;
@@ -200,12 +215,12 @@ export interface ChatActionCard {
   meta?: Record<string, any>;
   primaryAction?: {
     label: string;
-    actionType: 'navigate' | 'toggle_status' | 'open_modal' | 'copy' | 'link';
+    actionType: 'navigate' | 'toggle_status' | 'open_modal' | 'copy' | 'link' | 'execute_feature';
     target?: string;
   };
   secondaryAction?: {
     label: string;
-    actionType: 'navigate' | 'toggle_status' | 'open_modal' | 'copy' | 'link';
+    actionType: 'navigate' | 'toggle_status' | 'open_modal' | 'copy' | 'link' | 'execute_feature';
     target?: string;
   };
 }

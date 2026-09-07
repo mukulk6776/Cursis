@@ -86,8 +86,17 @@ export default function LandingNav() {
           <a href="#ordis" onClick={(e) => handleAnchorClick(e, '#ordis')} className="lp-nav-link">
             Ordis AI
           </a>
-          <a href="#problem" onClick={(e) => handleAnchorClick(e, '#problem')} className="lp-nav-link">
-            Why Cursis
+          <a href="#team" onClick={(e) => handleAnchorClick(e, '#team')} className="lp-nav-link">
+            Teams
+          </a>
+          <a href="#creators" onClick={(e) => handleAnchorClick(e, '#creators')} className="lp-nav-link">
+            Creators
+          </a>
+          <a href="#modules" onClick={(e) => handleAnchorClick(e, '#modules')} className="lp-nav-link">
+            Modules
+          </a>
+          <a href="#agency" onClick={(e) => handleAnchorClick(e, '#agency')} className="lp-nav-link">
+            Agency
           </a>
           <a href="#pricing" onClick={(e) => handleAnchorClick(e, '#pricing')} className="lp-nav-link">
             Pricing

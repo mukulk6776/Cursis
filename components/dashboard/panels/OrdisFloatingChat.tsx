@@ -19,6 +19,9 @@ export default function OrdisFloatingChat() {
     employees,
     meetings,
     activeWorkspace,
+    ordisPlan,
+    toggleOrdisPlan,
+    dynamicFeatures,
   } = useDashboard();
 
   const [inputVal, setInputVal] = useState('');
@@ -63,15 +66,23 @@ export default function OrdisFloatingChat() {
     }
   };
 
-  const quickPrompts = [
-    { label: '⚡ Create Task', prompt: 'Create task: Finalize product launch sprint review due Friday with high priority' },
-    { label: '👥 Team Status', prompt: 'What is my team working on right now?' },
-    { label: '📅 Schedule Sync', prompt: 'Schedule meeting: Weekly Sprint and Architecture Sync' },
-    { label: '💼 Add Deal ($50k)', prompt: 'Create deal: Acme Global Expansion $50000 in proposal stage' },
-    { label: '📄 Knowledge Doc', prompt: 'Create document: Production Database and Security Architecture Guide' },
-    { label: '🎨 Set Indigo Theme', prompt: 'Set workspace accent color to #6366f1' },
-    { label: '⚙️ Urgent Routing', prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer' },
-  ];
+  const quickPrompts = ordisPlan === 'basic'
+    ? [
+        { label: '💡 How to Use Tasks', prompt: 'How do I use the Task Kanban and priority filters in Cursis?' },
+        { label: '🎬 Creator Pipeline', prompt: 'How does the Creator Content Pipeline work and what are the roles?' },
+        { label: '📊 Summarize Sprint', prompt: 'Summarize the current sprint status, open blockers, and deadlines' },
+        { label: '📑 List All Features', prompt: 'List all 17 Cursis features and core modules' },
+        { label: '🌌 Mysterious Question', prompt: 'What is the secret of the cosmic void, and why does the cursor blink in the dark?' },
+        { label: '👥 List Team Roles', prompt: 'List all Creator production team roles and duties' },
+      ]
+    : [
+        { label: '🚀 Make CSAT Feature', prompt: 'Make a new feature for Client CSAT & NPS Feedback Surveys with 1-click rating' },
+        { label: '💰 Make Expense Feature', prompt: 'Build a new feature for Receipt & Expense Approvals with receipt URLs' },
+        { label: '🏆 Make Bounty Feature', prompt: 'Build a new feature for Team Bounty Coins for completing urgent tasks' },
+        { label: '🔍 Deep Ambient Scan', prompt: 'Inspect all 13 systems, run deep ambient scan, audit CRM deals, and check API dispatch' },
+        { label: '💼 Audit CRM Deals', prompt: 'Show active CRM pipeline and calculate total deal values' },
+        { label: '⚡ Urgent Routing', prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer' },
+      ];
 
   const activeTaskCount = tasks.filter((t) => t.status !== 'completed').length;
   const onlineMemberCount = employees.filter((e) => e.status === 'online').length;
@@ -247,6 +258,32 @@ export default function OrdisFloatingChat() {
 
             {/* Header Controls */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {/* Plan Switcher Badge */}
+              <button
+                type="button"
+                onClick={toggleOrdisPlan}
+                title="Click to toggle between Basic Chatbot and Pro Autonomous ($1B Tier)"
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '9999px',
+                  background: ordisPlan === 'paid' ? 'linear-gradient(135deg, #0f4cff, #8b5cf6)' : 'rgba(255, 255, 255, 0.08)',
+                  border: `1px solid ${ordisPlan === 'paid' ? '#60a5fa' : 'rgba(255, 255, 255, 0.2)'}`,
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontSize: '10px',
+                  fontWeight: 900,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  boxShadow: ordisPlan === 'paid' ? '0 0 12px rgba(15, 76, 255, 0.5)' : 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span>{ordisPlan === 'paid' ? '🚀 PRO ($1B)' : '⚡ BASIC'}</span>
+              </button>
+
               {/* Voice Mode Toggle */}
               <button
                 type="button"

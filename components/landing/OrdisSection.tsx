@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 interface OrdisDemoScenario {
   id: string;
+  tier: 'basic' | 'paid';
   label: string;
   userPrompt: string;
   responseHeadline: string;
@@ -15,118 +16,270 @@ interface OrdisDemoScenario {
 }
 
 export default function OrdisSection() {
-  const scenarios: OrdisDemoScenario[] = [
-    {
-      id: 'team-status',
-      label: 'What is my team working on?',
-      userPrompt: 'What is my team working on right now?',
-      metaBadge: 'LIVE TEAM SCAN',
-      responseHeadline: 'Team Activity Breakdown (4 Online)',
-      responseBody: '• Mukul K. is focused on "Landing Page Redesign" (78% complete)\n• Sarah T. is finishing "Brand Asset Guidelines" (Due tomorrow)\n• Alex R. is preparing "Sprint Retrospective" (Completed 3 subtasks)\n• Team bandwidth is healthy with 0 critical bottlenecks detected.',
-      actionButtonLabel: 'View Detailed Team Board',
-      actionExecutedText: 'Opening Team Board...',
-    },
-    {
-      id: 'create-task',
-      label: 'Create a task for Mukul',
-      userPrompt: 'Create a high-priority task for Mukul: Implement dark mode tokens due Friday',
-      metaBadge: 'WORKSPACE MUTATION',
-      responseHeadline: 'Task Drafted & Assigned',
-      responseBody: 'Task "Implement dark mode tokens" created with High priority. Assigned to Mukul Kumar in "Design System" project with deadline set for Friday, 5:00 PM.',
-      actionButtonLabel: '⚡ Confirm & Add to Sprint',
-      actionExecutedText: '✓ Task added to Mukul\'s active queue',
-    },
-    {
-      id: 'deadlines',
-      label: 'Show upcoming deadlines',
-      userPrompt: 'Show all upcoming deadlines for this week',
-      metaBadge: 'TIMELINE AUDIT',
-      responseHeadline: '3 Deadlines Approaching in Next 48 Hours',
-      responseBody: '1. Brand Asset Guidelines — Sarah T. (Tomorrow, 2:00 PM) • On Track\n2. Q3 Client Deliverables — Alex R. (Tomorrow, 5:00 PM) • Urgent Attention\n3. Mobile Checkout QA — Mukul K. (Friday, 12:00 PM) • Blocked on API',
-      actionButtonLabel: 'Send Friendly Reminders',
-      actionExecutedText: '✓ Reminders scheduled',
-    },
-    {
-      id: 'schedule-meeting',
-      label: 'Schedule a team sync',
-      userPrompt: 'Schedule a 30-minute sprint review meeting with Mukul and Sarah for tomorrow at 2 PM',
-      metaBadge: 'CALENDAR ENGINE',
-      responseHeadline: 'Meeting Ready to Schedule',
-      responseBody: 'Event: "Sprint Review Sync" (30 min)\nTime: Tomorrow at 2:00 PM\nParticipants: Mukul Kumar, Sarah Taylor\nAgenda: Auto-populated from 4 completed sprint tasks.',
-      actionButtonLabel: '⚡ Book Google Meet',
-      actionExecutedText: '✓ Meeting invite sent & calendar synced',
-    },
-    {
-      id: 'project-summary',
-      label: 'Summarize project progress',
-      userPrompt: 'Summarize overall progress on the Website Redesign initiative',
-      metaBadge: 'EXECUTIVE SUMMARY',
-      responseHeadline: 'Website Redesign — 82% Velocity',
-      responseBody: '• 14 of 17 milestones completed on schedule\n• Front-end performance score: 98/100\n• 1 non-blocking bug open in QA\n• Projected completion: 2 days ahead of target release.',
-      actionButtonLabel: 'Export Progress Brief',
-      actionExecutedText: '✓ Brief downloaded',
-    },
-  ];
-
-  const [activeScenarioId, setActiveScenarioId] = useState<string>('team-status');
+  const [activeTier, setActiveTier] = useState<'basic' | 'paid'>('basic');
   const [executedActions, setExecutedActions] = useState<Record<string, boolean>>({});
 
-  const activeScenario = scenarios.find((s) => s.id === activeScenarioId) || scenarios[0];
+  const scenarios: OrdisDemoScenario[] = [
+    // --- BASIC PLAN SCENARIOS ---
+    {
+      id: 'feature-doubt',
+      tier: 'basic',
+      label: 'Feature Doubt: "How do I use Tasks?"',
+      userPrompt: 'How do I use the Task Kanban and priority filters in Cursis?',
+      metaBadge: 'BASIC · FEATURE GUIDE',
+      responseHeadline: 'Guide: Operating Tasks & Kanban Board',
+      responseBody: '1. Navigate to Tasks from the sidebar or press Cmd+K.\n2. Click "+ Add Task", enter title, set assignee, deadline, and priority (Urgent, High, Medium, Low).\n3. Drag cards between "Todo", "In Progress", and "Done" columns.\n4. Filter by assignee or priority badge to view bottlenecks immediately.\nTip: You can also tell me "Create task: [Title] for [Name] due [Date]" and I will create it for you!',
+      actionButtonLabel: 'Open Tasks Guide',
+      actionExecutedText: '✓ Tasks guide bookmarked',
+    },
+    {
+      id: 'summarize',
+      tier: 'basic',
+      label: 'Summary: "Summarize sprint status"',
+      userPrompt: 'Summarize the current sprint status, open blockers, and deadlines',
+      metaBadge: 'BASIC · EXECUTIVE SUMMARY',
+      responseHeadline: 'Sprint Status Executive Summary',
+      responseBody: '• Overall Sprint Velocity: 84% on schedule with 24 completed deliverables.\n• Active Focus: 6 tasks currently in progress across Design System and API Integration.\n• Approaching Deadlines: 2 tasks due in the next 24 hours (Brand Guidelines & Checkout QA).\n• Blockers Flagged: 0 critical blockers; all upstream dependencies clear.',
+      actionButtonLabel: 'Export Summary',
+      actionExecutedText: '✓ Summary exported to clipboard',
+    },
+    {
+      id: 'list-features',
+      tier: 'basic',
+      label: 'List: "List all Cursis features"',
+      userPrompt: 'List all Cursis features and core modules',
+      metaBadge: 'BASIC · LIST ENGINE',
+      responseHeadline: 'Complete Roster of 17 Integrated Modules',
+      responseBody: '1. Dashboard — Unified cockpit & telemetry\n2. Projects — Milestones, timelines, progress tracking\n3. Tasks — Kanban, lists, priorities, assignments\n4. Messages — Channels, threads, real-time team chat\n5. Calendar — Meetings, Google Meet rooms, milestones\n6. Docs — Collaborative rich-text documents\n7. Files — Secure asset storage with context\n8. Team — Directory, roles (SE, VE, TD, SM, VO), permissions\n9. Creators — 5-stage content production house pipeline\n10. Time Log & Invoices — Billable hours, timers, client PDF invoices\n11. Ordis AI — Copilot, summaries, and feature synthesizers',
+      actionButtonLabel: 'Copy Module List',
+      actionExecutedText: '✓ Copied module list',
+    },
+    {
+      id: 'mysterious-question',
+      tier: 'basic',
+      label: 'Mysterious: "Secret of the void?"',
+      userPrompt: 'What is the secret of the cosmic void, and why does the cursor blink in the dark?',
+      metaBadge: 'BASIC · ZERO-ERROR POISE',
+      responseHeadline: 'The Enigma of the Blank Canvas',
+      responseBody: 'The void is not an absence, but the infinite potential of uncommitted work. The blinking cursor is the heartbeat of creation — a solitary light at the frontier between imagination and reality.\n\nIn Cursis, even the deepest mysteries find structure: ideas transform into scripts, scripts into footage, and footage into published legacy. No error will ever silence our dialogue; ask what you will, and together we will build order from the cosmos.',
+      actionButtonLabel: 'Contemplate with Ordis',
+      actionExecutedText: '✓ Cosmic insight synthesized (0 errors)',
+    },
 
-  const handleActionClick = (scenarioId: string) => {
-    setExecutedActions((prev) => ({ ...prev, [scenarioId]: true }));
+    // --- PAID VERSION SCENARIOS ---
+    {
+      id: 'paid-every-feature',
+      tier: 'paid',
+      label: 'Access: "Every Feature & Telemetry"',
+      userPrompt: 'Inspect all 13 systems, run deep ambient scan, audit CRM deals, and check API dispatch',
+      metaBadge: 'PRO · FULL SYSTEM ACCESS',
+      responseHeadline: 'Full Subsystem Omniscience Active',
+      responseBody: '• Ambient Bottleneck Scan: 0 deadlocks across 38 tasks.\n• CRM Pipeline Audit: $145,000 across 4 enterprise deals in proposal stage.\n• Invoicing Telemetry: ₹4,80,000 collected this quarter; 2 invoices pending delivery.\n• API Keys & Webhooks: 2 live production endpoints dispatching webhook events.\n• MongoDB Health: Multi-collection read/write latency under 12ms.',
+      actionButtonLabel: '⚡ Run Global Workspace Scan',
+      actionExecutedText: '✓ Global workspace telemetry synchronized',
+    },
+    {
+      id: 'paid-make-csat-feature',
+      tier: 'paid',
+      label: 'Make Feature: "Client CSAT Surveys"',
+      userPrompt: 'Make a new feature according to my needs: Client CSAT & NPS Feedback Surveys with 1-click rating',
+      metaBadge: 'PRO · DYNAMIC FEATURE BUILDER',
+      responseHeadline: '🚀 New Custom Feature Synthesized & Deployed!',
+      responseBody: 'Ordis Pro has created a brand new custom feature: "Client CSAT & NPS Collector"\n\n• Schema: Client Email, Star Rating (1-5), NPS Category, Feedback Notes\n• Actions: [Send Survey Invite], [Export CSV], [Trigger Follow-up Task]\n• Persistence: Registered in workspace custom tools & live MongoDB collection.\n• Widget: Live interactive card synthesized below for your team to use!',
+      actionButtonLabel: '⚡ Deploy Custom Tool to Workspace',
+      actionExecutedText: '✓ Custom Feature "Client CSAT" is live in your workspace!',
+    },
+    {
+      id: 'paid-make-bounty-feature',
+      tier: 'paid',
+      label: 'Make Feature: "Team Bounty Coins"',
+      userPrompt: 'Build a new feature for Team Bounty Coins where members earn reward coins for completing urgent tasks',
+      metaBadge: 'PRO · DYNAMIC FEATURE BUILDER',
+      responseHeadline: '🚀 Custom Feature Created: "Team Bounty Coins"',
+      responseBody: 'Autonomous feature synthesis complete!\n\n• Feature ID: feat_bounty_coins_v1\n• Fields: Member Name, Task Completed, Bounty Coin Reward (🪙), Payout Status\n• Automation Hook: Auto-awards +50 coins whenever an urgent task transitions to Done.\n• Available in workspace: Custom Tools Shelf.',
+      actionButtonLabel: '⚡ Activate Bounty System',
+      actionExecutedText: '✓ Bounty system activated across all projects!',
+    },
+  ];
+
+  const filteredScenarios = scenarios.filter((s) => s.tier === activeTier);
+  const [activeScenarioId, setActiveScenarioId] = useState<string>('feature-doubt');
+
+  const activeScenario =
+    scenarios.find((s) => s.id === activeScenarioId && s.tier === activeTier) ||
+    filteredScenarios[0];
+
+  const handleActionClick = (id: string) => {
+    setExecutedActions((prev) => ({ ...prev, [id]: true }));
   };
 
-  const whatOrdisDoes = [
-    'Watches your workspace for stalled tasks and approaching deadlines',
-    'Executes actions upon your direct command (creates tasks, schedules meetings)',
-    'Drafts context-rich messages and updates from real project data',
-    'Prepares automated meeting agendas based on open blockers',
-    'Surfaces team workload balance so nobody burns out',
-  ];
-
-  const whatOrdisDoesNot = [
-    'Never makes unauthorized destructive changes without approval',
-    'Never invents or hallucinates fake project numbers',
-    'Never sends spammy robotic emails to your clients',
-    'Never shares or sells workspace data to third parties',
-    'Does not replace your team — it helps them operate faster',
-  ];
-
   return (
-    <section className="lp-section lp-ordis-container" id="ordis">
+    <section className="lp-section lp-ordis-container" id="ordis" style={{ background: '#0a0d14', color: '#ffffff' }}>
       {/* Section Header */}
-      <div className="lp-section-header">
-        <div className="lp-badge-ordis">ORDIS INTELLIGENCE</div>
-        <h2 className="lp-section-title">
-          Cursis gives you a workspace.<br />
-          Ordis helps you operate it.
+      <div className="lp-section-header" style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div
+          style={{
+            fontSize: '11px',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            background: 'rgba(15, 76, 255, 0.2)',
+            color: '#60a5fa',
+            padding: '4px 12px',
+            border: '1px solid rgba(59, 130, 246, 0.4)',
+            display: 'inline-block',
+            marginBottom: '12px',
+          }}
+        >
+          ORDIS INTELLIGENCE ENGINE
+        </div>
+        <h2 style={{ fontSize: 'clamp(32px, 5vw, 50px)', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', lineHeight: 1.1 }}>
+          Basic Chatbot or Autonomous Pro.<br />
+          <span style={{ color: '#60a5fa' }}>Ordis Powers Both.</span>
         </h2>
-        <p className="lp-section-subtitle">
-          Ordis is not a chatbot in a sidebar. It is the intelligent center of Cursis that actively
-          connects your team, projects, tasks, and schedules to keep work moving.
+        <p style={{ color: '#9ca3af', maxWidth: '750px', margin: '14px auto 0', fontSize: '16px', lineHeight: 1.6 }}>
+          In the <strong>Basic Plan</strong>, Ordis answers any feature doubt, summarizes work, lists anything, and gracefully handles mysterious questions without error. In the <strong>Paid Version</strong>, Ordis has access to every feature and can invent and build brand new features on demand!
         </p>
       </div>
 
+      {/* Tier Mode Selector Switcher */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', marginBottom: '30px' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTier('basic');
+            setActiveScenarioId('feature-doubt');
+          }}
+          style={{
+            padding: '10px 22px',
+            fontSize: '13px',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            cursor: 'pointer',
+            background: activeTier === 'basic' ? '#ffffff' : 'rgba(255, 255, 255, 0.05)',
+            color: activeTier === 'basic' ? '#000000' : '#ffffff',
+            border: activeTier === 'basic' ? '2px solid #ffffff' : '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: activeTier === 'basic' ? '3px 3px 0 #0f4cff' : 'none',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          ⚡ Basic Plan Chatbot (Free)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTier('paid');
+            setActiveScenarioId('paid-every-feature');
+          }}
+          style={{
+            padding: '10px 22px',
+            fontSize: '13px',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            cursor: 'pointer',
+            background: activeTier === 'paid' ? '#0f4cff' : 'rgba(255, 255, 255, 0.05)',
+            color: '#ffffff',
+            border: activeTier === 'paid' ? '2px solid #60a5fa' : '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: activeTier === 'paid' ? '3px 3px 0 #ffffff' : 'none',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          🚀 Paid Version (Ordis Pro / $1B Tier)
+        </button>
+      </div>
+
       {/* Interactive Ordis Terminal / Console */}
-      <div className="lp-ordis-interactive-box">
-        <div className="lp-ordis-box-topbar">
-          <div className="lp-ordis-box-topbar-left">
-            <span className="lp-ordis-avatar-chip">O</span>
-            <span className="lp-ordis-box-title">Ordis Workspace Operations</span>
+      <div
+        style={{
+          maxWidth: '920px',
+          margin: '0 auto',
+          background: '#111827',
+          border: '2px solid rgba(255, 255, 255, 0.18)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 4px 4px 0 #0f4cff',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Topbar */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 18px',
+            background: '#090d16',
+            borderBottom: '1.5px solid rgba(255, 255, 255, 0.1)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span
+              style={{
+                width: '26px',
+                height: '26px',
+                background: '#0f4cff',
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: 900,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+              }}
+            >
+              O
+            </span>
+            <span style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {activeTier === 'basic' ? 'Ordis Basic Conversational Copilot' : 'Ordis Pro Autonomous Feature Synthesizer'}
+            </span>
           </div>
-          <span className="badge badge-brand">{activeScenario.metaBadge}</span>
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: 900,
+              padding: '3px 8px',
+              background: activeTier === 'basic' ? 'rgba(255,255,255,0.1)' : '#0f4cff',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.2)',
+              textTransform: 'uppercase',
+            }}
+          >
+            {activeScenario.metaBadge}
+          </span>
         </div>
 
         {/* Prompt Selector Pills */}
-        <div className="lp-ordis-prompt-selector">
-          <span className="lp-prompt-selector-label">Ask Ordis:</span>
-          <div className="lp-prompt-chips-wrapper">
-            {scenarios.map((sc) => (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 18px',
+            background: 'rgba(255, 255, 255, 0.02)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            overflowX: 'auto',
+          }}
+        >
+          <span style={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', flexShrink: 0 }}>
+            {activeTier === 'basic' ? 'Try Basic Prompts:' : 'Try Pro Prompts:'}
+          </span>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {filteredScenarios.map((sc) => (
               <button
                 key={sc.id}
-                className={`lp-prompt-chip ${activeScenarioId === sc.id ? 'active' : ''}`}
+                type="button"
                 onClick={() => setActiveScenarioId(sc.id)}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: activeScenario.id === sc.id ? '#ffffff' : 'rgba(255, 255, 255, 0.08)',
+                  color: activeScenario.id === sc.id ? '#000000' : '#d1d5db',
+                  border: activeScenario.id === sc.id ? '1.5px solid #ffffff' : '1px solid rgba(255, 255, 255, 0.15)',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 {sc.label}
               </button>
@@ -134,43 +287,72 @@ export default function OrdisSection() {
           </div>
         </div>
 
-        {/* Console Workspace Display */}
-        <div className="lp-ordis-display-panel">
-          {/* User Input Bubble */}
-          <div className="lp-ordis-chat-bubble user">
-            <div className="lp-bubble-sender">You</div>
-            <div className="lp-bubble-text">"{activeScenario.userPrompt}"</div>
+        {/* Terminal Screen */}
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {/* User message */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '80%', alignSelf: 'flex-start' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase' }}>You</span>
+            <div
+              style={{
+                padding: '10px 14px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: 600,
+              }}
+            >
+              "{activeScenario.userPrompt}"
+            </div>
           </div>
 
-          {/* Ordis AI Response Bubble */}
-          <div className="lp-ordis-chat-bubble ai">
-            <div className="lp-bubble-sender">
-              <span className="lp-mini-ordis-icon">O</span>
-              <span>Ordis Workspace Assistant</span>
-            </div>
-            <div className="lp-bubble-content">
-              <h4 className="lp-bubble-headline">{activeScenario.responseHeadline}</h4>
-              <div className="lp-bubble-body">
-                {activeScenario.responseBody.split('\n').map((line, i) => (
-                  <p key={i} style={{ margin: '4px 0' }}>{line}</p>
-                ))}
+          {/* Ordis message */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '95%', alignSelf: 'flex-start' }}>
+            <span style={{ fontSize: '11px', fontWeight: 900, color: '#60a5fa', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', background: '#60a5fa', borderRadius: '50%', display: 'inline-block' }} />
+              {activeTier === 'basic' ? 'Ordis Chatbot' : 'Ordis Pro Feature Builder'}
+            </span>
+            <div
+              style={{
+                padding: '16px 18px',
+                background: '#0d131f',
+                border: '1.5px solid rgba(96, 165, 250, 0.3)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                color: '#e5e7eb',
+                fontSize: '13px',
+                lineHeight: 1.6,
+              }}
+            >
+              <h4 style={{ fontSize: '15px', fontWeight: 900, color: '#60a5fa', textTransform: 'uppercase', marginBottom: '8px' }}>
+                {activeScenario.responseHeadline}
+              </h4>
+              <div style={{ whiteSpace: 'pre-line', color: '#cbd5e1' }}>
+                {activeScenario.responseBody}
               </div>
 
               {activeScenario.actionButtonLabel && (
-                <div className="lp-bubble-action-row">
+                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
                   {!executedActions[activeScenario.id] ? (
                     <button
-                      className="btn btn-brand btn-sm"
+                      type="button"
                       onClick={() => handleActionClick(activeScenario.id)}
+                      style={{
+                        padding: '8px 16px',
+                        background: '#0f4cff',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '12px',
+                        textTransform: 'uppercase',
+                        border: '1px solid #ffffff',
+                        boxShadow: '2px 2px 0 #ffffff',
+                        cursor: 'pointer',
+                      }}
                     >
                       {activeScenario.actionButtonLabel}
                     </button>
                   ) : (
-                    <span className="lp-executed-badge">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00b341" strokeWidth="3">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      {activeScenario.actionExecutedText}
+                    <span style={{ color: '#10b981', fontWeight: 900, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      ✓ {activeScenario.actionExecutedText}
                     </span>
                   )}
                 </div>
@@ -179,84 +361,6 @@ export default function OrdisSection() {
           </div>
         </div>
       </div>
-
-      {/* 4 Pillars of Ordis Capabilities */}
-      <div className="lp-ordis-pillars-grid">
-        <div className="lp-pillar-card">
-          <div className="lp-pillar-icon">⚡</div>
-          <h3 className="lp-pillar-title">Operates Your Workspace</h3>
-          <p className="lp-pillar-desc">
-            Ask Ordis to create tasks, assign work, set deadlines, and schedule meetings in plain English. No complex forms.
-          </p>
-        </div>
-
-        <div className="lp-pillar-card">
-          <div className="lp-pillar-icon">🔍</div>
-          <h3 className="lp-pillar-title">Detects Bottlenecks Proactively</h3>
-          <p className="lp-pillar-desc">
-            Ordis notices when tasks stall for days before a deadline hits and provides 1-click remedies to keep momentum.
-          </p>
-        </div>
-
-        <div className="lp-pillar-card">
-          <div className="lp-pillar-icon">📅</div>
-          <h3 className="lp-pillar-title">Prepares Meetings &amp; Agendas</h3>
-          <p className="lp-pillar-desc">
-            Before any calendar sync, Ordis gathers active blockers, recent progress, and auto-generates actionable agendas.
-          </p>
-        </div>
-
-        <div className="lp-pillar-card">
-          <div className="lp-pillar-icon">📊</div>
-          <h3 className="lp-pillar-title">Protects Team Bandwidth</h3>
-          <p className="lp-pillar-desc">
-            Ordis monitors workload distribution across your team and suggests task rebalancing before burnout happens.
-          </p>
-        </div>
-      </div>
-
-      {/* Philosophy Table (Clean & Transparent) */}
-      <div className="lp-philosophy-card">
-        <div className="lp-philosophy-header">
-          <h3 className="lp-philosophy-title">The Ordis Philosophy</h3>
-          <p className="lp-philosophy-subtitle">
-            Ordis is built to empower human teams — not replace them.
-          </p>
-        </div>
-
-        <div className="lp-philosophy-grid">
-          <div className="lp-philosophy-col positive">
-            <h4 className="lp-col-title green">What Ordis Does</h4>
-            <ul className="lp-philosophy-list">
-              {whatOrdisDoes.map((item, idx) => (
-                <li key={idx}>
-                  <span className="lp-check-green">✓</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="lp-philosophy-col negative">
-            <h4 className="lp-col-title red">What Ordis Does NOT Do</h4>
-            <ul className="lp-philosophy-list">
-              {whatOrdisDoesNot.map((item, idx) => (
-                <li key={idx}>
-                  <span className="lp-cross-red">✕</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="lp-ordis-cta-wrapper">
-        <Link href="/signup" className="btn btn-primary btn-lg">
-          Experience Ordis for Free
-        </Link>
-      </div>
     </section>
   );
 }
-

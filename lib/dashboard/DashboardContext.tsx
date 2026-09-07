@@ -37,6 +37,8 @@ import {
   NotificationSettings,
   MeetingCalendarSettings,
   OrdisSettings,
+  DynamicFeature,
+  OrdisPlanType,
 } from './types';
 import {
   INITIAL_USER,
@@ -211,6 +213,13 @@ interface DashboardContextType {
   sendOrdisMessage: (text: string) => void;
   markNotificationsRead: () => void;
 
+  // Ordis Plan & Dynamic Features
+  ordisPlan: OrdisPlanType;
+  setOrdisPlan: (plan: OrdisPlanType) => void;
+  toggleOrdisPlan: () => void;
+  dynamicFeatures: DynamicFeature[];
+  setDynamicFeatures: React.Dispatch<React.SetStateAction<DynamicFeature[]>>;
+
   // Helper getters
   getEmployee: (id: string) => Employee | undefined;
   getProject: (id: string) => Project | undefined;
@@ -254,8 +263,43 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState<boolean>(false);
   const [notificationsOpen, setNotificationsOpen] = useState<boolean>(false);
-  const [ordisFloatingOpen, setOrdisFloatingOpen] = useState<boolean>(false);
-  const [voiceMode, setVoiceMode] = useState<boolean>(false);
+  
+  // Ordis Floating & Voice State
+  const [ordisFloatingOpen, setOrdisFloatingOpen] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
+
+  // Ordis Plan & Dynamic Features State
+  const [ordisPlan, setOrdisPlan] = useState<OrdisPlanType>('basic');
+  const [dynamicFeatures, setDynamicFeatures] = useState<DynamicFeature[]>([
+    {
+      id: 'feat_csat_demo',
+      name: 'Client CSAT & Feedback Collector',
+      category: 'Client Experience & CRM',
+      description: 'Collects NPS and 5-star feedback ratings from clients upon project milestone completion.',
+      icon: '🌟',
+      fields: [
+        { name: 'Client Email', type: 'email', placeholder: 'client@company.com' },
+        { name: 'CSAT Rating (1-5)', type: 'number', placeholder: '5' },
+        { name: 'Feedback Notes', type: 'textarea', placeholder: 'Client remarks...' },
+      ],
+      actions: [
+        { label: 'Submit CSAT Review', actionKey: 'submit', style: 'primary' },
+        { label: 'Export Report', actionKey: 'export', style: 'secondary' },
+      ],
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      builtBy: 'ordis_pro',
+    },
+  ]);
+
+  const toggleOrdisPlan = () => {
+    setOrdisPlan((prev) => {
+      const nextPlan: OrdisPlanType = prev === 'basic' ? 'paid' : 'basic';
+      showToast(nextPlan === 'paid' ? '🚀 Upgraded to Ordis Pro ($1B Tier Autonomous)' : '⚡ Switched to Ordis Basic Chatbot (Free)');
+      return nextPlan;
+    });
+  };
+
   const [selectedMeetingNotes, setSelectedMeetingNotes] = useState<Meeting | null>(null);
   const [genericModal, setGenericModal] = useState<GenericModalState | null>(null);
   const [profilePanelEmployeeId, setProfilePanelEmployeeId] = useState<string | null>(null);
@@ -1014,8 +1058,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setChatHistory((prev) => [...prev, userMsg, typingMsg]);
 
     const ordisState: OrdisContextState = {
+      plan: ordisPlan,
       user,
-      workspace: { name: activeWorkspace.name, plan: 'Enterprise Pro' },
+      workspace: { name: activeWorkspace.name, plan: ordisPlan === 'paid' ? 'Enterprise Pro ($1B Tier)' : 'Cursis Starter Basic' },
       activeWorkspace,
       employees,
       projects,
@@ -1092,6 +1137,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         }
         if (m.updatedEmployees) {
           setEmployees(m.updatedEmployees);
+        }
+        if (m.createdDynamicFeature) {
+          setDynamicFeatures((prev) => [m.createdDynamicFeature!, ...prev]);
         }
         if (m.createdApiKey) {
           setApiKeys((prev) => [m.createdApiKey!, ...prev]);
@@ -1466,6 +1514,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         acceptInvitation,
         sendOrdisMessage,
         markNotificationsRead,
+        ordisPlan,
+        setOrdisPlan,
+        toggleOrdisPlan,
+        dynamicFeatures,
+        setDynamicFeatures,
         getEmployee,
         getProject,
         getTasksForProject,
