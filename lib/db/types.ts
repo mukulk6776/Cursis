@@ -29,6 +29,8 @@ export interface Workspace {
   };
   ownerId: string;
   memberCount: number;
+  premiumSeatLimit?: number;
+  premiumSeatsAllocated?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -50,6 +52,7 @@ export interface UserProfile {
   skills: string[]; // e.g. ["Next.js", "UI/UX", "Copywriting", "Sales", "Accounting"]
   workspaceIds: string[];
   activeWorkspaceId?: string;
+  planTier?: 'standard' | 'premium';
   onboardingStatus: 'pending' | 'in_progress' | 'completed';
   onboardingChecklist: {
     id: string;
@@ -77,6 +80,7 @@ export interface WorkspaceInvitation {
   sentAt: string;
   expiresAt: string;
   invitedBy: string;
+  planTier?: 'standard' | 'premium';
 }
 
 

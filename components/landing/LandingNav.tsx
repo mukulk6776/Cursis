@@ -81,10 +81,10 @@ export default function LandingNav() {
 
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           <a href="#features" onClick={(e) => handleAnchorClick(e, '#features')} className="lp-nav-link">
-            Features
+            Platform
           </a>
           <a href="#ordis" onClick={(e) => handleAnchorClick(e, '#ordis')} className="lp-nav-link">
-            Ordis AI
+            Ordis Intelligence
           </a>
           <a href="#team" onClick={(e) => handleAnchorClick(e, '#team')} className="lp-nav-link">
             Teams
@@ -96,7 +96,7 @@ export default function LandingNav() {
             Modules
           </a>
           <a href="#agency" onClick={(e) => handleAnchorClick(e, '#agency')} className="lp-nav-link">
-            Agency
+            Enterprise
           </a>
           <a href="#pricing" onClick={(e) => handleAnchorClick(e, '#pricing')} className="lp-nav-link">
             Pricing
@@ -126,7 +126,7 @@ export default function LandingNav() {
                   Sign In
                 </Link>
                 <Link href="/signup" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
-                  Get Started Free
+                  Deploy Workspace
                 </Link>
               </>
             )}
@@ -159,7 +159,7 @@ export default function LandingNav() {
                 Sign In
               </Link>
               <Link href="/signup" className="btn btn-primary btn-sm lp-hide-mobile">
-                Get Started Free
+                Deploy Workspace
               </Link>
             </>
           )}

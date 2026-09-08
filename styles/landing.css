@@ -116,17 +116,21 @@ body.lp-body,
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  background: var(--c-bg, #f4f3ed);
-  border-bottom: 2px solid var(--c-near-black, #000000);
-  transition: padding 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  background: rgba(248, 248, 246, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  transition: padding 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   width: 100%;
 }
 
 .lp-nav.lp-nav-scrolled {
-  padding: 10px 24px;
-  background: rgba(244, 243, 237, 0.98);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 0 0 var(--c-near-black, #000000);
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
 .lp-nav-container {
@@ -424,21 +428,22 @@ body.lp-body,
 .lp-hero-mockup {
   width: 100%;
   max-width: 1100px;
-  border: 2px solid var(--c-near-black, #000000);
-  box-shadow: 10px 10px 0 0 var(--c-near-black, #000000);
-  background: var(--c-bg, #f4f3ed);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
   overflow: hidden;
   position: relative;
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 .lp-mockup-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  background: #ffffff;
-  border-bottom: 2px solid var(--c-near-black, #000000);
+  padding: 12px 18px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 .lp-mockup-topbar-left {
   display: flex;
@@ -1154,27 +1159,33 @@ body.lp-body,
 }
 
 /* ============================================
-   SECTION 6 — TEAM DEMO
+   SECTION 6 — TEAM ORCHESTRATION PIPELINE
    ============================================ */
 .lp-demo-container {
-  border: 2px solid var(--c-near-black, #000000);
+  border: 1px solid #cbd5e1;
   background: #ffffff;
-  box-shadow: 8px 8px 0 0 var(--c-near-black, #000000);
-  max-width: 720px;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  max-width: 760px;
   margin: 0 auto;
   text-align: left;
+  overflow: hidden;
 }
 .lp-demo-header {
-  padding: 12px 20px;
-  background: var(--c-accent, #ccff00);
-  border-bottom: 2px solid var(--c-near-black, #000000);
-  font-weight: 900;
+  padding: 14px 20px;
+  background: #0f172a;
+  color: #ffffff;
+  font-weight: 800;
   text-transform: uppercase;
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .lp-demo-body {
-  padding: 20px;
-  background: var(--c-bg, #f4f3ed);
+  padding: 24px;
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1182,10 +1193,12 @@ body.lp-body,
 .lp-demo-step {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 14px;
+  padding: 14px 18px;
   background: #ffffff;
-  border: 2px solid var(--c-near-black, #000000);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .lp-demo-step-num {
   width: 28px;
@@ -1193,19 +1206,21 @@ body.lp-body,
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--c-brand, #0f4cff);
+  background: #0f4cff;
   color: #ffffff;
   font-size: 12px;
-  font-weight: 900;
-  border: 1px solid var(--c-near-black, #000000);
+  font-weight: 800;
+  border-radius: 6px;
   flex-shrink: 0;
 }
 .lp-demo-step-text {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
+  color: #1e293b;
 }
 .lp-demo-step-highlight {
-  color: var(--c-brand, #0f4cff);
+  color: #0f4cff;
+  font-weight: 800;
 }
 
 /* ============================================

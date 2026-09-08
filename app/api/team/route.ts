@@ -65,6 +65,7 @@ export async function POST(request: Request) {
         team: body.team || null,
         note: body.note?.trim(),
         invitedBy: authUser.uid || 'u1',
+        planTier: body.planTier || 'standard',
       });
 
       return apiSuccess({ invitation, message: `Invitation sent to ${email}` }, 201);
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
       skills: Array.isArray(body.skills) ? body.skills : (body.skills ? [body.skills] : ['General']),
       photoURL: body.photoURL,
       presence: body.presence || 'online',
+      planTier: body.planTier || 'standard',
     });
 
     return apiSuccess({ member, message: `Added ${member.displayName} to team` }, 201);

@@ -26,7 +26,7 @@ export async function createCalendarEvent(workspaceId: string, data: Partial<Cal
     startTime: data.startTime || new Date(Date.now() + 86400000).toISOString(),
     endTime: data.endTime || new Date(Date.now() + 86400000 + 1800000).toISOString(),
     allDay: data.allDay || false,
-    attendeeIds: data.attendeeIds || ['usr_owner_demo'],
+    attendeeIds: data.attendeeIds || ['usr_owner_default'],
     attendeeEmails: data.attendeeEmails || [],
     location: data.location || 'Cursis Video Room',
     meetLink: data.meetLink || `https://meet.cursis.ai/room/${id}`,

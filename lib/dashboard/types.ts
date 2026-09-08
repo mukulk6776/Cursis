@@ -14,6 +14,7 @@ export interface User {
   color: string;
   workspaceRole?: string;
   photoURL?: string | null;
+  planTier?: 'standard' | 'premium';
 }
 
 export interface Workspace {
@@ -28,6 +29,8 @@ export interface Workspace {
   color: string;
   ownerId: string;
   createdAt: string;
+  premiumSeatLimit?: number;
+  premiumSeatsAllocated?: number;
   clientDetails?: {
     industry: string;
     customModules: string[];
@@ -70,6 +73,7 @@ export interface Invitation {
   sentAt: string;
   expiresAt: string;
   invitedBy: string;
+  planTier?: 'standard' | 'premium';
 }
 
 export interface Employee {
@@ -89,6 +93,7 @@ export interface Employee {
   skills?: string[];
   joinedAt?: string;
   invitedBy?: string | null;
+  planTier?: 'standard' | 'premium';
 }
 
 export interface Project {

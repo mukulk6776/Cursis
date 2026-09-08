@@ -19,7 +19,7 @@ export async function getWorkspaceMetricSummary(workspaceId: string): Promise<Me
   // Calculate team workload average based on assigned open tasks
   const openTasks = tasks.filter((t) => t.status !== 'done');
   const teamMembers = Array.from(inMemoryStore.users.values()).filter(
-    (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_demo'
+    (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_user'
   );
   const avgTasksPerMember = teamMembers.length > 0 ? openTasks.length / teamMembers.length : 0;
   const teamWorkloadAverage = Math.min(100, Math.round(avgTasksPerMember * 25));
@@ -41,7 +41,7 @@ export async function generateExecutiveReport(workspaceId: string, prompt?: stri
   const projects = Array.from(inMemoryStore.projects.values()).filter((p) => p.workspaceId === workspaceId);
   const tasks = Array.from(inMemoryStore.tasks.values()).filter((t) => t.workspaceId === workspaceId);
   const users = Array.from(inMemoryStore.users.values()).filter(
-    (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_demo'
+    (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_user'
   );
 
   const atRiskTasks = tasks.filter((t) => t.isAtRisk && t.status !== 'done');

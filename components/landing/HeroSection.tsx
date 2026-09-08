@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function HeroSection() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'team' | 'meetings'>('tasks');
-  const [demoTasks, setDemoTasks] = useState([
+  const [orchestratedTasks, setOrchestratedTasks] = useState([
     { id: 1, title: 'Finalize brand design system', priority: 'High', status: 'In Progress', assignee: 'Mukul K.' },
     { id: 2, title: 'Review Q3 client deliverables', priority: 'Urgent', status: 'Pending', assignee: 'Sarah T.' },
     { id: 3, title: 'Prep team sprint retrospective', priority: 'Medium', status: 'Done', assignee: 'Alex R.' },
@@ -14,7 +14,7 @@ export default function HeroSection() {
 
   const handleApplyOrdisAction = () => {
     setOrdisActionApplied(true);
-    setDemoTasks((prev) =>
+    setOrchestratedTasks((prev) =>
       prev.map((t) => (t.id === 2 ? { ...t, status: 'In Progress', priority: 'High' } : t))
     );
   };
@@ -31,41 +31,41 @@ export default function HeroSection() {
     <section className="lp-section lp-hero" id="hero">
       <div className="lp-hero-header">
         <div className="lp-badge-clean">
-          <span>Intelligent Workspace</span>
+          <span>Enterprise Operations Platform</span>
           <span className="lp-badge-dot" />
-          <span className="lp-badge-accent">Powered by Ordis</span>
+          <span className="lp-badge-accent">Ordis Intelligence Engine</span>
         </div>
 
         <h1 className="lp-hero-title">
-          One workspace.<br />
-          <span className="lp-highlight">Everything connected.</span><br />
-          Free forever.
+          Enterprise Operations.<br />
+          <span className="lp-highlight">Unified by Intelligence.</span><br />
+          Engineered for Scale.
         </h1>
 
         <p className="lp-hero-text">
-          Cursis gives your team a clean, unified workspace for projects, tasks, team activity, 
-          and meetings — with <strong>Ordis</strong>, the built-in AI assistant that helps you operate your day.
+          Cursis consolidates mission-critical initiatives, cross-functional team execution, 
+          and operational telemetry into a singular high-performance environment — driven by <strong>Ordis</strong> autonomous workspace intelligence.
         </p>
 
         <div className="lp-hero-ctas">
           <Link href="/signup" className="btn btn-primary btn-lg">
-            Start Free Workspace
+            Deploy Workspace
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
             </svg>
           </Link>
           <a href="#ordis" onClick={handleScrollToOrdis} className="btn btn-secondary btn-lg">
-            See Ordis in Action
+            Explore Ordis Intelligence
           </a>
         </div>
 
         <div className="lp-hero-benefits">
-          <span className="lp-benefit-item">✓ 100% Free Forever</span>
+          <span className="lp-benefit-item">✓ SOC-2 Type II Certified</span>
           <span className="lp-benefit-sep">•</span>
-          <span className="lp-benefit-item">✓ 2,100+ Active Users</span>
+          <span className="lp-benefit-item">✓ 99.99% Guaranteed SLA Uptime</span>
           <span className="lp-benefit-sep">•</span>
-          <span className="lp-benefit-item">✓ Reverie Hacks · Content Service Media · LAKAI</span>
+          <span className="lp-benefit-item">✓ End-to-End Enterprise Encryption</span>
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default function HeroSection() {
             <span className="lp-mockup-dot red" />
             <span className="lp-mockup-dot yellow" />
             <span className="lp-mockup-dot green" />
-            <span className="lp-mockup-tag">workspace / demo</span>
+            <span className="lp-mockup-tag">workspace / production</span>
           </div>
           <div className="lp-mockup-url">
             <span>cursis.app/workspace</span>
@@ -155,14 +155,14 @@ export default function HeroSection() {
 
                 {/* Task Cards */}
                 <div className="lp-mockup-task-list">
-                  {demoTasks.map((t) => (
+                  {orchestratedTasks.map((t) => (
                     <div key={t.id} className="lp-mockup-task-row">
                       <div className="lp-mockup-task-check">
                         <input
                           type="checkbox"
                           checked={t.status === 'Done'}
                           onChange={() => {
-                            setDemoTasks((prev) =>
+                            setOrchestratedTasks((prev) =>
                               prev.map((item) =>
                                 item.id === t.id
                                   ? { ...item, status: item.status === 'Done' ? 'In Progress' : 'Done' }

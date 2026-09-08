@@ -13,6 +13,8 @@ export default function MemberModal() {
     teams,
     employees,
     showToast,
+    premiumSeatLimit,
+    premiumSeatsAllocated,
   } = useDashboard();
 
   const [activeTab, setActiveTab] = useState<'direct' | 'invite'>('direct');
@@ -25,6 +27,7 @@ export default function MemberModal() {
   const [departmentId, setDepartmentId] = useState('dept_engineering');
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [workspaceRole, setWorkspaceRole] = useState('member');
+  const [planTier, setPlanTier] = useState<'standard' | 'premium'>('standard');
   const [presence, setPresence] = useState<'online' | 'busy' | 'offline'>('online');
   const [selectedColor, setSelectedColor] = useState('#0f4cff');
   const [skills, setSkills] = useState<string[]>(['React', 'TypeScript']);
@@ -37,6 +40,7 @@ export default function MemberModal() {
   const [inviteWorkspaceRole, setInviteWorkspaceRole] = useState('member');
   const [inviteDept, setInviteDept] = useState('dept_engineering');
   const [inviteTeam, setInviteTeam] = useState('');
+  const [invitePlanTier, setInvitePlanTier] = useState<'standard' | 'premium'>('standard');
   const [inviteNote, setInviteNote] = useState('Welcome to the workspace! Click to join our team on Cursis.');
 
   const [errorMsg, setErrorMsg] = useState('');
@@ -127,12 +131,14 @@ export default function MemberModal() {
       status: presence,
       color: selectedColor,
       skills: skills.length > 0 ? skills : ['General'],
+      planTier,
     });
 
     // Reset & close
     setName('');
     setEmail('');
     setRole('');
+    setPlanTier('standard');
     setSkills(['React', 'TypeScript']);
     closeModal();
   };
@@ -160,11 +166,13 @@ export default function MemberModal() {
       workspaceRole: inviteWorkspaceRole,
       department: inviteDept,
       team: inviteTeam || null,
+      planTier: invitePlanTier,
     });
 
     setInviteEmail('');
     setInviteName('');
     setInviteRoleTitle('');
+    setInvitePlanTier('standard');
     closeModal();
   };
 
@@ -411,6 +419,60 @@ export default function MemberModal() {
                     <option value="owner">Owner (Executive)</option>
                     <option value="viewer">Viewer (Read-Only)</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Enterprise License Tier Selector */}
+              <div className="input-group" style={{ marginBottom: 'var(--sp-3)' }}>
+                <label className="input-label" style={{ fontSize: '11px', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Seat License Entitlement</span>
+                  <span style={{ color: '#7c3aed', fontWeight: 600 }}>
+                    Pro Seats: {premiumSeatsAllocated} / {premiumSeatLimit} Allocated
+                  </span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div
+                    onClick={() => setPlanTier('standard')}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: planTier === 'standard' ? '2px solid var(--c-brand)' : '1px solid var(--border-color)',
+                      background: planTier === 'standard' ? 'rgba(15, 76, 255, 0.05)' : 'var(--c-surface)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>⚡</span> Standard Core
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                      Complimentary · Task tracking &amp; sprints
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() => {
+                      if (premiumSeatsAllocated >= premiumSeatLimit && planTier !== 'premium') {
+                        showToast(`⚠️ License Quota: All ${premiumSeatLimit} Pro seats are allocated.`);
+                        return;
+                      }
+                      setPlanTier('premium');
+                    }}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: planTier === 'premium' ? '2px solid #7c3aed' : '1px solid var(--border-color)',
+                      background: planTier === 'premium' ? 'rgba(124, 58, 237, 0.08)' : 'var(--c-surface)',
+                      cursor: premiumSeatsAllocated >= premiumSeatLimit && planTier !== 'premium' ? 'not-allowed' : 'pointer',
+                      opacity: premiumSeatsAllocated >= premiumSeatLimit && planTier !== 'premium' ? 0.6 : 1,
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', color: '#7c3aed' }}>
+                      <span>🚀</span> Autonomous Pro
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                      {premiumSeatsAllocated >= premiumSeatLimit ? 'Quota reached (4/4)' : `Included seat (${premiumSeatsAllocated + 1}/${premiumSeatLimit})`}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -667,6 +729,54 @@ export default function MemberModal() {
                       </option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* Invite License Tier Selector */}
+              <div className="input-group" style={{ marginBottom: 'var(--sp-3)' }}>
+                <label className="input-label" style={{ fontSize: '11px', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Seat License Tier</span>
+                  <span style={{ color: '#7c3aed', fontWeight: 600 }}>
+                    Pro Seats: {premiumSeatsAllocated} / {premiumSeatLimit}
+                  </span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div
+                    onClick={() => setInvitePlanTier('standard')}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: invitePlanTier === 'standard' ? '2px solid var(--c-brand)' : '1px solid var(--border-color)',
+                      background: invitePlanTier === 'standard' ? 'rgba(15, 76, 255, 0.05)' : 'var(--c-surface)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 700 }}>⚡ Standard Core</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>Complimentary tier</div>
+                  </div>
+
+                  <div
+                    onClick={() => {
+                      if (premiumSeatsAllocated >= premiumSeatLimit && invitePlanTier !== 'premium') {
+                        showToast(`⚠️ License Quota: All ${premiumSeatLimit} Pro seats are allocated.`);
+                        return;
+                      }
+                      setInvitePlanTier('premium');
+                    }}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: invitePlanTier === 'premium' ? '2px solid #7c3aed' : '1px solid var(--border-color)',
+                      background: invitePlanTier === 'premium' ? 'rgba(124, 58, 237, 0.08)' : 'var(--c-surface)',
+                      cursor: premiumSeatsAllocated >= premiumSeatLimit && invitePlanTier !== 'premium' ? 'not-allowed' : 'pointer',
+                      opacity: premiumSeatsAllocated >= premiumSeatLimit && invitePlanTier !== 'premium' ? 0.6 : 1,
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#7c3aed' }}>🚀 Autonomous Pro</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
+                      {premiumSeatsAllocated >= premiumSeatLimit ? 'Quota full' : 'Included pro seat'}
+                    </div>
+                  </div>
                 </div>
               </div>
 

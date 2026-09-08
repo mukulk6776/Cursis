@@ -176,6 +176,22 @@ export default function OrdisPage() {
           >
             {ordisPlan === 'paid' ? '🚀 Pro Plan ($1B Autonomous)' : '⚡ Basic Plan (Free Chatbot)'}
           </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            style={{
+              fontWeight: 700,
+              color: '#7c3aed',
+              borderColor: 'rgba(124, 58, 237, 0.4)',
+              background: 'rgba(124, 58, 237, 0.05)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            onClick={() => openModal('redeem-code-modal')}
+          >
+            <span>🎁</span> Redeem Code
+          </button>
           <button type="button" className="btn btn-secondary btn-sm" onClick={clearChatHistory}>
             Clear History
           </button>

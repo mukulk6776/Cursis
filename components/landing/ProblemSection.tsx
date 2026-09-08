@@ -4,42 +4,42 @@ export default function ProblemSection() {
   return (
     <section className="lp-section" id="problem">
       <div className="lp-section-header">
-        <div className="lp-section-label">Why Cursis</div>
-        <h2 className="lp-section-title">Stop paying for 10 disconnected tools</h2>
+        <div className="lp-section-label">Enterprise Architecture Comparison</div>
+        <h2 className="lp-section-title">The Disjointed Enterprise Stack vs. Unified Architecture</h2>
         <p className="lp-section-subtitle">
-          When your team’s tasks live in one app, messages in another, and deadlines on scattered calendars,
-          work falls through the cracks. Cursis replaces the entire fragmented stack.
+          When operational data is trapped across siloed vendors, organizational velocity collapses.
+          Cursis provides a single consolidated operating plane for enterprise execution.
         </p>
       </div>
 
       <div className="lp-comparison-grid">
         {/* Fragmented Stack Card */}
         <div className="lp-comparison-card negative">
-          <div className="lp-card-pill red">Without Cursis</div>
-          <h3 className="lp-card-headline">The SaaS Sprawl Nightmare</h3>
+          <div className="lp-card-pill red">Fragmented Point Solutions</div>
+          <h3 className="lp-card-headline">Multi-Vendor Tooling Sprawl</h3>
           <ul className="lp-comparison-list">
             <li>
               <span className="lp-icon-cross">✕</span>
               <div>
-                <strong>$40+ / user / month</strong> across 5–8 separate subscriptions
+                <strong>Excessive Licensing Overhead</strong> with compounding subscription costs across 6–10 isolated vendors
               </div>
             </li>
             <li>
               <span className="lp-icon-cross">✕</span>
               <div>
-                <strong>Context switching fatigue</strong> jumping between Slack, Jira, Notion, and Calendly
+                <strong>Cognitive Context Switching</strong> friction jumping between disparate chat, ticketing, docs, and calendars
               </div>
             </li>
             <li>
               <span className="lp-icon-cross">✕</span>
               <div>
-                <strong>Stalled tasks &amp; missed deadlines</strong> because nobody is watching the gaps
+                <strong>Unmonitored Execution Gaps</strong> causing stalled initiatives and delivery deadlines to slip undetected
               </div>
             </li>
             <li>
               <span className="lp-icon-cross">✕</span>
               <div>
-                <strong>Manual status updates</strong> and endless standup meetings to find out who is doing what
+                <strong>Manual Status Chasing</strong> and inefficient standup overhead required just to assess team bandwidth
               </div>
             </li>
           </ul>
@@ -47,31 +47,31 @@ export default function ProblemSection() {
 
         {/* Cursis Solution Card */}
         <div className="lp-comparison-card positive">
-          <div className="lp-card-pill green">With Cursis</div>
-          <h3 className="lp-card-headline">One Intelligent Workspace</h3>
+          <div className="lp-card-pill green">Unified Cursis Operating Plane</div>
+          <h3 className="lp-card-headline">Consolidated Enterprise Fabric</h3>
           <ul className="lp-comparison-list">
             <li>
               <span className="lp-icon-check">✓</span>
               <div>
-                <strong>100% Free Forever</strong> for your entire team, with zero tier restrictions
+                <strong>Zero Tooling Bloat</strong> through a complete, integrated workspace architecture built for scale
               </div>
             </li>
             <li>
               <span className="lp-icon-check">✓</span>
               <div>
-                <strong>Ordis AI Operations</strong> that actively monitor workloads, detect bottlenecks, and draft updates
+                <strong>Ordis Intelligence</strong> continuously scanning workloads, resolving blockers, and automating updates
               </div>
             </li>
             <li>
               <span className="lp-icon-check">✓</span>
               <div>
-                <strong>Connected Workspace</strong> where tasks, meetings, team bandwidth, and projects flow seamlessly
+                <strong>Single-Pane-of-Glass Execution</strong> linking tasks, projects, calendar syncs, and team telemetry
               </div>
             </li>
             <li>
               <span className="lp-icon-check">✓</span>
               <div>
-                <strong>Instant clarity</strong> with real-time visibility into team capacity and milestones
+                <strong>Institutional Visibility</strong> with real-time sprint velocity, audit trails, and deterministic security
               </div>
             </li>
           </ul>

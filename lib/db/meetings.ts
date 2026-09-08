@@ -37,7 +37,7 @@ export async function createMeeting(workspaceId: string, data: Partial<Meeting>)
     time: data.time || (scheduledAt.includes('T') ? scheduledAt.split('T')[1].substring(0, 5) : '10:00'),
     durationMinutes: data.durationMinutes || data.duration || 30,
     duration: data.duration || data.durationMinutes || 30,
-    hostId: data.hostId || 'usr_owner_demo',
+    hostId: data.hostId || 'usr_owner_default',
     hostName: data.hostName || 'Host',
     attendees: data.attendees || data.participants || ['founder@cursis.ai'],
     participants: data.participants || data.attendees || ['founder@cursis.ai'],

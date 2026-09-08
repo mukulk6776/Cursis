@@ -25,7 +25,7 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
   }
 
   return Array.from(inMemoryStore.users.values()).filter(
-    (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_demo' || workspaceId === 'ws_public'
+    (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_user' || workspaceId === 'ws_public'
   );
 }
 
@@ -40,6 +40,7 @@ export async function addTeamMember(
     skills?: string[];
     photoURL?: string;
     presence?: 'online' | 'busy' | 'away' | 'offline';
+    planTier?: 'standard' | 'premium';
   }
 ): Promise<UserProfile> {
   // Check for existing user by email to prevent duplicate accounts
@@ -55,6 +56,9 @@ export async function addTeamMember(
     existingMem.role = memberData.role || existingMem.role;
     existingMem.department = memberData.department || existingMem.department;
     existingMem.title = memberData.title || existingMem.title;
+    if (memberData.planTier) {
+      existingMem.planTier = memberData.planTier;
+    }
     if (memberData.skills && memberData.skills.length > 0) {
       existingMem.skills = Array.from(new Set([...existingMem.skills, ...memberData.skills]));
     }
@@ -85,6 +89,7 @@ export async function addTeamMember(
     skills: memberData.skills || ['General'],
     workspaceIds: [workspaceId],
     activeWorkspaceId: workspaceId,
+    planTier: memberData.planTier || 'standard',
     onboardingStatus: 'in_progress',
     onboardingChecklist: [
       { id: 'ob_1', title: 'Complete account setup & profile photo', completed: false },
@@ -182,6 +187,7 @@ export async function sendTeamInvitation(
     team?: string | null;
     note?: string;
     invitedBy: string;
+    planTier?: 'standard' | 'premium';
   }
 ): Promise<WorkspaceInvitation> {
   const token = 'tok_' + Math.random().toString(36).substring(2, 14) + Date.now().toString(36);
@@ -202,6 +208,7 @@ export async function sendTeamInvitation(
     sentAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
     invitedBy: inviteData.invitedBy,
+    planTier: inviteData.planTier || 'standard',
   };
 
   inMemoryInvitations.set(id, invitation);
@@ -284,6 +291,7 @@ export async function acceptTeamInvitation(token: string): Promise<UserProfile |
     department: invitation.department,
     title: invitation.roleTitle || 'Team Member',
     skills: ['Collaboration', 'Cursis'],
+    planTier: invitation.planTier || 'standard',
   });
 
   try {

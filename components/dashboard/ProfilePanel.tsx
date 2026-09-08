@@ -12,6 +12,10 @@ export default function ProfilePanel() {
     projects,
     user,
     signOut,
+    assignSeatTier,
+    premiumSeatLimit,
+    premiumSeatsAllocated,
+    openModal,
   } = useDashboard();
 
   if (!profilePanelEmployeeId) return null;
@@ -23,6 +27,7 @@ export default function ProfilePanel() {
   const activeTasks = empTasks.filter((t) => t.status !== 'completed');
   const doneTasks = empTasks.filter((t) => t.status === 'completed');
   const empProjects = projects.filter((p) => p.team.includes(emp.id));
+  const isPro = emp.planTier === 'premium';
 
   return (
     <div className="profile-panel open" id="profile-panel">
@@ -54,7 +59,37 @@ export default function ProfilePanel() {
           <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-sm)', marginTop: '4px' }}>
             {emp.role} · {emp.department}
           </p>
-          <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'center', marginTop: 'var(--sp-3)' }}>
+
+          <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'center', alignItems: 'center', marginTop: 'var(--sp-3)', flexWrap: 'wrap' }}>
+            {isPro ? (
+              <span
+                style={{
+                  background: 'linear-gradient(135deg, #7c3aed, #0f4cff)',
+                  color: '#fff',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  padding: '2px 10px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                }}
+              >
+                🚀 AUTONOMOUS PRO
+              </span>
+            ) : (
+              <span
+                style={{
+                  background: 'var(--c-surface)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-color)',
+                }}
+              >
+                ⚡ STANDARD CORE
+              </span>
+            )}
             <span
               className={`badge badge-${
                 emp.status === 'online' ? 'success' : emp.status === 'busy' ? 'error' : 'neutral'
@@ -62,6 +97,40 @@ export default function ProfilePanel() {
             >
               ● {emp.status}
             </span>
+          </div>
+
+          {/* Seat Tier Toggle Button */}
+          <div style={{ marginTop: 'var(--sp-2)' }}>
+            {isPro ? (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}
+                onClick={() => assignSeatTier(emp.id, 'standard')}
+              >
+                Revert to Standard Tier
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                style={{ fontSize: '11px', color: '#7c3aed', borderColor: 'rgba(124, 58, 237, 0.4)', fontWeight: 700 }}
+                onClick={() => assignSeatTier(emp.id, 'premium')}
+              >
+                🚀 Grant Autonomous Pro Seat ({premiumSeatsAllocated}/{premiumSeatLimit})
+              </button>
+            )}
+
+            <div style={{ marginTop: '6px' }}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '11px', color: '#7c3aed', fontWeight: 600, padding: '2px 8px' }}
+                onClick={() => openModal('redeem-code-modal')}
+              >
+                🎁 Have a voucher code? Redeem License
+              </button>
+            </div>
           </div>
         </div>
 

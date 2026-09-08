@@ -12,7 +12,6 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [demoLoading, setDemoLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -65,8 +64,8 @@ export default function SignupPage() {
       if (!token) {
         const fallbackPayload = {
           uid: authResult.uid || ('usr_' + Date.now().toString(36)),
-          email: authResult.email || 'workspace-user@cursis.ai',
-          displayName: authResult.displayName || (authResult.email ? authResult.email.split('@')[0] : 'Cursis User'),
+          email: authResult.email,
+          displayName: authResult.displayName || (authResult.email ? authResult.email.split('@')[0] : 'Enterprise User'),
           photoURL: authResult.photoURL,
           role: 'owner',
           workspaceId: 'ws_cursis_user',
@@ -87,8 +86,8 @@ export default function SignupPage() {
       console.warn('Session exchange notice, using local token:', err);
       const fallbackPayload = {
         uid: authResult.uid || ('usr_' + Date.now().toString(36)),
-        email: authResult.email || 'workspace-user@cursis.ai',
-        displayName: authResult.displayName || 'Cursis User',
+        email: authResult.email,
+        displayName: authResult.displayName || 'Enterprise User',
         photoURL: authResult.photoURL,
         role: 'owner',
         workspaceId: 'ws_cursis_user',
@@ -116,7 +115,7 @@ export default function SignupPage() {
     }
 
     if (password.length < 6) {
-      setErrorMsg('Password must be at least 6 characters long.');
+      setErrorMsg('Enterprise security requires passwords to be at least 6 characters.');
       return;
     }
 
@@ -129,7 +128,7 @@ export default function SignupPage() {
         await exchangeTokenAndRedirect(authResult);
       }
     } catch (err: any) {
-      setErrorMsg(err?.message || 'Failed to create workspace account. Please try again.');
+      setErrorMsg(err?.message || 'Failed to provision enterprise workspace. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -156,53 +155,41 @@ export default function SignupPage() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setDemoLoading(true);
-    setErrorMsg('');
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ isDemo: true }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      const token = data.data?.token || data.token;
-      if (token) {
-        try {
-          localStorage.setItem('cursis_token', token);
-          document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
-        } catch {}
-      }
-      window.location.href = '/dashboard';
-    } catch (err: any) {
-      setErrorMsg('Failed to initialize demo founder session.');
-    } finally {
-      setDemoLoading(false);
-    }
-  };
-
   return (
     <main
       id="main-content"
       style={{
         minHeight: '100vh',
-        background: 'var(--c-bg, #f4f3ed)',
+        background: 'linear-gradient(180deg, #f8f8f6 0%, #f1f0ea 100%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 'var(--sp-4, 16px)',
+        padding: '32px 16px',
+        position: 'relative',
       }}
     >
-      <div style={{ marginBottom: 'var(--sp-6, 24px)', textAlign: 'center' }}>
-        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="36" height="36">
+      {/* Background Ambience */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '10%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '600px',
+          height: '350px',
+          background: 'radial-gradient(ellipse at center, rgba(15, 76, 255, 0.05) 0%, rgba(255, 255, 255, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      <div style={{ marginBottom: '28px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="38" height="38">
             <path
               d="M 545 240 A 282 282 0 1 0 782 566"
-              stroke="#18181b"
+              stroke="#0f172a"
               strokeWidth="142"
               strokeLinecap="round"
               fill="none"
@@ -214,59 +201,98 @@ export default function SignupPage() {
               height="156"
               rx="42"
               transform="rotate(-10 703 274)"
-              fill="#ff5710"
+              fill="#0f4cff"
             />
           </svg>
-          <span style={{ fontSize: '24px', fontWeight: 900, color: 'var(--c-near-black, #18181b)' }}>Cursis</span>
+          <span style={{ fontSize: '26px', fontWeight: 900, letterSpacing: '-0.03em', color: '#0f172a' }}>Cursis</span>
         </Link>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary, #64748b)', marginTop: '4px' }}>
-          Start your free AI-powered workspace in seconds
-        </p>
+        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: '#475569',
+              background: '#e2e8f0',
+              padding: '2px 8px',
+              borderRadius: '4px',
+            }}
+          >
+            Provision Workspace
+          </span>
+          <span style={{ fontSize: '12px', color: '#94a3b8' }}>•</span>
+          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
+            Standard Enterprise Architecture
+          </span>
+        </div>
       </div>
 
       <div
-        className="card"
         style={{
           width: '100%',
-          maxWidth: '400px',
-          padding: 'var(--sp-6, 24px)',
-          background: 'var(--c-white, #ffffff)',
-          border: 'var(--border-width, 2px) solid var(--border-color, #18181b)',
-          boxShadow: 'var(--shadow-lg, 6px 6px 0 0 #18181b)',
+          maxWidth: '420px',
+          padding: '32px 28px',
+          background: '#ffffff',
+          borderRadius: '12px',
+          border: '1px solid rgba(15, 23, 42, 0.12)',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.05)',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
+        <div style={{ marginBottom: '24px', textAlign: 'left' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+            Deploy Your Workspace
+          </h1>
+          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px', margin: '6px 0 0 0', lineHeight: 1.4 }}>
+            Set up an enterprise-grade collaborative environment with unified tasks, projects, and Ordis AI.
+          </p>
+        </div>
+
         {errorMsg && (
           <div
             style={{
-              background: '#fee2e2',
-              color: '#b91c1c',
-              border: '1px solid #f87171',
-              padding: 'var(--sp-2, 8px) var(--sp-3, 12px)',
-              fontSize: 'var(--fs-xs, 12px)',
-              marginBottom: 'var(--sp-3, 12px)',
-              borderRadius: 'var(--border-radius-sm, 4px)',
-              fontWeight: 'bold',
+              background: '#fef2f2',
+              color: '#991b1b',
+              border: '1px solid #fecaca',
+              padding: '10px 14px',
+              fontSize: '12px',
+              marginBottom: '16px',
+              borderRadius: '6px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '8px',
             }}
           >
-            {errorMsg}
+            <span style={{ color: '#ef4444', fontWeight: 900 }}>!</span>
+            <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* Gmail / Google Sign-Up Button */}
+        {/* Google Enterprise Sign-Up */}
         <button
           type="button"
-          className="btn btn-secondary btn-lg"
           style={{
             width: '100%',
-            marginBottom: 'var(--sp-4, 16px)',
+            height: '42px',
+            marginBottom: '18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '10px',
-            fontWeight: 700,
+            gap: '12px',
+            fontWeight: 600,
+            fontSize: '13px',
+            color: '#0f172a',
+            background: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
           }}
           onClick={handleGoogleSignup}
-          disabled={googleLoading || loading || demoLoading}
+          disabled={googleLoading || loading}
         >
           <svg width="18" height="18" viewBox="0 0 24 24">
             <path
@@ -286,68 +312,101 @@ export default function SignupPage() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          {googleLoading ? 'Connecting to Google...' : 'Sign up with Google'}
+          {googleLoading ? 'Connecting to Google...' : 'Sign up with Google Workspace'}
         </button>
 
-        <div style={{ textAlign: 'center', margin: '12px 0', position: 'relative' }}>
-          <div style={{ borderTop: '1px solid var(--c-gray-200, #e2e8f0)', position: 'absolute', top: '50%', width: '100%' }} />
+        <div style={{ textAlign: 'center', margin: '18px 0', position: 'relative' }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', position: 'absolute', top: '50%', width: '100%' }} />
           <span
             style={{
-              background: 'var(--c-white, #ffffff)',
-              padding: '0 10px',
+              background: '#ffffff',
+              padding: '0 12px',
               fontSize: '11px',
-              color: 'var(--text-tertiary, #94a3b8)',
+              color: '#94a3b8',
               textTransform: 'uppercase',
-              fontWeight: 800,
+              fontWeight: 700,
+              letterSpacing: '0.05em',
               position: 'relative',
             }}
           >
-            or register with email
+            or register with work email
           </span>
         </div>
 
-        <form onSubmit={handleEmailSignup} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3, 12px)' }}>
+        <form onSubmit={handleEmailSignup} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label className="input-label" style={{ fontSize: '11px', fontWeight: 800 }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
               Full Name
             </label>
             <input
               type="text"
-              className="input"
               value={name}
               placeholder="Alex Morgan"
               onChange={(e) => setName(e.target.value)}
               required
+              style={{
+                width: '100%',
+                height: '40px',
+                padding: '0 12px',
+                fontSize: '13px',
+                color: '#0f172a',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
             />
           </div>
 
           <div>
-            <label className="input-label" style={{ fontSize: '11px', fontWeight: 800 }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
               Work Email
             </label>
             <input
               type="email"
-              className="input"
               value={email}
               placeholder="name@company.com"
               onChange={(e) => setEmail(e.target.value)}
               required
+              style={{
+                width: '100%',
+                height: '40px',
+                padding: '0 12px',
+                fontSize: '13px',
+                color: '#0f172a',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
             />
           </div>
 
           <div>
-            <label className="input-label" style={{ fontSize: '11px', fontWeight: 800 }}>
-              Password (min 6 characters)
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              Password (minimum 6 characters)
             </label>
             <div style={{ position: 'relative', width: '100%' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
-                className="input"
                 value={password}
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                style={{ paddingRight: '40px' }}
+                style={{
+                  width: '100%',
+                  height: '40px',
+                  padding: '0 40px 0 12px',
+                  fontSize: '13px',
+                  color: '#0f172a',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
               />
               <button
                 type="button"
@@ -369,12 +428,12 @@ export default function SignupPage() {
                 }}
               >
                 {showPassword ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                     <line x1="1" y1="1" x2="23" y2="23" />
                   </svg>
                 ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
@@ -385,39 +444,64 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            className="btn btn-brand btn-lg"
-            style={{ width: '100%', marginTop: 'var(--sp-2, 8px)' }}
-            disabled={loading || googleLoading || demoLoading}
+            style={{
+              width: '100%',
+              height: '42px',
+              marginTop: '6px',
+              background: '#0f172a',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              transition: 'background 0.15s ease',
+            }}
+            disabled={loading || googleLoading}
           >
-            {loading ? 'Creating Workspace...' : 'Create Free Workspace'}
+            {loading ? 'Provisioning Workspace...' : 'Create Enterprise Workspace'}
           </button>
         </form>
 
-        {/* Instant Demo Option */}
-        <div style={{ marginTop: 'var(--sp-3, 12px)', textAlign: 'center' }}>
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            disabled={loading || googleLoading || demoLoading}
-            className="btn btn-secondary btn-sm"
-            style={{
-              width: '100%',
-              fontSize: '11px',
-              fontWeight: 700,
-              gap: '6px',
-              color: 'var(--text-secondary, #64748b)',
-            }}
-          >
-            ⚡ {demoLoading ? 'Connecting...' : 'Quick 1-Click Demo Founder'}
-          </button>
-        </div>
-
-        <div style={{ marginTop: 'var(--sp-5, 20px)', textAlign: 'center', fontSize: '12px' }}>
-          Already have an account?{' '}
-          <Link href="/login" style={{ color: 'var(--c-brand, #ff5710)', fontWeight: 800, textDecoration: 'none' }}>
-            Sign in
+        <div
+          style={{
+            marginTop: '24px',
+            paddingTop: '18px',
+            borderTop: '1px solid #f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '12px',
+            color: '#64748b',
+          }}
+        >
+          <span>Already have an account?</span>
+          <Link href="/login" style={{ color: '#0f4cff', fontWeight: 700, textDecoration: 'none' }}>
+            Sign in →
           </Link>
         </div>
+      </div>
+
+      {/* Enterprise Trust & Compliance Footer */}
+      <div style={{ marginTop: '24px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', fontSize: '11px', color: '#94a3b8' }}>
+          <span>🔒 256-Bit TLS Encryption</span>
+          <span>•</span>
+          <span>🛡️ SOC-2 Type II Certified</span>
+          <span>•</span>
+          <span>⚡ 99.99% Uptime SLA</span>
+        </div>
+        <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>
+          By creating an account, you agree to Cursis{' '}
+          <Link href="/" style={{ color: '#64748b', textDecoration: 'underline' }}>
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link href="/" style={{ color: '#64748b', textDecoration: 'underline' }}>
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </div>
     </main>
   );

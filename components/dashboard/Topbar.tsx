@@ -255,6 +255,19 @@ export default function Topbar() {
                 Workspace Settings
               </button>
 
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ width: '100%', justifyContent: 'flex-start', fontSize: '12px', gap: '8px', padding: '6px 10px', color: '#7c3aed', fontWeight: 700 }}
+                onClick={() => {
+                  setUserDropdownOpen(false);
+                  openModal('redeem-code-modal');
+                }}
+              >
+                <span>🎁</span>
+                Redeem Voucher Code
+              </button>
+
               <div style={{ height: '1px', background: 'var(--c-gray-200)', margin: '4px 0' }} />
 
               <button

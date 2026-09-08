@@ -89,7 +89,7 @@ export async function createDeal(workspaceId: string, data: Partial<Deal>): Prom
     stage: data.stage || 'discovery',
     probability: data.probability ?? 50,
     expectedCloseDate: data.expectedCloseDate || new Date(Date.now() + 30 * 86400000).toISOString(),
-    ownerId: data.ownerId || 'usr_owner_demo',
+    ownerId: data.ownerId || 'usr_owner_default',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

@@ -40,10 +40,9 @@ export async function POST(request: Request) {
     }
 
     if (!userEmail && !userUid) {
-      userEmail = 'founder@cursis.ai';
-      userUid = 'usr_' + Date.now().toString(36);
-      userName = 'Cursis Founder';
-    } else if (!userUid) {
+      return apiError('Valid authentication credentials are required to initialize a session', 401);
+    }
+    if (!userUid) {
       userUid = 'usr_' + Date.now().toString(36);
     }
 

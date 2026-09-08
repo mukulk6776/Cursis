@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const STEPS = [
-  { num: 1, text: 'You invite ', highlight: 'sarah@design.co', suffix: ' to join your workspace' },
-  { num: 2, text: 'Sarah accepts. She\'s now a ', highlight: 'Designer', suffix: ' on your team' },
-  { num: 3, text: 'You create the ', highlight: '"Brand Refresh"', suffix: ' project' },
-  { num: 4, text: 'You assign Sarah to ', highlight: '"Design new logo"', suffix: '' },
-  { num: 5, text: 'Sarah opens ', highlight: 'My Work', suffix: ' and sees her task waiting' },
-  { num: 6, text: 'Ordis tracks progress and ', highlight: 'nudges if it stalls', suffix: '' },
+  { num: 1, text: 'You invite ', highlight: 'sarah@organization.com', suffix: ' to the enterprise workspace' },
+  { num: 2, text: 'Sarah authenticates. Provisioned as ', highlight: 'Lead Product Designer', suffix: ' with tailored RBAC' },
+  { num: 3, text: 'You initialize the ', highlight: '"Global Architecture Refresh"', suffix: ' initiative' },
+  { num: 4, text: 'You route ownership to Sarah for ', highlight: '"Core Design System"', suffix: ' with target SLA' },
+  { num: 5, text: 'Sarah accesses ', highlight: 'Unified Work Cockpit', suffix: ' with pre-configured milestone dependencies' },
+  { num: 6, text: 'Ordis monitors telemetry and ', highlight: 'proactively resolves delivery bottlenecks', suffix: '' },
 ];
 
 export default function TeamDemoSection() {
@@ -41,15 +41,15 @@ export default function TeamDemoSection() {
 
   return (
     <section className="lp-section" id="team">
-      <div className="lp-section-label lp-reveal">Team Management</div>
-      <h2 className="lp-section-title lp-reveal">Build your team in minutes</h2>
+      <div className="lp-section-label lp-reveal">Workforce Architecture</div>
+      <h2 className="lp-section-title lp-reveal">Orchestrate Enterprise Teams with Zero Friction</h2>
       <p className="lp-section-subtitle lp-reveal">
-        Invite by email. Assign roles. Create projects. Give work. Everyone sees exactly what they need —
-        nothing they don't.
+        Assign granular role-based permissions, deploy cross-functional initiatives, and maintain complete
+        organizational visibility across every business unit.
       </p>
 
       <div className="lp-demo-container lp-reveal-scale" ref={containerRef}>
-        <div className="lp-demo-header">Team Setup Demo</div>
+        <div className="lp-demo-header">Automated Enterprise Team Orchestration</div>
         <div className="lp-demo-body">
           {STEPS.map((step) => {
             const isActive = activeStep >= step.num;

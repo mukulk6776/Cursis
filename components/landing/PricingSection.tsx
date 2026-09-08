@@ -5,47 +5,47 @@ import Link from 'next/link';
 
 export default function PricingSection() {
   const basicPoints = [
-    'Unlimited projects, tasks & Kanban boards',
-    'Full team management & Creator Pipeline roles',
-    'Real-time messages, Docs, Notes & Calendar',
-    'Ordis Basic Chatbot: answers doubts on all features',
-    'Instant summaries & lists on demand',
-    'Zero-error resilience for all mysterious questions',
-    '100% Free forever · No credit card required',
+    'Unlimited projects, tasks & Kanban hierarchy',
+    'Full team directory & granular RBAC permissions',
+    'Real-time messages, collaborative Docs & Calendar sync',
+    'Ordis Intelligence: Conversational guidance & workflow orchestration',
+    'Instant executive sprint summaries & deliverable matrices',
+    'Deterministic execution with zero-hallucination guardrails',
+    'Standard Enterprise Tier · Zero licensing seat tax',
   ];
 
   const proPoints = [
-    'Everything in Basic Plan, plus:',
-    '1. Access to EVERY feature & workspace subsystem',
+    'Everything in Standard Tier, plus:',
+    '1. Complete access to all 17 unified subsystems & telemetry',
     'Deep ambient scanning & predictive bottleneck alerts',
-    'Full CRM deal pipeline & automated client invoicing',
-    'Developer API keys & webhook event dispatchers',
-    '2. Dynamic Feature Builder: makes new features on the fly',
-    'Auto-generates schemas, widgets & custom tools from prompts',
-    'Priority AI compute & real-time telemetry audit logs',
+    'Enterprise CRM pipeline & automated client invoicing',
+    'Production API keys & webhook event dispatchers',
+    '2. Dynamic Feature Synthesis: Compiles custom schemas & tools',
+    'Auto-generates schemas, custom tools, and database collections',
+    'Dedicated compute priority & real-time telemetry audit logs',
   ];
 
   const agencyPoints = [
-    'Bespoke AI agent development for your company',
-    'End-to-end workflow automation & custom APIs',
-    'Custom analytics dashboards & business intelligence',
-    'Full-stack custom software development',
-    'Dedicated engineering team & private Slack channel',
-    'Enterprise SLA, SSO & vector database hosting',
+    'Bespoke AI agent development for your organization',
+    'End-to-end workflow automation & dedicated custom APIs',
+    'Custom executive dashboards & enterprise business intelligence',
+    'Full-stack custom software engineering by core architects',
+    'Dedicated engineering team & private enterprise Slack/Teams bridge',
+    'Enterprise 99.99% SLA, Okta/SAML SSO & dedicated vector hosting',
   ];
 
   return (
-    <section className="lp-section" id="pricing" style={{ background: '#f4f3ed' }}>
-      <div className="lp-section-header" style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <div className="lp-section-label" style={{ display: 'inline-block' }}>Transparent Pricing</div>
-        <h2 className="lp-section-title">Transparent plans. Extreme capability.</h2>
-        <p className="lp-section-subtitle" style={{ margin: '0 auto', maxWidth: '700px' }}>
-          Start free forever with our complete workspace and Ordis Chatbot, or upgrade to Ordis Pro for autonomous feature creation.
+    <section className="lp-section" id="pricing" style={{ background: '#f8f8f6', padding: '90px 24px' }}>
+      <div className="lp-section-header" style={{ textAlign: 'center', marginBottom: '50px' }}>
+        <div className="lp-section-label" style={{ display: 'inline-block' }}>Predictable Architecture</div>
+        <h2 className="lp-section-title">Predictable Pricing. Enterprise Capability.</h2>
+        <p className="lp-section-subtitle" style={{ margin: '0 auto', maxWidth: '720px' }}>
+          Deploy the complimentary Standard Tier for your core workforce, or upgrade to Autonomous Pro for real-time telemetry and generative feature compilation.
         </p>
       </div>
 
       <div className="lp-pricing-tiers-grid">
-        {/* Tier 1: Basic Plan (Free Forever) */}
+        {/* Tier 1: Standard Tier */}
         <div className="lp-pricing-card-brutal">
           <div style={{ marginBottom: '18px' }}>
             <span
@@ -62,20 +62,20 @@ export default function PricingSection() {
                 marginBottom: '10px',
               }}
             >
-              BASIC PLAN · FREE FOREVER
+              STANDARD TIER · COMPLIMENTARY CORE
             </span>
             <h3 style={{ fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '6px' }}>
-              Cursis Starter
+              Cursis Standard
             </h3>
             <p style={{ fontSize: '13px', color: '#555', lineHeight: 1.4 }}>
-              Complete workspace with Ordis Chatbot to answer doubts, summarize, and list.
+              Complete unified workspace with Ordis conversational guidance, sprint synthesis, and workflow tracking.
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
             <span style={{ fontSize: '28px', fontWeight: 900 }}>$</span>
             <span style={{ fontSize: '48px', fontWeight: 900, lineHeight: 1 }}>0</span>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#666' }}>/ forever</span>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#666' }}>/ seat (Complimentary)</span>
           </div>
 
           <div style={{ height: '2px', background: '#000', marginBottom: '20px' }} />
@@ -101,14 +101,14 @@ export default function PricingSection() {
               padding: '12px',
             }}
           >
-            Start Free Workspace
+            Deploy Standard Workspace
           </Link>
         </div>
 
-        {/* Tier 2: Paid Version (Ordis Pro / $1B Tier) */}
+        {/* Tier 2: Autonomous Pro */}
         <div className="lp-pricing-card-brutal featured">
           <div className="lp-pricing-featured-badge">
-            ⚡ PRO ORDIS · 1B $ TIER
+            ⚡ AUTONOMOUS ORDIS · ENTERPRISE VELOCITY
           </div>
 
           <div style={{ marginBottom: '18px' }}>
@@ -126,20 +126,20 @@ export default function PricingSection() {
                 marginBottom: '10px',
               }}
             >
-              PAID VERSION · AUTONOMOUS
+              AUTONOMOUS PRO · HIGH VELOCITY
             </span>
             <h3 style={{ fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '6px' }}>
-              Ordis Pro
+              Cursis Autonomous Pro
             </h3>
             <p style={{ fontSize: '13px', color: '#555', lineHeight: 1.4 }}>
-              Has access to every feature + makes brand new custom features according to your requests.
+              Full system omniscience, continuous ambient bottleneck scanning, and autonomous dynamic feature synthesis.
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
             <span style={{ fontSize: '28px', fontWeight: 900 }}>$</span>
             <span style={{ fontSize: '48px', fontWeight: 900, lineHeight: 1 }}>29</span>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#666' }}>/ month</span>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#666' }}>/ seat / month</span>
           </div>
 
           <div style={{ height: '2px', background: '#0f4cff', marginBottom: '20px' }} />
@@ -175,11 +175,11 @@ export default function PricingSection() {
               padding: '12px',
             }}
           >
-            Upgrade to Ordis Pro ➔
+            Deploy Autonomous Pro ➔
           </Link>
         </div>
 
-        {/* Tier 3: Cursis Agency Custom */}
+        {/* Tier 3: Enterprise Sovereign */}
         <div className="lp-pricing-card-brutal">
           <div style={{ marginBottom: '18px' }}>
             <span
@@ -187,7 +187,7 @@ export default function PricingSection() {
                 fontSize: '11px',
                 fontWeight: 900,
                 textTransform: 'uppercase',
-                background: '#ff5710',
+                background: '#0f172a',
                 color: '#fff',
                 padding: '3px 8px',
                 border: '1px solid #000',
@@ -196,18 +196,18 @@ export default function PricingSection() {
                 marginBottom: '10px',
               }}
             >
-              FULL-SERVICE AGENCY
+              ENTERPRISE SOVEREIGN · BESPOKE
             </span>
             <h3 style={{ fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '6px' }}>
-              Cursis Agency
+              Cursis Sovereign
             </h3>
             <p style={{ fontSize: '13px', color: '#555', lineHeight: 1.4 }}>
-              Custom software, automations, and AI agents built exclusively for your company.
+              Dedicated engineering, custom agent architecture, private infrastructure, and guaranteed SLAs.
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
-            <span style={{ fontSize: '42px', fontWeight: 900, lineHeight: 1 }}>Custom</span>
+            <span style={{ fontSize: '38px', fontWeight: 900, lineHeight: 1 }}>Custom Enterprise</span>
           </div>
 
           <div style={{ height: '2px', background: '#000', marginBottom: '20px' }} />
@@ -215,7 +215,7 @@ export default function PricingSection() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '30px', flex: 1 }}>
             {agencyPoints.map((p, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px', fontWeight: 600 }}>
-                <span style={{ color: '#ff5710', fontWeight: 900 }}>✓</span>
+                <span style={{ color: '#0f4cff', fontWeight: 900 }}>✓</span>
                 <span>{p}</span>
               </div>
             ))}
@@ -233,7 +233,7 @@ export default function PricingSection() {
               padding: '12px',
             }}
           >
-            Inquire Agency Build
+            Contact Enterprise Solutions
           </a>
         </div>
       </div>

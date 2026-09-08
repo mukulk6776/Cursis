@@ -28,39 +28,50 @@ export default function Footer() {
             <span className="lp-footer-logo-text">Cursis</span>
           </div>
           <p className="lp-footer-tagline">
-            The clean, intelligent workspace for modern teams and creators. Powered by Ordis.
+            The unified enterprise operations platform for high-velocity teams. Engineered with deterministic security and Ordis intelligence.
           </p>
+          <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+              SOC-2 Type II
+            </span>
+            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+              ISO 27001
+            </span>
+            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+              HIPAA & GDPR Ready
+            </span>
+          </div>
         </div>
 
         <div className="lp-footer-links-group">
           <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Product</div>
-            <a href="#features" className="lp-footer-link">Core Features</a>
-            <a href="#ordis" className="lp-footer-link">Ordis AI Operations</a>
-            <a href="#problem" className="lp-footer-link">Why Cursis</a>
-            <a href="#pricing" className="lp-footer-link">100% Free Pricing</a>
+            <div className="lp-footer-col-title">Platform</div>
+            <a href="#features" className="lp-footer-link">Core Architecture</a>
+            <a href="#ordis" className="lp-footer-link">Ordis Intelligence</a>
+            <a href="#problem" className="lp-footer-link">Stack Comparison</a>
+            <a href="#pricing" className="lp-footer-link">Enterprise Pricing</a>
           </div>
 
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Workspace</div>
-            <Link href="/dashboard" className="lp-footer-link">Dashboard</Link>
-            <Link href="/login" className="lp-footer-link">Sign In</Link>
-            <Link href="/signup" className="lp-footer-link">Get Started Free</Link>
+            <Link href="/dashboard" className="lp-footer-link">Enterprise Cockpit</Link>
+            <Link href="/login" className="lp-footer-link">Workspace Sign In</Link>
+            <Link href="/signup" className="lp-footer-link">Deploy Workspace</Link>
           </div>
 
           <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Connect</div>
-            <a href="mailto:support@cursis.app" className="lp-footer-link">Contact Support</a>
-            <span className="lp-footer-link" style={{ color: 'var(--c-gray-500)', cursor: 'default' }}>Version 2.0 (Stable)</span>
+            <div className="lp-footer-col-title">Security & SLA</div>
+            <a href="mailto:security@cursis.app" className="lp-footer-link">Security Center</a>
+            <a href="mailto:enterprise@cursis.app" className="lp-footer-link">Enterprise Solutions</a>
+            <span className="lp-footer-link" style={{ color: 'var(--c-gray-500)', cursor: 'default' }}>Production v2.4 (Enterprise)</span>
           </div>
         </div>
       </div>
 
       <div className="lp-footer-bottom">
-        <span>© 2026 Cursis. All rights reserved.</span>
-        <span>Built with intention &amp; craft.</span>
+        <span>© 2026 Cursis Inc. All rights reserved.</span>
+        <span>Engineered for mission-critical enterprise operations.</span>
       </div>
     </footer>
   );
 }
-

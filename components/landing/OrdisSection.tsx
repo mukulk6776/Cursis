@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 
-interface OrdisDemoScenario {
+interface OrdisOperationalScenario {
   id: string;
   tier: 'basic' | 'paid';
   label: string;
@@ -19,85 +19,85 @@ export default function OrdisSection() {
   const [activeTier, setActiveTier] = useState<'basic' | 'paid'>('basic');
   const [executedActions, setExecutedActions] = useState<Record<string, boolean>>({});
 
-  const scenarios: OrdisDemoScenario[] = [
+  const scenarios: OrdisOperationalScenario[] = [
     // --- BASIC PLAN SCENARIOS ---
     {
       id: 'feature-doubt',
       tier: 'basic',
-      label: 'Feature Doubt: "How do I use Tasks?"',
-      userPrompt: 'How do I use the Task Kanban and priority filters in Cursis?',
-      metaBadge: 'BASIC · FEATURE GUIDE',
-      responseHeadline: 'Guide: Operating Tasks & Kanban Board',
-      responseBody: '1. Navigate to Tasks from the sidebar or press Cmd+K.\n2. Click "+ Add Task", enter title, set assignee, deadline, and priority (Urgent, High, Medium, Low).\n3. Drag cards between "Todo", "In Progress", and "Done" columns.\n4. Filter by assignee or priority badge to view bottlenecks immediately.\nTip: You can also tell me "Create task: [Title] for [Name] due [Date]" and I will create it for you!',
-      actionButtonLabel: 'Open Tasks Guide',
+      label: 'Platform Guidance: "Operating Tasks & Kanban"',
+      userPrompt: 'How do I operate the Task Kanban, automated routing, and priority filters in Cursis?',
+      metaBadge: 'STANDARD · WORKFLOW GUIDE',
+      responseHeadline: 'Operating Framework: Tasks & Kanban Hierarchy',
+      responseBody: '1. Access Tasks from the primary navigation or press Cmd+K.\n2. Initialize "+ Add Task", configure assignee, milestone delivery SLA, and priority level (Urgent, High, Medium, Low).\n3. Reorder deliverables across Todo, In Progress, and Done pipelines.\n4. Filter by assignee or priority badge to isolate cross-functional bottlenecks.\nProactive Automation: Say "Create task: [Title] for [Name] due [Date]" to execute via natural language.',
+      actionButtonLabel: 'Open Tasks Framework',
       actionExecutedText: '✓ Tasks guide bookmarked',
     },
     {
       id: 'summarize',
       tier: 'basic',
-      label: 'Summary: "Summarize sprint status"',
-      userPrompt: 'Summarize the current sprint status, open blockers, and deadlines',
-      metaBadge: 'BASIC · EXECUTIVE SUMMARY',
-      responseHeadline: 'Sprint Status Executive Summary',
-      responseBody: '• Overall Sprint Velocity: 84% on schedule with 24 completed deliverables.\n• Active Focus: 6 tasks currently in progress across Design System and API Integration.\n• Approaching Deadlines: 2 tasks due in the next 24 hours (Brand Guidelines & Checkout QA).\n• Blockers Flagged: 0 critical blockers; all upstream dependencies clear.',
-      actionButtonLabel: 'Export Summary',
-      actionExecutedText: '✓ Summary exported to clipboard',
+      label: 'Executive Briefing: "Sprint Velocity & Status"',
+      userPrompt: 'Synthesize current sprint velocity, open dependency blockers, and approaching deliverables',
+      metaBadge: 'STANDARD · EXECUTIVE BRIEFING',
+      responseHeadline: 'Sprint Velocity Executive Synthesis',
+      responseBody: '• Velocity Benchmark: 84% on schedule with 24 verified deliverables.\n• Active Initiatives: 6 high-priority tasks in progress across Design Systems and API Gateways.\n• Delivery Windows: 2 deliverables due within 24 hours (Brand Architecture & Checkout QA).\n• Blockers: 0 deadlocks identified; all upstream service contracts satisfied.',
+      actionButtonLabel: 'Export Executive Briefing',
+      actionExecutedText: '✓ Briefing exported to clipboard',
     },
     {
       id: 'list-features',
       tier: 'basic',
-      label: 'List: "List all Cursis features"',
-      userPrompt: 'List all Cursis features and core modules',
-      metaBadge: 'BASIC · LIST ENGINE',
-      responseHeadline: 'Complete Roster of 17 Integrated Modules',
-      responseBody: '1. Dashboard — Unified cockpit & telemetry\n2. Projects — Milestones, timelines, progress tracking\n3. Tasks — Kanban, lists, priorities, assignments\n4. Messages — Channels, threads, real-time team chat\n5. Calendar — Meetings, Google Meet rooms, milestones\n6. Docs — Collaborative rich-text documents\n7. Files — Secure asset storage with context\n8. Team — Directory, roles (SE, VE, TD, SM, VO), permissions\n9. Creators — 5-stage content production house pipeline\n10. Time Log & Invoices — Billable hours, timers, client PDF invoices\n11. Ordis AI — Copilot, summaries, and feature synthesizers',
-      actionButtonLabel: 'Copy Module List',
-      actionExecutedText: '✓ Copied module list',
+      label: 'Architecture Roster: "Integrated Subsystems"',
+      userPrompt: 'Provide comprehensive architecture roster of all 17 unified Cursis modules',
+      metaBadge: 'STANDARD · SUBSYSTEM AUDIT',
+      responseHeadline: 'Complete Roster of 17 Unified Modules',
+      responseBody: '1. Dashboard — Unified telemetry cockpit & throughput metrics\n2. Projects — Milestones, critical-path roadmaps, deliverable tracking\n3. Tasks — Kanban, nested subtasks, urgency matrices\n4. Messages — Channels, threaded discussions, real-time collaboration\n5. Calendar — Schedules, video sync rooms, delivery milestones\n6. Docs — Collaborative rich-text specifications & RFCs\n7. Files — Secure contextual asset repository\n8. Team — RBAC directory, role permissions, capacity allocation\n9. Creators — 5-stage production & media asset pipeline\n10. Invoicing & Time — Billable telemetry, automated enterprise invoicing\n11. Ordis AI — Autonomous operations & dynamic feature synthesis',
+      actionButtonLabel: 'Copy Architecture Roster',
+      actionExecutedText: '✓ Subsystem roster copied',
     },
     {
-      id: 'mysterious-question',
+      id: 'strategic-roadmap',
       tier: 'basic',
-      label: 'Mysterious: "Secret of the void?"',
-      userPrompt: 'What is the secret of the cosmic void, and why does the cursor blink in the dark?',
-      metaBadge: 'BASIC · ZERO-ERROR POISE',
-      responseHeadline: 'The Enigma of the Blank Canvas',
-      responseBody: 'The void is not an absence, but the infinite potential of uncommitted work. The blinking cursor is the heartbeat of creation — a solitary light at the frontier between imagination and reality.\n\nIn Cursis, even the deepest mysteries find structure: ideas transform into scripts, scripts into footage, and footage into published legacy. No error will ever silence our dialogue; ask what you will, and together we will build order from the cosmos.',
-      actionButtonLabel: 'Contemplate with Ordis',
-      actionExecutedText: '✓ Cosmic insight synthesized (0 errors)',
+      label: 'Strategic Roadmap: "Enterprise Migration"',
+      userPrompt: 'Synthesize an autonomous execution roadmap for migrating multi-vendor stacks to Cursis',
+      metaBadge: 'STANDARD · STRATEGIC SYNTHESIS',
+      responseHeadline: 'Autonomous Enterprise Migration Framework',
+      responseBody: '1. Phase 1 — Subsystem Ingestion: Import active tasks, milestone timelines, and team roles via Cursis APIs.\n2. Phase 2 — Real-Time Telemetry: Ordis monitors dependency graphs and flags capacity bottlenecks.\n3. Phase 3 — Autonomous Action: Automated meeting agendas, milestone briefings, and client deliverables synthesized deterministically.\n\nResult: 100% data fidelity with zero operational downtime.',
+      actionButtonLabel: 'Synthesize Migration Blueprint',
+      actionExecutedText: '✓ Enterprise migration blueprint generated',
     },
 
     // --- PAID VERSION SCENARIOS ---
     {
       id: 'paid-every-feature',
       tier: 'paid',
-      label: 'Access: "Every Feature & Telemetry"',
-      userPrompt: 'Inspect all 13 systems, run deep ambient scan, audit CRM deals, and check API dispatch',
-      metaBadge: 'PRO · FULL SYSTEM ACCESS',
+      label: 'Telemetry: "Subsystem Telemetry Audit"',
+      userPrompt: 'Audit all enterprise subsystems, run deep ambient scan, evaluate CRM deals, and check API dispatch',
+      metaBadge: 'PRO · FULL SUBSYSTEM AUDIT',
       responseHeadline: 'Full Subsystem Omniscience Active',
-      responseBody: '• Ambient Bottleneck Scan: 0 deadlocks across 38 tasks.\n• CRM Pipeline Audit: $145,000 across 4 enterprise deals in proposal stage.\n• Invoicing Telemetry: ₹4,80,000 collected this quarter; 2 invoices pending delivery.\n• API Keys & Webhooks: 2 live production endpoints dispatching webhook events.\n• MongoDB Health: Multi-collection read/write latency under 12ms.',
-      actionButtonLabel: '⚡ Run Global Workspace Scan',
+      responseBody: '• Workload Deadlock Scan: 0 deadlocks detected across 38 enterprise tasks.\n• CRM Pipeline Velocity: $145,000 across 4 enterprise contracts in negotiation stage.\n• Financial Telemetry: $58,000 settled this billing cycle; 2 invoices awaiting reconciliation.\n• Webhook Dispatch: 2 active production endpoints streaming events with 99.99% success rate.\n• Database Throughput: Multi-collection read/write latency under 12ms globally.',
+      actionButtonLabel: '⚡ Run Subsystem Telemetry Audit',
       actionExecutedText: '✓ Global workspace telemetry synchronized',
     },
     {
       id: 'paid-make-csat-feature',
       tier: 'paid',
-      label: 'Make Feature: "Client CSAT Surveys"',
-      userPrompt: 'Make a new feature according to my needs: Client CSAT & NPS Feedback Surveys with 1-click rating',
-      metaBadge: 'PRO · DYNAMIC FEATURE BUILDER',
-      responseHeadline: '🚀 New Custom Feature Synthesized & Deployed!',
-      responseBody: 'Ordis Pro has created a brand new custom feature: "Client CSAT & NPS Collector"\n\n• Schema: Client Email, Star Rating (1-5), NPS Category, Feedback Notes\n• Actions: [Send Survey Invite], [Export CSV], [Trigger Follow-up Task]\n• Persistence: Registered in workspace custom tools & live MongoDB collection.\n• Widget: Live interactive card synthesized below for your team to use!',
+      label: 'Synthesis: "Client CSAT & NPS Collector"',
+      userPrompt: 'Synthesize custom feature: Client CSAT & NPS Feedback Collector with 1-click rating',
+      metaBadge: 'PRO · DYNAMIC FEATURE SYNTHESIS',
+      responseHeadline: '🚀 Custom Feature Synthesized & Deployed',
+      responseBody: 'Ordis Autonomous Engine has compiled and deployed: "Client CSAT & NPS Collector"\n\n• Schema: Client Organization, Star Rating (1-5), NPS Category, Feedback Payload\n• Automated Actions: [Send Survey Invite], [Export CSV], [Trigger Follow-up Task]\n• Persistence: Registered in workspace custom tools & live database collection.\n• Widget: Live interactive card synthesized below for your team to use!',
       actionButtonLabel: '⚡ Deploy Custom Tool to Workspace',
       actionExecutedText: '✓ Custom Feature "Client CSAT" is live in your workspace!',
     },
     {
       id: 'paid-make-bounty-feature',
       tier: 'paid',
-      label: 'Make Feature: "Team Bounty Coins"',
-      userPrompt: 'Build a new feature for Team Bounty Coins where members earn reward coins for completing urgent tasks',
-      metaBadge: 'PRO · DYNAMIC FEATURE BUILDER',
-      responseHeadline: '🚀 Custom Feature Created: "Team Bounty Coins"',
-      responseBody: 'Autonomous feature synthesis complete!\n\n• Feature ID: feat_bounty_coins_v1\n• Fields: Member Name, Task Completed, Bounty Coin Reward (🪙), Payout Status\n• Automation Hook: Auto-awards +50 coins whenever an urgent task transitions to Done.\n• Available in workspace: Custom Tools Shelf.',
-      actionButtonLabel: '⚡ Activate Bounty System',
+      label: 'Synthesis: "Incentive & Bounty Engine"',
+      userPrompt: 'Build custom feature for Team Bounty Coins rewarding engineers for completing urgent tasks',
+      metaBadge: 'PRO · DYNAMIC FEATURE SYNTHESIS',
+      responseHeadline: '🚀 Custom Feature Created: "Team Bounty Engine"',
+      responseBody: 'Autonomous feature compilation complete!\n\n• Feature ID: feat_bounty_engine_v1\n• Fields: Contributor Name, Deliverable Closed, Bounty Credits (🪙), Payout Status\n• Automation Trigger: Awards +50 credits whenever an urgent task transitions to Done.\n• Deployment: Live in Workspace Custom Tools Shelf.',
+      actionButtonLabel: '⚡ Activate Bounty Engine',
       actionExecutedText: '✓ Bounty system activated across all projects!',
     },
   ];
@@ -114,19 +114,20 @@ export default function OrdisSection() {
   };
 
   return (
-    <section className="lp-section lp-ordis-container" id="ordis" style={{ background: '#0a0d14', color: '#ffffff' }}>
+    <section className="lp-section" id="ordis" style={{ background: '#0a0d14', color: '#ffffff', padding: '90px 24px' }}>
       {/* Section Header */}
-      <div className="lp-section-header" style={{ textAlign: 'center', marginBottom: '32px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '50px' }}>
         <div
           style={{
             fontSize: '11px',
             fontWeight: 900,
+            letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            background: 'rgba(15, 76, 255, 0.2)',
-            color: '#60a5fa',
+            color: '#38bdf8',
+            background: 'rgba(56, 189, 248, 0.1)',
+            border: '1px solid rgba(56, 189, 248, 0.3)',
             padding: '4px 12px',
-            border: '1px solid rgba(59, 130, 246, 0.4)',
+            borderRadius: '4px',
             display: 'inline-block',
             marginBottom: '12px',
           }}
@@ -134,11 +135,11 @@ export default function OrdisSection() {
           ORDIS INTELLIGENCE ENGINE
         </div>
         <h2 style={{ fontSize: 'clamp(32px, 5vw, 50px)', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', lineHeight: 1.1 }}>
-          Basic Chatbot or Autonomous Pro.<br />
-          <span style={{ color: '#60a5fa' }}>Ordis Powers Both.</span>
+          From Conversational Intelligence<br />
+          <span style={{ color: '#60a5fa' }}>To Autonomous Orchestration.</span>
         </h2>
         <p style={{ color: '#9ca3af', maxWidth: '750px', margin: '14px auto 0', fontSize: '16px', lineHeight: 1.6 }}>
-          In the <strong>Basic Plan</strong>, Ordis answers any feature doubt, summarizes work, lists anything, and gracefully handles mysterious questions without error. In the <strong>Paid Version</strong>, Ordis has access to every feature and can invent and build brand new features on demand!
+          In <strong>Standard Tier</strong>, Ordis operates as an omnipresent intelligence partner — answering operational queries, generating sprint summaries, and mapping workflows. In <strong>Autonomous Pro</strong>, Ordis achieves full system telemetry, automatically detecting delivery bottlenecks and synthesizing custom software widgets on the fly.
         </p>
       </div>
 
@@ -153,18 +154,19 @@ export default function OrdisSection() {
           style={{
             padding: '10px 22px',
             fontSize: '13px',
-            fontWeight: 900,
+            fontWeight: 800,
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
             cursor: 'pointer',
             background: activeTier === 'basic' ? '#ffffff' : 'rgba(255, 255, 255, 0.05)',
             color: activeTier === 'basic' ? '#000000' : '#ffffff',
             border: activeTier === 'basic' ? '2px solid #ffffff' : '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: activeTier === 'basic' ? '3px 3px 0 #0f4cff' : 'none',
+            boxShadow: activeTier === 'basic' ? '0 4px 12px rgba(15, 76, 255, 0.3)' : 'none',
+            borderRadius: '6px',
             transition: 'all 0.2s ease',
           }}
         >
-          ⚡ Basic Plan Chatbot (Free)
+          ⚡ Standard Intelligence (Included)
         </button>
 
         <button
@@ -176,18 +178,19 @@ export default function OrdisSection() {
           style={{
             padding: '10px 22px',
             fontSize: '13px',
-            fontWeight: 900,
+            fontWeight: 800,
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
             cursor: 'pointer',
             background: activeTier === 'paid' ? '#0f4cff' : 'rgba(255, 255, 255, 0.05)',
             color: '#ffffff',
             border: activeTier === 'paid' ? '2px solid #60a5fa' : '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: activeTier === 'paid' ? '3px 3px 0 #ffffff' : 'none',
+            boxShadow: activeTier === 'paid' ? '0 4px 12px rgba(96, 165, 250, 0.4)' : 'none',
+            borderRadius: '6px',
             transition: 'all 0.2s ease',
           }}
         >
-          🚀 Paid Version (Ordis Pro / $1B Tier)
+          🚀 Autonomous Pro (Full Orchestration)
         </button>
       </div>
 

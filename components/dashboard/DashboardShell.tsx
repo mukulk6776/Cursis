@@ -20,6 +20,7 @@ import AgencyModal from './modals/AgencyModal';
 import InviteModal from './modals/InviteModal';
 import DocumentModal from './modals/DocumentModal';
 import GenericModal from './modals/GenericModal';
+import RedeemCodeModal from './modals/RedeemCodeModal';
 
 interface DashboardShellProps {
   children?: React.ReactNode;
@@ -54,6 +55,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <InviteModal />
       <DocumentModal />
       <GenericModal />
+      <RedeemCodeModal />
 
       {/* Global Floating Ordis AI Chatbot */}
       <OrdisFloatingChat />
