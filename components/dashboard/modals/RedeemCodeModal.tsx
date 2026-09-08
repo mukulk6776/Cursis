@@ -24,7 +24,7 @@ export default function RedeemCodeModal() {
 
   const sampleVouchers = [
     { code: 'CURSIS-PRO-2026', label: 'Pro Seat + Autonomous AI' },
-    { code: 'ENTERPRISE-SCALE-4', label: '4 Pro Seats + Enterprise Tier' },
+    { code: 'ENTERPRISE-SCALE-4', label: '4 Pro Seats + Scale Automation' },
     { code: 'ORDIS-VIP-ACCESS', label: 'Executive VIP Multi-Agent' },
     { code: 'FEATURE-STUDIO-PRO', label: '3 Special Dynamic Features' },
     { code: 'SPECIAL-FOUNDER', label: 'Sovereign Founder VIP' },
@@ -108,7 +108,7 @@ export default function RedeemCodeModal() {
                 Redeem Voucher &amp; License Key
               </h3>
               <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-tertiary)' }}>
-                Claim Autonomous Pro seats, elevate workspace tier, and unlock special features.
+                Claim Autonomous Pro seats, unlock special features, and activate advanced AI capabilities.
               </p>
             </div>
           </div>
@@ -208,12 +208,11 @@ export default function RedeemCodeModal() {
                 <div
                   style={{
                     padding: '10px 14px',
-                    background: 'rgba(239, 68, 68, 0.08)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
                     borderRadius: '6px',
-                    color: '#ef4444',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: '#dc2626',
                     fontSize: '12px',
-                    fontWeight: 600,
                     marginBottom: 'var(--sp-4)',
                     display: 'flex',
                     alignItems: 'center',
@@ -225,63 +224,53 @@ export default function RedeemCodeModal() {
                 </div>
               )}
 
-              {/* Code Input Field */}
               <div className="input-group" style={{ marginBottom: 'var(--sp-4)' }}>
                 <label
                   className="input-label"
-                  style={{ fontSize: '12px', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    marginBottom: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
                 >
                   <span>Enter Redeem Code or Activation Key</span>
-                  <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>Case-insensitive</span>
                 </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    className="input"
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '15px',
-                      fontWeight: 700,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      padding: '12px 14px',
-                      height: '46px',
-                      borderColor: '#7c3aed',
-                    }}
-                    placeholder="e.g. CURSIS-PRO-2026"
-                    value={inputCode}
-                    onChange={(e) => {
-                      setInputCode(e.target.value.toUpperCase());
-                      setErrorMsg('');
-                    }}
-                    autoFocus
-                  />
-                  {inputCode && (
-                    <button
-                      type="button"
-                      style={{
-                        position: 'absolute',
-                        right: '12px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-tertiary)',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                      }}
-                      onClick={() => setInputCode('')}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="e.g. CURSIS-PRO-2026 or ENTERPRISE-SCALE-4"
+                  value={inputCode}
+                  onChange={(e) => setInputCode(e.target.value)}
+                  style={{
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    borderColor: inputCode.trim() ? '#7c3aed' : 'var(--border-color)',
+                  }}
+                  autoFocus
+                />
               </div>
 
-              {/* Sample Voucher Codes */}
+              {/* Sample Voucher Codes Quick Selector */}
               <div style={{ marginBottom: 'var(--sp-4)' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: '6px', textTransform: 'uppercase' }}>
-                  AVAILABLE PROMOTIONAL KEYS (CLICK TO APPLY)
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: 'var(--text-tertiary)',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <span>QUICK-CLAIM SAMPLE VOUCHERS</span>
+                  <span style={{ fontSize: '10px', color: '#7c3aed' }}>Click to fill</span>
                 </div>
+
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {sampleVouchers.map((v) => {
                     const isRedeemed = redeemedCodes.includes(v.code);
@@ -289,14 +278,12 @@ export default function RedeemCodeModal() {
                       <button
                         key={v.code}
                         type="button"
-                        className="btn btn-ghost btn-sm"
+                        className="btn btn-sm"
                         style={{
-                          fontSize: '11px',
-                          fontFamily: 'var(--font-mono)',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          background: inputCode === v.code ? 'rgba(124, 58, 237, 0.15)' : 'var(--c-surface)',
-                          border: inputCode === v.code ? '1px solid #7c3aed' : '1px solid var(--border-color)',
+                          fontSize: '10px',
+                          padding: '3px 8px',
+                          background: isRedeemed ? 'var(--c-surface)' : 'rgba(124, 58, 237, 0.08)',
+                          border: isRedeemed ? '1px solid var(--border-color)' : '1px solid rgba(124, 58, 237, 0.25)',
                           color: isRedeemed ? 'var(--text-tertiary)' : '#7c3aed',
                           fontWeight: 700,
                           cursor: isRedeemed ? 'not-allowed' : 'pointer',
@@ -351,7 +338,7 @@ export default function RedeemCodeModal() {
                   }}
                   disabled={!inputCode.trim()}
                 >
-                  Claim Premium Features →
+                  Claim Pro Features →
                 </button>
               </div>
             </form>

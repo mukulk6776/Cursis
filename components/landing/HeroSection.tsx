@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import TrustAttraction from './TrustAttraction';
 
 export default function HeroSection() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'team' | 'meetings'>('tasks');
@@ -295,57 +296,10 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Social Proof & Creator Trust Banner */}
-      <div className="lp-social-proof-bar lp-reveal">
-        <div className="lp-social-proof-header">
-          <div className="lp-social-proof-title">
-            <span className="lp-stat-pulse" />
-            <span>2,100+ users working with Reverie Hacks, Content Service Media and LAKAI</span>
-          </div>
-          <div className="lp-social-proof-stats">
-            <div className="lp-stat-badge">
-              <span className="lp-stat-pulse" />
-              <span>2,100+ Active Creators</span>
-            </div>
-            <div className="lp-stat-badge">
-              <span>★ 4.9/5 Rating</span>
-            </div>
-            <div className="lp-stat-badge">
-              <span>⚡ 140k+ Tasks Shipped</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="lp-partners-marquee">
-          {/* Partner 1: Reverie Hacks */}
-          <div className="lp-partner-card">
-            <div className="lp-partner-icon-box" style={{ background: '#0f4cff' }}>RH</div>
-            <div className="lp-partner-info">
-              <span className="lp-partner-name">Reverie Hacks</span>
-              <span className="lp-partner-sub">Creative Tech &amp; Hackathon Collective</span>
-            </div>
-          </div>
-
-          {/* Partner 2: Content Service Media */}
-          <div className="lp-partner-card">
-            <div className="lp-partner-icon-box" style={{ background: '#ff5710' }}>CSM</div>
-            <div className="lp-partner-info">
-              <span className="lp-partner-name">Content Service Media</span>
-              <span className="lp-partner-sub">High-Volume Production &amp; Syndication</span>
-            </div>
-          </div>
-
-          {/* Partner 3: LAKAI */}
-          <div className="lp-partner-card">
-            <div className="lp-partner-icon-box" style={{ background: '#10b981' }}>LK</div>
-            <div className="lp-partner-info">
-              <span className="lp-partner-name">LAKAI</span>
-              <span className="lp-partner-sub">Creator Brand &amp; Digital Studio</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Main Attraction: Tano AI-Style Animated Trust Marquee & Creator Proof */}
+      <TrustAttraction />
     </section>
+
   );
 }
 

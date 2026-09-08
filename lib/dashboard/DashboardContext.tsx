@@ -1199,10 +1199,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       ];
     } else if (code === 'ENTERPRISE-SCALE-4') {
       perks = [
-        '🏢 Premium Workspace Tier Elevated',
         '🚀 4 Autonomous Pro Seat Licenses Granted',
-        '⚡ Ordis Autonomous Copilot & Ambient Scanner',
+        '⚡ Ordis Autonomous Copilot & Ambient Scanner Active',
         '📊 Full 2,000-User Enterprise Scale Support',
+        '🛠️ Instant Enterprise Telemetry Synthesis',
       ];
       setPremiumSeatLimit(4);
     } else if (code === 'ORDIS-VIP-ACCESS') {
@@ -1249,9 +1249,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       prev.map((e) => (e.id === user.id || (e.email && user.email && e.email.toLowerCase() === user.email.toLowerCase()) ? { ...e, planTier: 'premium' } : e))
     );
 
-    // 3. Elevate activeWorkspace tier
+    // 3. Keep workspace tier clean without showing an enterprise/premium badge
     setWorkspaces((prev) =>
-      prev.map((w) => (w.id === activeWorkspaceId ? { ...w, tier: 'paid', badge: 'Enterprise Pro' } : w))
+      prev.map((w) => (w.id === activeWorkspaceId ? { ...w, tier: 'paid' } : w))
     );
 
     // 4. Inject Special Features if unlocked
@@ -1311,7 +1311,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     } catch {}
 
     // 6. Audit entry & Toast
-    addAuditEntry(user.name, 'voucher.code.redeemed', code, `Claimed ${perks.length} premium enterprise perks via voucher`);
+    addAuditEntry(user.name, 'voucher.code.redeemed', code, `Claimed ${perks.length} enterprise features via voucher`);
     showToast(`🎉 Code "${code}" redeemed! Autonomous Pro and Special Features unlocked.`);
 
     try {
