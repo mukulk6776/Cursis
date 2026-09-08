@@ -5,6 +5,15 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatChatMarkdown } from '@/lib/dashboard/data';
 import ChatActionCardView from '@/components/dashboard/chat/ChatActionCardView';
 
+function stripHtml(html: string): string {
+  if (typeof document !== 'undefined') {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
+  }
+  return html.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+}
+
 export default function OrdisFloatingChat() {
   const {
     ordisFloatingOpen,
@@ -21,14 +30,31 @@ export default function OrdisFloatingChat() {
     activeWorkspace,
     ordisPlan,
     toggleOrdisPlan,
-    dynamicFeatures,
+    geminiApiKey,
+    setGeminiApiKey,
+    ordisModel,
+    setOrdisModel,
+    aiEngineStatus,
+    showToast,
   } = useDashboard();
 
   const [inputVal, setInputVal] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState(geminiApiKey || '');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const speechRecognitionRef = useRef<any>(null);
+
+  // Sync draft API key if context updates
+  useEffect(() => {
+    setApiKeyInput(geminiApiKey || '');
+  }, [geminiApiKey]);
 
   // Auto scroll to bottom when chat history changes or opens
   useEffect(() => {
@@ -38,18 +64,72 @@ export default function OrdisFloatingChat() {
     }
   }, [chatHistory, ordisFloatingOpen]);
 
-  // Handle voice mode simulation
+  // Web Speech API Integration
   useEffect(() => {
-    let timer: any;
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
     if (voiceMode) {
-      setIsListening(true);
-      timer = setTimeout(() => {
-        setIsListening(false);
-      }, 4000);
+      if (SpeechRecognition) {
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = false;
+          recognition.interimResults = true;
+          recognition.lang = 'en-US';
+
+          recognition.onstart = () => {
+            setIsListening(true);
+          };
+
+          recognition.onresult = (event: any) => {
+            const transcript = Array.from(event.results)
+              .map((res: any) => res[0].transcript)
+              .join('');
+            setInputVal(transcript);
+          };
+
+          recognition.onerror = (err: any) => {
+            console.warn('Speech recognition warning:', err);
+            setIsListening(false);
+          };
+
+          recognition.onend = () => {
+            setIsListening(false);
+          };
+
+          recognition.start();
+          speechRecognitionRef.current = recognition;
+        } catch (e) {
+          console.warn('SpeechRecognition initialization failed:', e);
+          setIsListening(true);
+        }
+      } else {
+        // Fallback simulation if browser doesn't support Web Speech
+        setIsListening(true);
+        const timer = setTimeout(() => {
+          setIsListening(false);
+        }, 4000);
+        return () => clearTimeout(timer);
+      }
     } else {
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch {}
+        speechRecognitionRef.current = null;
+      }
       setIsListening(false);
     }
-    return () => clearTimeout(timer);
+
+    return () => {
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch {}
+      }
+    };
   }, [voiceMode]);
 
   const handleSend = (textToSend?: string) => {
@@ -66,26 +146,68 @@ export default function OrdisFloatingChat() {
     }
   };
 
+  const handleSaveApiKey = () => {
+    const clean = apiKeyInput.trim();
+    setGeminiApiKey(clean);
+    showToast(clean ? 'Gemini AI API Key saved successfully ✓' : 'Switched to Local Engine mode');
+    setSettingsOpen(false);
+  };
+
+  const handleSpeak = (text: string, idx: number) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      showToast('Text-to-speech is not supported in this browser.');
+      return;
+    }
+
+    if (speakingIdx === idx) {
+      window.speechSynthesis.cancel();
+      setSpeakingIdx(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const cleanText = stripHtml(text);
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+    utterance.onend = () => setSpeakingIdx(null);
+    utterance.onerror = () => setSpeakingIdx(null);
+
+    window.speechSynthesis.speak(utterance);
+    setSpeakingIdx(idx);
+  };
+
+  const handleCopy = (text: string, idx: number) => {
+    const clean = stripHtml(text);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(clean);
+      setCopiedIdx(idx);
+      showToast('Copied to clipboard ✓');
+      setTimeout(() => setCopiedIdx(null), 2000);
+    }
+  };
+
   const quickPrompts = ordisPlan === 'basic'
     ? [
         { label: '💡 How to Use Tasks', prompt: 'How do I use the Task Kanban and priority filters in Cursis?' },
         { label: '🎬 Creator Pipeline', prompt: 'How does the Creator Content Pipeline work and what are the roles?' },
         { label: '📊 Summarize Sprint', prompt: 'Summarize the current sprint status, open blockers, and deadlines' },
         { label: '📑 List All Features', prompt: 'List all 17 Cursis features and core modules' },
-        { label: '🌌 Mysterious Question', prompt: 'What is the secret of the cosmic void, and why does the cursor blink in the dark?' },
+        { label: '🇮🇳 Hinglish Sync', prompt: 'Batao kal kya kya deliver karna hai aur kaun kaun online hai?' },
         { label: '👥 List Team Roles', prompt: 'List all Creator production team roles and duties' },
       ]
     : [
+        { label: '⚡ Create Task', prompt: 'Create high-priority task: Deploy payment webhook integration' },
+        { label: '📅 Schedule Sync', prompt: 'Schedule urgent team sprint sync tomorrow at 3:00 PM for 30 mins' },
+        { label: '💼 Add CRM Deal', prompt: 'Add new CRM deal: Acme Enterprise SaaS for $75,000 in Negotiation' },
         { label: '🚀 Make CSAT Feature', prompt: 'Make a new feature for Client CSAT & NPS Feedback Surveys with 1-click rating' },
-        { label: '💰 Make Expense Feature', prompt: 'Build a new feature for Receipt & Expense Approvals with receipt URLs' },
-        { label: '🏆 Make Bounty Feature', prompt: 'Build a new feature for Team Bounty Coins for completing urgent tasks' },
         { label: '🔍 Deep Ambient Scan', prompt: 'Inspect all 13 systems, run deep ambient scan, audit CRM deals, and check API dispatch' },
-        { label: '💼 Audit CRM Deals', prompt: 'Show active CRM pipeline and calculate total deal values' },
-        { label: '⚡ Urgent Routing', prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer' },
+        { label: '⚙️ Auto-Assign Rule', prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer' },
       ];
 
   const activeTaskCount = tasks.filter((t) => t.status !== 'completed').length;
   const onlineMemberCount = employees.filter((e) => e.status === 'online').length;
+  const modelDisplayName = ordisModel === 'gemini-2.5-pro' ? 'Gemini 2.5 Pro' : ordisModel === 'gemini-2.0-flash' ? 'Gemini 2.0 Flash' : 'Gemini 2.5 Flash';
 
   return (
     <>
@@ -160,7 +282,7 @@ export default function OrdisFloatingChat() {
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>Ordis Copilot</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>Ordis AI Chatbot</span>
               <span
                 style={{
                   fontSize: '9px',
@@ -175,7 +297,7 @@ export default function OrdisFloatingChat() {
                 Ctrl+J
               </span>
             </div>
-            <span style={{ fontSize: '11px', color: '#9ca3af' }}>Control any workspace feature</span>
+            <span style={{ fontSize: '11px', color: '#9ca3af' }}>Chat & execute any Cursis feature</span>
           </div>
         </button>
       )}
@@ -187,18 +309,18 @@ export default function OrdisFloatingChat() {
             position: 'fixed',
             bottom: isExpanded ? '16px' : '24px',
             right: isExpanded ? '16px' : '24px',
-            width: isExpanded ? 'calc(100vw - 32px)' : '420px',
-            maxWidth: isExpanded ? '900px' : '92vw',
-            height: isExpanded ? 'calc(100vh - 32px)' : '600px',
-            maxHeight: '92vh',
+            width: isExpanded ? 'calc(100vw - 32px)' : '440px',
+            maxWidth: isExpanded ? '920px' : '94vw',
+            height: isExpanded ? 'calc(100vh - 32px)' : '620px',
+            maxHeight: '94vh',
             zIndex: 9999,
             display: 'flex',
             flexDirection: 'column',
-            background: 'rgba(9, 13, 22, 0.96)',
-            border: '1px solid rgba(255, 255, 255, 0.14)',
+            background: 'rgba(9, 13, 22, 0.97)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: '20px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(15, 76, 255, 0.25)',
-            backdropFilter: 'blur(24px)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 45px rgba(15, 76, 255, 0.3)',
+            backdropFilter: 'blur(28px)',
             overflow: 'hidden',
             transition: 'width 0.2s ease, height 0.2s ease',
           }}
@@ -206,82 +328,116 @@ export default function OrdisFloatingChat() {
           {/* Header */}
           <div
             style={{
-              padding: '14px 18px',
-              background: 'rgba(15, 23, 42, 0.8)',
+              padding: '12px 16px',
+              background: 'rgba(15, 23, 42, 0.9)',
               borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '12px',
+              gap: '10px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div
                 style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
                   background: 'linear-gradient(135deg, #0f4cff 0%, #38bdf8 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '15px',
+                  fontSize: '16px',
                   fontWeight: 'bold',
                   color: '#fff',
-                  boxShadow: '0 0 12px rgba(15, 76, 255, 0.4)',
+                  boxShadow: '0 0 14px rgba(15, 76, 255, 0.5)',
                 }}
               >
                 ⚡
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontWeight: 700, fontSize: '14px', color: '#fff' }}>Ordis Copilot</span>
+                  <span style={{ fontWeight: 800, fontSize: '14px', color: '#fff' }}>Ordis AI</span>
+                  {/* Engine Model Badge */}
                   <span
                     style={{
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
                       fontSize: '10px',
-                      color: '#10b981',
-                      fontWeight: 600,
+                      padding: '2px 7px',
+                      borderRadius: '9999px',
+                      background: aiEngineStatus === 'gemini' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.12)',
+                      border: `1px solid ${aiEngineStatus === 'gemini' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(56, 189, 248, 0.3)'}`,
+                      color: aiEngineStatus === 'gemini' ? '#34d399' : '#38bdf8',
+                      fontWeight: 700,
                     }}
                   >
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
-                    Live
+                    <span
+                      style={{
+                        width: '5px',
+                        height: '5px',
+                        borderRadius: '50%',
+                        background: aiEngineStatus === 'gemini' ? '#10b981' : '#38bdf8',
+                        boxShadow: `0 0 6px ${aiEngineStatus === 'gemini' ? '#10b981' : '#38bdf8'}`,
+                      }}
+                    />
+                    {aiEngineStatus === 'gemini' ? modelDisplayName : 'Local Engine'}
                   </span>
                 </div>
                 <div style={{ fontSize: '11px', color: '#9ca3af' }}>
-                  {activeWorkspace.name} • Connected
+                  {activeWorkspace.name} • Full Workspace Control
                 </div>
               </div>
             </div>
 
             {/* Header Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              {/* AI Engine Settings Gear */}
+              <button
+                type="button"
+                onClick={() => setSettingsOpen((prev) => !prev)}
+                title="AI Settings (API Key & Model)"
+                style={{
+                  padding: '6px 8px',
+                  borderRadius: '7px',
+                  background: settingsOpen ? 'rgba(15, 76, 255, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+                  border: `1px solid ${settingsOpen ? '#38bdf8' : 'rgba(255, 255, 255, 0.12)'}`,
+                  color: settingsOpen ? '#38bdf8' : '#9ca3af',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontWeight: 600,
+                }}
+              >
+                <span>⚙️</span>
+                <span style={{ fontSize: '10px' }}>AI</span>
+              </button>
+
               {/* Plan Switcher Badge */}
               <button
                 type="button"
                 onClick={toggleOrdisPlan}
-                title="Click to toggle between Basic Chatbot and Pro Autonomous ($1B Tier)"
+                title="Toggle Plan: Basic Chatbot vs Pro Autonomous ($1B)"
                 style={{
-                  padding: '4px 10px',
+                  padding: '4px 8px',
                   borderRadius: '9999px',
                   background: ordisPlan === 'paid' ? 'linear-gradient(135deg, #0f4cff, #8b5cf6)' : 'rgba(255, 255, 255, 0.08)',
                   border: `1px solid ${ordisPlan === 'paid' ? '#60a5fa' : 'rgba(255, 255, 255, 0.2)'}`,
                   color: '#ffffff',
                   cursor: 'pointer',
-                  fontSize: '10px',
+                  fontSize: '9.5px',
                   fontWeight: 900,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '5px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  boxShadow: ordisPlan === 'paid' ? '0 0 12px rgba(15, 76, 255, 0.5)' : 'none',
-                  transition: 'all 0.2s ease',
+                  gap: '4px',
+                  letterSpacing: '0.03em',
+                  boxShadow: ordisPlan === 'paid' ? '0 0 10px rgba(15, 76, 255, 0.5)' : 'none',
                 }}
               >
-                <span>{ordisPlan === 'paid' ? '🚀 PRO ($1B)' : '⚡ BASIC'}</span>
+                <span>{ordisPlan === 'paid' ? '🚀 PRO' : '⚡ BASIC'}</span>
               </button>
 
               {/* Voice Mode Toggle */}
@@ -292,7 +448,7 @@ export default function OrdisFloatingChat() {
                 style={{
                   padding: '6px',
                   borderRadius: '6px',
-                  background: voiceMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.06)',
+                  background: voiceMode ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 255, 255, 0.06)',
                   border: `1px solid ${voiceMode ? '#ef4444' : 'rgba(255, 255, 255, 0.1)'}`,
                   color: voiceMode ? '#f87171' : '#9ca3af',
                   cursor: 'pointer',
@@ -368,6 +524,145 @@ export default function OrdisFloatingChat() {
             </div>
           </div>
 
+          {/* AI Settings Drawer (Dropdown) */}
+          {settingsOpen && (
+            <div
+              style={{
+                padding: '14px 18px',
+                background: 'rgba(15, 23, 42, 0.95)',
+                borderBottom: '1px solid rgba(56, 189, 248, 0.3)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                animation: 'fadeIn 0.15s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase' }}>
+                  ⚡ Google Gemini Chatbot Configuration
+                </span>
+                <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+                  {geminiApiKey ? 'Custom Key Set ✓' : 'Using Default/Offline Engine'}
+                </span>
+              </div>
+
+              {/* API Key Input */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#d1d5db' }}>
+                  Gemini API Key:
+                </label>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <input
+                    type={showApiKey ? 'text' : 'password'}
+                    placeholder="AIzaSy... (Leave empty for default/offline engine)"
+                    value={apiKeyInput}
+                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '7px 10px',
+                      fontSize: '11.5px',
+                      background: 'rgba(0, 0, 0, 0.6)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '6px',
+                      color: '#fff',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey((prev) => !prev)}
+                    title={showApiKey ? 'Hide Key' : 'Show Key'}
+                    style={{
+                      padding: '6px 10px',
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '6px',
+                      color: '#d1d5db',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                    }}
+                  >
+                    {showApiKey ? '🙈' : '👁️'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveApiKey}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#0f4cff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: '#fff',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                  <span style={{ fontSize: '10px', color: '#9ca3af' }}>
+                    Don't have a key? Get one free at{' '}
+                    <a
+                      href="https://aistudio.google.com/apikey"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#38bdf8', textDecoration: 'underline' }}
+                    >
+                      aistudio.google.com
+                    </a>
+                  </span>
+                  {geminiApiKey && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGeminiApiKey('');
+                        setApiKeyInput('');
+                        showToast('Reset to default offline engine');
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#f87171',
+                        fontSize: '10px',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Clear Key
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Model Picker */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#d1d5db', whiteSpace: 'nowrap' }}>
+                  Gemini Model:
+                </label>
+                <select
+                  value={ordisModel}
+                  onChange={(e) => setOrdisModel(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '6px 10px',
+                    fontSize: '11.5px',
+                    background: 'rgba(0, 0, 0, 0.6)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '6px',
+                    color: '#fff',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fastest & Recommended for Tools)</option>
+                  <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Reasoning & Complex Planning)</option>
+                  <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen Multimodal)</option>
+                </select>
+              </div>
+            </div>
+          )}
+
           {/* Workspace Realtime Snapshot Bar */}
           <div
             style={{
@@ -386,7 +681,7 @@ export default function OrdisFloatingChat() {
             <span>📋 Tasks: <strong style={{ color: '#fff' }}>{activeTaskCount}</strong></span>
             <span>👥 Team: <strong style={{ color: '#fff' }}>{onlineMemberCount} online</strong></span>
             <span>📅 Syncs: <strong style={{ color: '#fff' }}>{meetings.length}</strong></span>
-            <span>🔒 Plan: <strong style={{ color: '#38bdf8' }}>Enterprise Pro</strong></span>
+            <span>⚡ Mode: <strong style={{ color: '#38bdf8' }}>{aiEngineStatus === 'gemini' ? 'Gemini 2.5 AI' : 'Local Engine'}</strong></span>
           </div>
 
           {/* Voice Mode Banner (if active) */}
@@ -394,8 +689,8 @@ export default function OrdisFloatingChat() {
             <div
               style={{
                 padding: '10px 16px',
-                background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 76, 255, 0.15) 100%)',
-                borderBottom: '1px solid rgba(239, 68, 68, 0.3)',
+                background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(15, 76, 255, 0.15) 100%)',
+                borderBottom: '1px solid rgba(239, 68, 68, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -408,17 +703,17 @@ export default function OrdisFloatingChat() {
                   <span style={{ width: '3px', height: '20px', background: '#ef4444', borderRadius: '2px', animation: 'pulse 0.7s infinite alternate' }} />
                   <span style={{ width: '3px', height: '10px', background: '#ef4444', borderRadius: '2px', animation: 'pulse 1.2s infinite alternate' }} />
                 </div>
-                <span style={{ fontSize: '11px', color: '#fca5a5', fontWeight: 500 }}>
-                  {isListening ? 'Listening for voice prompt...' : 'Voice mode active'}
+                <span style={{ fontSize: '11px', color: '#fca5a5', fontWeight: 600 }}>
+                  {isListening ? 'Listening to voice prompt... speak now' : 'Voice mode ready'}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => handleSend('Show upcoming deadlines and team bandwidth')}
                 style={{
-                  padding: '3px 8px',
+                  padding: '4px 10px',
                   fontSize: '10px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   background: '#ef4444',
                   color: '#fff',
                   border: 'none',
@@ -426,7 +721,7 @@ export default function OrdisFloatingChat() {
                   cursor: 'pointer',
                 }}
               >
-                Simulate Voice Input
+                Simulate Voice Query
               </button>
             </div>
           )}
@@ -457,12 +752,13 @@ export default function OrdisFloatingChat() {
                       background: 'rgba(255, 255, 255, 0.05)',
                       borderRadius: '12px',
                       width: 'fit-content',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(56, 189, 248, 0.3)',
+                      boxShadow: '0 0 15px rgba(15, 76, 255, 0.2)',
                     }}
                   >
-                    <span style={{ fontSize: '12px', color: '#38bdf8' }}>⚡</span>
-                    <span style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
-                      Ordis is operating workspace...
+                    <span style={{ fontSize: '13px', color: '#38bdf8' }}>⚡</span>
+                    <span style={{ fontSize: '12px', color: '#93c5fd', fontStyle: 'italic' }}>
+                      {aiEngineStatus === 'gemini' ? 'Ordis (Gemini) is thinking & operating workspace...' : 'Ordis is operating workspace...'}
                     </span>
                   </div>
                 );
@@ -487,11 +783,11 @@ export default function OrdisFloatingChat() {
                       background: isAi
                         ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.03) 100%)'
                         : 'linear-gradient(135deg, #0f4cff 0%, #2563eb 100%)',
-                      border: `1px solid ${isAi ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 76, 255, 0.4)'}`,
+                      border: `1px solid ${isAi ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 76, 255, 0.5)'}`,
                       color: '#f9fafb',
                       fontSize: '12.5px',
                       lineHeight: '1.55',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
                     }}
                   >
                     {isAi && (
@@ -500,18 +796,56 @@ export default function OrdisFloatingChat() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          marginBottom: '6px',
-                          paddingBottom: '4px',
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                          marginBottom: '8px',
+                          paddingBottom: '5px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <span style={{ fontSize: '11px' }}>⚡</span>
-                          <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#38bdf8' }}>Ordis Copilot</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '12px' }}>⚡</span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8' }}>Ordis Copilot</span>
+                          <span style={{ fontSize: '9.5px', color: '#9ca3af', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)' }}>
+                            {aiEngineStatus === 'gemini' ? 'Gemini 2.5' : 'Local'}
+                          </span>
                         </div>
-                        {msg.time && (
-                          <span style={{ fontSize: '10px', color: '#6b7280' }}>{msg.time}</span>
-                        )}
+                        
+                        {/* Audio & Copy Controls */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleSpeak(msg.text || '', idx)}
+                            title={speakingIdx === idx ? 'Stop Speaking' : 'Read Aloud (TTS)'}
+                            style={{
+                              background: speakingIdx === idx ? 'rgba(56, 189, 248, 0.3)' : 'transparent',
+                              border: 'none',
+                              color: speakingIdx === idx ? '#38bdf8' : '#9ca3af',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              padding: '2px 4px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {speakingIdx === idx ? '⏹️' : '🔊'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(msg.text || '', idx)}
+                            title="Copy text"
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: copiedIdx === idx ? '#34d399' : '#9ca3af',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              padding: '2px 4px',
+                            }}
+                          >
+                            {copiedIdx === idx ? '✓' : '📋'}
+                          </button>
+                          {msg.time && (
+                            <span style={{ fontSize: '10px', color: '#6b7280' }}>{msg.time}</span>
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -542,21 +876,21 @@ export default function OrdisFloatingChat() {
                           style={{
                             padding: '4px 10px',
                             fontSize: '11px',
-                            fontWeight: 500,
+                            fontWeight: 600,
                             borderRadius: '9999px',
-                            background: 'rgba(15, 76, 255, 0.12)',
+                            background: 'rgba(15, 76, 255, 0.14)',
                             color: '#93c5fd',
-                            border: '1px solid rgba(15, 76, 255, 0.28)',
+                            border: '1px solid rgba(15, 76, 255, 0.35)',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(15, 76, 255, 0.25)';
+                            e.currentTarget.style.background = 'rgba(15, 76, 255, 0.3)';
                             e.currentTarget.style.borderColor = '#38bdf8';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(15, 76, 255, 0.12)';
-                            e.currentTarget.style.borderColor = 'rgba(15, 76, 255, 0.28)';
+                            e.currentTarget.style.background = 'rgba(15, 76, 255, 0.14)';
+                            e.currentTarget.style.borderColor = 'rgba(15, 76, 255, 0.35)';
                           }}
                         >
                           {chip} ➔
@@ -596,17 +930,17 @@ export default function OrdisFloatingChat() {
                 style={{
                   padding: '4px 10px',
                   fontSize: '10.5px',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   borderRadius: '6px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  color: '#d1d5db',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  color: '#e5e7eb',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
                   cursor: 'pointer',
                   flexShrink: 0,
                   transition: 'background 0.15s ease',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.14)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)')}
               >
                 {q.label}
               </button>
@@ -617,7 +951,7 @@ export default function OrdisFloatingChat() {
           <div
             style={{
               padding: '12px 14px',
-              background: 'rgba(15, 23, 42, 0.9)',
+              background: 'rgba(15, 23, 42, 0.95)',
               borderTop: '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               alignItems: 'center',
@@ -630,28 +964,28 @@ export default function OrdisFloatingChat() {
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Ordis anything (e.g., 'Create task', 'Schedule sync')..."
+              placeholder="Ask Ordis anything, create tasks, syncs, CRM deals..."
               style={{
                 flex: 1,
-                padding: '9px 12px',
+                padding: '10px 14px',
                 fontSize: '12.5px',
-                background: 'rgba(0, 0, 0, 0.5)',
-                border: '1px solid rgba(255, 255, 255, 0.14)',
+                background: 'rgba(0, 0, 0, 0.55)',
+                border: '1px solid rgba(255, 255, 255, 0.16)',
                 borderRadius: '8px',
                 color: '#ffffff',
                 outline: 'none',
               }}
               onFocus={(e) => (e.currentTarget.style.borderColor = '#0f4cff')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.14)')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)')}
             />
 
             {/* Mic button */}
             <button
               type="button"
               onClick={toggleVoiceMode}
-              title="Toggle Voice"
+              title={voiceMode ? 'Voice Mode Active' : 'Start Voice Input'}
               style={{
-                padding: '8px 10px',
+                padding: '9px 11px',
                 background: voiceMode ? '#ef4444' : 'rgba(255, 255, 255, 0.08)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 borderRadius: '8px',
@@ -669,12 +1003,12 @@ export default function OrdisFloatingChat() {
               onClick={() => handleSend()}
               disabled={!inputVal.trim()}
               style={{
-                padding: '8px 14px',
+                padding: '9px 16px',
                 background: inputVal.trim() ? '#0f4cff' : 'rgba(255, 255, 255, 0.1)',
                 border: 'none',
                 borderRadius: '8px',
                 color: '#ffffff',
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: '12.5px',
                 cursor: inputVal.trim() ? 'pointer' : 'default',
                 transition: 'background 0.15s ease',

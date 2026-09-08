@@ -220,6 +220,13 @@ interface DashboardContextType {
   dynamicFeatures: DynamicFeature[];
   setDynamicFeatures: React.Dispatch<React.SetStateAction<DynamicFeature[]>>;
 
+  // Ordis AI Engine State & Settings
+  geminiApiKey: string;
+  setGeminiApiKey: (key: string) => void;
+  ordisModel: string;
+  setOrdisModel: (model: string) => void;
+  aiEngineStatus: 'gemini' | 'local_fallback';
+
   // Enterprise Seat & Plan Allocation
   premiumSeatLimit: number;
   setPremiumSeatLimit: (limit: number) => void;
@@ -309,6 +316,37 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return nextPlan;
     });
   };
+
+  // Ordis AI Engine State & Persistent Settings
+  const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cursis_gemini_api_key') || '';
+    }
+    return '';
+  });
+
+  const setGeminiApiKey = (key: string) => {
+    setGeminiApiKeyState(key);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cursis_gemini_api_key', key);
+    }
+  };
+
+  const [ordisModel, setOrdisModelState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cursis_ordis_model') || 'gemini-2.5-flash';
+    }
+    return 'gemini-2.5-flash';
+  });
+
+  const setOrdisModel = (m: string) => {
+    setOrdisModelState(m);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cursis_ordis_model', m);
+    }
+  };
+
+  const [aiEngineStatus, setAiEngineStatus] = useState<'gemini' | 'local_fallback'>('local_fallback');
 
   const [selectedMeetingNotes, setSelectedMeetingNotes] = useState<Meeting | null>(null);
   const [genericModal, setGenericModal] = useState<GenericModalState | null>(null);
@@ -1441,8 +1479,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     showToast('All notifications marked as read ✓');
   };
 
-  // ---- Ordis Natural Language Commander ----
-  const sendOrdisMessage = (text: string) => {
+  // ---- Ordis Natural Language Commander & Conversational AI Chatbot ----
+  const sendOrdisMessage = async (text: string) => {
     if (!text.trim()) return;
     const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg: ChatMessage = { role: 'user', text, time: nowStr };
@@ -1473,9 +1511,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       ordisSettings,
     };
 
-    setTimeout(() => {
+    const applyResult = (result: any, source: 'gemini' | 'local_fallback') => {
       setChatHistory((prev) => prev.filter((m) => !m.typing));
-      const result = executeOrdisCommand(text, ordisState);
+      setAiEngineStatus(source);
 
       // In-app navigation if requested
       if (result.navigateToPage) {
@@ -1581,26 +1619,37 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           suggestedFollowUps: result.suggestedFollowUps,
         },
       ]);
+    };
 
-      // Asynchronously log execution to MongoDB audit trail endpoint
-      try {
-        fetch('/api/ordis/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            command: text,
-            workspaceId: activeWorkspaceId,
-            userId: user.id,
-            userName: user.name,
-            context: {
-              taskCount: tasks.length,
-              projectCount: projects.length,
-              meetingCount: meetings.length,
-            },
-          }),
-        }).catch(() => {});
-      } catch {}
-    }, 400);
+    try {
+      const response = await fetch('/api/ordis/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: chatHistory.slice(-6).map((m) => ({ role: m.role, text: m.text })),
+          state: ordisState,
+          apiKey: geminiApiKey,
+          model: ordisModel,
+        }),
+      });
+
+      if (response.ok) {
+        const payload = await response.json();
+        if (payload.success && payload.data) {
+          applyResult(payload.data, payload.source || 'gemini');
+          return;
+        }
+      }
+
+      // If API route failed or returned error, failover smoothly to local engine
+      const localResult = executeOrdisCommand(text, ordisState);
+      applyResult(localResult, 'local_fallback');
+    } catch (err) {
+      console.warn('Live AI chat failed, running local Ordis engine:', err);
+      const localResult = executeOrdisCommand(text, ordisState);
+      applyResult(localResult, 'local_fallback');
+    }
   };
 
   // Lookups
@@ -1909,6 +1958,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         ordisPlan,
         setOrdisPlan,
         toggleOrdisPlan,
+        geminiApiKey,
+        setGeminiApiKey,
+        ordisModel,
+        setOrdisModel,
+        aiEngineStatus,
         dynamicFeatures,
         setDynamicFeatures,
         premiumSeatLimit,
