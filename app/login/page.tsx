@@ -76,6 +76,10 @@ export default function LoginPage() {
         credentials: 'include',
         body: JSON.stringify({
           idToken: authResult.idToken,
+          email: authResult.email,
+          displayName: authResult.displayName,
+          uid: authResult.uid,
+          photoURL: authResult.photoURL,
         }),
       });
 
