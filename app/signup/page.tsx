@@ -95,37 +95,7 @@ export default function SignupPage() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    setErrorMsg('');
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: 'demo@cursis.ai', password: 'demo-workspace-access' }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.token) {
-        throw new Error(data.error || 'Failed to authenticate demo workspace.');
-      }
-
-      try {
-        localStorage.setItem('cursis_token', data.token);
-        document.cookie = `cursis_session=${encodeURIComponent(data.token)}; path=/; max-age=604800; SameSite=Lax`;
-      } catch {}
-
-      await new Promise((r) => setTimeout(r, 120));
-      window.location.href = getRedirectDestination();
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'Demo access failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
- const handleEmailSignup = async (e: React.FormEvent) => {
+  const handleEmailSignup = async (e: React.FormEvent) => {
  e.preventDefault();
  const cleanName = name.trim();
  const cleanEmail = email.trim();
@@ -292,75 +262,34 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* Instant 1-Click Demo Access Button */}
+        {/* Google Enterprise Single Sign-On */}
         <button
           type="button"
-          onClick={handleDemoLogin}
-          disabled={loading || googleLoading}
           style={{
             width: '100%',
             height: '46px',
-            marginBottom: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            fontWeight: 800,
-            fontSize: '13px',
-            color: '#0A0A0A',
-            background: '#FFF3EB',
-            border: '2.5px solid #0A0A0A',
-            borderRadius: '9999px',
-            boxShadow: '3.5px 3.5px 0 0 #0A0A0A',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translate(-2px, -2px)';
-            e.currentTarget.style.boxShadow = '5.5px 5.5px 0 0 #0A0A0A';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translate(0, 0)';
-            e.currentTarget.style.boxShadow = '3.5px 3.5px 0 0 #0A0A0A';
-          }}
-        >
-          <span
-            style={{
-              background: '#FF5500',
-              color: '#ffffff',
-              padding: '2px 8px',
-              borderRadius: '999px',
-              fontSize: '10px',
-              fontWeight: 900,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-            }}
-          >
-            1-Click
-          </span>
-          <span>⚡ Instant Demo Workspace Access</span>
-        </button>
-
-        {/* Google Enterprise Sign-Up */}
-        <button
-          type="button"
-          style={{
-            width: '100%',
-            height: '44px',
-            marginBottom: '16px',
+            marginBottom: '18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '12px',
-            fontWeight: 600,
+            fontWeight: 700,
             fontSize: '13px',
-            color: '#1A1612',
+            color: '#0A0A0A',
             background: '#ffffff',
-            border: '1.5px solid #E8E4DE',
+            border: '2px solid #0A0A0A',
             borderRadius: '9999px',
-            boxShadow: '0 1px 3px rgba(26, 22, 18, 0.04)',
+            boxShadow: '3px 3px 0 0 #0A0A0A',
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translate(-1.5px, -1.5px)';
+            e.currentTarget.style.boxShadow = '4.5px 4.5px 0 0 #0A0A0A';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translate(0, 0)';
+            e.currentTarget.style.boxShadow = '3px 3px 0 0 #0A0A0A';
           }}
           onClick={handleGoogleSignup}
           disabled={googleLoading || loading}
