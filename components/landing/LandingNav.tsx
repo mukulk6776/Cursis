@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { signOutUser } from '@/lib/auth/firebase';
 
@@ -9,19 +9,27 @@ export default function LandingNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          setScrolled(window.scrollY > 40);
+          setScrolled(window.scrollY > 30);
           ticking = false;
         });
         ticking = true;
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
     // Check if user is currently authenticated
     fetch('/api/auth/session', { credentials: 'include' })
@@ -38,15 +46,34 @@ export default function LandingNav() {
       })
       .catch(() => {});
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mobileOpen && navRef.current && !navRef.current.contains(e.target as Node)) {
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [mobileOpen]);
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
     setMobileOpen(false);
     const element = document.querySelector(targetId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const navOffset = 90;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
     }
   };
 
@@ -55,9 +82,9 @@ export default function LandingNav() {
   };
 
   return (
-    <nav className={`lp-nav ${scrolled ? 'lp-nav-scrolled' : ''}`} id="lp-nav">
+    <nav ref={navRef} className={`lp-nav ${scrolled ? 'lp-nav-scrolled' : ''}`} id="lp-nav">
       <div className="lp-nav-container">
-        <Link href="/" className="lp-nav-logo">
+        <Link href="/" className="lp-nav-logo" onClick={() => setMobileOpen(false)}>
           <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32">
             <path
               d="M 545 240 A 282 282 0 1 0 782 566"
@@ -79,6 +106,7 @@ export default function LandingNav() {
           <span className="lp-nav-logo-text">Cursis</span>
         </Link>
 
+        {/* Links drawer: on desktop it stays in the horizontal capsule; on mobile it opens as a popup */}
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           <a href="#features" onClick={(e) => handleAnchorClick(e, '#features')} className="lp-nav-link">
             Platform
@@ -99,6 +127,7 @@ export default function LandingNav() {
             Enterprise
           </a>
 
+          {/* Mobile drawer actions: strictly hidden on desktop via CSS */}
           <div className="lp-nav-mobile-actions">
             {isAuthenticated ? (
               <>
@@ -130,6 +159,7 @@ export default function LandingNav() {
           </div>
         </div>
 
+        {/* Desktop actions: always visible on desktop, hidden on mobile */}
         <div className="lp-nav-actions">
           {isAuthenticated ? (
             <>
@@ -161,11 +191,13 @@ export default function LandingNav() {
             </>
           )}
 
+          {/* Hamburger toggle button: strictly hidden on desktop, visible on mobile */}
           <button
             className="lp-nav-mobile-toggle"
             id="lp-mobile-toggle"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle navigation"
+            type="button"
           >
             {mobileOpen ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
