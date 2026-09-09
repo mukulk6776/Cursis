@@ -101,22 +101,329 @@ export interface OrdisExecutionResult {
  * - Rich interactive Action Cards with 1-click execution
  * - Generative templates (User stories, technical RFCs, client emails, meeting agendas, architecture comparisons)
  */
+
+/**
+ * Free Plan Ordis Handler:
+ * Provides rich text reports, current status, guidance, and answers like ChatGPT.
+ * Does not execute mutations or display action card buttons.
+ */
+function handleFreePlanOrdis(
+ text: string,
+ lower: string,
+ state: OrdisContextState
+): OrdisExecutionResult | null {
+ const { employees, projects, tasks, meetings } = state;
+ const activeTasks = tasks.filter((t) => t.status !== 'completed');
+ const completedTasks = tasks.filter((t) => t.status === 'completed');
+ const overdueTasks = activeTasks.filter((t) => isOverdue(t.deadline));
+ const urgentTasks = activeTasks.filter((t) => t.priority === 'urgent' || t.priority === 'high');
+ const onlineMembers = employees.filter((e) => e.status === 'online');
+ const totalTasks = tasks.length;
+ const velocityPercent = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 100;
+ const upcomingMeetings = meetings.filter((m) => m.status !== 'completed');
+
+ const isReportOrStatus =
+  lower.includes('report') ||
+  lower.includes('status') ||
+  lower.includes('summary') ||
+  lower.includes('summarize') ||
+  lower.includes('overview') ||
+  lower.includes('how are we doing') ||
+  lower.includes('what is happening') ||
+  lower.includes('briefing') ||
+  lower.includes('health') ||
+  lower.includes('deadlines') ||
+  lower.includes('progress') ||
+  lower.includes('working on') ||
+  lower.includes('who is online') ||
+  lower.includes('kya chal raha') ||
+  lower.includes('batao') ||
+  lower.includes('workspace status') ||
+  lower.includes('sprint status');
+
+ if (isReportOrStatus) {
+  let md = `### 📊 Cursis Workspace Executive Report & Status\n\n`;
+  md += `**Executive Overview:**\n`;
+  md += `Your workspace currently has **${activeTasks.length} active deliverables** with a **${velocityPercent}% completion rate**. Team presence is strong with **${onlineMembers.length} of ${employees.length} collaborators active**.\n\n`;
+
+  md += `#### 🚀 Sprint Health & Deliverables\n`;
+  md += `• **Active Sprint Tasks**: ${activeTasks.length} in progress\n`;
+  md += `• **Completed**: ${completedTasks.length} shipped\n`;
+  if (overdueTasks.length > 0) {
+   md += `• **⚠️ Overdue Items (${overdueTasks.length})**:\n`;
+   overdueTasks.slice(0, 3).forEach((t) => {
+    const emp = employees.find((e) => e.id === t.assignee);
+    md += `  - **${t.name}** — Assigned to ${emp?.name || 'Unassigned'} *(Due: ${formatDate(t.deadline)})*\n`;
+   });
+  } else {
+   md += `• **Overdue Items**: ✅ None! All deliverables are on track.\n`;
+  }
+  md += `\n`;
+
+  md += `#### 👥 Team Workload & Presence\n`;
+  md += `• **Active Members**: ${employees.map((e) => `${e.name} (${e.role}) [${e.status}]`).join(', ')}\n`;
+  md += `• **Projects in Flight**: ${projects.map((p) => `${p.name} (${p.progress || 0}% done)`).join(', ')}\n\n`;
+
+  md += `#### 📅 Scheduled Syncs Today\n`;
+  if (upcomingMeetings.length > 0) {
+   upcomingMeetings.slice(0, 2).forEach((m) => {
+    md += `• **${m.name || m.title}** at **${m.time}** (${m.duration} mins) · ${m.platform}\n`;
+   });
+  } else {
+   md += `• *No meetings scheduled today — great uninterrupted focus block!*\n`;
+  }
+  md += `\n`;
+
+  md += `#### 💡 Strategic Recommendations\n`;
+  if (overdueTasks.length > 0) {
+   md += `Clear the ${overdueTasks.length} overdue item(s) first before taking on new sprint scope.`;
+  } else if (urgentTasks.length > 0) {
+   md += `Focus on top sprint priority: **${urgentTasks[0].name}** to maintain sprint velocity.`;
+  } else {
+   md += `Sprint cadence is healthy. Good time to review upcoming roadmap initiatives or groom the backlog.`;
+  }
+
+  return {
+   responseText: md,
+   suggestedFollowUps: [
+    'What is my team working on?',
+    'Show upcoming deadlines',
+    'How can we improve sprint velocity?',
+   ],
+  };
+ }
+
+ const isActionRequest =
+  lower.includes('add a team member') ||
+  lower.includes('add team member') ||
+  lower.includes('add member') ||
+  lower.includes('invite member') ||
+  lower.includes('create task') ||
+  lower.includes('add task') ||
+  lower.includes('new task') ||
+  lower.includes('schedule meeting') ||
+  lower.includes('book meeting') ||
+  lower.includes('create project') ||
+  lower.includes('create deal') ||
+  lower.includes('build feature') ||
+  lower.includes('make feature') ||
+  lower.includes('delete') ||
+  lower.includes('assign');
+
+ if (isActionRequest) {
+  let actionSummary = 'Workspace Mutation';
+  let roleOrAssignee = 'Team Contributor';
+  let draftTitle = text
+   .replace(/add a team member and give him|add team member|create task|schedule meeting|add task/gi, '')
+   .trim() || 'New Workspace Deliverable';
+
+  if (lower.includes('member')) {
+   actionSummary = 'Team Member Onboarding & Assignment';
+   roleOrAssignee = lower.includes('designer')
+    ? 'Product Designer'
+    : lower.includes('editor')
+    ? 'Video Editor'
+    : 'Senior Software Engineer';
+  } else if (lower.includes('task')) {
+   actionSummary = 'Deliverable & Sprint Task';
+  } else if (lower.includes('meeting')) {
+   actionSummary = 'Calendar Meeting Sync';
+  }
+
+  const planText = `### 📋 Proposed Action Plan & Specification Draft
+
+I've structured the plan for your request:
+
+• **Action Item**: ${actionSummary}
+• **Details / Target**: "${draftTitle}"
+• **Recommended Assignment**: ${roleOrAssignee}
+• **Suggested Execution Steps**:
+  1. Define scope, deliverables, and acceptance criteria.
+  2. Assign to relevant sprint project board.
+  3. Notify relevant stakeholders and establish milestone timeline.
+
+---
+*💡 **Free Plan Note**: On the Free Plan, I operate in conversational text & reporting mode (like ChatGPT). To execute this live into your workspace with 1-click (automatically adding team members and dispatching tasks to your Kanban board), you can switch to **Ordis Pro** anytime using the toggle button in your dashboard.* `;
+
+  return {
+   responseText: planText,
+   suggestedFollowUps: [
+    'Generate Workspace Status Report',
+    'What is my team working on?',
+    'How to structure sprint deliverables?',
+   ],
+  };
+ }
+
+ return null;
+}
+
 export function executeOrdisCommand(
  text: string,
  state: OrdisContextState
 ): OrdisExecutionResult {
  const lower = text.toLowerCase().trim();
+ const isPaid = state.plan === 'paid';
  const {
- user,
- employees,
- projects,
- tasks,
- meetings,
- documents,
- automations,
- crm,
- activeWorkspace,
+  user,
+  employees,
+  projects,
+  tasks,
+  meetings,
+  documents,
+  automations,
+  crm,
+  activeWorkspace,
  } = state;
+
+ // FREE PLAN: Text-only, conversational mode (reports, status, advice like ChatGPT)
+ if (!isPaid) {
+  const freeResult = handleFreePlanOrdis(text, lower, state);
+  if (freeResult) return freeResult;
+ }
+
+ // =========================================================================
+ // 0. ORDIS PRO COMPOUND COMMANDS: ADD MEMBER + ASSIGN TASK
+ // =========================================================================
+ const isAddMember =
+  lower.includes('add a team member') ||
+  lower.includes('add team member') ||
+  lower.includes('add member') ||
+  lower.includes('invite team member') ||
+  lower.includes('invite a team member') ||
+  lower.includes('new member');
+
+ const hasTaskAssignment =
+  lower.includes('give him') ||
+  lower.includes('give her') ||
+  lower.includes('give them') ||
+  lower.includes('assign him') ||
+  lower.includes('assign her') ||
+  lower.includes('assign them') ||
+  lower.includes('and give') ||
+  lower.includes('and assign') ||
+  lower.includes('and create task') ||
+  lower.includes('give task') ||
+  lower.includes('assign task') ||
+  (lower.includes('task') && (lower.includes('give') || lower.includes('assign')));
+
+ if (isPaid && isAddMember && hasTaskAssignment) {
+  let memberName = 'Devon Vance';
+  let memberRole = 'Senior Software Engineer';
+  let dept = 'Engineering';
+
+  const nameMatch = text.match(/(?:member|named|invite)s+([A-Z][a-z]+(?:s+[A-Z][a-z]+)?)/);
+  if (nameMatch && !nameMatch[1].toLowerCase().includes('and') && !nameMatch[1].toLowerCase().includes('task')) {
+   memberName = nameMatch[1].trim();
+  }
+
+  if (lower.includes('designer') || lower.includes('design')) {
+   memberRole = 'Product Designer';
+   dept = 'Design';
+  } else if (lower.includes('video') || lower.includes('editor')) {
+   memberRole = 'Senior Video Editor';
+   dept = 'Creative';
+  } else if (lower.includes('marketing') || lower.includes('growth')) {
+   memberRole = 'Growth Marketing Lead';
+   dept = 'Marketing';
+  }
+
+  const memberEmail = `${memberName.toLowerCase().replace(/\s+/g, '.')}@cursis.io`;
+
+  let taskName = 'Assigned Sprint Deliverable';
+  const match = text.match(/(?:give him|give her|give them|assign him|assign her|assign them|and give him|and give her|and give them|and give|and assign|and create task|give task|assign task|task:)\s+(?:task\s+)?(.+)/i);
+  if (match && match[1]) {
+   taskName = match[1].replace(/^[ :,-]+|[ :,-]+$/g, '').trim();
+   if (!taskName) taskName = 'Assigned Sprint Task';
+   taskName = taskName.charAt(0).toUpperCase() + taskName.slice(1);
+  }
+
+  const newEmpId = 'emp_' + Date.now();
+  const newEmp: Employee = {
+   id: newEmpId,
+   name: memberName,
+   initials: memberName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase() || 'TM',
+   role: memberRole,
+   department: dept,
+   status: 'online',
+   color: '#FF5500',
+   tasks: 1,
+   projects: 1,
+   email: memberEmail,
+   joinedAt: 'Just now',
+  };
+
+  const newInv: Invitation = {
+   id: 'inv_' + Date.now(),
+   email: memberEmail,
+   name: memberName,
+   roleTitle: memberRole,
+   workspaceRole: 'Member',
+   department: dept,
+   team: null,
+   status: 'pending',
+   token: 'tok_' + Math.random().toString(36).substring(2, 9),
+   sentAt: new Date().toISOString(),
+   expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+   invitedBy: user.name,
+  };
+
+  const newTaskId = 't_ai_' + Date.now();
+  const newTask: Task = {
+   id: newTaskId,
+   name: taskName,
+   project: projects[0]?.id || 'p_core',
+   assignee: newEmpId,
+   assignees: [newEmpId],
+   priority: 'high',
+   status: 'todo',
+   deadline: 'Tomorrow, 5:00 PM',
+   subtasks: [
+    { id: 'st_1', name: 'Initial scope & architecture', done: false },
+    { id: 'st_2', name: 'Delivery & code review', done: false },
+   ],
+   tags: ['AI-Dispatched', dept],
+  };
+
+  return {
+   responseText: `🚀 **Autonomous Multi-Action Executed (Ordis Pro)**\n\n1. **Onboarded Team Member**:\n   • **Name**: **${newEmp.name}** (${newEmp.role})\n   • **Email**: \`${newEmp.email}\`\n   • **Department**: ${newEmp.department}\n\n2. **Created & Dispatched Task**:\n   • **Deliverable**: **${newTask.name}**\n   • **Assignee**: **${newEmp.name}**\n   • **Priority**: HIGH\n   • **Deadline**: ${newTask.deadline}\n\n*Both the member profile and the assigned task are now live in your workspace Team directory and Sprint Kanban board.* `,
+   toastMessage: `Added ${newEmp.name} and assigned task "${newTask.name}" 🚀`,
+   auditEntry: {
+    actor: user.name,
+    action: 'team.onboard_and_task_assign',
+    target: `${newEmp.name} -> ${newTask.name}`,
+    details: 'Autonomous multi-step dispatch via Ordis Pro',
+   },
+   stateMutations: {
+    createdEmployee: newEmp,
+    createdInvitation: newInv,
+    createdTask: newTask,
+   },
+   suggestedFollowUps: [
+    `View tasks assigned to ${newEmp.name}`,
+    'Open Team Directory',
+    'Schedule onboarding sync',
+   ],
+   actionCard: {
+    type: 'task',
+    title: newTask.name,
+    subtitle: `Assigned to ${newEmp.name} (${newEmp.role})`,
+    badge: 'DELIVERABLE ACTIVE',
+    badgeColor: '#FF5500',
+    primaryAction: {
+     label: 'View in Kanban',
+     actionType: 'navigate',
+     target: 'tasks',
+    },
+    secondaryAction: {
+     label: 'View Team Directory',
+     actionType: 'navigate',
+     target: 'team',
+    },
+   },
+  };
+ }
+
 
  // Helper for deal values sum
  const parseDealVal = (v: string | number) => {

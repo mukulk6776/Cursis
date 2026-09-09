@@ -181,7 +181,10 @@ export default function TrustAttraction() {
               className="tano-washi-tape"
               style={{
                 backgroundColor: card.tapeColor,
-                transform: `translateX(-50%) rotate(${card.tapeRotate}deg)`,
+                top: '-12px',
+                right: '28px',
+                left: 'auto',
+                transform: `rotate(${card.tapeRotate}deg)`,
               }}
               aria-hidden="true"
             />

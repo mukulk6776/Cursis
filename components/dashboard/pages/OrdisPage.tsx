@@ -120,7 +120,14 @@ export default function OrdisPage() {
  badge: 'Basic Guide',
  },
  {
- title: 'How does Creator Pipeline work?',
+ title: '📊 Workspace Status Report',
+   desc: 'Executive summary across all sprint deliverables',
+   prompt: 'Give me a workspace status report with active deliverables and team status',
+   icon: '',
+   badge: 'Report',
+  },
+  {
+   title: 'How does Creator Pipeline work?',
  desc: '5-stage production house workflow & roles',
  prompt: 'How does the Creator Content Pipeline work and what are the roles?',
  icon: '',
@@ -157,7 +164,14 @@ export default function OrdisPage() {
  ]
  : [
  {
- title: 'Create High-Priority Task',
+ title: '🚀 Add Member & Task',
+   desc: 'Autonomously onboards member and assigns deliverable',
+   prompt: 'Add a team member and give him xyz task',
+   icon: '',
+   badge: 'Compound Action',
+  },
+  {
+   title: 'Create High-Priority Task',
  desc: 'Creates task with priority, tags, and date',
  prompt: 'Create high-priority task: Deploy payment webhook integration with Stripe',
  icon: '',
