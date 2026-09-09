@@ -30,7 +30,7 @@ const MARQUEE_BRANDS = [
     name: 'Skin+Me',
     node: (
       <span style={{ fontWeight: 800, fontSize: '17px', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center' }}>
-        Skin<span style={{ color: '#FF7A66', fontWeight: 900, margin: '0 1px' }}>+</span>Me
+        Skin<span style={{ color: '#FF5500', fontWeight: 900, margin: '0 1px' }}>+</span>Me
       </span>
     ),
   },
