@@ -22,36 +22,23 @@ export default function RedeemCodeModal() {
 
  if (activeModal !== 'redeem-code-modal') return null;
 
- const sampleVouchers = [
- { code: 'CURSIS-PRO-2026', label: 'Pro Seat + Autonomous AI' },
- { code: 'ENTERPRISE-SCALE-4', label: '4 Pro Seats + Scale Automation' },
- { code: 'ORDIS-VIP-ACCESS', label: 'Executive VIP Multi-Agent' },
- { code: 'FEATURE-STUDIO-PRO', label: '3 Special Dynamic Features' },
- { code: 'SPECIAL-FOUNDER', label: 'Sovereign Founder VIP' },
- ];
+  const handleRedeem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
 
- const handleRedeem = (e: React.FormEvent) => {
- e.preventDefault();
- setErrorMsg('');
+    const trimmed = inputCode.trim().toUpperCase();
+    if (!trimmed) {
+      setErrorMsg('Please enter a valid voucher or license code.');
+      return;
+    }
 
- const trimmed = inputCode.trim().toUpperCase();
- if (!trimmed) {
- setErrorMsg('Please enter a valid voucher or license code.');
- return;
- }
-
- const res = redeemCode(trimmed);
- if (!res.success) {
- setErrorMsg(res.message);
- } else {
- setRedeemResult(res);
- }
- };
-
- const handleSelectSample = (code: string) => {
- setInputCode(code);
- setErrorMsg('');
- };
+    const res = await redeemCode(trimmed);
+    if (!res.success) {
+      setErrorMsg(res.message);
+    } else {
+      setRedeemResult(res);
+    }
+  };
 
  const handleClose = () => {
  setInputCode('');
@@ -255,67 +242,23 @@ export default function RedeemCodeModal() {
  />
  </div>
 
- {/* Sample Voucher Codes Quick Selector */}
- <div style={{ marginBottom: 'var(--sp-4)' }}>
- <div
- style={{
- fontSize: '11px',
- fontWeight: 700,
- color: 'var(--text-tertiary)',
- marginBottom: '8px',
- display: 'flex',
- justifyContent: 'space-between',
- }}
- >
- <span>QUICK-CLAIM SAMPLE VOUCHERS</span>
- <span style={{ fontSize: '10px', color: '#7c3aed' }}>Click to fill</span>
- </div>
-
- <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
- {sampleVouchers.map((v) => {
- const isRedeemed = redeemedCodes.includes(v.code);
- return (
- <button
- key={v.code}
- type="button"
- className="btn btn-sm"
- style={{
- fontSize: '10px',
- padding: '3px 8px',
- background: isRedeemed ? 'var(--c-surface)' : 'rgba(124, 58, 237, 0.08)',
- border: isRedeemed ? '1px solid var(--border-color)' : '1px solid rgba(124, 58, 237, 0.25)',
- color: isRedeemed ? 'var(--text-tertiary)' : '#7c3aed',
- fontWeight: 700,
- cursor: isRedeemed ? 'not-allowed' : 'pointer',
- textDecoration: isRedeemed ? 'line-through' : 'none',
- }}
- onClick={() => !isRedeemed && handleSelectSample(v.code)}
- title={isRedeemed ? 'Already redeemed' : v.label}
- >
- {v.code} {isRedeemed && ''}
- </button>
- );
- })}
- </div>
- </div>
-
- {/* What You Unlock Preview */}
- <div
- style={{
- background: 'var(--c-surface)',
- borderRadius: '8px',
- padding: 'var(--sp-3)',
- border: '1px solid var(--border-color)',
- marginBottom: 'var(--sp-5)',
- }}
- >
- <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
- ENTITLEMENT GUARANTEE
- </div>
- <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
- Redeeming an active key instantly upgrades your account to <strong>Autonomous Pro</strong>, syncs with your workspace seat allocation quota, and unlocks <strong>Ordis Full Power AI multi-agent orchestration</strong>.
- </div>
- </div>
+        {/* What You Unlock Preview */}
+        <div
+          style={{
+            background: 'var(--c-surface)',
+            borderRadius: '8px',
+            padding: 'var(--sp-3)',
+            border: '1px solid var(--border-color)',
+            marginBottom: 'var(--sp-5)',
+          }}
+        >
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+            🔒 SINGLE-USE ACTIVATION GUARANTEE
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
+            Each redeem code is strictly <strong>single-use</strong>. Once activated by a user, it is permanently locked and cannot be redeemed again by anyone. Redeeming upgrades your workspace to <strong>Autonomous Pro</strong> and activates <strong>Ordis Full Power AI multi-agent orchestration</strong>.
+          </div>
+        </div>
 
  {/* Action Buttons */}
  <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'flex-end' }}>

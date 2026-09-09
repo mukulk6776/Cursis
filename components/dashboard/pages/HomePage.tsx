@@ -20,7 +20,6 @@ export default function HomePage() {
     getEmployee,
     sendOrdisMessage,
     ordisPlan,
-    toggleOrdisPlan,
   } = useDashboard();
 
   const [aiInput, setAiInput] = useState('');
@@ -129,23 +128,24 @@ export default function HomePage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              type="button"
-              className="btn btn-sm"
-              onClick={toggleOrdisPlan}
-              title="Toggle between Free (text reports) and Pro (autonomous execution)"
-              style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                border: '1.5px solid #0A0A0A',
-                background: ordisPlan === 'paid' ? '#0A0A0A' : '#FFFFFF',
-                color: ordisPlan === 'paid' ? '#FFFFFF' : '#0A0A0A',
-                boxShadow: '2px 2px 0 0 #0A0A0A',
-                cursor: 'pointer',
-              }}
-            >
-              {ordisPlan === 'paid' ? 'Mode: Pro (Click for Free)' : 'Mode: Free (Click for Pro)'}
-            </button>
+            {ordisPlan !== 'paid' && (
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => openModal('redeem-code-modal')}
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  border: '1.5px solid #7c3aed',
+                  background: 'rgba(124, 58, 237, 0.08)',
+                  color: '#7c3aed',
+                  boxShadow: '2px 2px 0 0 #0A0A0A',
+                  cursor: 'pointer',
+                }}
+              >
+                Redeem Code
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-ghost btn-sm"

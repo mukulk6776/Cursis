@@ -177,7 +177,6 @@ export const ordisToolDeclarations: FunctionDeclaration[] = [
  'workspace',
  'automations',
  'documents',
- 'messages',
  'integrations',
  'settings',
  ],

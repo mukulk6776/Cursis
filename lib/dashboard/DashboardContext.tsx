@@ -235,7 +235,7 @@ interface DashboardContextType {
  seedEnterpriseDirectory: (targetCount?: number) => void;
  resetEnterpriseDirectory: () => void;
  redeemedCodes: string[];
- redeemCode: (code: string) => { success: boolean; message: string; perks?: string[] };
+ redeemCode: (code: string) => Promise<{ success: boolean; message: string; perks?: string[] }>;
 
  // Helper getters
  getEmployee: (id: string) => Employee | undefined;
@@ -260,8 +260,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  if (!path || path === '/dashboard' || path === '/dashboard/') return 'home';
  const segment = path.replace(/^\/dashboard\/?/, '').split('/')[0];
  const validPages: DashboardPageType[] = [
- 'home', 'ordis', 'tasks', 'projects', 'team', 'calendar',
- 'meetings', 'analytics', 'documents', 'messages', 'settings'
+      'home', 'ordis', 'tasks', 'projects', 'team', 'calendar',
+      'meetings', 'analytics', 'documents', 'settings'
  ];
  if (validPages.includes(segment as DashboardPageType)) {
  return segment as DashboardPageType;
@@ -309,13 +309,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  },
  ]);
 
- const toggleOrdisPlan = () => {
- setOrdisPlan((prev) => {
- const nextPlan: OrdisPlanType = prev === 'basic' ? 'paid' : 'basic';
- showToast(nextPlan === 'paid' ? 'Upgraded to Ordis Pro ($1B Tier Autonomous)' : 'Switched to Ordis Basic Chatbot (Free)');
- return nextPlan;
- });
- };
+  const toggleOrdisPlan = () => {
+    if (ordisPlan === 'basic') {
+      showToast('⚠️ Pro Plan requires an activation key. Click "Redeem Code" to activate.');
+      openModal('redeem-code-modal');
+      return;
+    }
+    setOrdisPlan((prev) => {
+      const nextPlan: OrdisPlanType = prev === 'basic' ? 'paid' : 'basic';
+      showToast(nextPlan === 'paid' ? 'Upgraded to Ordis Pro (Autonomous)' : 'Switched to Ordis Basic (Standard)');
+      return nextPlan;
+    });
+  };
 
  // Ordis AI Engine State & Persistent Settings
  const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => {
@@ -420,13 +425,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  const [redeemedCodes, setRedeemedCodes] = useState<string[]>([]);
 
- useEffect(() => {
- if (typeof window === 'undefined') return;
- try {
- const saved = localStorage.getItem('cursis_redeemed_codes');
- if (saved) setRedeemedCodes(JSON.parse(saved));
- } catch {}
- }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem('cursis_redeemed_codes');
+      if (saved) setRedeemedCodes(JSON.parse(saved));
+    } catch {}
+
+    fetch('/api/redeem')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.redeemedCodes)) {
+          setRedeemedCodes((prev) => Array.from(new Set([...prev, ...data.redeemedCodes])));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
  {
@@ -1214,19 +1228,44 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  showToast('Directory reset to workspace lead ');
  };
 
- const redeemCode = (rawCode: string): { success: boolean; message: string; perks?: string[] } => {
- const code = rawCode.trim().toUpperCase();
- if (!code) {
- return { success: false, message: 'Please enter a valid redeem code.' };
- }
+  const redeemCode = async (rawCode: string): Promise<{ success: boolean; message: string; perks?: string[] }> => {
+    const code = rawCode.trim().toUpperCase();
+    if (!code) {
+      return { success: false, message: 'Please enter a valid redeem code.' };
+    }
 
- if (redeemedCodes.includes(code)) {
- return { success: false, message: `Code "${code}" has already been redeemed in this workspace.` };
- }
+    if (redeemedCodes.includes(code)) {
+      return { success: false, message: `Code "${code}" has already been redeemed and can only be used once.` };
+    }
 
- // Voucher catalog & perks
- let perks: string[] = [];
- let isSpecialFeatureUnlock = false;
+    // Single-use verification with backend
+    try {
+      const res = await fetch('/api/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, userId: user.id, email: user.email, workspaceId: activeWorkspaceId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        if (data.alreadyRedeemed) {
+          setRedeemedCodes((prev) => Array.from(new Set([...prev, code])));
+          try {
+            const cur = JSON.parse(localStorage.getItem('cursis_redeemed_codes') || '[]');
+            localStorage.setItem('cursis_redeemed_codes', JSON.stringify(Array.from(new Set([...cur, code]))));
+          } catch {}
+        }
+        return {
+          success: false,
+          message: data.message || `Code "${code}" could not be redeemed.`,
+        };
+      }
+    } catch (err) {
+      console.warn('Backend redeem check error:', err);
+    }
+
+    // Voucher catalog & perks
+    let perks: string[] = [];
+    let isSpecialFeatureUnlock = false;
 
  if (code === 'CURSIS-PRO-2026') {
  perks = [

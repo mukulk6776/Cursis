@@ -158,13 +158,6 @@ export default function CommandPalette() {
  action: () => setCurrentPage('meetings'),
  },
  {
- id: 'go-messages',
- group: 'Navigate',
- icon: '',
- text: 'Go to Team Messages & Channels',
- action: () => setCurrentPage('messages'),
- },
- {
  id: 'go-documents',
  group: 'Navigate',
  icon: '',

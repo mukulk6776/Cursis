@@ -1,8 +1,13 @@
 'use client';
 
-import React from 'react';
-import MessagesPage from '@/components/dashboard/pages/MessagesPage';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function MessagesRoutePage() {
-  return <MessagesPage />;
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/dashboard');
+  }, [router]);
+
+  return null;
 }

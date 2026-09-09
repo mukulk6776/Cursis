@@ -30,7 +30,6 @@ export default function OrdisPage() {
  addAuditEntry,
  openModal,
  ordisPlan,
- toggleOrdisPlan,
  dynamicFeatures,
  ordisModel,
  aiEngineStatus,
@@ -244,39 +243,52 @@ export default function OrdisPage() {
  </div>
 
  <div className="page-actions" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
- {/* Plan Toggle Button */}
- <button
- type="button"
- className="btn btn-sm"
- onClick={toggleOrdisPlan}
- style={{
- background: ordisPlan === 'paid' ? 'linear-gradient(135deg, #0f4cff, #8b5cf6)' : '#ffffff',
- color: ordisPlan === 'paid' ? '#ffffff' : '#000000',
- border: '2px solid #000000',
- fontWeight: 900,
- boxShadow: '3px 3px 0 #000000',
- cursor: 'pointer',
- textTransform: 'uppercase',
- }}
- >
- {ordisPlan === 'paid' ? 'Pro Plan (Autonomous)' : 'Basic Plan (Standard)'}
- </button>
- <button
- type="button"
- className="btn btn-secondary btn-sm"
- style={{
- fontWeight: 700,
- color: '#7c3aed',
- borderColor: 'rgba(124, 58, 237, 0.4)',
- background: 'rgba(124, 58, 237, 0.05)',
- display: 'flex',
- alignItems: 'center',
- gap: '6px',
- }}
- onClick={() => openModal('redeem-code-modal')}
- >
- Redeem Code
- </button>
+        {/* Plan Status Indicator Badge (Cannot switch without redeem code) */}
+        <span
+          style={{
+            padding: '6px 14px',
+            borderRadius: '4px',
+            background: ordisPlan === 'paid' ? '#0A0A0A' : '#FAF6EE',
+            color: ordisPlan === 'paid' ? '#FF5500' : '#0A0A0A',
+            border: '2px solid #000000',
+            fontWeight: 900,
+            boxShadow: '2.5px 2.5px 0 #000000',
+            fontSize: '11px',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: ordisPlan === 'paid' ? '#FF5500' : '#888',
+            }}
+          />
+          {ordisPlan === 'paid' ? 'Pro Plan (Autonomous)' : 'Basic Plan (Standard)'}
+        </span>
+        {ordisPlan !== 'paid' && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            style={{
+              fontWeight: 700,
+              color: '#7c3aed',
+              borderColor: 'rgba(124, 58, 237, 0.4)',
+              background: 'rgba(124, 58, 237, 0.05)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            onClick={() => openModal('redeem-code-modal')}
+          >
+            Redeem Code
+          </button>
+        )}
  <button type="button" className="btn btn-secondary btn-sm" onClick={clearChatHistory}>
  Clear History
  </button>

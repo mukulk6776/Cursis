@@ -242,19 +242,6 @@ export default function Sidebar() {
           {upcomingMeetingsCount > 0 && <span className="sidebar-item-badge">{upcomingMeetingsCount}</span>}
         </div>
 
-        {/* Messages */}
-        <div
-          className={`sidebar-item ${currentPage === 'messages' ? 'active' : ''}`}
-          onClick={() => handleNav('messages')}
-          title="Team Communication & Channels"
-        >
-          <span className="sidebar-item-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </span>
-          <span className="sidebar-item-text">Messages</span>
-        </div>
 
         <div className="sidebar-divider" />
         <div className="sidebar-section-title">Operations</div>

@@ -29,7 +29,6 @@ export default function OrdisFloatingChat() {
  meetings,
  activeWorkspace,
  ordisPlan,
- toggleOrdisPlan,
  geminiApiKey,
  setGeminiApiKey,
  ordisModel,
@@ -424,29 +423,25 @@ export default function OrdisFloatingChat() {
  <span style={{ fontSize: '10px' }}>AI</span>
  </button>
 
- {/* Plan Switcher Badge */}
- <button
- type="button"
- onClick={toggleOrdisPlan}
- title="Toggle Plan: Basic Chatbot vs Pro Autonomous ($1B)"
- style={{
- padding: '4px 8px',
- borderRadius: '9999px',
- background: ordisPlan === 'paid' ? 'linear-gradient(135deg, #0f4cff, #8b5cf6)' : 'rgba(255, 255, 255, 0.08)',
- border: `1px solid ${ordisPlan === 'paid' ? '#60a5fa' : 'rgba(255, 255, 255, 0.2)'}`,
- color: '#ffffff',
- cursor: 'pointer',
- fontSize: '9.5px',
- fontWeight: 900,
- display: 'flex',
- alignItems: 'center',
- gap: '4px',
- letterSpacing: '0.03em',
- boxShadow: ordisPlan === 'paid' ? '0 0 10px rgba(15, 76, 255, 0.5)' : 'none',
- }}
- >
- <span>{ordisPlan === 'paid' ? ' PRO' : 'BASIC'}</span>
- </button>
+          {/* Plan Status Badge */}
+          <span
+            title={ordisPlan === 'paid' ? 'Pro Plan: Autonomous Mode Active' : 'Basic Plan: Standard Assistant'}
+            style={{
+              padding: '4px 8px',
+              borderRadius: '9999px',
+              background: ordisPlan === 'paid' ? '#0A0A0A' : 'rgba(255, 255, 255, 0.08)',
+              border: `1px solid ${ordisPlan === 'paid' ? '#FF5500' : 'rgba(255, 255, 255, 0.2)'}`,
+              color: ordisPlan === 'paid' ? '#FF5500' : '#ffffff',
+              fontSize: '9.5px',
+              fontWeight: 900,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              letterSpacing: '0.03em',
+            }}
+          >
+            <span>{ordisPlan === 'paid' ? 'PRO' : 'BASIC'}</span>
+          </span>
 
  {/* Voice Mode Toggle */}
  <button

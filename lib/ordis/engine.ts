@@ -1084,9 +1084,8 @@ export function executeOrdisCommand(
  lower.includes('team chat')
  ) {
  return {
- responseText: ' **Navigating to Team Communication & Channels**\n\nOpening public channels, direct messages, and threaded discussions.',
- navigateToPage: 'messages',
- suggestedFollowUps: ['Post announcement', 'Check unread messages', 'Create task from chat'],
+ responseText: 'ℹ️ **Team Communication Notice**\n\nThe Team Messages section has been removed from the dashboard. You can coordinate deliverables directly via Tasks, Projects, Team directory, and Calendar syncs.',
+ suggestedFollowUps: ['View active tasks', 'Check team roster', 'Schedule meeting'],
  };
  }
 
