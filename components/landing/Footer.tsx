@@ -22,7 +22,7 @@ export default function Footer() {
                 height="156"
                 rx="42"
                 transform="rotate(-10 703 274)"
-                fill="#2965ff"
+                fill="#FF5500"
               />
             </svg>
             <span className="lp-footer-logo-text">Cursis</span>

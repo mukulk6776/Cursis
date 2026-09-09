@@ -1,7 +1,6 @@
 /* ============================================
-   CURSIS — Authentic Tano.ai Design System
-   Neo-Brutalist Retro-Editorial Stylesheet
-   Canvas: #FBF4E0 | Ink: #0A0A0A | Hard Shadows
+   CURSIS — Unique Signature Neo-Brutalist Design System
+   Architectural Linen (#FAF6EE) | Solid Ink (#0A0A0A) | Electric Orange (#FF5500)
    ============================================ */
 
 /* ---- Core Canvas & Typography ---- */
@@ -17,7 +16,7 @@ body.lp-body,
   overflow-y: auto !important;
   height: auto !important;
   position: relative;
-  background-color: #FBF4E0 !important;
+  background-color: #FAF6EE !important;
   color: #0A0A0A !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -29,13 +28,13 @@ body.lp-body,
   width: 100%;
   position: relative;
   outline: none;
-  background-color: #FBF4E0 !important;
+  background-color: #FAF6EE !important;
 }
 
 /* Global Selection */
 ::selection {
-  background: #FFD66B;
-  color: #0A0A0A;
+  background: #FF5500;
+  color: #FFFFFF;
 }
 
 /* ---- Scroll Reveal Animations ---- */
@@ -104,10 +103,10 @@ body.lp-body,
 .lp-stagger.lp-visible > *:nth-child(12) { transition-delay: 550ms; opacity: 1; transform: translateY(0); }
 
 /* ============================================
-   TANO.AI SIGNATURE DESIGN HELPERS
+   CURSIS SIGNATURE DESIGN HELPERS
    ============================================ */
 
-/* Signature Rotated Washi Tape Sticker (Tano Ju component) */
+/* Signature Rotated Washi Tape Sticker */
 .tano-washi-tape {
   position: absolute;
   width: 78px;
@@ -121,11 +120,11 @@ body.lp-body,
   border-radius: 2px;
 }
 
-/* Signature Yellow Marker Highlight (Tano editorial marker) */
+/* Signature Electric Orange Marker Highlight */
 .tano-hero-marker {
   display: inline-block;
-  background: #FFD66B;
-  color: #0A0A0A;
+  background: #FF5500;
+  color: #FFFFFF;
   border: 2.5px solid #0A0A0A;
   border-radius: 8px;
   padding: 2px 14px;
@@ -152,7 +151,8 @@ body.lp-body,
   text-decoration: none;
 }
 .tano-hero-badge-pill {
-  background: #FFD66B;
+  background: #FF5500;
+  color: #FFFFFF;
   border: 1.5px solid #0A0A0A;
   border-radius: 9999px;
   padding: 2px 8px;
@@ -174,7 +174,7 @@ body.lp-body,
   max-width: 1240px;
   margin: 0 auto;
   box-sizing: border-box;
-  background-color: #FBF4E0 !important;
+  background-color: #FAF6EE !important;
 }
 
 .lp-section-header {
@@ -189,7 +189,7 @@ body.lp-body,
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #FFD66B;
+  background: #FFC233;
   border: 2.5px solid #0A0A0A;
   border-radius: 9999px;
   box-shadow: 3px 3px 0 0 #0A0A0A;
@@ -239,7 +239,7 @@ body.lp-body,
   align-items: center;
   justify-content: center;
   padding: 16px 24px 8px;
-  background: #FBF4E0;
+  background: #FAF6EE;
   width: 100%;
   box-sizing: border-box;
 }
@@ -405,7 +405,7 @@ body.lp-body,
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  background: #FBF4E0;
+  background: #FAF6EE;
   border-bottom: 3px solid #0A0A0A;
 }
 .lp-mockup-topbar-left {
@@ -420,9 +420,9 @@ body.lp-body,
   border-radius: 50%;
   display: inline-block;
 }
-.lp-mockup-dot.red { background: #FF7A66; }
-.lp-mockup-dot.yellow { background: #FFD66B; }
-.lp-mockup-dot.green { background: #9BE7C4; }
+.lp-mockup-dot.red { background: #FF5500; }
+.lp-mockup-dot.yellow { background: #FFC233; }
+.lp-mockup-dot.green { background: #4ADE80; }
 
 .lp-mockup-tag {
   font-family: 'Inter Tight', monospace;
@@ -453,7 +453,7 @@ body.lp-body,
   font-size: 11px;
   font-weight: 800;
   color: #0A0A0A;
-  background: #9BE7C4;
+  background: #4ADE80;
   border: 2px solid #0A0A0A;
   border-radius: 9999px;
   padding: 3px 10px;
@@ -499,16 +499,16 @@ body.lp-body,
   white-space: nowrap;
 }
 .lp-mockup-tab:hover {
-  background: #FBF4E0;
+  background: #FAF6EE;
 }
 .lp-mockup-tab.active {
-  background: #FFD66B;
+  background: #FFC233;
   box-shadow: 3.5px 3.5px 0 0 #0A0A0A;
   transform: translate(-1px, -1px);
 }
 .lp-tab-pulse-badge {
-  background: #FF7A66;
-  color: #0A0A0A;
+  background: #FF5500;
+  color: #FFFFFF;
   font-size: 10px;
   font-weight: 900;
   padding: 2px 6px;
@@ -531,7 +531,7 @@ body.lp-body,
   gap: 16px;
 }
 .lp-mockup-ordis-panel {
-  background: #FBF4E0;
+  background: #FAF6EE;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -599,7 +599,7 @@ body.lp-body,
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #FFD66B;
+  background: #FFC233;
   border: 1.5px solid #0A0A0A;
 }
 .lp-sla-tag {
@@ -615,7 +615,7 @@ body.lp-body,
 
 /* Mockup Prompts Simulator */
 .lp-mockup-prompts-bar {
-  background: #FBF4E0;
+  background: #FAF6EE;
   border: 2.5px solid #0A0A0A;
   border-radius: 12px;
   box-shadow: 4px 4px 0 0 #0A0A0A;
@@ -651,11 +651,11 @@ body.lp-body,
   color: #0A0A0A;
 }
 .lp-prompt-chip:hover {
-  background: #FFD66B;
+  background: #FFC233;
 }
 .lp-prompt-chip.active {
-  background: #FF7A66;
-  color: #0A0A0A;
+  background: #FF5500;
+  color: #FFFFFF;
   box-shadow: 1px 1px 0 0 #0A0A0A;
   transform: translate(1px, 1px);
 }
@@ -894,13 +894,13 @@ body.lp-body,
 }
 .lp-capacity-fill {
   height: 100%;
-  background: #FF7A66;
+  background: #FF5500;
 }
 .lp-status-online {
   font-family: 'Inter Tight', sans-serif;
   font-size: 10px;
   font-weight: 900;
-  background: #9BE7C4;
+  background: #4ADE80;
   border: 1.5px solid #0A0A0A;
   border-radius: 9999px;
   padding: 2px 8px;
@@ -956,7 +956,7 @@ body.lp-body,
   background: #FFB8D1;
 }
 .lp-pipeline-card.done {
-  background: #9BE7C4;
+  background: #4ADE80;
 }
 
 /* Mockup Right Side Panel: Ordis Live Command Center */
@@ -970,7 +970,7 @@ body.lp-body,
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #FFD66B;
+  background: #FFC233;
   border: 2.5px solid #0A0A0A;
   box-shadow: 2.5px 2.5px 0 0 #0A0A0A;
   font-family: 'Inter Tight', sans-serif;
@@ -1010,11 +1010,11 @@ body.lp-body,
   font-family: 'Inter Tight', sans-serif;
   font-size: 10px;
   font-weight: 900;
-  background: #FF7A66;
+  background: #FF5500;
   border: 1.5px solid #0A0A0A;
   border-radius: 9999px;
   padding: 2px 8px;
-  color: #0A0A0A;
+  color: #FFFFFF;
   display: inline-block;
   align-self: flex-start;
 }
@@ -1866,8 +1866,8 @@ body.lp-body,
   height: 28px;
   border-radius: 50%;
   border: 2px solid #0A0A0A;
-  background: #FF7A66;
-  color: #0A0A0A;
+  background: #FF5500;
+  color: #FFFFFF;
   font-family: 'Inter Tight', sans-serif;
   font-weight: 900;
   font-size: 13px;
@@ -1885,7 +1885,7 @@ body.lp-body,
 .lp-demo-step-highlight {
   font-family: 'Inter Tight', sans-serif;
   font-weight: 900;
-  background: #FFD66B;
+  background: #FFC233;
   padding: 1px 6px;
   border-radius: 4px;
   border: 1px solid #0A0A0A;
@@ -1924,11 +1924,11 @@ body.lp-body,
   box-shadow: 3.5px 3.5px 0 0 #0A0A0A;
 }
 .lp-tier-btn:hover {
-  background: #FBF4E0;
+  background: #FAF6EE;
 }
 .lp-tier-btn.active {
-  background: #FF7A66;
-  color: #0A0A0A;
+  background: #FF5500;
+  color: #FFFFFF;
   box-shadow: 2px 2px 0 0 #0A0A0A;
   transform: translate(1.5px, 1.5px);
 }
@@ -2300,8 +2300,8 @@ body.lp-body,
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #0A0A0A;
-  background: #FF7A66;
+  color: #FFFFFF;
+  background: #FF5500;
   border: 1.5px solid #0A0A0A;
   border-radius: 9999px;
   padding: 2px 8px;
@@ -2356,7 +2356,7 @@ body.lp-body,
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: #FFD66B;
+  background: #FFC233;
   border: 2.5px solid #0A0A0A;
   box-shadow: 2.5px 2.5px 0 0 #0A0A0A;
   display: flex;
@@ -2405,7 +2405,7 @@ body.lp-body,
   backdrop-filter: blur(4px);
 }
 .tano-modal-card {
-  background: #FBF4E0;
+  background: #FAF6EE;
   border: 3.5px solid #0A0A0A;
   border-radius: 18px;
   box-shadow: 12px 12px 0 0 #0A0A0A;
@@ -2433,7 +2433,8 @@ body.lp-body,
   transition: all 0.12s ease;
 }
 .tano-modal-close:hover {
-  background: #FF7A66;
+  background: #FF5500;
+  color: #FFFFFF;
 }
 .tano-modal-eyebrow {
   font-family: 'Inter Tight', sans-serif;
@@ -2442,7 +2443,7 @@ body.lp-body,
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #0A0A0A;
-  background: #FFD66B;
+  background: #FFC233;
   border: 1.5px solid #0A0A0A;
   padding: 2px 8px;
   border-radius: 4px;
@@ -2493,7 +2494,7 @@ body.lp-body,
   box-sizing: border-box;
 }
 .tano-form-input:focus {
-  border-color: #FF7A66;
+  border-color: #FF5500;
 }
 .tano-form-textarea {
   resize: vertical;

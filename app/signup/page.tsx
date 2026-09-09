@@ -43,55 +43,87 @@ export default function SignupPage() {
  return '/dashboard';
  };
 
- const exchangeTokenAndRedirect = async (authResult: {
- email: string;
- displayName: string;
- idToken: string;
- uid?: string;
- photoURL?: string | null;
- }) => {
- try {
- // If authResult already has a verified signed session token (e.g. from email signup)
- if (authResult.idToken && authResult.idToken.startsWith('cursis_usr_')) {
- try {
- localStorage.setItem('cursis_token', authResult.idToken);
- document.cookie = `cursis_session=${encodeURIComponent(authResult.idToken)}; path=/; max-age=604800; SameSite=Lax`;
- } catch {}
- window.location.href = getRedirectDestination();
- return;
- }
+  const exchangeTokenAndRedirect = async (authResult: {
+    email: string;
+    displayName: string;
+    idToken: string;
+    uid?: string;
+    photoURL?: string | null;
+  }) => {
+    try {
+      // If authResult already has a verified signed session token (e.g. from email signup)
+      if (authResult.idToken && authResult.idToken.startsWith('cursis_usr_')) {
+        try {
+          localStorage.setItem('cursis_token', authResult.idToken);
+          document.cookie = `cursis_session=${encodeURIComponent(authResult.idToken)}; path=/; max-age=604800; SameSite=Lax`;
+        } catch {}
+        await new Promise((r) => setTimeout(r, 120));
+        window.location.href = getRedirectDestination();
+        return;
+      }
 
- // Exchange identity token (e.g. Firebase OAuth token) with session API
- const res = await fetch('/api/auth/session', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- credentials: 'include',
- body: JSON.stringify({
- idToken: authResult.idToken,
- }),
- });
+      // Exchange identity token (e.g. Firebase OAuth token) with session API
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          idToken: authResult.idToken,
+        }),
+      });
 
- const data = await res.json().catch(() => ({}));
- if (!res.ok) {
- throw new Error(data.error || 'Authentication session could not be established.');
- }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'Authentication session could not be established.');
+      }
 
- const token = data.token || (data.data && data.data.token) || '';
- if (!token) {
- throw new Error('No valid session token was returned by the authentication server.');
- }
+      const token = data.token || (data.data && data.data.token) || '';
+      if (!token) {
+        throw new Error('No valid session token was returned by the authentication server.');
+      }
 
- try {
- localStorage.setItem('cursis_token', token);
- document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
- } catch {}
+      try {
+        localStorage.setItem('cursis_token', token);
+        document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+      } catch {}
 
- window.location.href = getRedirectDestination();
- } catch (err: any) {
- console.error('Session exchange error:', err);
- setErrorMsg(err?.message || 'Failed to initialize workspace session. Please try logging in directly.');
- }
- };
+      await new Promise((r) => setTimeout(r, 120));
+      window.location.href = getRedirectDestination();
+    } catch (err: any) {
+      console.error('Session exchange error:', err);
+      setErrorMsg(err?.message || 'Failed to initialize workspace session. Please try logging in directly.');
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: 'demo@cursis.ai', password: 'demo-workspace-access' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.token) {
+        throw new Error(data.error || 'Failed to authenticate demo workspace.');
+      }
+
+      try {
+        localStorage.setItem('cursis_token', data.token);
+        document.cookie = `cursis_session=${encodeURIComponent(data.token)}; path=/; max-age=604800; SameSite=Lax`;
+      } catch {}
+
+      await new Promise((r) => setTimeout(r, 120));
+      window.location.href = getRedirectDestination();
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Demo access failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
  const handleEmailSignup = async (e: React.FormEvent) => {
  e.preventDefault();
@@ -167,7 +199,7 @@ export default function SignupPage() {
           transform: 'translateX(-50%)',
           width: '600px',
           height: '350px',
-          background: 'radial-gradient(ellipse at center, rgba(41, 101, 255, 0.06) 0%, rgba(246, 244, 240, 0) 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(255, 85, 0, 0.08) 0%, rgba(246, 244, 240, 0) 70%)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -190,7 +222,7 @@ export default function SignupPage() {
               height="156"
               rx="42"
               transform="rotate(-10 703 274)"
-              fill="#2965ff"
+              fill="#FF5500"
             />
           </svg>
           <span style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em', color: '#1A1612' }}>Cursis</span>
@@ -260,13 +292,62 @@ export default function SignupPage() {
           </div>
         )}
 
+        {/* Instant 1-Click Demo Access Button */}
+        <button
+          type="button"
+          onClick={handleDemoLogin}
+          disabled={loading || googleLoading}
+          style={{
+            width: '100%',
+            height: '46px',
+            marginBottom: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            fontWeight: 800,
+            fontSize: '13px',
+            color: '#0A0A0A',
+            background: '#FFF3EB',
+            border: '2.5px solid #0A0A0A',
+            borderRadius: '9999px',
+            boxShadow: '3.5px 3.5px 0 0 #0A0A0A',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translate(-2px, -2px)';
+            e.currentTarget.style.boxShadow = '5.5px 5.5px 0 0 #0A0A0A';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translate(0, 0)';
+            e.currentTarget.style.boxShadow = '3.5px 3.5px 0 0 #0A0A0A';
+          }}
+        >
+          <span
+            style={{
+              background: '#FF5500',
+              color: '#ffffff',
+              padding: '2px 8px',
+              borderRadius: '999px',
+              fontSize: '10px',
+              fontWeight: 900,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+            }}
+          >
+            1-Click
+          </span>
+          <span>⚡ Instant Demo Workspace Access</span>
+        </button>
+
         {/* Google Enterprise Sign-Up */}
         <button
           type="button"
           style={{
             width: '100%',
-            height: '46px',
-            marginBottom: '18px',
+            height: '44px',
+            marginBottom: '16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -275,7 +356,7 @@ export default function SignupPage() {
             fontSize: '13px',
             color: '#1A1612',
             background: '#ffffff',
-            border: '1px solid #E8E4DE',
+            border: '1.5px solid #E8E4DE',
             borderRadius: '9999px',
             boxShadow: '0 1px 3px rgba(26, 22, 18, 0.04)',
             cursor: 'pointer',
@@ -305,7 +386,7 @@ export default function SignupPage() {
           {googleLoading ? 'Connecting to Google...' : 'Sign up with Google Workspace'}
         </button>
 
-        <div style={{ textAlign: 'center', margin: '18px 0', position: 'relative' }}>
+        <div style={{ textAlign: 'center', margin: '14px 0 16px', position: 'relative' }}>
           <div style={{ borderTop: '1px solid #E8E4DE', position: 'absolute', top: '50%', width: '100%' }} />
           <span
             style={{
@@ -441,15 +522,15 @@ export default function SignupPage() {
               width: '100%',
               height: '46px',
               marginTop: '6px',
-              background: '#1A1612',
+              background: '#0A0A0A',
               color: '#ffffff',
-              border: '1px solid #1A1612',
+              border: '2px solid #0A0A0A',
               borderRadius: '9999px',
-              boxShadow: '0 2px 6px rgba(26, 22, 18, 0.15)',
-              fontWeight: 600,
+              boxShadow: '3px 3px 0 0 #0A0A0A',
+              fontWeight: 700,
               fontSize: '14px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
+              transition: 'all 0.15s ease',
             }}
             disabled={loading || googleLoading}
           >
@@ -470,7 +551,7 @@ export default function SignupPage() {
           }}
         >
           <span>Already have an account?</span>
-          <Link href="/login" style={{ color: '#2965ff', fontWeight: 600, textDecoration: 'none' }}>
+          <Link href="/login" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'none' }}>
             Sign in →
           </Link>
         </div>

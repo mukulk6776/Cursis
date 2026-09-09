@@ -73,7 +73,7 @@ export default function LandingNav() {
               height="156"
               rx="42"
               transform="rotate(-10 703 274)"
-              fill="#2965ff"
+              fill="#FF5500"
             />
           </svg>
           <span className="lp-nav-logo-text">Cursis</span>

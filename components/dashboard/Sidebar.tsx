@@ -64,7 +64,7 @@ export default function Sidebar() {
               height="156"
               rx="42"
               transform="rotate(-10 703 274)"
-              fill="#0f4cff"
+              fill="#FF5500"
             />
           </svg>
           <span className="sidebar-logo-text">Cursis</span>

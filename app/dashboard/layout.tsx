@@ -29,7 +29,7 @@ export default function DashboardLayout({
           credentials: 'include',
         });
 
-        // If initial check was 401 but we have a stored signed token, attempt to re-establish session cookie
+        // If initial check was not ok but we have a stored signed token, attempt to re-establish session
         if (!res.ok && storedToken && storedToken.startsWith('cursis_usr_')) {
           try {
             const reAuthRes = await fetch('/api/auth/session', {
@@ -44,6 +44,17 @@ export default function DashboardLayout({
                 credentials: 'include',
               });
             }
+          } catch {}
+        }
+
+        // Retry once after a short tick if still failing (prevents race condition on rapid navigation)
+        if (!res.ok && storedToken) {
+          await new Promise((r) => setTimeout(r, 400));
+          try {
+            res = await fetch('/api/auth/session', {
+              headers,
+              credentials: 'include',
+            });
           } catch {}
         }
 

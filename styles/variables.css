@@ -1,12 +1,12 @@
 /* ============================================
-   CURSIS — Authentic Tano.ai Design System Tokens
-   Warm Editorial Cream (#FBF4E0), Pure Ink (#0A0A0A),
-   Solid Offset Neo-Brutalist Shadows, and Pastel Accents
+   CURSIS — Unique Signature Neo-Brutalist Design System Tokens
+   Architectural Linen (#FAF6EE), Solid Ink (#0A0A0A),
+   Electric Orange (#FF5500), and Solid Offset Neo-Brutalist Shadows
    ============================================ */
 
 :root {
-  /* ---- Tano.ai Core Signature Palette ---- */
-  --c-cream: #FBF4E0;         /* Tano signature warm vintage cream canvas */
+  /* ---- Cursis Signature Core Palette ---- */
+  --c-cream: #FAF6EE;         /* Cursis signature architectural warm linen canvas */
   --c-paper: #FFFFFF;         /* Crisp white card surface */
   --c-ink: #0A0A0A;           /* Pure solid ink for 3px borders and hard shadows */
   --c-ink-soft: #1A1A1A;      /* Editorial body ink */
@@ -15,28 +15,27 @@
   --c-dark-2: #181614;
   --c-white: #ffffff;
 
-  /* ---- Tano.ai Signature Pastels ---- */
-  --c-yellow: #FFD66B;        /* Tano pastel butter yellow */
-  --c-mint: #9BE7C4;          /* Tano pastel retro mint */
-  --c-pink: #FFB8D1;          /* Tano pastel soft pink */
-  --c-blue: #A7E3F1;          /* Tano pastel powder blue */
-  --c-coral: #FF7A66;         /* Tano signature vibrant retro coral CTA accent */
-  --c-purple: #C9B6FF;        /* Tano pastel lavender purple */
+  /* ---- Cursis Signature Accents ---- */
+  --c-brand: #FF5500;         /* Cursis signature electric orange CTA accent matching logo */
+  --c-brand-light: #FF722B;
+  --c-brand-dark: #DF4A00;
+  --c-brand-bg: #FFF3EB;
+
+  --c-yellow: #FFC233;        /* Warm golden marigold */
+  --c-mint: #4ADE80;          /* Fresh vibrant neo-mint */
+  --c-pink: #F472B6;          /* Soft rose pink */
+  --c-blue: #93C5FD;          /* Soft electric sky blue */
+  --c-coral: #FF5500;         /* Unified electric orange */
+  --c-purple: #C084FC;        /* Orchid purple */
 
   /* Backgrounds */
-  --c-bg: #FBF4E0;            /* Warm rich cream background */
-  --c-bg-subtle: #F3ECD5;     /* Warm card/badge tint */
+  --c-bg: #FAF6EE;            /* Warm architectural linen background */
+  --c-bg-subtle: #F3EFE4;     /* Card/badge tint */
   --c-bg-elevated: #FFFFFF;
 
-  /* Brand Accents */
-  --c-brand: #FF7A66;         /* Tano signature coral */
-  --c-brand-light: #FF9B8A;
-  --c-brand-dark: #E65C47;
-  --c-brand-bg: #FFF0ED;
-
-  --c-accent: #FFD66B;        /* Tano yellow accent */
-  --c-accent-light: #FFE08F;
-  --c-accent-bg: #FFF9E6;
+  --c-accent: #FFC233;        /* Warm marigold accent */
+  --c-accent-light: #FFD266;
+  --c-accent-bg: #FFF9E8;
 
   /* Status */
   --c-success: #10b981;
@@ -45,11 +44,8 @@
   --c-warning-bg: #fffbeb;
   --c-error: #ef4444;
   --c-error-bg: #fef2f2;
-  --c-info: #2965ff;
-  --c-info-bg: #eef3ff;
-  --c-info: var(--c-brand);
-  --c-info-bg: var(--c-brand-bg);
-  --c-purple: #8b5cf6;
+  --c-info: #FF5500;
+  --c-info-bg: #FFF3EB;
   --c-purple-bg: #f5f3ff;
   
   /* ---- Typography ---- */
@@ -145,7 +141,7 @@
   --shadow-tano: 6px 6px 0 0 #0A0A0A;
   --shadow-tano-hover: 8px 8px 0 0 #0A0A0A;
   --shadow-card-hover: 8px 8px 0 0 #0A0A0A;
-  --shadow-coral: 8px 8px 0 0 #FF7A66;
+  --shadow-coral: 8px 8px 0 0 #FF5500;
   --shadow-yellow: 8px 8px 0 0 #FFD66B;
   --shadow-mint: 8px 8px 0 0 #9BE7C4;
   --shadow-brand: 6px 6px 0 0 #0A0A0A;

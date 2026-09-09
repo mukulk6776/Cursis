@@ -29,41 +29,51 @@ const options = {
  ...(isAtlasCluster ? { retryWrites: true, w: 'majority' as const } : {}),
 };
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+let client: MongoClient | null = null;
+let clientPromise: Promise<MongoClient | null>;
+let isConnected = false;
 
 declare global {
- var _mongoClientPromise: Promise<MongoClient> | undefined;
+  var _mongoClientPromise: Promise<MongoClient | null> | undefined;
+  var _mongoIsConnected: boolean | undefined;
 }
 
 // In both development and Vercel serverless production environments,
 // reuse the client promise cached on the global object to prevent connection leaks
-// across hot-reloads and warm serverless lambda invocations.
 if (!global._mongoClientPromise) {
- client = new MongoClient(MONGODB_URI, options);
- global._mongoClientPromise = client.connect().then((c) => {
- console.log(` MongoDB Connected successfully to: ${isAtlasCluster ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${DB_NAME})`);
- return c;
- }).catch((err) => {
- console.warn('Notice: MongoDB connection attempt:', err.message || err);
- return client;
- });
+  try {
+    client = new MongoClient(MONGODB_URI, options);
+    global._mongoClientPromise = client.connect().then((c) => {
+      isConnected = true;
+      global._mongoIsConnected = true;
+      console.log(`✓ MongoDB Connected successfully to: ${isAtlasCluster ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${DB_NAME})`);
+      return c;
+    }).catch((err) => {
+      isConnected = false;
+      global._mongoIsConnected = false;
+      console.warn('Notice: MongoDB connection attempt (falling back to memory store):', err.message || err);
+      return null;
+    });
+  } catch (err) {
+    global._mongoClientPromise = Promise.resolve(null);
+  }
 }
 clientPromise = global._mongoClientPromise;
 
 export default clientPromise;
 
 /**
- * Get MongoDB Database instance
+ * Get MongoDB Database instance (returns null immediately if disconnected)
  */
 export async function getDb(): Promise<Db | null> {
- try {
- const mongoClient = await clientPromise;
- return mongoClient.db(DB_NAME);
- } catch (error) {
- console.warn('MongoDB getDb error:', error);
- return null;
- }
+  try {
+    if (global._mongoIsConnected === false) return null;
+    const mongoClient = await clientPromise;
+    if (!mongoClient || !global._mongoIsConnected) return null;
+    return mongoClient.db(DB_NAME);
+  } catch (error) {
+    return null;
+  }
 }
 
 /**

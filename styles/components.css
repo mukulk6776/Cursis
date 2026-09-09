@@ -39,15 +39,16 @@
 }
 
 .btn-primary {
-  background: #FF7A66; /* Tano signature coral */
-  color: #0A0A0A;
+  background: #FF5500; /* Cursis electric orange */
+  color: #FFFFFF;
   border: 2.5px solid #0A0A0A;
   box-shadow: 4px 4px 0 0 #0A0A0A;
+  font-weight: 800;
 }
 
 .btn-primary:hover {
-  background: #FF9482;
-  color: #0A0A0A;
+  background: #FF6E24;
+  color: #FFFFFF;
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 0 #0A0A0A;
 }
@@ -58,15 +59,16 @@
 }
 
 .btn-brand {
-  background: #FFD66B; /* Tano butter yellow */
-  color: #0A0A0A;
+  background: #FF5500; /* Cursis electric orange */
+  color: #FFFFFF;
   border: 2.5px solid #0A0A0A;
   box-shadow: 4px 4px 0 0 #0A0A0A;
+  font-weight: 800;
 }
 
 .btn-brand:hover {
-  background: #FFE28F;
-  color: #0A0A0A;
+  background: #FF6E24;
+  color: #FFFFFF;
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 0 #0A0A0A;
 }
@@ -84,7 +86,7 @@
 }
 
 .btn-secondary:hover {
-  background: #FBF4E0;
+  background: #FAF6EE;
   color: #0A0A0A;
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 0 #0A0A0A;
