@@ -32,24 +32,15 @@ export default function OrdisPage() {
  ordisPlan,
  toggleOrdisPlan,
  dynamicFeatures,
- geminiApiKey,
- setGeminiApiKey,
  ordisModel,
- setOrdisModel,
  aiEngineStatus,
  } = useDashboard();
 
- const [activeView, setActiveView] = useState<'commander' | 'dynamic_features' | 'agents' | 'transparency' | 'ai_engine'>('commander');
+ const [activeView, setActiveView] = useState<'commander' | 'dynamic_features' | 'agents' | 'transparency'>('commander');
  const [inputVal, setInputVal] = useState('');
- const [apiKeyDraft, setApiKeyDraft] = useState(geminiApiKey || '');
- const [showApiKey, setShowApiKey] = useState(false);
  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
  const chatBottomRef = useRef<HTMLDivElement>(null);
-
- useEffect(() => {
- setApiKeyDraft(geminiApiKey || '');
- }, [geminiApiKey]);
 
  useEffect(() => {
  if (activeView === 'commander') {
@@ -67,12 +58,6 @@ export default function OrdisPage() {
  const handleRunAgent = (agent: OrdisAgent) => {
  addAuditEntry(user.name, 'ordis.agent.triggered', agent.name, 'Manual mini-agent execution trigger');
  showToast(`Autonomous Agent "${agent.name}" executed successfully `);
- };
-
- const handleSaveApiKey = () => {
- const clean = apiKeyDraft.trim();
- setGeminiApiKey(clean);
- showToast(clean ? 'Gemini AI API Key saved successfully ' : 'Switched to Local Engine mode');
  };
 
  const handleSpeak = (text: string, idx: number) => {
@@ -214,21 +199,6 @@ export default function OrdisPage() {
  },
  ];
 
- const autonomousCapabilities = [
- { tool: 'create_task', name: 'Create Task', icon: '', desc: 'Creates new tasks with title, priority (urgent, high, medium, low), assignees, and due dates.', sample: 'Create an urgent task for Alex: Fix auth token refresh bug by tomorrow' },
- { tool: 'update_task_status', name: 'Update Task Status', icon: '', desc: 'Transitions tasks across Kanban columns (in_progress, completed, todo, in_review).', sample: 'Mark task "Deploy payment webhook integration" as completed' },
- { tool: 'schedule_meeting', name: 'Schedule Meeting', icon: '', desc: 'Adds calendar meetings, syncs, or standups with start time, duration, and attendees.', sample: 'Schedule a 45-minute sprint review meeting with the design team at 4 PM' },
- { tool: 'create_project', name: 'Create Project', icon: '', desc: 'Initializes new projects with category, status, priority, and client name.', sample: 'Create a new client project: "Mobile App Redesign" for client Globex Corp' },
- { tool: 'create_crm_deal', name: 'Add CRM Deal', icon: '', desc: 'Logs new sales opportunities with stage, estimated value, and contact company.', sample: 'Add a new CRM deal: "Enterprise Tier Contract" for $95,000 in proposal stage' },
- { tool: 'create_document', name: 'Author Document', icon: '', desc: 'Drafts workspace documentation, technical specs, policy sheets, or proposals.', sample: 'Draft a new document titled "API V2 Architecture Specification" under engineering' },
- { tool: 'create_automation', name: 'Install Automation Rule', icon: '', desc: 'Configures conditional triggers and actions across the workspace.', sample: 'Create automation: when a deal is closed, send a celebration notification' },
- { tool: 'invite_team_member', name: 'Invite Team Member', icon: '', desc: 'Dispatches workspace invitations with designated role and department.', sample: 'Invite Sarah Connor (sarah@cursis.io) as Senior Product Designer' },
- { tool: 'navigate_to_page', name: 'Teleport to Page', icon: '', desc: 'Instant navigation to any of the 17 Cursis pages (CRM, Calendar, Tasks, Settings, etc.).', sample: 'Take me to the CRM pipeline page' },
- { tool: 'update_settings', name: 'Update Settings', icon: '', desc: 'Configures workspace preferences, theme, notification channels, or security.', sample: 'Update workspace settings: enable desktop notifications and set timezone to UTC' },
- { tool: 'create_dynamic_feature', name: 'Synthesize Dynamic Feature', icon: '', desc: 'Autonomously builds custom micro-tools and forms on demand with dynamic schemas.', sample: 'Build a new feature for Team Bounty Coins for completing urgent tasks' },
- { tool: 'query_workspace_telemetry', name: 'Workspace Telemetry Audit', icon: '', desc: 'Executes comprehensive system health checks across all workspace datasets.', sample: 'Run deep ambient scan and report all open blockers and revenue totals' },
- ];
-
  const activeTaskCount = tasks.filter((t) => t.status !== 'completed').length;
  const onlineMembers = employees.filter((e) => e.status === 'online').length;
  const modelDisplayName = ordisModel === 'gemini-2.5-pro' ? 'Gemini 2.5 Pro' : ordisModel === 'gemini-2.0-flash' ? 'Gemini 2.0 Flash' : 'Gemini 2.5 Flash';
@@ -237,16 +207,40 @@ export default function OrdisPage() {
  <div className="page active" id="page-ordis" style={{ display: 'block' }}>
  {/* Page Header */}
  <div className="page-header" style={{ marginBottom: 'var(--sp-4)' }}>
+ <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+ <div
+ style={{
+ width: '38px',
+ height: '38px',
+ background: '#0A0A0A',
+ borderRadius: '8px',
+ display: 'flex',
+ alignItems: 'center',
+ justifyContent: 'center',
+ border: '2px solid #000000',
+ boxShadow: '2.5px 2.5px 0 0 #FF5500',
+ flexShrink: 0,
+ }}
+ >
+ <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+ <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+ <path
+ d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+ fill="#FF5500"
+ />
+ </svg>
+ </div>
  <div>
  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
- <h1 className="page-title">Ordis Workspace Copilot</h1>
+ <h1 className="page-title" style={{ margin: 0 }}>Ordis Workspace Copilot</h1>
  <span className="badge badge-brand" style={{ fontSize: '10px' }}>
  OPERATIONAL AI CHATBOT
  </span>
  </div>
- <p className="page-subtitle">
+ <p className="page-subtitle" style={{ margin: '4px 0 0 0' }}>
  Cursis gives you a workspace. Ordis operates it. Chat naturally, ask questions, or issue natural language commands to control every feature.
  </p>
+ </div>
  </div>
 
  <div className="page-actions" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
@@ -282,14 +276,6 @@ export default function OrdisPage() {
  onClick={() => openModal('redeem-code-modal')}
  >
  Redeem Code
- </button>
- <button
- type="button"
- className="btn btn-secondary btn-sm"
- onClick={() => setActiveView('ai_engine')}
- style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
- >
- AI Config
  </button>
  <button type="button" className="btn btn-secondary btn-sm" onClick={clearChatHistory}>
  Clear History
@@ -377,13 +363,6 @@ export default function OrdisPage() {
  </button>
  <button
  type="button"
- className={`tab ${activeView === 'ai_engine' ? 'active' : ''}`}
- onClick={() => setActiveView('ai_engine')}
- >
- AI Engine & Tools (12 Tools)
- </button>
- <button
- type="button"
  className={`tab ${activeView === 'transparency' ? 'active' : ''}`}
  onClick={() => setActiveView('transparency')}
  >
@@ -415,18 +394,25 @@ export default function OrdisPage() {
  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
  <div
  style={{
- width: '32px',
- height: '32px',
+ width: '34px',
+ height: '34px',
  borderRadius: '8px',
- background: 'linear-gradient(135deg, #0f4cff 0%, #38bdf8 100%)',
+ background: '#0A0A0A',
+ border: '1.5px solid #FF5500',
+ boxShadow: '2px 2px 0 #FF5500',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'center',
- fontSize: '15px',
- color: '#fff',
+ flexShrink: 0,
  }}
  >
- 
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+ <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+ <path
+ d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+ fill="#FF5500"
+ />
+ </svg>
  </div>
  <div>
  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -448,27 +434,10 @@ export default function OrdisPage() {
  </span>
  </div>
  <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
- Natural language conversation, Hinglish support, and 12 autonomous workspace tools enabled.
+ Natural language conversation, Hinglish support, and full autonomous workspace control enabled.
  </div>
  </div>
  </div>
-
- <button
- type="button"
- onClick={() => setActiveView('ai_engine')}
- style={{
- padding: '6px 14px',
- background: 'rgba(255, 255, 255, 0.1)',
- border: '1px solid rgba(255, 255, 255, 0.2)',
- borderRadius: '6px',
- color: '#fff',
- fontSize: '11.5px',
- fontWeight: 700,
- cursor: 'pointer',
- }}
- >
- AI Settings & Tools
- </button>
  </div>
 
  {/* 1-Click Operational Command Grid */}
@@ -552,17 +521,23 @@ export default function OrdisPage() {
  style={{
  width: '24px',
  height: '24px',
- background: 'var(--c-brand-lime)',
- color: '#000',
+ background: '#0A0A0A',
+ borderRadius: '6px',
+ border: '1px solid #000000',
+ boxShadow: '1.5px 1.5px 0 0 #FF5500',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'center',
- fontWeight: 'var(--fw-bold)',
- fontSize: '11px',
  flexShrink: 0,
  }}
  >
- 
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+ <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+ <path
+ d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+ fill="#FF5500"
+ />
+ </svg>
  </div>
  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', fontStyle: 'italic', alignSelf: 'center' }}>
  {aiEngineStatus === 'gemini' ? 'Ordis (Gemini) is executing workspace tools...' : 'Ordis is executing workspace command...'}
@@ -592,8 +567,11 @@ export default function OrdisPage() {
  style={{
  width: '24px',
  height: '24px',
- background: isAi ? 'var(--c-brand-lime)' : 'var(--c-brand)',
- color: isAi ? '#000' : '#fff',
+ background: isAi ? '#0A0A0A' : 'var(--c-brand)',
+ borderRadius: '6px',
+ border: isAi ? '1px solid #000000' : 'none',
+ boxShadow: isAi ? '1.5px 1.5px 0 0 #FF5500' : 'none',
+ color: '#fff',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'center',
@@ -602,7 +580,17 @@ export default function OrdisPage() {
  flexShrink: 0,
  }}
  >
- {isAi ? '' : user.initials}
+ {isAi ? (
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+ <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+ <path
+ d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+ fill="#FF5500"
+ />
+ </svg>
+ ) : (
+ user.initials
+ )}
  </div>
  <div style={{ flex: 1, minWidth: 0 }}>
  <div
@@ -962,241 +950,6 @@ export default function OrdisPage() {
  </div>
  </div>
  ))}
- </div>
- )}
-
- {/* ========================================================================= */}
- {/* 4. AI ENGINE & AUTONOMOUS CAPABILITIES (12 Tools) */}
- {/* ========================================================================= */}
- {activeView === 'ai_engine' && (
- <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
- {/* AI Settings Header Card */}
- <div className="card" style={{ padding: 'var(--sp-4)', background: '#ffffff', border: '2px solid #000', boxShadow: '4px 4px 0 #000' }}>
- <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
- <div>
- <span className="badge badge-brand" style={{ fontSize: '10px', textTransform: 'uppercase', marginBottom: '6px' }}>
- GOOGLE GEMINI INTELLIGENCE SYSTEM
- </span>
- <h3 style={{ fontSize: '18px', fontWeight: 900, textTransform: 'uppercase', color: '#000' }}>
- Gemini API & Autonomous Capabilities
- </h3>
- <p style={{ fontSize: '13px', color: '#555', marginTop: '4px' }}>
- Ordis is powered by Google Gemini API with native function calling across all 12 core Cursis modules.
- </p>
- </div>
-
- <div
- style={{
- padding: '8px 14px',
- borderRadius: '6px',
- border: '1.5px solid #000',
- background: aiEngineStatus === 'gemini' ? '#dcfce7' : '#fef3c7',
- color: aiEngineStatus === 'gemini' ? '#15803d' : '#92400e',
- fontWeight: 900,
- fontSize: '12px',
- display: 'flex',
- alignItems: 'center',
- gap: '6px',
- }}
- >
- <span>●</span>
- <span>{aiEngineStatus === 'gemini' ? `Connected: ${modelDisplayName}` : 'Local Fallback Engine Active'}</span>
- </div>
- </div>
-
- {/* API Key & Model Configuration */}
- <div
- style={{
- background: '#f9f9f6',
- border: '1.5px solid #000',
- padding: '16px',
- borderRadius: '4px',
- display: 'flex',
- flexDirection: 'column',
- gap: '14px',
- }}
- >
- <div>
- <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px' }}>
- Google Gemini API Key:
- </label>
- <div style={{ display: 'flex', gap: '8px', maxWidth: '650px' }}>
- <input
- type={showApiKey ? 'text' : 'password'}
- placeholder="Enter your Gemini API key (e.g. AIzaSy...)"
- value={apiKeyDraft}
- onChange={(e) => setApiKeyDraft(e.target.value)}
- style={{
- flex: 1,
- padding: '8px 12px',
- border: '1.5px solid #000',
- fontSize: '13px',
- background: '#fff',
- fontFamily: 'monospace',
- }}
- />
- <button
- type="button"
- onClick={() => setShowApiKey((p) => !p)}
- className="btn btn-secondary btn-sm"
- style={{ border: '1.5px solid #000', fontWeight: 700 }}
- >
- {showApiKey ? 'Hide' : 'Show'}
- </button>
- <button
- type="button"
- onClick={handleSaveApiKey}
- className="btn btn-primary btn-sm"
- style={{ border: '1.5px solid #000', fontWeight: 900 }}
- >
- Save Key
- </button>
- {geminiApiKey && (
- <button
- type="button"
- onClick={() => {
- setGeminiApiKey('');
- setApiKeyDraft('');
- showToast('Reset to local engine');
- }}
- className="btn btn-secondary btn-sm"
- style={{ border: '1.5px solid #000', color: '#dc2626' }}
- >
- Clear
- </button>
- )}
- </div>
- <div style={{ fontSize: '11px', color: '#666', marginTop: '6px' }}>
- Get your free API key at{' '}
- <a
- href="https://aistudio.google.com/apikey"
- target="_blank"
- rel="noopener noreferrer"
- style={{ color: '#0f4cff', fontWeight: 700, textDecoration: 'underline' }}
- >
- Google AI Studio (aistudio.google.com)
- </a>
- . If no key is set, Ordis runs seamlessly on the local deterministic engine.
- </div>
- </div>
-
- {/* Model Selection */}
- <div>
- <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px' }}>
- Model Selection:
- </label>
- <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
- {[
- { id: 'gemini-2.5-flash', title: 'Gemini 2.5 Flash', tag: 'Recommended', desc: 'Sub-second speed, flawless tool invocation & Hinglish support.' },
- { id: 'gemini-2.5-pro', title: 'Gemini 2.5 Pro', tag: 'Deep Reasoning', desc: 'Complex sprint analysis, multi-stage task dependency planning.' },
- { id: 'gemini-2.0-flash', title: 'Gemini 2.0 Flash', tag: 'Multimodal', desc: 'Next-gen vision, real-time audio and fast streaming responses.' },
- ].map((m) => (
- <div
- key={m.id}
- onClick={() => {
- setOrdisModel(m.id);
- showToast(`Switched to ${m.title}`);
- }}
- style={{
- padding: '12px',
- border: `2px solid ${ordisModel === m.id ? '#0f4cff' : '#000'}`,
- background: ordisModel === m.id ? 'rgba(15, 76, 255, 0.05)' : '#fff',
- cursor: 'pointer',
- display: 'flex',
- flexDirection: 'column',
- justifyContent: 'space-between',
- gap: '6px',
- boxShadow: ordisModel === m.id ? '3px 3px 0 #0f4cff' : '2px 2px 0 #000',
- }}
- >
- <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
- <span style={{ fontWeight: 900, fontSize: '13px' }}>{m.title}</span>
- <span className="badge badge-brand" style={{ fontSize: '9px' }}>{m.tag}</span>
- </div>
- <p style={{ fontSize: '11px', color: '#555', margin: 0 }}>{m.desc}</p>
- </div>
- ))}
- </div>
- </div>
- </div>
- </div>
-
- {/* Bilingual & Hinglish Highlight Banner */}
- <div
- className="card"
- style={{
- padding: '16px 20px',
- background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
- border: '2px solid #000',
- boxShadow: '4px 4px 0 #000',
- }}
- >
- <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
- <span style={{ fontSize: '22px' }}></span>
- <h4 style={{ fontSize: '15px', fontWeight: 900, textTransform: 'uppercase', color: '#000' }}>
- Bilingual & Hinglish Chat Support
- </h4>
- </div>
- <p style={{ fontSize: '12.5px', color: '#333', lineHeight: 1.5 }}>
- You don&apos;t need to use robotic CLI commands. Ordis understands conversational English and Hinglish seamlessly. Try asking:
- <strong style={{ color: '#9a3412', marginLeft: '6px' }}>&quot;Kal kaunse urgent tasks bache hai?&quot;</strong> or <strong style={{ color: '#9a3412' }}>&quot;Alex ke sath kal dopahar 3 baje sync schedule kardo&quot;</strong>.
- </p>
- </div>
-
- {/* 12 Core Autonomous Capabilities Grid */}
- <div>
- <div style={{ fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '10px', color: '#000' }}>
- 12 Autonomous Tools Connected to Google Gemini
- </div>
- <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '12px' }}>
- {autonomousCapabilities.map((cap) => (
- <div
- key={cap.tool}
- className="card"
- style={{
- padding: '16px',
- background: '#fff',
- border: '2px solid #000',
- boxShadow: '3px 3px 0 #000',
- display: 'flex',
- flexDirection: 'column',
- justifyContent: 'space-between',
- gap: '10px',
- }}
- >
- <div>
- <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
- <span style={{ fontSize: '18px' }}>{cap.icon}</span>
- <span style={{ fontWeight: 900, fontSize: '13px', textTransform: 'uppercase' }}>{cap.name}</span>
- <code style={{ fontSize: '10px', background: '#eee', padding: '1px 4px', borderRadius: '3px', marginLeft: 'auto' }}>
- {cap.tool}
- </code>
- </div>
- <p style={{ fontSize: '11.5px', color: '#555', lineHeight: 1.4, margin: 0 }}>
- {cap.desc}
- </p>
- </div>
-
- <div style={{ borderTop: '1px solid #eee', paddingTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
- <span style={{ fontSize: '10.5px', color: '#888', fontStyle: 'italic', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
- &quot;{cap.sample}&quot;
- </span>
- <button
- type="button"
- onClick={() => {
- setActiveView('commander');
- handleSend(cap.sample);
- }}
- className="btn btn-primary btn-sm"
- style={{ fontSize: '10.5px', padding: '4px 10px', border: '1.5px solid #000', flexShrink: 0 }}
- >
- Run 
- </button>
- </div>
- </div>
- ))}
- </div>
- </div>
  </div>
  )}
 

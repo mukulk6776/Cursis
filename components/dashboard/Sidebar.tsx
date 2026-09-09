@@ -113,25 +113,47 @@ export default function Sidebar() {
           <span className="sidebar-item-icon">
             <span
               style={{
-                width: '18px',
-                height: '18px',
-                background: '#000000',
-                color: '#ccff00',
+                width: '22px',
+                height: '22px',
+                background: '#0A0A0A',
+                borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '10px',
-                fontWeight: 900,
-                borderRadius: '2px',
+                boxShadow: '1.5px 1.5px 0 0 #FF5500',
+                flexShrink: 0,
               }}
             >
-              O
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+                <path
+                  d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+                  fill="#FF5500"
+                />
+              </svg>
             </span>
           </span>
           <span className="sidebar-item-text" style={{ fontWeight: 900 }}>
             ORDIS AI
           </span>
-          {!sidebarCollapsed && <span className="badge badge-accent" style={{ fontSize: '9px' }}>COPILOT</span>}
+          {!sidebarCollapsed && (
+            <span
+              className="badge"
+              style={{
+                fontSize: '9px',
+                fontWeight: 900,
+                background: '#FF5500',
+                color: '#FFFFFF',
+                border: '1px solid #0A0A0A',
+                boxShadow: '1px 1px 0 #0A0A0A',
+                letterSpacing: '0.04em',
+                padding: '2px 6px',
+                borderRadius: '9999px',
+              }}
+            >
+              AI
+            </span>
+          )}
         </div>
 
         <div className="sidebar-divider" />

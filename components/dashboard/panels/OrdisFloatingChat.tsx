@@ -248,23 +248,27 @@ export default function OrdisFloatingChat() {
  >
  {/* Animated Glowing Orb Badge */}
  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
- <div
- style={{
- width: '34px',
- height: '34px',
- borderRadius: '10px',
- background: 'linear-gradient(135deg, #2965ff 0%, #38bdf8 100%)',
- display: 'flex',
- alignItems: 'center',
- justifyContent: 'center',
- color: '#fff',
- boxShadow: '0 0 14px rgba(41, 101, 255, 0.4)',
- }}
- >
- <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
- <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
- </svg>
- </div>
+        <div
+          style={{
+            width: '34px',
+            height: '34px',
+            borderRadius: '10px',
+            background: '#0A0A0A',
+            border: '2px solid #0A0A0A',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '2px 2px 0 0 #FF5500',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+            <path
+              d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+              fill="#FF5500"
+            />
+          </svg>
+        </div>
  {/* Pulsing online ring */}
  <span
  style={{
@@ -339,25 +343,27 @@ export default function OrdisFloatingChat() {
  }}
  >
  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
- <div
- style={{
- width: '34px',
- height: '34px',
- borderRadius: '10px',
- background: 'linear-gradient(135deg, #0f4cff 0%, #38bdf8 100%)',
- display: 'flex',
- alignItems: 'center',
- justifyContent: 'center',
- fontSize: '16px',
- fontWeight: 'bold',
- color: '#fff',
- boxShadow: '0 0 14px rgba(41, 101, 255, 0.4)',
- }}
- >
- <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
- <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
- </svg>
- </div>
+          <div
+            style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '10px',
+              background: '#0A0A0A',
+              border: '1.5px solid rgba(255, 255, 255, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 14px rgba(255, 85, 0, 0.35)',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+              <path
+                d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+                fill="#FF5500"
+              />
+            </svg>
+          </div>
  <div>
  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
  <span style={{ fontWeight: 800, fontSize: '14px', color: '#fff' }}>Ordis AI</span>
