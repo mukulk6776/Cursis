@@ -52,15 +52,15 @@ export default function HeroSection() {
     <section className="lp-section lp-hero" id="hero">
       {/* Hero Header */}
       <div className="lp-hero-header">
-        <div className="lp-badge-clean">
-          <span>Enterprise Operations Platform</span>
-          <span className="lp-badge-dot" />
-          <span className="lp-badge-accent">Ordis Autonomous Intelligence</span>
+        <div className="tano-hero-badge">
+          <span className="tano-hero-badge-pill">NEW</span>
+          <span className="tano-hero-badge-text">Ordis Autonomous Intelligence</span>
+          <span className="tano-hero-badge-arrow">→</span>
         </div>
 
         <h1 className="lp-hero-title">
           Enterprise Operations.<br />
-          <span className="lp-highlight">Unified by Intelligence.</span><br />
+          <span className="tano-hero-marker">Unified by Intelligence.</span><br />
           Engineered for Scale.
         </h1>
 
@@ -93,6 +93,9 @@ export default function HeroSection() {
 
       {/* Interactive Centerpiece Agent Console */}
       <div className="lp-hero-mockup">
+        {/* Tano Signature Rotated Washi Tape */}
+        <div className="tano-washi-tape" style={{ top: -12, right: 38, transform: 'rotate(2.5deg)' }} aria-hidden="true" />
+
         {/* Mockup Window Chrome */}
         <div className="lp-mockup-topbar">
           <div className="lp-mockup-topbar-left">

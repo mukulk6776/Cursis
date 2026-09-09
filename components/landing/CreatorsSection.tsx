@@ -40,59 +40,34 @@ export default function CreatorsSection() {
 
         <div className="lp-creators-cards-row">
           {/* Content Pipeline Card */}
-          <div className="lp-bento-card">
-            <div className="lp-card-subhead" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-              <span style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', color: '#1A1612' }}>Content Pipeline</span>
-              <span style={{ fontSize: '11px', color: '#8C8477', fontWeight: 600 }}>(Click step to toggle)</span>
+          <div className="lp-bento-card lp-creators-card">
+            <div className="tano-washi-tape" style={{ top: -11, right: 32, transform: 'rotate(-2deg)' }} aria-hidden="true" />
+            <div className="lp-card-subhead">
+              <span className="lp-card-tag-tano">Content Pipeline</span>
+              <span className="lp-card-hint">(Click step to toggle)</span>
             </div>
-            <div className="lp-pipeline-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="lp-pipeline-list">
               {pipeline.map((item) => (
                 <div
                   key={item.num}
                   onClick={() => toggleStep(item.num)}
-                  className={`lp-pipeline-item ${item.done ? 'active' : ''}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 14px',
-                    borderRadius: '12px',
-                    background: item.done ? '#FAF8F5' : '#FFFFFF',
-                    border: item.done ? '1px solid #E8E4DE' : '1px solid #E8E4DE',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
+                  className={`lp-pipeline-tano-item ${item.done ? 'completed' : ''}`}
                   title={`${item.label}: ${item.desc}`}
                 >
-                  <span
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 11,
-                      fontWeight: 800,
-                      background: item.done ? '#10b981' : '#FAF8F5',
-                      color: item.done ? '#FFFFFF' : '#8C8477',
-                      border: item.done ? 'none' : '1px solid #E8E4DE',
-                      flexShrink: 0,
-                    }}
-                  >
+                  <span className="lp-pipeline-tano-badge">
                     {item.done ? (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="3.5">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     ) : (
                       item.num
                     )}
                   </span>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: item.done ? '#8C8477' : '#1A1612', textDecoration: item.done ? 'line-through' : 'none' }}>
+                  <div className="lp-pipeline-tano-info">
+                    <span className="lp-pipeline-tano-label">
                       {item.label}
                     </span>
-                    <span style={{ fontSize: '11px', color: '#8C8477' }}>{item.desc}</span>
+                    <span className="lp-pipeline-tano-desc">{item.desc}</span>
                   </div>
                 </div>
               ))}
@@ -100,50 +75,28 @@ export default function CreatorsSection() {
           </div>
 
           {/* Team Roles Card */}
-          <div className="lp-bento-card">
-            <div className="lp-card-subhead" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-              <span style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', color: '#1A1612' }}>Creator Crew Roles</span>
-              <span style={{ fontSize: '11px', color: '#8C8477', fontWeight: 600 }}>Modular team roles</span>
+          <div className="lp-bento-card lp-creators-card">
+            <div className="tano-washi-tape" style={{ top: -11, left: 32, transform: 'rotate(2.5deg)' }} aria-hidden="true" />
+            <div className="lp-card-subhead">
+              <span className="lp-card-tag-tano">Creator Crew Roles</span>
+              <span className="lp-card-hint">Modular team roles</span>
             </div>
-            <div className="lp-roles-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="lp-roles-list">
               {roles.map((r) => (
                 <div
                   key={r.code}
-                  className="lp-role-item"
+                  className={`lp-role-tano-item ${selectedRole === r.code ? 'selected' : ''}`}
                   onClick={() => setSelectedRole(selectedRole === r.code ? null : r.code)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 14px',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    border: selectedRole === r.code ? '1px solid #2965ff' : '1px solid #E8E4DE',
-                    background: selectedRole === r.code ? '#F4F7FF' : '#FFFFFF',
-                    boxShadow: selectedRole === r.code ? '0 2px 8px rgba(41,101,255,0.1)' : 'none',
-                    transition: 'all 0.15s ease',
-                  }}
                 >
                   <span
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: '50%',
-                      background: r.color,
-                      color: '#FFFFFF',
-                      fontSize: 10,
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
+                    className="lp-role-tano-avatar"
+                    style={{ background: r.color }}
                   >
                     {r.code}
                   </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1612' }}>{r.title}</span>
-                    <span style={{ fontSize: '11px', color: '#8C8477' }}>{r.duty}</span>
+                  <div className="lp-role-tano-info">
+                    <span className="lp-role-tano-title">{r.title}</span>
+                    <span className="lp-role-tano-duty">{r.duty}</span>
                   </div>
                 </div>
               ))}

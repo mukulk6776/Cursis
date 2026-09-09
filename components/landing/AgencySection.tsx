@@ -106,44 +106,19 @@ export default function AgencySection() {
           {services.map((item) => (
             <div
               key={item.title}
-              className="lp-bento-card"
+              className="tano-agency-card"
               onClick={() => {
                 setSelectedService(item.title);
                 setInquiryModalOpen(true);
               }}
-              style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10 }}
               title={`Click to inquire about ${item.title}`}
             >
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: '#FAF8F5',
-                  border: '1px solid #E8E4DE',
-                  color: '#2965ff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <div className="tano-agency-icon">
                 {item.icon}
               </div>
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1A1612', margin: 0 }}>{item.title}</h3>
-              <p style={{ fontSize: 13, color: '#6E685F', margin: 0, lineHeight: 1.5, flex: 1 }}>{item.desc}</p>
-              <div
-                style={{
-                  marginTop: 'auto',
-                  paddingTop: '12px',
-                  borderTop: '1px solid #E8E4DE',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#2965ff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
+              <h3 className="tano-agency-title">{item.title}</h3>
+              <p className="tano-agency-desc">{item.desc}</p>
+              <div className="tano-agency-footer">
                 <span>Request Custom Build →</span>
               </div>
             </div>
@@ -165,91 +140,47 @@ export default function AgencySection() {
         </div>
       </div>
 
-      {/* Interactive Agency Inquiry Modal (Tano Luxury Rounded) */}
+      {/* Interactive Agency Inquiry Modal (Authentic Tano Neo-Brutalist) */}
       {inquiryModalOpen && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(26, 22, 18, 0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 99999,
-            padding: '20px',
-            backdropFilter: 'blur(8px)',
-          }}
+          className="tano-modal-overlay"
           onClick={(e) => {
             if (e.target === e.currentTarget) setInquiryModalOpen(false);
           }}
         >
-          <div
-            style={{
-              background: '#FFFFFF',
-              border: '1px solid #E8E4DE',
-              borderRadius: '24px',
-              boxShadow: '0 24px 60px -10px rgba(26, 22, 18, 0.25)',
-              width: '100%',
-              maxWidth: '520px',
-              padding: '32px',
-              position: 'relative',
-            }}
-          >
+          <div className="tano-modal-card">
+            {/* Washi tape on modal */}
+            <div className="tano-washi-tape" style={{ top: -11, left: '50%', transform: 'translateX(-50%) rotate(-1.5deg)' }} aria-hidden="true" />
+
             <button
               onClick={() => setInquiryModalOpen(false)}
-              style={{
-                position: 'absolute',
-                top: '18px',
-                right: '18px',
-                background: '#FAF8F5',
-                border: '1px solid #E8E4DE',
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#1A1612',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
+              className="tano-modal-close"
               aria-label="Close modal"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
 
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#2965ff', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+            <div className="tano-modal-eyebrow">
               CURSIS ENGINEERING STUDIO
             </div>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#1A1612', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+            <h3 className="tano-modal-title">
               Custom {selectedService} Project
             </h3>
-            <p style={{ fontSize: '13px', color: '#6E685F', marginBottom: '22px', lineHeight: 1.5 }}>
+            <p className="tano-modal-subtitle">
               Tell us what you want to build. Our senior architects will review your requirements and return with an architectural proposal within 24 hours.
             </p>
 
             {submitted ? (
-              <div
-                style={{
-                  padding: '20px',
-                  background: '#ECFDF5',
-                  border: '1px solid #A7F3D0',
-                  borderRadius: '14px',
-                  textAlign: 'center',
-                  fontWeight: 700,
-                  fontSize: '13px',
-                  color: '#065F46',
-                }}
-              >
+              <div className="tano-modal-success">
                 Inquiry Received. The Cursis Solutions Studio will contact you within 24 hours.
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <form onSubmit={handleSubmit} className="tano-modal-form">
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#8C8477', marginBottom: '6px' }}>
+                  <label className="tano-form-label">
                     Your Name
                   </label>
                   <input
@@ -258,21 +189,12 @@ export default function AgencySection() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g. Alex Rivera"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #E8E4DE',
-                      background: '#FAF8F5',
-                      fontSize: '13px',
-                      color: '#1A1612',
-                      outline: 'none',
-                    }}
+                    className="tano-form-input"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#8C8477', marginBottom: '6px' }}>
+                  <label className="tano-form-label">
                     Work Email
                   </label>
                   <input
@@ -281,21 +203,12 @@ export default function AgencySection() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="alex@company.com"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #E8E4DE',
-                      background: '#FAF8F5',
-                      fontSize: '13px',
-                      color: '#1A1612',
-                      outline: 'none',
-                    }}
+                    className="tano-form-input"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#8C8477', marginBottom: '6px' }}>
+                  <label className="tano-form-label">
                     Project Requirements / Architecture Brief
                   </label>
                   <textarea
@@ -304,17 +217,7 @@ export default function AgencySection() {
                     value={formData.details}
                     onChange={(e) => setFormData({ ...formData, details: e.target.value })}
                     placeholder={`Describe the custom ${selectedService} solution you need...`}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #E8E4DE',
-                      background: '#FAF8F5',
-                      fontSize: '13px',
-                      color: '#1A1612',
-                      outline: 'none',
-                      resize: 'vertical',
-                    }}
+                    className="tano-form-input tano-form-textarea"
                   />
                 </div>
 

@@ -1,43 +1,43 @@
 /* ============================================
-   CURSIS — Tano.ai Luxury Minimalist Design Tokens
-   Warm Alabaster Canvas, Deep Charcoal, Hairline Borders & Zero Emojis
+   CURSIS — Authentic Tano.ai Design System Tokens
+   Warm Editorial Cream (#FBF4E0), Pure Ink (#0A0A0A),
+   Solid Offset Neo-Brutalist Shadows, and Pastel Accents
    ============================================ */
 
 :root {
-  /* ---- Colors (Tano.ai System) ---- */
-  --c-near-black: #1A1612;    /* Deep warm espresso charcoal */
-  --c-dark: #12100E;
-  --c-dark-2: #24201C;
+  /* ---- Tano.ai Core Signature Palette ---- */
+  --c-cream: #FBF4E0;         /* Tano signature warm vintage cream canvas */
+  --c-paper: #FFFFFF;         /* Crisp white card surface */
+  --c-ink: #0A0A0A;           /* Pure solid ink for 3px borders and hard shadows */
+  --c-ink-soft: #1A1A1A;      /* Editorial body ink */
+  --c-near-black: #0A0A0A;
+  --c-dark: #0A0A0A;
+  --c-dark-2: #181614;
   --c-white: #ffffff;
-  
+
+  /* ---- Tano.ai Signature Pastels ---- */
+  --c-yellow: #FFD66B;        /* Tano pastel butter yellow */
+  --c-mint: #9BE7C4;          /* Tano pastel retro mint */
+  --c-pink: #FFB8D1;          /* Tano pastel soft pink */
+  --c-blue: #A7E3F1;          /* Tano pastel powder blue */
+  --c-coral: #FF7A66;         /* Tano signature vibrant retro coral CTA accent */
+  --c-purple: #C9B6FF;        /* Tano pastel lavender purple */
+
   /* Backgrounds */
-  --c-bg: #F6F4F0;            /* Tano signature warm alabaster cream canvas */
-  --c-bg-subtle: #EFEBE4;     /* Warm pill/card tint */
-  --c-bg-elevated: #ffffff;
-  
-  /* Grays / Warm Stones (Tano Palette) */
-  --c-gray-50: #FAF8F5;
-  --c-gray-100: #F3EFEA;
-  --c-gray-200: #E8E4DE;
-  --c-gray-300: #DCD6CD;
-  --c-gray-400: #B8B2AA;
-  --c-gray-500: #968F87;
-  --c-gray-600: #6B655F;
-  --c-gray-700: #4A4540;
-  --c-gray-800: #2E2A26;
-  --c-gray-900: #1A1612;
-  
-  /* Brand Accents (Tano Royal Electric Blue) */
-  --c-brand: #2965ff;         /* Tano signature electric royal blue */
-  --c-brand-light: #4f82ff;
-  --c-brand-dark: #1a51e6;
-  --c-brand-bg: #EEF3FF;
-  
-  /* Elegant Minimalist Accent */
-  --c-accent: #2965ff;
-  --c-accent-light: #4f82ff;
-  --c-accent-bg: #EEF3FF;
-  
+  --c-bg: #FBF4E0;            /* Warm rich cream background */
+  --c-bg-subtle: #F3ECD5;     /* Warm card/badge tint */
+  --c-bg-elevated: #FFFFFF;
+
+  /* Brand Accents */
+  --c-brand: #FF7A66;         /* Tano signature coral */
+  --c-brand-light: #FF9B8A;
+  --c-brand-dark: #E65C47;
+  --c-brand-bg: #FFF0ED;
+
+  --c-accent: #FFD66B;        /* Tano yellow accent */
+  --c-accent-light: #FFE08F;
+  --c-accent-bg: #FFF9E6;
+
   /* Status */
   --c-success: #10b981;
   --c-success-bg: #ecfdf5;
@@ -45,6 +45,8 @@
   --c-warning-bg: #fffbeb;
   --c-error: #ef4444;
   --c-error-bg: #fef2f2;
+  --c-info: #2965ff;
+  --c-info-bg: #eef3ff;
   --c-info: var(--c-brand);
   --c-info-bg: var(--c-brand-bg);
   --c-purple: #8b5cf6;
@@ -83,27 +85,28 @@
   --ls-wide: 0.03em;
   
   /* ---- Semantic Colors ---- */
-  --text-primary: #1A1612;
-  --text-secondary: #6B655F;
-  --text-tertiary: #968F87;
-  --text-muted: #B8B2AA;
+  --text-primary: #0A0A0A;
+  --text-secondary: #1A1A1A;
+  --text-tertiary: #4A4A4A;
+  --text-muted: #737373;
   
   --surface-primary: var(--c-bg);
   --surface-secondary: #ffffff;
-  --surface-tertiary: #F3EFEA;
+  --surface-tertiary: #F3ECD5;
   
-  --border-color: #E8E4DE;
-  --border-light: #F0EDE8;
-  --border-dark: #DCD6CD;
-  --border-focus: var(--c-brand);
+  --border-color: #0A0A0A;
+  --border-light: #0A0A0A;
+  --border-dark: #0A0A0A;
+  --border-focus: var(--c-coral);
+  --border-width: 3px;
   
   --surface-sidebar: #FAF8F5;
-  --surface-topbar: rgba(246, 244, 240, 0.92);
+  --surface-topbar: rgba(251, 244, 224, 0.95);
   --surface-card: #ffffff;
   --surface-modal: #ffffff;
-  --surface-overlay: rgba(26, 22, 18, 0.5);
-  --surface-hover: rgba(26, 22, 18, 0.035);
-  --surface-active: rgba(26, 22, 18, 0.07);
+  --surface-overlay: rgba(10, 10, 10, 0.6);
+  --surface-hover: rgba(10, 10, 10, 0.05);
+  --surface-active: rgba(10, 10, 10, 0.1);
   
   /* ---- Layout & Geometry ---- */
   --sidebar-width: 240px;
@@ -122,28 +125,30 @@
   --sp-10: 4rem;
   --sp-16: 6rem;
   
-  /* Soft Curves (Tano Luxury Geometry) */
+  /* Tano Curves */
   --border-radius-xs: 6px;
-  --border-radius-sm: 8px;
-  --border-radius-md: 12px;
+  --border-radius-sm: 10px;
+  --border-radius-md: 14px;
   --border-radius-lg: 16px;
-  --border-radius-xl: 20px;
-  --border-radius-2xl: 26px;
+  --border-radius-xl: 18px;
+  --border-radius-2xl: 24px;
   --border-radius-full: 9999px;
   
-  /* Soft Ambient Diffused Shadows */
-  --shadow-xs: 0 1px 2px 0 rgba(26, 22, 18, 0.03);
-  --shadow-sm: 0 1px 3px 0 rgba(26, 22, 18, 0.04), 0 1px 2px -1px rgba(26, 22, 18, 0.03);
-  --shadow-md: 0 4px 14px -2px rgba(26, 22, 18, 0.05), 0 2px 6px -2px rgba(26, 22, 18, 0.03);
-  --shadow-lg: 0 10px 28px -6px rgba(26, 22, 18, 0.07), 0 4px 10px -4px rgba(26, 22, 18, 0.03);
-  --shadow-xl: 0 20px 40px -10px rgba(26, 22, 18, 0.09), 0 8px 16px -6px rgba(26, 22, 18, 0.03);
-  --shadow-2xl: 0 25px 60px -15px rgba(26, 22, 18, 0.12);
+  /* Authentic Tano Neo-Brutalist Solid Offset Ink Shadows */
+  --shadow-xs: 2px 2px 0 0 #0A0A0A;
+  --shadow-sm: 3px 3px 0 0 #0A0A0A;
+  --shadow-md: 6px 6px 0 0 #0A0A0A;
+  --shadow-lg: 8px 8px 0 0 #0A0A0A;
+  --shadow-xl: 10px 10px 0 0 #0A0A0A;
+  --shadow-2xl: 12px 12px 0 0 #0A0A0A;
   
-  --shadow-card-hover: 0 12px 30px -6px rgba(26, 22, 18, 0.08), 0 4px 12px -2px rgba(26, 22, 18, 0.03);
-  --shadow-brand: 0 4px 16px rgba(41, 101, 255, 0.25);
-  --shadow-glow: 0 0 24px rgba(41, 101, 255, 0.15);
-  
-  --border-width: 1px;
+  --shadow-tano: 6px 6px 0 0 #0A0A0A;
+  --shadow-tano-hover: 8px 8px 0 0 #0A0A0A;
+  --shadow-card-hover: 8px 8px 0 0 #0A0A0A;
+  --shadow-coral: 8px 8px 0 0 #FF7A66;
+  --shadow-yellow: 8px 8px 0 0 #FFD66B;
+  --shadow-mint: 8px 8px 0 0 #9BE7C4;
+  --shadow-brand: 6px 6px 0 0 #0A0A0A;
   
   /* ---- Motion ---- */
   --dur-fast: 0.12s;
