@@ -2237,52 +2237,90 @@ body.lp-body,
 }
 
 /* ============================================
-   10. 17 MODULES GRID
+/* ============================================
+   10. REAL WORKSPACE MODULES (11 SUBSYSTEMS)
    ============================================ */
-.lp-modules-grid {
+.tano-modules-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+  gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
-.lp-module-item {
+
+.tano-module-card {
   background: #FFFFFF;
-  border: 2.5px solid #0A0A0A !important;
-  border-radius: 12px !important;
-  box-shadow: 4px 4px 0 0 #0A0A0A !important;
-  padding: 20px 18px;
+  border: 3px solid #0A0A0A !important;
+  border-radius: 14px !important;
+  box-shadow: 5px 5px 0 0 #0A0A0A !important;
+  padding: 24px 20px;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  position: relative;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.lp-module-item:hover {
+.tano-module-card:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 0 #0A0A0A !important;
+  box-shadow: 7px 7px 0 0 #0A0A0A !important;
 }
-.lp-module-num {
+
+/* Featured Ordis Copilot Card (Tano Signature Butter Yellow with Washi Tape) */
+.tano-module-card.tano-module-featured {
+  grid-column: span 2;
+  background: #FFD66B !important;
+  border: 3.5px solid #0A0A0A !important;
+  box-shadow: 7px 7px 0 0 #0A0A0A !important;
+}
+.tano-module-card.tano-module-featured:hover {
+  box-shadow: 9px 9px 0 0 #0A0A0A !important;
+}
+
+.tano-module-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.tano-module-num {
   font-family: 'Inter Tight', monospace;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   color: #0A0A0A;
   background: #FAF8F5;
-  border: 1.5px solid #0A0A0A;
+  border: 2px solid #0A0A0A;
+  box-shadow: 2px 2px 0 0 #0A0A0A;
   border-radius: 6px;
-  padding: 2px 6px;
+  padding: 2px 8px;
   display: inline-block;
-  margin-bottom: 10px;
 }
-.lp-module-name {
+.tano-module-badge {
   font-family: 'Inter Tight', sans-serif;
-  font-size: 16px;
+  font-size: 10px;
   font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: #0A0A0A;
-  margin-bottom: 6px;
+  background: #FF7A66;
+  border: 1.5px solid #0A0A0A;
+  border-radius: 9999px;
+  padding: 2px 8px;
 }
-.lp-module-desc {
-  font-size: 12px;
-  color: #3A3A3A;
-  line-height: 1.5;
-  font-weight: 500;
+
+.tano-module-name {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0A0A0A;
+  margin: 0 0 8px;
+}
+.tano-module-desc {
+  font-size: 13px;
+  color: #1A1A1A;
+  line-height: 1.55;
+  margin: 0;
+  font-weight: 600;
 }
 
 /* ============================================
@@ -2657,7 +2695,8 @@ body.lp-body,
   .lp-workflow-timeline { grid-template-columns: repeat(3, 1fr); }
   .lp-bento-grid { grid-template-columns: repeat(2, 1fr); }
   .lp-bento-span-2 { grid-column: span 2; }
-  .lp-modules-grid { grid-template-columns: repeat(3, 1fr); }
+  .tano-modules-grid { grid-template-columns: repeat(2, 1fr); }
+  .tano-module-card.tano-module-featured { grid-column: span 2; }
   .lp-steps-flow { grid-template-columns: repeat(3, 1fr); }
   .tano-case-cards-grid { grid-template-columns: 1fr; }
   .lp-mockup-body { grid-template-columns: 1fr; }
@@ -2672,7 +2711,8 @@ body.lp-body,
   .lp-bento-grid { grid-template-columns: 1fr; }
   .lp-bento-span-1, .lp-bento-span-2 { grid-column: span 1; }
   .lp-creators-cards-row { grid-template-columns: 1fr; }
-  .lp-modules-grid { grid-template-columns: repeat(2, 1fr); }
+  .tano-modules-grid { grid-template-columns: 1fr; }
+  .tano-module-card.tano-module-featured { grid-column: span 1; }
   .lp-agency-grid { grid-template-columns: 1fr; }
   .lp-footer-inner { grid-template-columns: 1fr; }
   .lp-steps-flow { grid-template-columns: repeat(2, 1fr); }
@@ -2682,7 +2722,7 @@ body.lp-body,
 }
 
 @media (max-width: 480px) {
-  .lp-modules-grid { grid-template-columns: 1fr; }
+  .tano-modules-grid { grid-template-columns: 1fr; }
   .lp-steps-flow { grid-template-columns: 1fr; }
   .lp-footer-links-group { grid-template-columns: 1fr; }
 }

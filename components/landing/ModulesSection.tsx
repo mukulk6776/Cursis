@@ -11,8 +11,8 @@ export default function ModulesSection() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const end = 17;
-            const duration = 1000;
+            const end = 11;
+            const duration = 900;
             let startTime: number | null = null;
 
             const step = (timestamp: number) => {
@@ -23,7 +23,7 @@ export default function ModulesSection() {
               if (progress < 1) {
                 requestAnimationFrame(step);
               } else {
-                setCount(17);
+                setCount(11);
               }
             };
             requestAnimationFrame(step);
@@ -41,48 +41,110 @@ export default function ModulesSection() {
     return () => observer.disconnect();
   }, []);
 
+  // Real, verified modules that exist in Cursis codebase
   const modules = [
-    { num: '01', name: 'Dashboard', desc: 'Your command center. Everything at a glance.' },
-    { num: '02', name: 'Projects', desc: 'Organize work into clear, trackable projects.' },
-    { num: '03', name: 'Tasks', desc: 'Create, assign, track. Board or list view.' },
-    { num: '04', name: 'Messages', desc: 'Real-time team communication with context.' },
-    { num: '05', name: 'Calendar', desc: 'Deadlines, meetings, milestones. All synced.' },
-    { num: '06', name: 'Files', desc: 'Upload, organize, share. Every file has context.' },
-    { num: '07', name: 'Docs', desc: 'Collaborative rich-text documents.' },
-    { num: '08', name: 'Notes', desc: 'Quick captures, meeting notes, ideas.' },
-    { num: '09', name: 'My Work', desc: 'Personal view of everything assigned to you.' },
-    { num: '10', name: 'Team', desc: 'Directory, roles, permissions, invites.' },
-    { num: '11', name: 'Reports', desc: 'Visual dashboards for project health.' },
-    { num: '12', name: 'Time Log', desc: 'Track hours per task, project, or person.' },
-    { num: '13', name: 'Invoices', desc: 'Bill clients based on tracked work.' },
-    { num: '14', name: 'Clients', desc: 'Manage client contacts and projects.' },
-    { num: '15', name: 'Notifications', desc: 'Smart alerts. Never miss what matters.' },
-    { num: '16', name: 'Settings', desc: 'Workspace configuration and preferences.' },
-    { num: '17', name: 'Ordis AI', desc: 'The intelligent layer that connects everything.', highlight: true },
+    {
+      num: '01',
+      name: 'Dashboard',
+      desc: 'Command center for your enterprise. Real-time velocity, KPIs, and executive telemetry at a glance.',
+      featured: false,
+    },
+    {
+      num: '02',
+      name: 'Ordis Copilot',
+      desc: 'Autonomous workspace intelligence that proactively rebalances workload, resolves bottlenecks, and unifies cross-functional data.',
+      featured: true, // Prominent featured card in Tano Butter Yellow (#FFD66B) with washi tape
+      badge: 'AUTONOMOUS CORE',
+    },
+    {
+      num: '03',
+      name: 'Tasks & Kanban',
+      desc: 'Interactive Kanban boards and lists with priority matrices, SLA countdowns, and automated routing.',
+      featured: false,
+    },
+    {
+      num: '04',
+      name: 'Projects',
+      desc: 'Milestone roadmaps, critical-path dependency tracking, and deliverable phase trajectories.',
+      featured: false,
+    },
+    {
+      num: '05',
+      name: 'Team',
+      desc: 'Role-based directory, granular permissions, workload capacity distribution, and live presence.',
+      featured: false,
+    },
+    {
+      num: '06',
+      name: 'Calendar',
+      desc: 'Deliverable deadlines, team milestone schedules, and synchronized operational events.',
+      featured: false,
+    },
+    {
+      num: '07',
+      name: 'Meetings',
+      desc: 'Live video rooms, real-time collaboration, and automated discussion minutes.',
+      featured: false,
+    },
+    {
+      num: '08',
+      name: 'Messages',
+      desc: 'Threaded discussions, team channels, and direct contextual communication without tool bloat.',
+      featured: false,
+    },
+    {
+      num: '09',
+      name: 'Documents',
+      desc: 'Collaborative rich-text specifications, architecture RFCs, and paperwork templates.',
+      featured: false,
+    },
+    {
+      num: '10',
+      name: 'Analytics',
+      desc: 'Visual velocity dashboards, sprint burnup trajectory, and delivery SLA adherence tracking.',
+      featured: false,
+    },
+    {
+      num: '11',
+      name: 'Settings',
+      desc: 'Deterministic RBAC, session security guard, audit logs, and workspace configuration.',
+      featured: false,
+    },
   ];
 
   return (
     <section className="lp-section" id="modules" ref={sectionRef}>
-      <div className="lp-section-label lp-reveal">
-        <span>{count}</span> Core Modules
+      <div className="lp-section-header">
+        <div className="lp-section-label lp-reveal">
+          <span>{count}</span> Real Workspace Modules
+        </div>
+        <h2 className="lp-section-title lp-reveal">One unified workspace. Eleven integrated subsystems.</h2>
+        <p className="lp-section-subtitle lp-reveal">
+          Every module connects directly to your live workspace graph. Zero fake point tools, zero third-party glue code, and zero context switching.
+        </p>
       </div>
-      <h2 className="lp-section-title lp-reveal">One workspace. Seventeen integrated modules.</h2>
-      <p className="lp-section-subtitle lp-reveal">
-        Every module connects to every other module. Your data flows naturally. No integrations needed.
-      </p>
 
-      <div className="lp-modules-grid lp-stagger">
+      <div className="tano-modules-grid lp-stagger">
         {modules.map((m) => (
           <div
             key={m.num}
-            className="lp-module-item"
-            style={m.highlight ? { background: 'var(--c-accent)' } : undefined}
+            className={`tano-module-card ${m.featured ? 'tano-module-featured' : ''}`}
           >
-            <div className="lp-module-num" style={m.highlight ? { color: 'var(--c-near-black)' } : undefined}>
-              {m.num}
+            {m.featured && (
+              <div
+                className="tano-washi-tape"
+                style={{ top: -11, right: 28, transform: 'rotate(2deg)' }}
+                aria-hidden="true"
+              />
+            )}
+
+            <div className="tano-module-top">
+              <span className="tano-module-num">{m.num}</span>
+              {m.badge && <span className="tano-module-badge">{m.badge}</span>}
             </div>
-            <div className="lp-module-name">{m.name}</div>
-            <div className="lp-module-desc">{m.desc}</div>
+
+            <h3 className="tano-module-name">{m.name}</h3>
+            <p className="tano-module-desc">{m.desc}</p>
           </div>
         ))}
       </div>
