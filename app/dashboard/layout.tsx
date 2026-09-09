@@ -29,8 +29,8 @@ export default function DashboardLayout({
           credentials: 'include',
         });
 
-        // Self-healing attempt: If initial check was 401 but we have a valid stored token, re-establish session cookie
-        if (!res.ok && storedToken && storedToken.startsWith('cursis_')) {
+        // If initial check was 401 but we have a stored signed token, attempt to re-establish session cookie
+        if (!res.ok && storedToken && storedToken.startsWith('cursis_usr_')) {
           try {
             const reAuthRes = await fetch('/api/auth/session', {
               method: 'POST',

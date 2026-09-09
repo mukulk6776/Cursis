@@ -61,7 +61,7 @@ export default function LandingNav() {
           <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32">
             <path
               d="M 545 240 A 282 282 0 1 0 782 566"
-              stroke="#000000"
+              stroke="#1A1612"
               strokeWidth="142"
               strokeLinecap="round"
               fill="none"
@@ -73,7 +73,7 @@ export default function LandingNav() {
               height="156"
               rx="42"
               transform="rotate(-10 703 274)"
-              fill="#0f4cff"
+              fill="#2965ff"
             />
           </svg>
           <span className="lp-nav-logo-text">Cursis</span>
@@ -97,9 +97,6 @@ export default function LandingNav() {
           </a>
           <a href="#agency" onClick={(e) => handleAnchorClick(e, '#agency')} className="lp-nav-link">
             Enterprise
-          </a>
-          <a href="#pricing" onClick={(e) => handleAnchorClick(e, '#pricing')} className="lp-nav-link">
-            Pricing
           </a>
 
           <div className="lp-nav-mobile-actions">
@@ -155,7 +152,7 @@ export default function LandingNav() {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn btn-ghost btn-sm lp-hide-mobile">
+              <Link href="/login" className="btn btn-secondary btn-sm lp-hide-mobile">
                 Sign In
               </Link>
               <Link href="/signup" className="btn btn-primary btn-sm lp-hide-mobile">

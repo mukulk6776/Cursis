@@ -6,6 +6,8 @@ import { cookies } from 'next/headers';
 import { createUserProfile, findUserByEmail } from '@/lib/db/users';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { getAuthenticatedUser, createSessionToken } from '@/lib/auth/session';
+import { adminAuth } from '@/lib/auth/firebase-admin';
+import { verifySessionToken } from '@/lib/auth/token';
 
 export async function GET(request: Request) {
   try {
@@ -22,32 +24,56 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const email = String(body.email || '').trim().toLowerCase();
-    const displayName = String(body.displayName || '').trim();
-    const uid = String(body.uid || '').trim();
-    const photoURL = body.photoURL || undefined;
+    const idToken = String(body.idToken || '').trim();
 
-    let userEmail = email;
-    let userUid = uid;
-    let userName = displayName;
+    if (!idToken) {
+      return apiError('Authentication token is required to establish a session', 401);
+    }
 
+    let userUid = '';
+    let userEmail = '';
+    let userName = '';
+    let photoURL: string | undefined;
+
+    // 1. Check if idToken is an existing valid Cursis signed session token
+    if (idToken.startsWith('cursis_usr_')) {
+      const verified = verifySessionToken(idToken);
+      if (!verified) {
+        return apiError('Invalid or expired session token', 401);
+      }
+      userUid = verified.uid;
+      userEmail = verified.email;
+      userName = verified.displayName;
+      photoURL = verified.photoURL;
+    } else if (adminAuth) {
+      // 2. Verify with Firebase Admin (e.g. Google OAuth ID token)
+      try {
+        const decoded = await adminAuth.verifyIdToken(idToken);
+        userUid = decoded.uid;
+        userEmail = String(decoded.email || '').trim().toLowerCase();
+        userName = String(decoded.name || userEmail.split('@')[0] || 'Cursis User').trim();
+        photoURL = decoded.picture || undefined;
+
+        if (!userEmail) {
+          return apiError('A verified email address is required from your identity provider', 401);
+        }
+      } catch (authErr: any) {
+        console.warn('Firebase token verification error:', authErr?.message || authErr);
+        return apiError('Invalid or expired authentication credentials', 401);
+      }
+    } else {
+      // idToken is not a valid session token and Firebase Admin is not configured
+      return apiError('Authentication verification service is unavailable', 401);
+    }
+
+    // Check for existing user in database
     if (userEmail) {
       const existing = await findUserByEmail(userEmail);
       if (existing) {
         userUid = existing.uid;
         userName = existing.displayName || userName;
+        photoURL = existing.photoURL || photoURL;
       }
-    }
-
-    if (!userEmail && !userUid) {
-      return apiError('Valid authentication credentials are required to initialize a session', 401);
-    }
-    if (!userUid) {
-      userUid = 'usr_' + Date.now().toString(36);
-    }
-
-    if (!userName) {
-      userName = userEmail.split('@')[0] || 'Cursis User';
     }
 
     const sessionPayload = {

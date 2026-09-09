@@ -20,7 +20,7 @@ export default function CreatorsSection() {
   };
 
   const roles = [
-    { code: 'SE', title: 'Script Editor', color: '#0f4cff', duty: 'Refines video hooks, ensures narrative retention and pacing' },
+    { code: 'SE', title: 'Script Editor', color: '#2965ff', duty: 'Refines video hooks, ensures narrative retention and pacing' },
     { code: 'VE', title: 'Video Editor', color: '#8b5cf6', duty: 'Cuts footage, motion graphics, audio sync and visual SFX' },
     { code: 'TD', title: 'Thumbnail Designer', color: '#f59e0b', duty: 'Generates high-CTR concepts, color grading, title typography' },
     { code: 'SM', title: 'Social Manager', color: '#10b981', duty: 'Shorts repurposing, TikTok clipping, community engagement' },
@@ -28,69 +28,71 @@ export default function CreatorsSection() {
   ];
 
   return (
-    <section className="lp-section lp-technical-grid" id="creators" style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000' }}>
+    <section className="lp-section" id="creators">
       <div className="lp-creators-container">
         <div style={{ textAlign: 'left', marginBottom: '32px' }}>
-          <div
-            style={{
-              fontSize: '13px',
-              fontWeight: 900,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: 'var(--c-brand, #0f4cff)',
-              marginBottom: '8px',
-            }}
-          >
-            FOR CREATORS
-          </div>
-          <h2
-            style={{
-              fontSize: 'clamp(28px, 4.5vw, 44px)',
-              fontWeight: 900,
-              textTransform: 'uppercase',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
-              color: '#000000',
-              marginBottom: '14px',
-            }}
-          >
-            RUN YOUR CONTENT LIKE A PRODUCTION HOUSE
-          </h2>
-          <p
-            style={{
-              fontSize: '16px',
-              lineHeight: 1.6,
-              color: '#333333',
-              maxWidth: '750px',
-              fontWeight: 500,
-            }}
-          >
-            YouTubers, podcasters, writers, designers — Cursis gives you the same
-            workflow tools that agencies use, without the agency price tag.
+          <div className="lp-section-label">For Media &amp; Creators</div>
+          <h2 className="lp-section-title">Run Content Workflows Like a Studio</h2>
+          <p className="lp-section-subtitle" style={{ margin: '8px 0 0' }}>
+            YouTubers, podcasters, writers, designers — Cursis gives you the same high-velocity production pipelines that top agencies use.
           </p>
         </div>
 
         <div className="lp-creators-cards-row">
           {/* Content Pipeline Card */}
-          <div className="lp-brutalist-card">
-            <div className="lp-card-subhead">
-              <span>CONTENT PIPELINE</span>
-              <span style={{ fontSize: '10px', color: '#666', fontWeight: 700 }}>(Click step to toggle)</span>
+          <div className="lp-bento-card">
+            <div className="lp-card-subhead" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <span style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', color: '#1A1612' }}>Content Pipeline</span>
+              <span style={{ fontSize: '11px', color: '#8C8477', fontWeight: 600 }}>(Click step to toggle)</span>
             </div>
-            <div className="lp-pipeline-list">
+            <div className="lp-pipeline-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {pipeline.map((item) => (
                 <div
                   key={item.num}
                   onClick={() => toggleStep(item.num)}
                   className={`lp-pipeline-item ${item.done ? 'active' : ''}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    background: item.done ? '#FAF8F5' : '#FFFFFF',
+                    border: item.done ? '1px solid #E8E4DE' : '1px solid #E8E4DE',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
                   title={`${item.label}: ${item.desc}`}
                 >
-                  <span className={`lp-pipeline-num ${item.done ? 'done' : 'pending'}`}>
-                    {item.done ? '✓' : item.num}
+                  <span
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      background: item.done ? '#10b981' : '#FAF8F5',
+                      color: item.done ? '#FFFFFF' : '#8C8477',
+                      border: item.done ? 'none' : '1px solid #E8E4DE',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.done ? (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      item.num
+                    )}
                   </span>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span className="lp-pipeline-label">{item.label}</span>
-                    <span style={{ fontSize: '10px', color: '#666', fontWeight: 500 }}>{item.desc}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: item.done ? '#8C8477' : '#1A1612', textDecoration: item.done ? 'line-through' : 'none' }}>
+                      {item.label}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#8C8477' }}>{item.desc}</span>
                   </div>
                 </div>
               ))}
@@ -98,30 +100,50 @@ export default function CreatorsSection() {
           </div>
 
           {/* Team Roles Card */}
-          <div className="lp-brutalist-card">
-            <div className="lp-card-subhead">
-              <span>TEAM ROLES</span>
-              <span style={{ fontSize: '10px', color: '#666', fontWeight: 700 }}>Built for creator crews</span>
+          <div className="lp-bento-card">
+            <div className="lp-card-subhead" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <span style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', color: '#1A1612' }}>Creator Crew Roles</span>
+              <span style={{ fontSize: '11px', color: '#8C8477', fontWeight: 600 }}>Modular team roles</span>
             </div>
-            <div className="lp-roles-list">
+            <div className="lp-roles-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {roles.map((r) => (
                 <div
                   key={r.code}
                   className="lp-role-item"
                   onClick={() => setSelectedRole(selectedRole === r.code ? null : r.code)}
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 14px',
+                    borderRadius: '12px',
                     cursor: 'pointer',
-                    borderColor: selectedRole === r.code ? '#000' : 'rgba(0,0,0,0.15)',
-                    background: selectedRole === r.code ? '#ffffff' : '#fbfbf9',
-                    boxShadow: selectedRole === r.code ? '2px 2px 0 #000' : 'none',
+                    border: selectedRole === r.code ? '1px solid #2965ff' : '1px solid #E8E4DE',
+                    background: selectedRole === r.code ? '#F4F7FF' : '#FFFFFF',
+                    boxShadow: selectedRole === r.code ? '0 2px 8px rgba(41,101,255,0.1)' : 'none',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <span className="lp-role-badge" style={{ background: r.color }}>
+                  <span
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      background: r.color,
+                      color: '#FFFFFF',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
                     {r.code}
                   </span>
                   <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <span className="lp-role-title">{r.title}</span>
-                    <span style={{ fontSize: '10px', color: '#666', fontWeight: 500 }}>{r.duty}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1612' }}>{r.title}</span>
+                    <span style={{ fontSize: '11px', color: '#8C8477' }}>{r.duty}</span>
                   </div>
                 </div>
               ))}

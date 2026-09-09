@@ -116,7 +116,7 @@ const mockState = {
       when: 'When task is urgent',
       condition: null,
       then: 'Notify lead engineer',
-      icon: '⚡',
+      icon: '⚙️',
       color: '#0f4cff',
     },
   ],

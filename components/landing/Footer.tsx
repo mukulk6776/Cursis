@@ -22,7 +22,7 @@ export default function Footer() {
                 height="156"
                 rx="42"
                 transform="rotate(-10 703 274)"
-                fill="#0f4cff"
+                fill="#2965ff"
               />
             </svg>
             <span className="lp-footer-logo-text">Cursis</span>
@@ -31,13 +31,13 @@ export default function Footer() {
             The unified enterprise operations platform for high-velocity teams. Engineered with deterministic security and Ordis intelligence.
           </p>
           <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 10px', borderRadius: '9999px', fontWeight: 600 }}>
               SOC-2 Type II
             </span>
-            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 10px', borderRadius: '9999px', fontWeight: 600 }}>
               ISO 27001
             </span>
-            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+            <span style={{ fontSize: '10px', background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '3px 10px', borderRadius: '9999px', fontWeight: 600 }}>
               HIPAA & GDPR Ready
             </span>
           </div>
@@ -49,7 +49,6 @@ export default function Footer() {
             <a href="#features" className="lp-footer-link">Core Architecture</a>
             <a href="#ordis" className="lp-footer-link">Ordis Intelligence</a>
             <a href="#problem" className="lp-footer-link">Stack Comparison</a>
-            <a href="#pricing" className="lp-footer-link">Enterprise Pricing</a>
           </div>
 
           <div className="lp-footer-col">

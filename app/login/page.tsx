@@ -6,163 +6,152 @@ import { signInWithEmail, signInWithGoogle, handleGoogleRedirectResult } from '@
 import '@/styles/landing.css';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+ const [email, setEmail] = useState('');
+ const [password, setPassword] = useState('');
+ const [showPassword, setShowPassword] = useState(false);
+ const [loading, setLoading] = useState(false);
+ const [googleLoading, setGoogleLoading] = useState(false);
+ const [errorMsg, setErrorMsg] = useState('');
+ const [successMsg, setSuccessMsg] = useState('');
 
-  useEffect(() => {
-    let isMounted = true;
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('logout') === 'true') {
-        setSuccessMsg('You have been signed out successfully.');
-      }
-    }
+ useEffect(() => {
+ let isMounted = true;
+ if (typeof window !== 'undefined') {
+ const params = new URLSearchParams(window.location.search);
+ if (params.get('logout') === 'true') {
+ setSuccessMsg('You have been signed out successfully.');
+ }
+ }
 
-    handleGoogleRedirectResult()
-      .then((result) => {
-        if (isMounted && result) {
-          setGoogleLoading(true);
-          exchangeTokenAndRedirect(result).finally(() => {
-            if (isMounted) setGoogleLoading(false);
-          });
-        }
-      })
-      .catch((err) => console.warn('Google redirect notice:', err));
+ handleGoogleRedirectResult()
+ .then((result) => {
+ if (isMounted && result) {
+ setGoogleLoading(true);
+ exchangeTokenAndRedirect(result).finally(() => {
+ if (isMounted) setGoogleLoading(false);
+ });
+ }
+ })
+ .catch((err) => console.warn('Google redirect notice:', err));
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+ return () => {
+ isMounted = false;
+ };
+ }, []);
 
-  const exchangeTokenAndRedirect = async (authResult: {
-    email: string;
-    displayName: string;
-    idToken: string;
-    uid?: string;
-    photoURL?: string | null;
-  }) => {
-    try {
-      const res = await fetch('/api/auth/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          email: authResult.email,
-          displayName: authResult.displayName,
-          idToken: authResult.idToken,
-          uid: authResult.uid,
-          photoURL: authResult.photoURL,
-        }),
-      });
+ const getRedirectDestination = () => {
+ if (typeof window !== 'undefined') {
+ const params = new URLSearchParams(window.location.search);
+ const redirect = params.get('redirect');
+ if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+ return redirect;
+ }
+ }
+ return '/dashboard';
+ };
 
-      let token = '';
-      if (res.ok) {
-        try {
-          const data = await res.json().catch(() => ({}));
-          token = data.token || (data.data && data.data.token) || '';
-        } catch {}
-      }
+ const exchangeTokenAndRedirect = async (authResult: {
+ email: string;
+ displayName: string;
+ idToken: string;
+ uid?: string;
+ photoURL?: string | null;
+ }) => {
+ try {
+ // If authResult already has a verified signed session token (e.g. from password login)
+ if (authResult.idToken && authResult.idToken.startsWith('cursis_usr_')) {
+ try {
+ localStorage.setItem('cursis_token', authResult.idToken);
+ document.cookie = `cursis_session=${encodeURIComponent(authResult.idToken)}; path=/; max-age=604800; SameSite=Lax`;
+ } catch {}
+ window.location.href = getRedirectDestination();
+ return;
+ }
 
-      if (!token) {
-        const fallbackPayload = {
-          uid: authResult.uid || ('usr_' + Date.now().toString(36)),
-          email: authResult.email,
-          displayName: authResult.displayName || (authResult.email ? authResult.email.split('@')[0] : 'Enterprise User'),
-          photoURL: authResult.photoURL,
-          role: 'owner',
-          workspaceId: 'ws_cursis_user',
-          createdAt: Date.now(),
-        };
-        const jsonStr = JSON.stringify(fallbackPayload);
-        const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
-        token = 'cursis_usr_' + b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      }
+ // Exchange identity token (e.g. Firebase OAuth token) with session API
+ const res = await fetch('/api/auth/session', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ credentials: 'include',
+ body: JSON.stringify({
+ idToken: authResult.idToken,
+ }),
+ });
 
-      try {
-        localStorage.setItem('cursis_token', token);
-        document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
-      } catch {}
+ const data = await res.json().catch(() => ({}));
+ if (!res.ok) {
+ throw new Error(data.error || 'Authentication session could not be established.');
+ }
 
-      window.location.href = '/dashboard';
-    } catch (err: any) {
-      console.warn('Session exchange notice, using verified token:', err);
-      const fallbackPayload = {
-        uid: authResult.uid || ('usr_' + Date.now().toString(36)),
-        email: authResult.email,
-        displayName: authResult.displayName || 'Enterprise User',
-        photoURL: authResult.photoURL,
-        role: 'owner',
-        workspaceId: 'ws_cursis_user',
-        createdAt: Date.now(),
-      };
-      const jsonStr = JSON.stringify(fallbackPayload);
-      const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
-      const token = 'cursis_usr_' + b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      try {
-        localStorage.setItem('cursis_token', token);
-        document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
-      } catch {}
-      window.location.href = '/dashboard';
-    }
-  };
+ const token = data.token || (data.data && data.data.token) || '';
+ if (!token) {
+ throw new Error('No valid session token was returned by the authentication server.');
+ }
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanEmail = email.trim();
-    if (!cleanEmail || !password) {
-      setErrorMsg('Please enter both your work email and password.');
-      return;
-    }
+ try {
+ localStorage.setItem('cursis_token', token);
+ document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+ } catch {}
 
-    setLoading(true);
-    setErrorMsg('');
-    setSuccessMsg('');
+ window.location.href = getRedirectDestination();
+ } catch (err: any) {
+ console.error('Session exchange error:', err);
+ setErrorMsg(err?.message || 'Authentication failed. Please verify your credentials and try again.');
+ }
+ };
 
-    try {
-      const authResult = await signInWithEmail(cleanEmail, password);
-      if (authResult?.email) {
-        await exchangeTokenAndRedirect(authResult);
-      }
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'Authentication failed. Please verify your credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
+ const handleEmailLogin = async (e: React.FormEvent) => {
+ e.preventDefault();
+ const cleanEmail = email.trim();
+ if (!cleanEmail || !password) {
+ setErrorMsg('Please enter both your work email and password.');
+ return;
+ }
 
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    setErrorMsg('');
-    setSuccessMsg('');
+ setLoading(true);
+ setErrorMsg('');
+ setSuccessMsg('');
 
-    try {
-      const authResult = await signInWithGoogle();
-      if (authResult?.email || authResult?.idToken) {
-        await exchangeTokenAndRedirect(authResult);
-      }
-    } catch (err: any) {
-      const code = err?.code || '';
-      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
-        setErrorMsg('Google sign-in popup was closed before completing.');
-      } else {
-        setErrorMsg(err?.message || 'Failed to authenticate with Google. Please try again.');
-      }
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
+ try {
+ const authResult = await signInWithEmail(cleanEmail, password);
+ if (authResult?.email) {
+ await exchangeTokenAndRedirect(authResult);
+ }
+ } catch (err: any) {
+ setErrorMsg(err?.message || 'Authentication failed. Please verify your credentials.');
+ } finally {
+ setLoading(false);
+ }
+ };
 
-  return (
+ const handleGoogleSignIn = async () => {
+ setGoogleLoading(true);
+ setErrorMsg('');
+ setSuccessMsg('');
+
+ try {
+ const authResult = await signInWithGoogle();
+ if (authResult?.email || authResult?.idToken) {
+ await exchangeTokenAndRedirect(authResult);
+ }
+ } catch (err: any) {
+ const code = err?.code || '';
+ if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+ setErrorMsg('Google sign-in popup was closed before completing.');
+ } else {
+ setErrorMsg(err?.message || 'Failed to authenticate with Google. Please try again.');
+ }
+ } finally {
+ setGoogleLoading(false);
+ }
+ };
+
+ return (
     <main
       id="main-content"
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #f8f8f6 0%, #f1f0ea 100%)',
+        background: '#F6F4F0',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -180,7 +169,7 @@ export default function LoginPage() {
           transform: 'translateX(-50%)',
           width: '600px',
           height: '350px',
-          background: 'radial-gradient(ellipse at center, rgba(15, 76, 255, 0.05) 0%, rgba(255, 255, 255, 0) 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(41, 101, 255, 0.06) 0%, rgba(246, 244, 240, 0) 70%)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -191,7 +180,7 @@ export default function LoginPage() {
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="38" height="38">
             <path
               d="M 545 240 A 282 282 0 1 0 782 566"
-              stroke="#0f172a"
+              stroke="#1A1612"
               strokeWidth="142"
               strokeLinecap="round"
               fill="none"
@@ -203,28 +192,28 @@ export default function LoginPage() {
               height="156"
               rx="42"
               transform="rotate(-10 703 274)"
-              fill="#0f4cff"
+              fill="#2965ff"
             />
           </svg>
-          <span style={{ fontSize: '26px', fontWeight: 900, letterSpacing: '-0.03em', color: '#0f172a' }}>Cursis</span>
+          <span style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em', color: '#1A1612' }}>Cursis</span>
         </Link>
         <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <span
             style={{
               fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.06em',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
               textTransform: 'uppercase',
-              color: '#475569',
-              background: '#e2e8f0',
+              color: '#1A1612',
+              background: '#EFEBE4',
               padding: '2px 8px',
-              borderRadius: '4px',
+              borderRadius: '9999px',
             }}
           >
             Enterprise Workspace
           </span>
-          <span style={{ fontSize: '12px', color: '#94a3b8' }}>•</span>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
+          <span style={{ fontSize: '12px', color: '#B8B2AA' }}>•</span>
+          <span style={{ fontSize: '12px', color: '#6B655F', fontWeight: 500 }}>
             Unified Operations Platform
           </span>
         </div>
@@ -234,20 +223,20 @@ export default function LoginPage() {
         style={{
           width: '100%',
           maxWidth: '420px',
-          padding: '32px 28px',
+          padding: '36px 32px',
           background: '#ffffff',
-          borderRadius: '12px',
-          border: '1px solid rgba(15, 23, 42, 0.12)',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.05)',
+          borderRadius: '20px',
+          border: '1px solid #E8E4DE',
+          boxShadow: '0 20px 40px -10px rgba(26, 22, 18, 0.08), 0 1px 3px rgba(26, 22, 18, 0.04)',
           position: 'relative',
           zIndex: 1,
         }}
       >
         <div style={{ marginBottom: '24px', textAlign: 'left' }}>
-          <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#1A1612', margin: 0, letterSpacing: '-0.02em' }}>
             Sign In to Workspace
           </h1>
-          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px', margin: '6px 0 0 0', lineHeight: 1.4 }}>
+          <p style={{ fontSize: '13px', color: '#6B655F', marginTop: '6px', margin: '6px 0 0 0', lineHeight: 1.5 }}>
             Enter your enterprise credentials to access your organization's unified workspace.
           </p>
         </div>
@@ -261,14 +250,13 @@ export default function LoginPage() {
               padding: '10px 14px',
               fontSize: '12px',
               marginBottom: '16px',
-              borderRadius: '6px',
+              borderRadius: '10px',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
             }}
           >
-            <span>✓</span>
             <span>{successMsg}</span>
           </div>
         )}
@@ -282,7 +270,7 @@ export default function LoginPage() {
               padding: '10px 14px',
               fontSize: '12px',
               marginBottom: '16px',
-              borderRadius: '6px',
+              borderRadius: '10px',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'flex-start',
@@ -299,7 +287,7 @@ export default function LoginPage() {
           type="button"
           style={{
             width: '100%',
-            height: '42px',
+            height: '46px',
             marginBottom: '18px',
             display: 'flex',
             alignItems: 'center',
@@ -307,12 +295,13 @@ export default function LoginPage() {
             gap: '12px',
             fontWeight: 600,
             fontSize: '13px',
-            color: '#0f172a',
+            color: '#1A1612',
             background: '#ffffff',
-            border: '1px solid #cbd5e1',
-            borderRadius: '6px',
+            border: '1px solid #E8E4DE',
+            borderRadius: '9999px',
+            boxShadow: '0 1px 3px rgba(26, 22, 18, 0.04)',
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
+            transition: 'all 0.2s ease',
           }}
           onClick={handleGoogleSignIn}
           disabled={googleLoading || loading}
@@ -339,15 +328,15 @@ export default function LoginPage() {
         </button>
 
         <div style={{ textAlign: 'center', margin: '18px 0', position: 'relative' }}>
-          <div style={{ borderTop: '1px solid #e2e8f0', position: 'absolute', top: '50%', width: '100%' }} />
+          <div style={{ borderTop: '1px solid #E8E4DE', position: 'absolute', top: '50%', width: '100%' }} />
           <span
             style={{
               background: '#ffffff',
               padding: '0 12px',
               fontSize: '11px',
-              color: '#94a3b8',
+              color: '#968F87',
               textTransform: 'uppercase',
-              fontWeight: 700,
+              fontWeight: 600,
               letterSpacing: '0.05em',
               position: 'relative',
             }}
@@ -358,7 +347,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleEmailLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
               Work Email
             </label>
             <input
@@ -369,26 +358,30 @@ export default function LoginPage() {
               required
               style={{
                 width: '100%',
-                height: '40px',
-                padding: '0 12px',
+                height: '42px',
+                padding: '0 14px',
                 fontSize: '13px',
-                color: '#0f172a',
+                color: '#1A1612',
                 background: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '6px',
+                border: '1px solid #E8E4DE',
+                borderRadius: '12px',
                 outline: 'none',
                 boxSizing: 'border-box',
+                transition: 'border-color 0.15s ease',
               }}
             />
           </div>
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#1A1612' }}>
                 Password
               </label>
+              <Link href="/" style={{ fontSize: '11px', color: '#2965ff', textDecoration: 'none', fontWeight: 500 }}>
+                Forgot?
+              </Link>
             </div>
-            <div style={{ position: 'relative', width: '100%' }}>
+            <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
@@ -397,20 +390,20 @@ export default function LoginPage() {
                 required
                 style={{
                   width: '100%',
-                  height: '40px',
-                  padding: '0 40px 0 12px',
+                  height: '42px',
+                  padding: '0 38px 0 14px',
                   fontSize: '13px',
-                  color: '#0f172a',
+                  color: '#1A1612',
                   background: '#ffffff',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
+                  border: '1px solid #E8E4DE',
+                  borderRadius: '12px',
                   outline: 'none',
                   boxSizing: 'border-box',
+                  transition: 'border-color 0.15s ease',
                 }}
               />
               <button
                 type="button"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: 'absolute',
@@ -420,7 +413,7 @@ export default function LoginPage() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#94a3b8',
+                  color: '#968F87',
                   padding: '4px',
                   display: 'flex',
                   alignItems: 'center',
@@ -446,20 +439,21 @@ export default function LoginPage() {
             type="submit"
             style={{
               width: '100%',
-              height: '42px',
+              height: '46px',
               marginTop: '6px',
-              background: '#0f172a',
+              background: '#1A1612',
               color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: 700,
-              fontSize: '13px',
+              border: '1px solid #1A1612',
+              borderRadius: '9999px',
+              boxShadow: '0 2px 6px rgba(26, 22, 18, 0.15)',
+              fontWeight: 600,
+              fontSize: '14px',
               cursor: 'pointer',
-              transition: 'background 0.15s ease',
+              transition: 'all 0.2s ease',
             }}
             disabled={loading || googleLoading}
           >
-            {loading ? 'Authenticating Enterprise Account...' : 'Sign In to Workspace'}
+            {loading ? 'Authenticating Enterprise Account...' : 'Sign In to Workspace →'}
           </button>
         </form>
 
@@ -467,16 +461,16 @@ export default function LoginPage() {
           style={{
             marginTop: '24px',
             paddingTop: '18px',
-            borderTop: '1px solid #f1f5f9',
+            borderTop: '1px solid #E8E4DE',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             fontSize: '12px',
-            color: '#64748b',
+            color: '#6B655F',
           }}
         >
           <span>Need an enterprise workspace?</span>
-          <Link href="/signup" style={{ color: '#0f4cff', fontWeight: 700, textDecoration: 'none' }}>
+          <Link href="/signup" style={{ color: '#2965ff', fontWeight: 600, textDecoration: 'none' }}>
             Create Workspace →
           </Link>
         </div>
@@ -484,25 +478,25 @@ export default function LoginPage() {
 
       {/* Enterprise Trust & Compliance Footer */}
       <div style={{ marginTop: '24px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', fontSize: '11px', color: '#94a3b8' }}>
-          <span>🔒 256-Bit TLS Encryption</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', fontSize: '11px', color: '#968F87' }}>
+          <span>256-Bit TLS Encryption</span>
           <span>•</span>
-          <span>🛡️ SOC-2 Type II Certified</span>
+          <span>SOC-2 Type II Certified</span>
           <span>•</span>
-          <span>⚡ 99.99% Uptime SLA</span>
+          <span>99.99% Guaranteed SLA Uptime</span>
         </div>
-        <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>
+        <p style={{ fontSize: '11px', color: '#B8B2AA', marginTop: '8px' }}>
           By continuing, you agree to Cursis{' '}
-          <Link href="/" style={{ color: '#64748b', textDecoration: 'underline' }}>
+          <Link href="/" style={{ color: '#6B655F', textDecoration: 'underline' }}>
             Terms of Service
           </Link>{' '}
           and{' '}
-          <Link href="/" style={{ color: '#64748b', textDecoration: 'underline' }}>
+          <Link href="/" style={{ color: '#6B655F', textDecoration: 'underline' }}>
             Privacy Policy
           </Link>
           .
         </p>
       </div>
     </main>
-  );
+ );
 }

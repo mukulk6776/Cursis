@@ -202,23 +202,12 @@ export async function signInWithGoogle(): Promise<AuthResult> {
           console.warn("Redirect sign-in notice:", redirectErr);
         }
       }
-      console.warn("Google Sign-In notice, establishing workspace session:", err);
-      return {
-        uid: generateSafeUid("google_user"),
-        email: "founder@cursis.ai",
-        displayName: "Cursis Founder",
-        idToken: "cursis_google_local_token_" + Date.now(),
-      };
+      console.error("Google Sign-In failed:", err);
+      throw new Error(err?.message || "Google Workspace authentication failed. Please try again or use your work email.");
     }
   }
 
-  // Graceful workspace session when Firebase is not configured or in testing
-  return {
-    uid: generateSafeUid("google_user"),
-    email: "founder@cursis.ai",
-    displayName: "Cursis Founder",
-    idToken: "cursis_google_dev_token_" + Date.now(),
-  };
+  throw new Error("Google Workspace authentication is currently not configured for this environment. Please sign in with your work email and password.");
 }
 
 /**

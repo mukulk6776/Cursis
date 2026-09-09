@@ -7,14 +7,12 @@ async function runOrdisChatbotE2ETest() {
 
   // 1. Authenticate user session
   console.log('[1/4] Establishing Authenticated User Session...');
-  const authRes = await fetch(`${BASE_URL}/api/auth/session`, {
+  const authRes = await fetch(`${BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       email: 'sarah.connor@cursis.io',
-      displayName: 'Sarah Connor',
-      idToken: 'test_token_sarah_ordis',
-      uid: 'u_sarah_01',
+      password: 'EnterprisePassword2026!',
     }),
   });
 

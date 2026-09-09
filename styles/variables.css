@@ -1,46 +1,54 @@
 /* ============================================
-   CURSIS — Design Tokens (Somba Neo-Brutalist)
+   CURSIS — Tano.ai Luxury Minimalist Design Tokens
+   Warm Alabaster Canvas, Deep Charcoal, Hairline Borders & Zero Emojis
    ============================================ */
 
 :root {
-  /* ---- Colors ---- */
-  --c-near-black: #000000;
-  --c-dark: #111111;
-  --c-dark-2: #222222;
+  /* ---- Colors (Tano.ai System) ---- */
+  --c-near-black: #1A1612;    /* Deep warm espresso charcoal */
+  --c-dark: #12100E;
+  --c-dark-2: #24201C;
   --c-white: #ffffff;
   
   /* Backgrounds */
-  --c-bg: #f4f3ed; /* Warm off-white/beige */
+  --c-bg: #F6F4F0;            /* Tano signature warm alabaster cream canvas */
+  --c-bg-subtle: #EFEBE4;     /* Warm pill/card tint */
+  --c-bg-elevated: #ffffff;
   
-  /* Grays */
-  --c-gray-100: #e8e7e1;
-  --c-gray-200: #dcdbd5;
-  --c-gray-300: #c1c0ba;
-  --c-gray-400: #a3a29d;
-  --c-gray-500: #888782;
-  --c-gray-600: #666561;
-  --c-gray-700: #444441;
+  /* Grays / Warm Stones (Tano Palette) */
+  --c-gray-50: #FAF8F5;
+  --c-gray-100: #F3EFEA;
+  --c-gray-200: #E8E4DE;
+  --c-gray-300: #DCD6CD;
+  --c-gray-400: #B8B2AA;
+  --c-gray-500: #968F87;
+  --c-gray-600: #6B655F;
+  --c-gray-700: #4A4540;
+  --c-gray-800: #2E2A26;
+  --c-gray-900: #1A1612;
   
-  /* Brand Accents */
-  --c-brand: #0f4cff;      /* Bright somba blue */
-  --c-brand-light: #4d7aff;
-  --c-brand-dark: #0036d6;
-  --c-brand-bg: #e6ecff;
+  /* Brand Accents (Tano Royal Electric Blue) */
+  --c-brand: #2965ff;         /* Tano signature electric royal blue */
+  --c-brand-light: #4f82ff;
+  --c-brand-dark: #1a51e6;
+  --c-brand-bg: #EEF3FF;
   
-  --c-accent: #ccff00;     /* Bright lime green */
-  --c-accent-light: #e0ff66;
+  /* Elegant Minimalist Accent */
+  --c-accent: #2965ff;
+  --c-accent-light: #4f82ff;
+  --c-accent-bg: #EEF3FF;
   
   /* Status */
-  --c-success: #00b341;
-  --c-success-bg: #e6f7ec;
-  --c-warning: #ff7700;
-  --c-warning-bg: #fff1e6;
-  --c-error: #e60000;
-  --c-error-bg: #fce6e6;
+  --c-success: #10b981;
+  --c-success-bg: #ecfdf5;
+  --c-warning: #f59e0b;
+  --c-warning-bg: #fffbeb;
+  --c-error: #ef4444;
+  --c-error-bg: #fef2f2;
   --c-info: var(--c-brand);
   --c-info-bg: var(--c-brand-bg);
-  --c-purple: #8800ff;
-  --c-purple-bg: #f3e6ff;
+  --c-purple: #8b5cf6;
+  --c-purple-bg: #f5f3ff;
   
   /* ---- Typography ---- */
   --font-family: var(--font-inter), 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -54,44 +62,48 @@
   --fs-lg: 1.25rem;     /* 20px */
   --fs-xl: 1.5rem;      /* 24px */
   --fs-2xl: 1.875rem;   /* 30px */
-  --fs-3xl: 2.5rem;     /* 40px */
-  --fs-4xl: 3.5rem;     /* 56px - Huge */
+  --fs-3xl: 2.25rem;    /* 36px */
+  --fs-4xl: 3.25rem;    /* 52px */
   
   /* Font Weights */
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
-  --fw-bold: 800;
-  --fw-black: 900;
+  --fw-bold: 700;
+  --fw-black: 800;
   
   /* Line Heights */
-  --lh-tight: 1.1;
-  --lh-normal: 1.4;
-  --lh-relaxed: 1.6;
+  --lh-tight: 1.15;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.65;
   
   /* Letter Spacing */
-  --ls-tight: -0.04em;
+  --ls-tight: -0.025em;
   --ls-normal: 0;
-  --ls-wide: 0.05em;
+  --ls-wide: 0.03em;
   
   /* ---- Semantic Colors ---- */
-  --text-primary: var(--c-near-black);
-  --text-secondary: var(--c-gray-700);
-  --text-tertiary: var(--c-gray-500);
+  --text-primary: #1A1612;
+  --text-secondary: #6B655F;
+  --text-tertiary: #968F87;
+  --text-muted: #B8B2AA;
   
   --surface-primary: var(--c-bg);
-  --surface-secondary: var(--c-white);
-  --surface-tertiary: var(--c-gray-100);
+  --surface-secondary: #ffffff;
+  --surface-tertiary: #F3EFEA;
   
-  --border-color: var(--c-near-black);
-  --border-light: var(--c-near-black);
+  --border-color: #E8E4DE;
+  --border-light: #F0EDE8;
+  --border-dark: #DCD6CD;
+  --border-focus: var(--c-brand);
   
-  --surface-sidebar: var(--c-bg);
-  --surface-topbar: var(--c-bg);
-  --surface-card: var(--c-white);
-  --surface-modal: var(--c-white);
-  --surface-overlay: rgba(0, 0, 0, 0.4);
-  --surface-hover: rgba(0, 0, 0, 0.04);
+  --surface-sidebar: #FAF8F5;
+  --surface-topbar: rgba(246, 244, 240, 0.92);
+  --surface-card: #ffffff;
+  --surface-modal: #ffffff;
+  --surface-overlay: rgba(26, 22, 18, 0.5);
+  --surface-hover: rgba(26, 22, 18, 0.035);
+  --surface-active: rgba(26, 22, 18, 0.07);
   
   /* ---- Layout & Geometry ---- */
   --sidebar-width: 240px;
@@ -110,37 +122,40 @@
   --sp-10: 4rem;
   --sp-16: 6rem;
   
-  /* Borders & Shadows - Modern Refined Aesthetic */
-  --border-radius-xs: 4px;
-  --border-radius-sm: 6px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
-  --border-radius-xl: 16px;
-  --border-radius-2xl: 20px;
+  /* Soft Curves (Tano Luxury Geometry) */
+  --border-radius-xs: 6px;
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+  --border-radius-2xl: 26px;
   --border-radius-full: 9999px;
   
-  --shadow-sm: 1px 1px 0px 0px rgba(0, 0, 0, 0.7);
-  --shadow-md: 2px 2px 0px 0px rgba(0, 0, 0, 0.75);
-  --shadow-lg: 3px 3px 0px 0px rgba(0, 0, 0, 0.8);
-  --shadow-xl: 5px 5px 0px 0px rgba(0, 0, 0, 0.85);
-  --shadow-2xl: 8px 8px 0px 0px rgba(0, 0, 0, 0.85);
+  /* Soft Ambient Diffused Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(26, 22, 18, 0.03);
+  --shadow-sm: 0 1px 3px 0 rgba(26, 22, 18, 0.04), 0 1px 2px -1px rgba(26, 22, 18, 0.03);
+  --shadow-md: 0 4px 14px -2px rgba(26, 22, 18, 0.05), 0 2px 6px -2px rgba(26, 22, 18, 0.03);
+  --shadow-lg: 0 10px 28px -6px rgba(26, 22, 18, 0.07), 0 4px 10px -4px rgba(26, 22, 18, 0.03);
+  --shadow-xl: 0 20px 40px -10px rgba(26, 22, 18, 0.09), 0 8px 16px -6px rgba(26, 22, 18, 0.03);
+  --shadow-2xl: 0 25px 60px -15px rgba(26, 22, 18, 0.12);
   
-  --shadow-card-hover: 3px 3px 0px 0px rgba(0, 0, 0, 0.85);
-  --shadow-brand: 2px 2px 0px 0px var(--c-brand-dark);
+  --shadow-card-hover: 0 12px 30px -6px rgba(26, 22, 18, 0.08), 0 4px 12px -2px rgba(26, 22, 18, 0.03);
+  --shadow-brand: 0 4px 16px rgba(41, 101, 255, 0.25);
+  --shadow-glow: 0 0 24px rgba(41, 101, 255, 0.15);
   
   --border-width: 1px;
   
-  /* ---- Motion (Fast and snappy) ---- */
-  --dur-fast: 0.1s;
+  /* ---- Motion ---- */
+  --dur-fast: 0.12s;
   --dur-normal: 0.2s;
   --dur-slow: 0.3s;
   --dur-slower: 0.4s;
   
-  --ease-default: ease-out;
-  --ease-in: ease-in;
-  --ease-out: ease-out;
-  --ease-in-out: ease-in-out;
-  --ease-spring: cubic-bezier(0, 0, 0.2, 1);
+  --ease-default: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   
   /* ---- Z-Index ---- */
   --z-base: 1;
