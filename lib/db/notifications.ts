@@ -25,7 +25,7 @@ export async function createNotification(params: {
     text: params.text,
     time: 'Just now',
     read: false,
-    icon: params.icon || '🔔',
+    icon: params.icon || 'bell',
     createdAt: new Date().toISOString(),
   };
 

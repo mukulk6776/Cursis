@@ -315,7 +315,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const toggleOrdisPlan = () => {
     if (ordisPlan === 'basic') {
-      showToast('⚠️ Pro Plan requires an activation key. Click "Redeem Code" to activate.');
+      showToast('Pro Plan requires an activation key. Click "Redeem Code" to activate.');
       openModal('redeem-code-modal');
       return;
     }
@@ -633,7 +633,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 text: n.text || n.message || 'Notification',
                 time: timeStr,
                 read: Boolean(n.read),
-                icon: n.icon || '🔔',
+                icon: n.icon || 'bell',
               };
             })
           );

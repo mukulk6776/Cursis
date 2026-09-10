@@ -253,7 +253,7 @@ export default function RedeemCodeModal() {
           }}
         >
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-            🔒 SINGLE-USE ACTIVATION GUARANTEE
+            SINGLE-USE ACTIVATION GUARANTEE
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
             Each redeem code is strictly <strong>single-use</strong>. Once activated by a user, it is permanently locked and cannot be redeemed again by anyone. Redeeming upgrades your workspace to <strong>Autonomous Pro</strong> and activates <strong>Ordis Full Power AI multi-agent orchestration</strong>.

@@ -75,7 +75,7 @@ export async function POST(request: Request) {
         workspaceId,
         type: 'team',
         text: `<strong>${authUser.displayName || 'Workspace Admin'}</strong> invited you to join the team as <strong>${body.roleTitle || 'Team Member'}</strong>.`,
-        icon: '📨',
+        icon: 'mail',
       });
 
       return apiSuccess({ invitation, message: `Invitation sent to ${email}` }, 201);
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       workspaceId,
       type: 'team',
       text: `<strong>${authUser.displayName || 'Workspace Admin'}</strong> added you to the workspace as <strong>${member.title}</strong> in <strong>${member.department}</strong>.`,
-      icon: '👥',
+      icon: 'team',
     });
 
     await createNotification({
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       workspaceId,
       type: 'team',
       text: `Added <strong>${member.displayName}</strong> (${email}) to team as <strong>${member.title}</strong>.`,
-      icon: '✅',
+      icon: 'check',
     });
 
     return apiSuccess({ member, message: `Added ${member.displayName} to team` }, 201);

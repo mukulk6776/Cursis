@@ -188,20 +188,20 @@ export default function OrdisFloatingChat() {
 
   const quickPrompts = ordisPlan === 'basic'
     ? [
-        { label: '📊 Status Report', prompt: 'Give me a workspace status report with active deliverables and team status' },
-        { label: '⚡ Sprint Status', prompt: 'What is our current sprint status and open blockers?' },
-        { label: '👥 Team Workload', prompt: 'What is my team working on and who is online?' },
-        { label: 'Hinglish Briefing', prompt: 'Batao kal kya kya deliver karna hai aur kaun kaun online hai?' },
+        { label: 'Status Report', prompt: 'Give me a workspace status report with active deliverables and team status' },
+        { label: 'Sprint Status', prompt: 'What is our current sprint status and open blockers?' },
+        { label: 'Team Workload', prompt: 'What is my team working on and who is online?' },
+        { label: 'Executive Briefing', prompt: 'Summarize what needs to be delivered and which team members are available.' },
         { label: 'Creator Pipeline', prompt: 'How does the Creator Content Pipeline work and what are the roles?' },
         { label: 'Agile Guidance', prompt: 'How should I prioritize tasks to maximize sprint velocity?' },
       ]
     : [
-        { label: '🚀 Add Member & Task', prompt: 'Add a team member and give him xyz task' },
-        { label: '⚡ Create Task', prompt: 'Create high-priority task: Deploy payment webhook integration' },
-        { label: '📅 Schedule Sync', prompt: 'Schedule urgent team sprint sync tomorrow at 3:00 PM for 30 mins' },
-        { label: '💼 Add CRM Deal', prompt: 'Add new CRM deal: Acme Enterprise SaaS for $75,000 in Negotiation' },
-        { label: '🛠️ Make CSAT Feature', prompt: 'Make a new feature for Client CSAT & NPS Feedback Surveys with 1-click rating' },
-        { label: '🔄 Auto-Assign Rule', prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer' },
+        { label: 'Add Member & Task', prompt: 'Add a team member and give him xyz task' },
+        { label: 'Create Task', prompt: 'Create high-priority task: Deploy payment webhook integration' },
+        { label: 'Schedule Sync', prompt: 'Schedule urgent team sprint sync tomorrow at 3:00 PM for 30 mins' },
+        { label: 'Add CRM Deal', prompt: 'Add new CRM deal: Acme Enterprise SaaS for $75,000 in Negotiation' },
+        { label: 'Build CSAT Feature', prompt: 'Make a new feature for Client CSAT & NPS Feedback Surveys with 1-click rating' },
+        { label: 'Auto-Assign Rule', prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer' },
       ];
 
  const activeTaskCount = tasks.filter((t) => t.status !== 'completed').length;

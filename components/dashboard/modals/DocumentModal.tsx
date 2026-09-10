@@ -128,7 +128,7 @@ export default function DocumentModal() {
                 {selectedFile ? (
                   <div>
                     <div style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)', color: 'var(--c-brand)' }}>
-                      📄 {selectedFile.name}
+                      {selectedFile.name}
                     </div>
                     <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                       {(selectedFile.size / 1024).toFixed(0)} KB • Click to choose a different file

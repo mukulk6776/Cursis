@@ -46,7 +46,7 @@ if (!global._mongoClientPromise) {
     global._mongoClientPromise = client.connect().then((c) => {
       isConnected = true;
       global._mongoIsConnected = true;
-      console.log(`✓ MongoDB Connected successfully to: ${isAtlasCluster ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${DB_NAME})`);
+      console.log(`[MongoDB] Connected successfully to: ${isAtlasCluster ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${DB_NAME})`);
       return c;
     }).catch((err) => {
       isConnected = false;

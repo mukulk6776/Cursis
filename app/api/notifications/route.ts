@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         workspaceId: body.workspaceId || authUser.workspaceId || 'ws_public',
         type: body.type || 'system',
         text: body.text,
-        icon: body.icon || '🔔',
+        icon: body.icon || 'bell',
       });
       return apiSuccess({ notification }, 201);
     }

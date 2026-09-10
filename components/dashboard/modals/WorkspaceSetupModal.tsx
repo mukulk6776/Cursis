@@ -99,7 +99,7 @@ export default function WorkspaceSetupModal() {
       } catch {}
     }
 
-    showToast(`🎉 Workspace configured: ${cleanName}`);
+    showToast(`Workspace configured: ${cleanName}`);
     setIsSubmitting(false);
     closeModal();
   };
@@ -180,13 +180,16 @@ export default function WorkspaceSetupModal() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#fff',
-                  fontWeight: 800,
-                  fontSize: '13px',
                   boxShadow: `0 4px 10px ${accentColor}40`,
                   transition: 'background-color 0.2s ease',
                 }}
               >
-                ⚡
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
               </div>
               <span
                 style={{
@@ -216,12 +219,14 @@ export default function WorkspaceSetupModal() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '16px',
                 color: 'var(--text-tertiary, #94a3b8)',
               }}
               title="Skip for now"
             >
-              ✕
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
             </button>
           </div>
 
@@ -262,10 +267,8 @@ export default function WorkspaceSetupModal() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Workspace Name */}
               <div className="input-group" style={{ margin: 0 }}>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🏢</span>
-                  <span>Workspace Name</span>
-                  <span style={{ color: '#ef4444' }}>*</span>
+                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
+                  Workspace Name <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -289,9 +292,8 @@ export default function WorkspaceSetupModal() {
 
               {/* Tagline / Mission */}
               <div className="input-group" style={{ margin: 0 }}>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🎯</span>
-                  <span>Mission / Tagline</span>
+                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
+                  Mission / Tagline
                 </label>
                 <input
                   type="text"
@@ -312,9 +314,8 @@ export default function WorkspaceSetupModal() {
 
               {/* Industry */}
               <div className="input-group" style={{ margin: 0 }}>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🌐</span>
-                  <span>Industry</span>
+                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
+                  Industry
                 </label>
                 <select
                   className="input select"
@@ -356,7 +357,7 @@ export default function WorkspaceSetupModal() {
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        {isSelected ? '✓ ' : ''}{tag}
+                        {tag}
                       </button>
                     );
                   })}
@@ -377,9 +378,8 @@ export default function WorkspaceSetupModal() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Brand Accent Color */}
               <div>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                  <span>🎨</span>
-                  <span>Primary Brand Accent Color</span>
+                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', marginBottom: '8px' }}>
+                  Primary Brand Accent Color
                 </label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                   {ACCENT_COLORS.map(({ color, label }) => {
@@ -409,7 +409,11 @@ export default function WorkspaceSetupModal() {
                           transform: isSelected ? 'scale(1.12)' : 'scale(1)',
                         }}
                       >
-                        {isSelected ? '✓' : ''}
+                        {isSelected && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        )}
                       </button>
                     );
                   })}
@@ -418,9 +422,8 @@ export default function WorkspaceSetupModal() {
 
               {/* Interface Density */}
               <div>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                  <span>📐</span>
-                  <span>Interface Density</span>
+                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', marginBottom: '8px' }}>
+                  Interface Density
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                   {DENSITY_OPTIONS.map((opt) => {
@@ -445,7 +448,11 @@ export default function WorkspaceSetupModal() {
                           <span style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? accentColor : 'var(--text-primary, #0f172a)' }}>
                             {opt.label}
                           </span>
-                          {isSelected && <span style={{ color: accentColor, fontWeight: 800, fontSize: '12px' }}>●</span>}
+                          {isSelected && (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
                         </div>
                         <span style={{ fontSize: '10px', color: 'var(--text-tertiary, #94a3b8)', lineHeight: 1.3 }}>
                           {opt.desc}
@@ -458,9 +465,8 @@ export default function WorkspaceSetupModal() {
 
               {/* Language */}
               <div className="input-group" style={{ margin: 0 }}>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🗣️</span>
-                  <span>Primary Language</span>
+                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
+                  Primary Language
                 </label>
                 <select
                   className="input select"

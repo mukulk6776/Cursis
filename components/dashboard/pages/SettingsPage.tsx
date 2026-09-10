@@ -279,7 +279,6 @@ export default function SettingsPage() {
  onClick={() => openModal('workspace-setup-modal')}
  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
  >
- <span>⚡</span>
  <span>Open Workspace Setup Wizard</span>
  </button>
  </div>
@@ -1087,13 +1086,16 @@ export default function SettingsPage() {
  }}
  style={{ whiteSpace: 'nowrap' }}
  >
- {auditLoading ? 'Loading…' : '↻ Refresh'}
+ {auditLoading ? 'Loading…' : 'Refresh'}
  </button>
  </div>
 
  {auditLogs.length === 0 ? (
  <div style={{ textAlign: 'center', padding: 'var(--sp-6) var(--sp-4)', color: 'var(--text-tertiary)' }}>
- <div style={{ fontSize: '32px', marginBottom: 'var(--sp-2)' }}>📋</div>
+ <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto var(--sp-2) auto', display: 'block', opacity: 0.5 }}>
+ <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+ <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+ </svg>
  <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 'var(--fw-bold)', color: 'var(--text-secondary)', marginBottom: '4px' }}>
  No audit events recorded yet
  </div>

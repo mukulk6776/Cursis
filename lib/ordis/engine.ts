@@ -142,39 +142,39 @@ function handleFreePlanOrdis(
   lower.includes('sprint status');
 
  if (isReportOrStatus) {
-  let md = `### 📊 Cursis Workspace Executive Report & Status\n\n`;
+  let md = `### Cursis Workspace Executive Report & Status\n\n`;
   md += `**Executive Overview:**\n`;
   md += `Your workspace currently has **${activeTasks.length} active deliverables** with a **${velocityPercent}% completion rate**. Team presence is strong with **${onlineMembers.length} of ${employees.length} collaborators active**.\n\n`;
 
-  md += `#### 🚀 Sprint Health & Deliverables\n`;
+  md += `#### Sprint Health & Deliverables\n`;
   md += `• **Active Sprint Tasks**: ${activeTasks.length} in progress\n`;
   md += `• **Completed**: ${completedTasks.length} shipped\n`;
   if (overdueTasks.length > 0) {
-   md += `• **⚠️ Overdue Items (${overdueTasks.length})**:\n`;
+   md += `• **Overdue Items (${overdueTasks.length})**:\n`;
    overdueTasks.slice(0, 3).forEach((t) => {
     const emp = employees.find((e) => e.id === t.assignee);
     md += `  - **${t.name}** — Assigned to ${emp?.name || 'Unassigned'} *(Due: ${formatDate(t.deadline)})*\n`;
    });
   } else {
-   md += `• **Overdue Items**: ✅ None! All deliverables are on track.\n`;
+   md += `• **Overdue Items**: None. All deliverables are on track.\n`;
   }
   md += `\n`;
 
-  md += `#### 👥 Team Workload & Presence\n`;
+  md += `#### Team Workload & Presence\n`;
   md += `• **Active Members**: ${employees.map((e) => `${e.name} (${e.role}) [${e.status}]`).join(', ')}\n`;
   md += `• **Projects in Flight**: ${projects.map((p) => `${p.name} (${p.progress || 0}% done)`).join(', ')}\n\n`;
 
-  md += `#### 📅 Scheduled Syncs Today\n`;
+  md += `#### Scheduled Syncs Today\n`;
   if (upcomingMeetings.length > 0) {
    upcomingMeetings.slice(0, 2).forEach((m) => {
     md += `• **${m.name || m.title}** at **${m.time}** (${m.duration} mins) · ${m.platform}\n`;
    });
   } else {
-   md += `• *No meetings scheduled today — great uninterrupted focus block!*\n`;
+   md += `• *No meetings scheduled today — uninterrupted focus block.*\n`;
   }
   md += `\n`;
 
-  md += `#### 💡 Strategic Recommendations\n`;
+  md += `#### Strategic Recommendations\n`;
   if (overdueTasks.length > 0) {
    md += `Clear the ${overdueTasks.length} overdue item(s) first before taking on new sprint scope.`;
   } else if (urgentTasks.length > 0) {
@@ -230,7 +230,7 @@ function handleFreePlanOrdis(
    actionSummary = 'Calendar Meeting Sync';
   }
 
-  const planText = `### 📋 Proposed Action Plan & Specification Draft
+  const planText = `### Proposed Action Plan & Specification Draft
 
 I've structured the plan for your request:
 
@@ -243,7 +243,7 @@ I've structured the plan for your request:
   3. Notify relevant stakeholders and establish milestone timeline.
 
 ---
-*💡 **Free Plan Note**: On the Free Plan, I operate in conversational text & reporting mode (like ChatGPT). To execute this live into your workspace with 1-click (automatically adding team members and dispatching tasks to your Kanban board), you can switch to **Ordis Pro** anytime using the toggle button in your dashboard.* `;
+*Free Plan Note: On the Free Plan, I operate in conversational text & reporting mode (like ChatGPT). To execute this live into your workspace with 1-click (automatically adding team members and dispatching tasks to your Kanban board), you can switch to **Ordis Pro** anytime using the toggle button in your dashboard.* `;
 
   return {
    responseText: planText,
@@ -386,8 +386,8 @@ export function executeOrdisCommand(
   };
 
   return {
-   responseText: `🚀 **Autonomous Multi-Action Executed (Ordis Pro)**\n\n1. **Onboarded Team Member**:\n   • **Name**: **${newEmp.name}** (${newEmp.role})\n   • **Email**: \`${newEmp.email}\`\n   • **Department**: ${newEmp.department}\n\n2. **Created & Dispatched Task**:\n   • **Deliverable**: **${newTask.name}**\n   • **Assignee**: **${newEmp.name}**\n   • **Priority**: HIGH\n   • **Deadline**: ${newTask.deadline}\n\n*Both the member profile and the assigned task are now live in your workspace Team directory and Sprint Kanban board.* `,
-   toastMessage: `Added ${newEmp.name} and assigned task "${newTask.name}" 🚀`,
+   responseText: `**Autonomous Multi-Action Executed (Ordis Pro)**\n\n1. **Onboarded Team Member**:\n   • **Name**: **${newEmp.name}** (${newEmp.role})\n   • **Email**: \`${newEmp.email}\`\n   • **Department**: ${newEmp.department}\n\n2. **Created & Dispatched Task**:\n   • **Deliverable**: **${newTask.name}**\n   • **Assignee**: **${newEmp.name}**\n   • **Priority**: HIGH\n   • **Deadline**: ${newTask.deadline}\n\n*Both the member profile and the assigned task are now live in your workspace Team directory and Sprint Kanban board.* `,
+   toastMessage: `Added ${newEmp.name} and assigned task "${newTask.name}"`,
    auditEntry: {
     actor: user.name,
     action: 'team.onboard_and_task_assign',
