@@ -504,11 +504,11 @@ export default function LoginPage() {
         </div>
         <p style={{ fontSize: '11px', color: '#B8B2AA', marginTop: '8px' }}>
           By continuing, you agree to Cursis{' '}
-          <Link href="/" style={{ color: '#6B655F', textDecoration: 'underline' }}>
+          <Link href="/terms" style={{ color: '#6B655F', textDecoration: 'underline' }}>
             Terms of Service
           </Link>{' '}
           and{' '}
-          <Link href="/" style={{ color: '#6B655F', textDecoration: 'underline' }}>
+          <Link href="/privacy" style={{ color: '#6B655F', textDecoration: 'underline' }}>
             Privacy Policy
           </Link>
           .

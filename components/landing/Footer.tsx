@@ -59,17 +59,24 @@ export default function Footer() {
           </div>
 
           <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Security & SLA</div>
+            <div className="lp-footer-col-title">Security & Trust</div>
+            <Link href="/privacy" className="lp-footer-link">Privacy Policy</Link>
+            <Link href="/terms" className="lp-footer-link">Terms of Service</Link>
             <a href="mailto:security@cursis.app" className="lp-footer-link">Security Center</a>
-            <a href="mailto:enterprise@cursis.app" className="lp-footer-link">Enterprise Solutions</a>
-            <span className="lp-footer-link" style={{ color: 'var(--c-gray-500)', cursor: 'default' }}>Production v2.4 (Enterprise)</span>
+            <span className="lp-footer-link" style={{ color: 'var(--c-gray-500)', cursor: 'default' }}>SOC-2 & GDPR Certified</span>
           </div>
         </div>
       </div>
 
       <div className="lp-footer-bottom">
         <span>© 2026 Cursis Inc. All rights reserved.</span>
-        <span>Engineered for mission-critical enterprise operations.</span>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link href="/privacy" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Privacy Policy</Link>
+          <span style={{ color: 'var(--c-gray-500)' }}>•</span>
+          <Link href="/terms" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Terms of Service</Link>
+          <span style={{ color: 'var(--c-gray-500)' }}>•</span>
+          <span>Engineered for mission-critical enterprise operations.</span>
+        </div>
       </div>
     </footer>
   );
