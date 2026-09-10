@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   allowedDevOrigins: ['192.168.1.6'],
   experimental: {
-    optimizePackageImports: ['lucide-react', 'framer-motion', 'three', '@react-three/fiber', '@react-three/drei'],
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
   images: {
     remotePatterns: [
