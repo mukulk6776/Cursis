@@ -31,28 +31,47 @@ import {
  OrdisSettings,
 } from './types';
 
+// Helper for personalized user workspace naming
+export function getUserWorkspaceName(userName?: string): string {
+  if (!userName || !userName.trim() || userName === 'Workspace Member') {
+    return 'My Workspace';
+  }
+  const name = userName.trim();
+  const suffix = name.endsWith('s') || name.endsWith('S') ? "'" : "'s";
+  return `${name}${suffix} Workspace`;
+}
+
+export function getUserWorkspaceShortName(userName?: string): string {
+  if (!userName || !userName.trim() || userName === 'Workspace Member') {
+    return 'My Workspace';
+  }
+  const firstName = userName.trim().split(' ')[0];
+  const suffix = firstName.endsWith('s') || firstName.endsWith('S') ? "'" : "'s";
+  return `${firstName}${suffix} Workspace`;
+}
+
 // ---- Workspaces (Clean Production Default) ----
 export const INITIAL_WORKSPACES: Workspace[] = [
- {
- id: 'ws_default',
- name: 'Cursis Workspace',
- shortName: 'Cursis HQ',
- type: 'public',
- tagline: 'Intelligent Workspace for Modern Teams',
- description: 'Autonomous AI workspace for projects, sprint execution, and team collaboration.',
- isCustomClient: false,
- badge: 'Production',
- color: '#0f4cff',
- ownerId: 'u_owner',
- createdAt: new Date().toISOString().split('T')[0],
- },
+  {
+    id: 'ws_default',
+    name: 'My Workspace',
+    shortName: 'My Workspace',
+    type: 'public',
+    tagline: 'Intelligent Workspace for Modern Teams',
+    description: 'Autonomous AI workspace for projects, sprint execution, and team collaboration.',
+    isCustomClient: false,
+    badge: 'Production',
+    color: '#0f4cff',
+    ownerId: 'u_owner',
+    createdAt: new Date().toISOString().split('T')[0],
+  },
 ];
 
 export const INITIAL_WORKSPACE: Workspace = INITIAL_WORKSPACES[0];
 
 export const INITIAL_WORKSPACE_SUMMARY: WorkspaceSummary = {
- name: 'Cursis HQ',
- plan: 'Production',
+  name: 'My Workspace',
+  plan: 'Production',
 };
 
 // ---- Current User (Placeholder for Unauthenticated / SSR Fallback) ----
@@ -69,7 +88,7 @@ export const INITIAL_USER: User = {
 
 // ---- Functional Settings Defaults ----
 export const INITIAL_WORKSPACE_SETTINGS: WorkspaceSettings = {
- name: 'Cursis HQ',
+ name: 'My Workspace',
  tagline: 'Intelligent Workspace for Modern Teams',
  industry: 'Product & Engineering',
  timezone: 'UTC+5:30 (IST)',
@@ -139,7 +158,7 @@ export const INITIAL_ORDIS_SETTINGS: OrdisSettings = {
 };
 
 export const INITIAL_ORG_SETTINGS: OrgSettings = {
- name: 'Cursis HQ',
+  name: 'My Workspace',
  industry: 'Technology / AI Solutions',
  timezone: 'UTC+5:30 (IST)',
  language: 'English',

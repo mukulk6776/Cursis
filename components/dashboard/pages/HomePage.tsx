@@ -56,7 +56,7 @@ export default function HomePage() {
                 className="badge badge-brand"
                 style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}
               >
-                {activeWorkspace.shortName.toUpperCase()}
+                {activeWorkspace.shortName}
               </span>
               <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 600 }}>
                 {activeWorkspace.tagline || 'Unified Operations Platform'}

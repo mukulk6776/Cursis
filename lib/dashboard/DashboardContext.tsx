@@ -69,6 +69,8 @@ import {
  INITIAL_NOTIFICATION_SETTINGS,
  INITIAL_MEETING_CALENDAR_SETTINGS,
  INITIAL_ORDIS_SETTINGS,
+ getUserWorkspaceName,
+ getUserWorkspaceShortName,
 } from './data';
 import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
 import { isFounderEmail } from '@/lib/auth/founder';
@@ -450,6 +452,62 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  },
  ]);
 
+  // Dynamically keep default workspace name in sync with user's name
+  useEffect(() => {
+    if (!user?.name || user.name === 'Workspace Member') return;
+    const userWsName = getUserWorkspaceName(user.name);
+    const userWsShortName = getUserWorkspaceShortName(user.name);
+
+    setWorkspaces((prev) =>
+      prev.map((w) => {
+        if (w.id === 'ws_default' || w.id === 'ws_public' || !w.isCustomClient) {
+          if (
+            w.name === 'Cursis Workspace' ||
+            w.name === 'Cursis HQ' ||
+            w.name === 'My Workspace' ||
+            w.name.endsWith("'s Workspace") ||
+            w.name.endsWith("' Workspace")
+          ) {
+            return {
+              ...w,
+              name: userWsName,
+              shortName: userWsShortName,
+            };
+          }
+        }
+        return w;
+      })
+    );
+
+    setWorkspaceSettings((prev) => {
+      if (
+        !prev.name ||
+        prev.name === 'Cursis HQ' ||
+        prev.name === 'Cursis Workspace' ||
+        prev.name === 'My Workspace' ||
+        prev.name.endsWith("'s Workspace") ||
+        prev.name.endsWith("' Workspace")
+      ) {
+        return { ...prev, name: userWsName };
+      }
+      return prev;
+    });
+
+    setOrgSettings((prev) => {
+      if (
+        !prev.name ||
+        prev.name === 'Cursis HQ' ||
+        prev.name === 'Cursis Workspace' ||
+        prev.name === 'My Workspace' ||
+        prev.name.endsWith("'s Workspace") ||
+        prev.name.endsWith("' Workspace")
+      ) {
+        return { ...prev, name: userWsName };
+      }
+      return prev;
+    });
+  }, [user.name]);
+
  // Sync authenticated user from session on mount
  useEffect(() => {
  let isMounted = true;
@@ -491,6 +549,37 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
         setUser(activeUser);
         setOrdisPlan(userPlanTier === 'premium' ? 'paid' : 'basic');
+
+        // Dynamically name default workspace based on authenticated user
+        const userWsName = getUserWorkspaceName(activeUser.name);
+        const userWsShortName = getUserWorkspaceShortName(activeUser.name);
+
+        setWorkspaces((prev) =>
+          prev.map((w) => {
+            if (w.id === 'ws_default' || w.id === 'ws_public' || !w.isCustomClient) {
+              return {
+                ...w,
+                name: userWsName,
+                shortName: userWsShortName,
+              };
+            }
+            return w;
+          })
+        );
+
+        setWorkspaceSettings((prev) => {
+          if (!prev.name || prev.name === 'Cursis HQ' || prev.name === 'Cursis Workspace' || prev.name === 'My Workspace') {
+            return { ...prev, name: userWsName };
+          }
+          return prev;
+        });
+
+        setOrgSettings((prev) => {
+          if (!prev.name || prev.name === 'Cursis HQ' || prev.name === 'Cursis Workspace' || prev.name === 'My Workspace') {
+            return { ...prev, name: userWsName };
+          }
+          return prev;
+        });
 
         // Ensure current user is in employees list and purge any fake simulated members
         setEmployees((prev) => {
@@ -605,6 +694,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const savedWs = localStorage.getItem('cursis_workspace_settings');
  if (savedWs) {
  const parsed = JSON.parse(savedWs);
+ if (parsed.name === 'Cursis HQ' || parsed.name === 'Cursis Workspace' || parsed.name === 'My Workspace') {
+ delete parsed.name;
+ }
  setWorkspaceSettings((prev) => ({ ...prev, ...parsed }));
  }
  const savedTeam = localStorage.getItem('cursis_team_settings');
