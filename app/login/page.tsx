@@ -39,16 +39,16 @@ export default function LoginPage() {
  };
  }, []);
 
- const getRedirectDestination = () => {
- if (typeof window !== 'undefined') {
- const params = new URLSearchParams(window.location.search);
- const redirect = params.get('redirect');
- if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
- return redirect;
- }
- }
- return '/dashboard';
- };
+  const getRedirectDestination = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+        return redirect.includes('?') ? `${redirect}&setup=true` : `${redirect}?setup=true`;
+      }
+    }
+    return '/dashboard?setup=true';
+  };
 
   const exchangeTokenAndRedirect = async (authResult: {
     email: string;
@@ -63,6 +63,8 @@ export default function LoginPage() {
         try {
           localStorage.setItem('cursis_token', authResult.idToken);
           document.cookie = `cursis_session=${encodeURIComponent(authResult.idToken)}; path=/; max-age=604800; SameSite=Lax`;
+          sessionStorage.setItem('cursis_show_workspace_setup', 'true');
+          localStorage.setItem('cursis_show_workspace_setup', 'true');
         } catch {}
         await new Promise((r) => setTimeout(r, 120));
         window.location.href = getRedirectDestination();
@@ -96,6 +98,8 @@ export default function LoginPage() {
       try {
         localStorage.setItem('cursis_token', token);
         document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+        sessionStorage.setItem('cursis_show_workspace_setup', 'true');
+        localStorage.setItem('cursis_show_workspace_setup', 'true');
       } catch {}
 
       await new Promise((r) => setTimeout(r, 120));
@@ -108,9 +112,17 @@ export default function LoginPage() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanEmail = email.trim();
+    const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail || !password) {
       setErrorMsg('Please enter both your work email and password.');
+      return;
+    }
+
+    // Only allow Gmail and Microsoft email domains
+    const allowedDomains = ['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com'];
+    const emailDomain = cleanEmail.split('@')[1];
+    if (!emailDomain || !allowedDomains.includes(emailDomain)) {
+      setErrorMsg('Only Gmail and Microsoft email accounts (gmail.com, outlook.com, hotmail.com, live.com) are permitted to sign in.');
       return;
     }
 

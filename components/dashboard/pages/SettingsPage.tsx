@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { MeetingPlatform, OrgSettings } from '@/lib/dashboard/types';
+import { OrgSettings } from '@/lib/dashboard/types';
 import { isFounderEmail } from '@/lib/auth/founder';
 
-type SettingsTab = 'workspace' | 'team' | 'notifications' | 'meetings' | 'ordis' | 'security';
+type SettingsTab = 'workspace' | 'team' | 'notifications' | 'ordis' | 'security';
 
 export default function SettingsPage() {
  const {
@@ -20,13 +20,13 @@ export default function SettingsPage() {
  updateTeamSettings,
  notificationSettings,
  updateNotificationSettings,
- meetingCalendarSettings,
- updateMeetingCalendarSettings,
+
  ordisSettings,
  updateOrdisSettings,
  orgSettings,
  updateOrgSettings,
  auditLogs,
+ fetchAuditLogs,
  removeEmployee,
  updateEmployee,
  revokeInvitation,
@@ -36,12 +36,21 @@ export default function SettingsPage() {
  } = useDashboard();
 
  const [activeTab, setActiveTab] = useState<SettingsTab>('workspace');
+ const [auditLoading, setAuditLoading] = useState(false);
+
+ // Fetch audit logs when security tab becomes active
+ useEffect(() => {
+ if (activeTab === 'security') {
+ setAuditLoading(true);
+ fetchAuditLogs().finally(() => setAuditLoading(false));
+ }
+ }, [activeTab]);
 
  // Local form states synced with context
  const [wsForm, setWsForm] = useState(workspaceSettings);
  const [teamForm, setTeamForm] = useState(teamSettings);
  const [notifForm, setNotifForm] = useState(notificationSettings);
- const [meetForm, setMeetForm] = useState(meetingCalendarSettings);
+
  const [ordisForm, setOrdisForm] = useState(ordisSettings);
  const [orgForm, setOrgForm] = useState<OrgSettings>(orgSettings);
 
@@ -58,9 +67,7 @@ export default function SettingsPage() {
  setNotifForm(notificationSettings);
  }, [notificationSettings]);
 
- useEffect(() => {
- setMeetForm(meetingCalendarSettings);
- }, [meetingCalendarSettings]);
+
 
  useEffect(() => {
  setOrdisForm(ordisSettings);
@@ -86,10 +93,7 @@ export default function SettingsPage() {
  updateNotificationSettings(notifForm);
  };
 
- const handleSaveMeetings = (e: React.FormEvent) => {
- e.preventDefault();
- updateMeetingCalendarSettings(meetForm);
- };
+
 
  const handleSaveOrdis = (e: React.FormEvent) => {
  e.preventDefault();
@@ -136,26 +140,20 @@ export default function SettingsPage() {
  >
  3. Notifications
  </button>
- <button
- type="button"
- className={`tab ${activeTab === 'meetings' ? 'active' : ''}`}
- onClick={() => setActiveTab('meetings')}
- >
- 4. Meetings &amp; Calendar
- </button>
+
  <button
  type="button"
  className={`tab ${activeTab === 'ordis' ? 'active' : ''}`}
  onClick={() => setActiveTab('ordis')}
  >
- 5. Ordis AI Settings
+ 4. Ordis AI Settings
  </button>
  <button
  type="button"
  className={`tab ${activeTab === 'security' ? 'active' : ''}`}
  onClick={() => setActiveTab('security')}
  >
- 6. Security &amp; Audit Logs 
+ 5. Security &amp; Audit Logs 
  </button>
  </div>
 
@@ -259,23 +257,6 @@ export default function SettingsPage() {
  </div>
 
  <div className="input-group">
- <label className="input-label">Primary Timezone</label>
- <select
- className="input select"
- value={wsForm.timezone}
- onChange={(e) => setWsForm({ ...wsForm, timezone: e.target.value })}
- >
- <option value="UTC-8 (PST)">UTC-8 (PST - Pacific)</option>
- <option value="UTC-5 (EST)">UTC-5 (EST - Eastern)</option>
- <option value="UTC+0 (GMT)">UTC+0 (GMT / London)</option>
- <option value="UTC+1 (CET)">UTC+1 (CET - Central Europe)</option>
- <option value="UTC+5:30 (IST)">UTC+5:30 (IST - India Standard Time)</option>
- <option value="UTC+8 (SGT)">UTC+8 (SGT - Singapore / Hong Kong)</option>
- <option value="UTC+9 (JST)">UTC+9 (JST - Tokyo)</option>
- </select>
- </div>
-
- <div className="input-group">
  <label className="input-label">Language</label>
  <select
  className="input select"
@@ -289,20 +270,18 @@ export default function SettingsPage() {
  <option value="Japanese">Japanese (日本語)</option>
  </select>
  </div>
-
- <div className="input-group">
- <label className="input-label">Date Format</label>
- <select
- className="input select"
- value={wsForm.dateFormat}
- onChange={(e) => setWsForm({ ...wsForm, dateFormat: e.target.value })}
- >
- <option value="DD MMM YYYY">DD MMM YYYY (e.g. 06 Sep 2026)</option>
- <option value="YYYY-MM-DD">YYYY-MM-DD (ISO 8601 standard)</option>
- <option value="MM/DD/YYYY">MM/DD/YYYY (US standard)</option>
- <option value="DD/MM/YYYY">DD/MM/YYYY (UK/EU standard)</option>
- </select>
  </div>
+
+ <div style={{ marginTop: 'var(--sp-4)', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+ <button
+ type="button"
+ className="btn btn-secondary btn-sm"
+ onClick={() => openModal('workspace-setup-modal')}
+ style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+ >
+ <span>⚡</span>
+ <span>Open Workspace Setup Wizard</span>
+ </button>
  </div>
  </div>
 
@@ -863,139 +842,7 @@ export default function SettingsPage() {
  </form>
  )}
 
- {/* ========================================================================= */}
- {/* 4. MEETINGS & CALENDAR SETTINGS */}
- {/* ========================================================================= */}
- {activeTab === 'meetings' && (
- <form onSubmit={handleSaveMeetings} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
- <div className="card" style={{ padding: 'var(--sp-5)' }}>
- <h3 style={{ marginBottom: 'var(--sp-2)', fontSize: 'var(--fs-base)', fontWeight: 'var(--fw-bold)' }}>
- Meeting Scheduling &amp; Video Defaults
- </h3>
- <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--sp-4)' }}>
- Set baseline preferences used by Ordis and the booking engine when organizing syncs.
- </p>
 
- <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--sp-4)', marginBottom: 'var(--sp-4)' }}>
- <div className="input-group">
- <label className="input-label">Default Meeting Platform</label>
- <select
- className="input select"
- value={meetForm.defaultPlatform}
- onChange={(e) => setMeetForm({ ...meetForm, defaultPlatform: e.target.value as MeetingPlatform })}
- >
- <option value="google_meet">Google Meet</option>
- <option value="zoom">Zoom</option>
- <option value="teams">Microsoft Teams</option>
- <option value="other">Cursis Native / Other</option>
- </select>
- </div>
-
- <div className="input-group">
- <label className="input-label">Default Duration</label>
- <select
- className="input select"
- value={meetForm.defaultDuration}
- onChange={(e) => setMeetForm({ ...meetForm, defaultDuration: Number(e.target.value) })}
- >
- <option value={15}>15 minutes (Quick Standup)</option>
- <option value={25}>25 minutes (Speedy 25)</option>
- <option value={30}>30 minutes (Standard)</option>
- <option value={45}>45 minutes (Deep Dive)</option>
- <option value={60}>60 minutes (Workshop / Strategic)</option>
- </select>
- </div>
-
- <div className="input-group">
- <label className="input-label">Minimum Scheduling Notice</label>
- <select
- className="input select"
- value={meetForm.schedulingLeadTimeMinutes}
- onChange={(e) => setMeetForm({ ...meetForm, schedulingLeadTimeMinutes: Number(e.target.value) })}
- >
- <option value={15}>15 minutes notice</option>
- <option value={60}>1 hour notice</option>
- <option value={180}>3 hours notice</option>
- <option value={1440}>24 hours notice</option>
- </select>
- </div>
-
- <div className="input-group">
- <label className="input-label">Working Hours Window</label>
- <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
- <input
- type="time"
- className="input"
- value={meetForm.workingHoursStart}
- onChange={(e) => setMeetForm({ ...meetForm, workingHoursStart: e.target.value })}
- />
- <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>to</span>
- <input
- type="time"
- className="input"
- value={meetForm.workingHoursEnd}
- onChange={(e) => setMeetForm({ ...meetForm, workingHoursEnd: e.target.value })}
- />
- </div>
- </div>
- </div>
-
- <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', borderTop: '1px solid var(--c-gray-200)', paddingTop: 'var(--sp-4)' }}>
- <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
- <div>
- <div style={{ fontWeight: 'var(--fw-bold)' }}>Sync Tasks to Calendar</div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Display task deadlines as all-day events on your team calendar view</div>
- </div>
- <input
- type="checkbox"
- checked={meetForm.syncTasksToCalendar}
- onChange={(e) => setMeetForm({ ...meetForm, syncTasksToCalendar: e.target.checked })}
- style={{ width: '18px', height: '18px', cursor: 'pointer' }}
- />
- </label>
-
- <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
- <div>
- <div style={{ fontWeight: 'var(--fw-bold)' }}>Auto-Generate Agendas</div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Ordis automatically drafts bulleted agendas from related open sprint tasks</div>
- </div>
- <input
- type="checkbox"
- checked={meetForm.autoAgenda}
- onChange={(e) => setMeetForm({ ...meetForm, autoAgenda: e.target.checked, autoGenerateAgendas: e.target.checked })}
- style={{ width: '18px', height: '18px', cursor: 'pointer' }}
- />
- </label>
-
- <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
- <div>
- <div style={{ fontWeight: 'var(--fw-bold)' }}>AI Meeting Summaries &amp; Action Extraction</div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Generate clean executive notes and automatically draft tasks from discussions</div>
- </div>
- <input
- type="checkbox"
- checked={meetForm.autoRecordAndSummarize}
- onChange={(e) => setMeetForm({ ...meetForm, autoRecordAndSummarize: e.target.checked })}
- style={{ width: '18px', height: '18px', cursor: 'pointer' }}
- />
- </label>
- </div>
- </div>
-
- <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
- <button type="submit" className="btn btn-primary" id="save-meetings-btn">
- Save Calendar Settings
- </button>
- <button
- type="button"
- className="btn btn-secondary btn-sm"
- onClick={() => resetSettingsToDefault('meetings')}
- >
- Reset to Defaults
- </button>
- </div>
- </form>
- )}
 
  {/* ========================================================================= */}
  {/* 5. ORDIS AI SETTINGS */}
@@ -1155,31 +1002,16 @@ export default function SettingsPage() {
  Workspace Security Policies
  </h3>
  <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--sp-4)' }}>
- Enforce strict authentication, session timeouts, and IP restrictions across all members.
+ Enforce authentication restrictions and IP policies across all members. Only Gmail and Microsoft accounts are permitted to sign in.
  </p>
 
  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--sp-4)', marginBottom: 'var(--sp-4)' }}>
  <div className="input-group">
- <label className="input-label">Inactivity Session Timeout</label>
- <select
- className="input select"
- value={orgForm.securityPolicies?.sessionTimeout || 60}
- onChange={(e) =>
- setOrgForm({
- ...orgForm,
- securityPolicies: {
- ...orgForm.securityPolicies,
- sessionTimeout: Number(e.target.value),
- },
- })
- }
- >
- <option value={15}>15 minutes (High Security)</option>
- <option value={30}>30 minutes</option>
- <option value={60}>60 minutes (Standard)</option>
- <option value={240}>4 hours</option>
- <option value={1440}>24 hours</option>
- </select>
+ <label className="input-label">Allowed Sign-In Providers</label>
+ <div className="input" style={{ background: 'var(--c-surface)', cursor: 'default', display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+ <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 'var(--fw-bold)', color: 'var(--text-primary)' }}>Google (Gmail) &amp; Microsoft (Outlook / Hotmail)</span>
+ </div>
+ <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px' }}>Only @gmail.com, @googlemail.com, @outlook.com, @hotmail.com, @live.com, and @msn.com domains are accepted.</p>
  </div>
 
  <div className="input-group">
@@ -1206,27 +1038,6 @@ export default function SettingsPage() {
  </div>
 
  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', borderTop: '1px solid var(--c-gray-200)', paddingTop: 'var(--sp-4)' }}>
- <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
- <div>
- <div style={{ fontWeight: 'var(--fw-bold)' }}>Enforce Two-Factor Authentication (2FA)</div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Require all team members to enroll in authenticator app 2FA on sign in</div>
- </div>
- <input
- type="checkbox"
- checked={orgForm.securityPolicies?.twoFactorRequired ?? true}
- onChange={(e) =>
- setOrgForm({
- ...orgForm,
- securityPolicies: {
- ...orgForm.securityPolicies,
- twoFactorRequired: e.target.checked,
- },
- })
- }
- style={{ width: '18px', height: '18px', cursor: 'pointer' }}
- />
- </label>
-
  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
  <div>
  <div style={{ fontWeight: 'var(--fw-bold)' }}>IP Range Restriction</div>
@@ -1267,12 +1078,34 @@ export default function SettingsPage() {
  Immutable record of settings modifications, security policies, and administrative operations.
  </p>
  </div>
+ <button
+ type="button"
+ className="btn btn-secondary btn-sm"
+ onClick={() => {
+ setAuditLoading(true);
+ fetchAuditLogs().finally(() => setAuditLoading(false));
+ }}
+ style={{ whiteSpace: 'nowrap' }}
+ >
+ {auditLoading ? 'Loading…' : '↻ Refresh'}
+ </button>
  </div>
 
- <div style={{ overflowX: 'auto', maxHeight: '320px' }}>
+ {auditLogs.length === 0 ? (
+ <div style={{ textAlign: 'center', padding: 'var(--sp-6) var(--sp-4)', color: 'var(--text-tertiary)' }}>
+ <div style={{ fontSize: '32px', marginBottom: 'var(--sp-2)' }}>📋</div>
+ <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 'var(--fw-bold)', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+ No audit events recorded yet
+ </div>
+ <div style={{ fontSize: 'var(--fs-xs)' }}>
+ Settings changes, team actions, and security events will appear here automatically.
+ </div>
+ </div>
+ ) : (
+ <div style={{ overflowX: 'auto', maxHeight: '400px' }}>
  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-xs)' }}>
  <thead>
- <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
+ <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, zIndex: 1 }}>
  <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'bold' }}>ACTOR</th>
  <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'bold' }}>EVENT ACTION</th>
  <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'bold' }}>TARGET</th>
@@ -1281,22 +1114,23 @@ export default function SettingsPage() {
  </tr>
  </thead>
  <tbody>
- {auditLogs.slice(0, 10).map((log) => (
+ {auditLogs.slice(0, 50).map((log) => (
  <tr key={log.id} style={{ borderBottom: '1px solid var(--c-gray-200)' }}>
  <td style={{ padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'bold' }}>{log.actor}</td>
  <td style={{ padding: 'var(--sp-2) var(--sp-3)', fontFamily: 'var(--font-mono)', color: 'var(--c-brand)' }}>
  {log.action}
  </td>
  <td style={{ padding: 'var(--sp-2) var(--sp-3)' }}>{log.target}</td>
- <td style={{ padding: 'var(--sp-2) var(--sp-3)', color: 'var(--text-secondary)' }}>{log.details || '—'}</td>
- <td style={{ padding: 'var(--sp-2) var(--sp-3)', textAlign: 'right', color: 'var(--text-tertiary)' }}>
- {log.timestamp ? new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent'}
+ <td style={{ padding: 'var(--sp-2) var(--sp-3)', color: 'var(--text-secondary)', maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.details || '—'}</td>
+ <td style={{ padding: 'var(--sp-2) var(--sp-3)', textAlign: 'right', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+ {log.timestamp ? new Date(log.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent'}
  </td>
  </tr>
  ))}
  </tbody>
  </table>
  </div>
+ )}
  </div>
  </form>
  )}

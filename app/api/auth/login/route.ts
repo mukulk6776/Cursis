@@ -18,6 +18,14 @@ export async function POST(request: Request) {
     if (!email || !email.includes('@')) {
       return apiError('Please enter a valid email address', 400);
     }
+
+    // Only allow Gmail and Microsoft email domains
+    const allowedDomains = ['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com'];
+    const emailDomain = email.split('@')[1];
+    if (!allowedDomains.includes(emailDomain)) {
+      return apiError('Only Gmail and Microsoft email accounts (gmail.com, outlook.com, hotmail.com, live.com) are permitted to sign in.', 403);
+    }
+
     if (!password) {
       return apiError('Please enter your password', 400);
     }

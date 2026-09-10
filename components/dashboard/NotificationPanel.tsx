@@ -1,21 +1,44 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function NotificationPanel() {
- const {
- notificationsOpen,
- closeNotifications,
- notifications,
- markNotificationsRead,
- setCurrentPage,
- } = useDashboard();
+  const {
+    notificationsOpen,
+    closeNotifications,
+    notifications,
+    markNotificationsRead,
+    setCurrentPage,
+  } = useDashboard();
 
- if (!notificationsOpen) return null;
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeNotifications();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [closeNotifications]);
 
- return (
- <div className="notif-panel open" id="notif-panel">
+  if (!notificationsOpen) return null;
+
+  return (
+    <>
+      <div
+        className="notif-backdrop"
+        onClick={closeNotifications}
+        aria-label="Close notifications"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.35)',
+          backdropFilter: 'blur(2px)',
+          zIndex: 998,
+        }}
+      />
+      <div className="notif-panel open" id="notif-panel" style={{ zIndex: 999 }}>
  <div className="notif-panel-header">
  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  <h3 style={{ fontSize: 'var(--fs-lg)', margin: 0 }}>Notifications</h3>
@@ -31,9 +54,30 @@ export default function NotificationPanel() {
  >
  Mark all read
  </button>
- <button className="btn btn-ghost btn-sm" onClick={closeNotifications}>
- 
- </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={closeNotifications}
+            title="Close notifications"
+            aria-label="Close notifications"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              border: '1px solid var(--border-color)',
+              background: 'var(--c-surface)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
  </div>
  </div>
 
@@ -65,5 +109,6 @@ export default function NotificationPanel() {
  ))}
  </div>
  </div>
- );
+    </>
+  );
 }

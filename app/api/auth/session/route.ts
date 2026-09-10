@@ -76,6 +76,13 @@ export async function POST(request: Request) {
       }
     }
 
+    // Only allow Gmail and Microsoft email domains
+    const allowedDomains = ['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com'];
+    const emailDomain = userEmail.split('@')[1];
+    if (emailDomain && !allowedDomains.includes(emailDomain)) {
+      return apiError('Only Gmail and Microsoft email accounts (gmail.com, outlook.com, hotmail.com, live.com) are permitted to sign in.', 403);
+    }
+
     // Check for existing user in database
     let existing: any = null;
     if (userEmail) {

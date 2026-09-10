@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function ProfilePanel() {
@@ -18,6 +18,16 @@ export default function ProfilePanel() {
  openModal,
  } = useDashboard();
 
+ useEffect(() => {
+ const handleKeyDown = (e: KeyboardEvent) => {
+ if (e.key === 'Escape') {
+ closeProfilePanel();
+ }
+ };
+ window.addEventListener('keydown', handleKeyDown);
+ return () => window.removeEventListener('keydown', handleKeyDown);
+ }, [closeProfilePanel]);
+
  if (!profilePanelEmployeeId) return null;
 
  const emp = getEmployee(profilePanelEmployeeId);
@@ -30,7 +40,20 @@ export default function ProfilePanel() {
  const isPro = emp.planTier === 'premium';
 
  return (
- <div className="profile-panel open" id="profile-panel">
+ <>
+ <div
+ className="profile-backdrop"
+ onClick={closeProfilePanel}
+ aria-label="Close profile panel"
+ style={{
+ position: 'fixed',
+ inset: 0,
+ background: 'rgba(0, 0, 0, 0.4)',
+ backdropFilter: 'blur(2px)',
+ zIndex: 998,
+ }}
+ />
+ <div className="profile-panel open" id="profile-panel" style={{ zIndex: 999 }}>
  <div
  style={{
  display: 'flex',
@@ -41,8 +64,30 @@ export default function ProfilePanel() {
  }}
  >
  <h3 style={{ margin: 0 }}>Profile Details</h3>
- <button className="btn btn-ghost btn-sm" onClick={closeProfilePanel}>
- 
+ <button
+ className="btn btn-ghost btn-sm"
+ onClick={closeProfilePanel}
+ title="Close profile panel"
+ aria-label="Close profile panel"
+ style={{
+ display: 'flex',
+ alignItems: 'center',
+ justifyContent: 'center',
+ width: '32px',
+ height: '32px',
+ borderRadius: '8px',
+ border: '1px solid var(--border-color)',
+ background: 'var(--c-surface)',
+ color: 'var(--text-primary)',
+ cursor: 'pointer',
+ padding: 0,
+ transition: 'all 0.15s ease',
+ }}
+ >
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+ <line x1="18" y1="6" x2="6" y2="18" />
+ <line x1="6" y1="6" x2="18" y2="18" />
+ </svg>
  </button>
  </div>
 
@@ -259,7 +304,8 @@ export default function ProfilePanel() {
  </button>
  </div>
  )}
- </div>
- </div>
- );
+      </div>
+    </div>
+    </>
+  );
 }

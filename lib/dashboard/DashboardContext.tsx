@@ -193,6 +193,7 @@ interface DashboardContextType {
  agents: OrdisAgent[];
  ordisAgents: OrdisAgent[];
  addAuditEntry: (actorOrAction: string, actionOrTarget: string, targetOrDetails?: string, maybeDetails?: string) => void;
+ fetchAuditLogs: () => Promise<void>;
 
  // Mutations
  addTask: (task: Partial<Task> & { name: string }) => void;
@@ -455,6 +456,27 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   // Dynamically keep default workspace name in sync with user's name
   useEffect(() => {
     if (!user?.name || user.name === 'Workspace Member') return;
+
+    // Check if user set a custom workspace name in setup wizard
+    const customWsName = typeof window !== 'undefined' ? localStorage.getItem('cursis_custom_workspace_name') : null;
+    if (customWsName) {
+      setWorkspaces((prev) =>
+        prev.map((w) => {
+          if (w.id === 'ws_default' || w.id === 'ws_public' || !w.isCustomClient) {
+            return {
+              ...w,
+              name: customWsName,
+              shortName: customWsName.slice(0, 3).toUpperCase(),
+            };
+          }
+          return w;
+        })
+      );
+      setWorkspaceSettings((prev) => ({ ...prev, name: customWsName }));
+      setOrgSettings((prev) => ({ ...prev, name: customWsName }));
+      return;
+    }
+
     const userWsName = getUserWorkspaceName(user.name);
     const userWsShortName = getUserWorkspaceShortName(user.name);
 
@@ -664,9 +686,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         setUser(activeUser);
         setOrdisPlan(userPlanTier === 'premium' ? 'paid' : 'basic');
 
-        // Dynamically name default workspace based on authenticated user
-        const userWsName = getUserWorkspaceName(activeUser.name);
-        const userWsShortName = getUserWorkspaceShortName(activeUser.name);
+        // Dynamically name default workspace based on authenticated user or custom setup name
+        const customWsName = typeof window !== 'undefined' ? localStorage.getItem('cursis_custom_workspace_name') : null;
+        const userWsName = customWsName || getUserWorkspaceName(activeUser.name);
+        const userWsShortName = customWsName ? customWsName.slice(0, 3).toUpperCase() : getUserWorkspaceShortName(activeUser.name);
 
         setWorkspaces((prev) =>
           prev.map((w) => {
@@ -877,6 +900,31 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }
  }, [workspaceSettings.accentColor, workspaceSettings.density]);
 
+ // Fetch audit logs from backend on mount
+ useEffect(() => {
+ if (typeof window === 'undefined') return;
+ const token = localStorage.getItem('cursis_token');
+ fetch('/api/security/audit-logs', {
+ headers: token ? { Authorization: `Bearer ${token}` } : {},
+ credentials: 'include',
+ })
+ .then((res) => res.ok ? res.json() : null)
+ .then((data) => {
+ if (data?.auditLogs && Array.isArray(data.auditLogs)) {
+ const mapped: AuditLogItem[] = data.auditLogs.map((log: any) => ({
+ id: log.id,
+ actor: log.actorName || log.actor || 'System',
+ action: log.action || '',
+ target: log.targetType || log.target || '',
+ details: typeof log.details === 'object' ? (log.details?.summary || JSON.stringify(log.details)) : String(log.details || ''),
+ timestamp: log.createdAt || log.timestamp || new Date().toISOString(),
+ }));
+ if (mapped.length > 0) setAuditLogs(mapped);
+ }
+ })
+ .catch(() => {});
+ }, []);
+
  // ---- Settings Mutation Handlers with Persistence ----
  const updateWorkspaceSettings = (updates: Partial<WorkspaceSettings>) => {
  setWorkspaceSettings((prev) => {
@@ -1013,6 +1061,32 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  // ---- Audit Log Mutation ----
+ const fetchAuditLogs = async () => {
+ try {
+ const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+ const res = await fetch('/api/security/audit-logs', {
+ headers: token ? { Authorization: `Bearer ${token}` } : {},
+ credentials: 'include',
+ });
+ if (res.ok) {
+ const data = await res.json();
+ if (data.auditLogs && Array.isArray(data.auditLogs)) {
+ const mapped: AuditLogItem[] = data.auditLogs.map((log: any) => ({
+ id: log.id,
+ actor: log.actorName || log.actor || 'System',
+ action: log.action || '',
+ target: log.targetType || log.target || '',
+ details: typeof log.details === 'object' ? (log.details?.summary || JSON.stringify(log.details)) : String(log.details || ''),
+ timestamp: log.createdAt || log.timestamp || new Date().toISOString(),
+ }));
+ setAuditLogs(mapped);
+ }
+ }
+ } catch (e) {
+ console.warn('fetchAuditLogs notice:', e);
+ }
+ };
+
  const addAuditEntry = (actorOrAction: string, actionOrTarget: string, targetOrDetails?: string, maybeDetails?: string) => {
  let actor = user.name;
  let action = actorOrAction;
@@ -1035,6 +1109,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  timestamp: new Date().toISOString(),
  };
  setAuditLogs((prev) => [entry, ...prev]);
+
+ // Persist to backend
+ const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+ fetch('/api/security/audit-logs', {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ ...(token ? { Authorization: `Bearer ${token}` } : {}),
+ },
+ credentials: 'include',
+ body: JSON.stringify({ action, target, details }),
+ }).catch(() => {});
  };
 
  // ---- Task Mutations ----
@@ -2160,6 +2246,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  agents,
  ordisAgents: agents,
  addAuditEntry,
+ fetchAuditLogs,
  addTask,
  updateTask,
  deleteTask,

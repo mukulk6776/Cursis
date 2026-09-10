@@ -465,6 +465,15 @@ input.input:focus {
   color: var(--text-primary);
 }
 
+.modal-close:empty::before {
+  content: '✕';
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-secondary);
+}
+
 .modal-body {
   padding: 24px;
   display: flex;

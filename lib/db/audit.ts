@@ -1,9 +1,32 @@
 import { inMemoryStore } from './store';
+import { getCollection } from '@/lib/mongodb';
 import { AuditLogEntry } from './types';
 
+// In-memory fallback
+const inMemoryAuditLogs: AuditLogEntry[] = [];
+
 export async function getAuditLogs(workspaceId: string): Promise<AuditLogEntry[]> {
-  return Array.from(inMemoryStore.auditLogs.values())
-    .filter((log) => log.workspaceId === workspaceId)
+  try {
+    const col = await getCollection<AuditLogEntry>('audit_logs');
+    if (col) {
+      const docs = await col
+        .find({ workspaceId })
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .toArray();
+      if (docs.length > 0) return docs;
+    }
+  } catch (e) {
+    console.warn('MongoDB getAuditLogs notice:', e);
+  }
+
+  // Fallback: combine in-memory store + local array
+  const storeEntries = Array.from(inMemoryStore.auditLogs.values())
+    .filter((log) => log.workspaceId === workspaceId);
+  const localEntries = inMemoryAuditLogs.filter((log) => log.workspaceId === workspaceId);
+  const combined = [...storeEntries, ...localEntries];
+  const uniqueMap = new Map(combined.map((e) => [e.id, e]));
+  return Array.from(uniqueMap.values())
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
@@ -38,7 +61,21 @@ export async function logAuditEvent(
     createdAt: new Date().toISOString(),
   };
 
+  // Persist to in-memory stores
   inMemoryStore.auditLogs.set(id, entry);
+  inMemoryAuditLogs.unshift(entry);
+  if (inMemoryAuditLogs.length > 200) inMemoryAuditLogs.pop();
+
+  // Persist to MongoDB
+  try {
+    const col = await getCollection<AuditLogEntry>('audit_logs');
+    if (col) {
+      await col.insertOne(entry);
+    }
+  } catch (e) {
+    console.warn('MongoDB logAuditEvent notice:', e);
+  }
+
   return entry;
 }
 
@@ -47,7 +84,22 @@ export async function rollbackAction(
   auditId: string,
   performedByUserId: string
 ): Promise<{ success: boolean; message: string }> {
-  const entry = inMemoryStore.auditLogs.get(auditId);
+  // Try MongoDB first
+  let entry: AuditLogEntry | null = null;
+  try {
+    const col = await getCollection<AuditLogEntry>('audit_logs');
+    if (col) {
+      entry = await col.findOne({ id: auditId }) as AuditLogEntry | null;
+    }
+  } catch (e) {
+    console.warn('MongoDB rollbackAction find notice:', e);
+  }
+
+  // Fallback to in-memory
+  if (!entry) {
+    entry = inMemoryStore.auditLogs.get(auditId) || null;
+  }
+
   if (!entry) {
     return { success: false, message: 'Audit entry not found' };
   }
@@ -79,6 +131,16 @@ export async function rollbackAction(
 
   entry.rolledBack = true;
   inMemoryStore.auditLogs.set(auditId, entry);
+
+  // Update MongoDB
+  try {
+    const col = await getCollection<AuditLogEntry>('audit_logs');
+    if (col) {
+      await col.updateOne({ id: auditId }, { $set: { rolledBack: true } });
+    }
+  } catch (e) {
+    console.warn('MongoDB rollbackAction update notice:', e);
+  }
 
   // Log the rollback itself
   await logAuditEvent(entry.workspaceId, {

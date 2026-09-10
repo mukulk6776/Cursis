@@ -21,6 +21,14 @@ export async function POST(request: Request) {
     if (!email || !email.includes('@')) {
       return apiError('A valid email address is required', 400);
     }
+
+    // Only allow Gmail and Microsoft email domains
+    const allowedDomains = ['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com'];
+    const emailDomain = email.split('@')[1];
+    if (!allowedDomains.includes(emailDomain)) {
+      return apiError('Only Gmail and Microsoft email accounts (gmail.com, outlook.com, hotmail.com, live.com) are permitted to create an account.', 403);
+    }
+
     if (!password || password.length < 6) {
       return apiError('Password must be at least 6 characters long', 400);
     }

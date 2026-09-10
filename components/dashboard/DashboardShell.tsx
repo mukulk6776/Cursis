@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 // Core layout components
@@ -22,13 +22,35 @@ import InviteModal from './modals/InviteModal';
 import DocumentModal from './modals/DocumentModal';
 import GenericModal from './modals/GenericModal';
 import RedeemCodeModal from './modals/RedeemCodeModal';
+import WorkspaceSetupModal from './modals/WorkspaceSetupModal';
 
 interface DashboardShellProps {
   children?: React.ReactNode;
 }
 
 export default function DashboardShell({ children }: DashboardShellProps) {
-  const { mobileSidebarOpen, setMobileSidebarOpen } = useDashboard();
+  const { mobileSidebarOpen, setMobileSidebarOpen, openModal } = useDashboard();
+
+  // Trigger workspace setup options screen when user logs in or hasn't completed onboarding
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isSetupParam = urlParams.get('setup') === 'true' || urlParams.get('onboarding') === 'true';
+      const showFromLogin =
+        sessionStorage.getItem('cursis_show_workspace_setup') === 'true' ||
+        localStorage.getItem('cursis_show_workspace_setup') === 'true';
+      const notCompleted = !localStorage.getItem('cursis_workspace_setup_completed');
+
+      if (isSetupParam || showFromLogin || notCompleted) {
+        // Small timeout to allow context hydration
+        const timer = setTimeout(() => {
+          openModal('workspace-setup-modal');
+        }, 350);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, [openModal]);
 
   return (
     <div className="cursis-dashboard-root">
@@ -68,6 +90,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <DocumentModal />
       <GenericModal />
       <RedeemCodeModal />
+      <WorkspaceSetupModal />
 
       {/* Global Floating Ordis AI Chatbot */}
       <OrdisFloatingChat />
