@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import { isFounderEmail } from '@/lib/auth/founder';
 
 export default function MemberModal() {
  const {
@@ -120,6 +121,18 @@ export default function MemberModal() {
  }
  }
 
+    const isTargetFounder = isFounderEmail(cleanEmail);
+    if (!isTargetFounder) {
+      if (/founder|ceo/i.test(role)) {
+        setErrorMsg('The Founder & CEO title is exclusively reserved for the platform creator (mukulk3962364@gmail.com).');
+        return;
+      }
+      if (workspaceRole === 'owner') {
+        setErrorMsg('Workspace ownership is strictly reserved for the platform creator (mukulk3962364@gmail.com).');
+        return;
+      }
+    }
+
  addEmployee({
  name: name.trim(),
  email: cleanEmail || undefined,
@@ -158,6 +171,18 @@ export default function MemberModal() {
  setErrorMsg('Please enter a valid email address.');
  return;
  }
+
+    const isTargetFounder = isFounderEmail(cleanEmail);
+    if (!isTargetFounder) {
+      if (/founder|ceo/i.test(inviteRoleTitle)) {
+        setErrorMsg('The Founder & CEO title is exclusively reserved for the platform creator (mukulk3962364@gmail.com).');
+        return;
+      }
+      if (inviteWorkspaceRole === 'owner') {
+        setErrorMsg('Workspace ownership is strictly reserved for the platform creator (mukulk3962364@gmail.com).');
+        return;
+      }
+    }
 
  sendInvitation({
  email: cleanEmail,
@@ -416,7 +441,6 @@ export default function MemberModal() {
  <option value="member">Member (Standard)</option>
  <option value="manager">Manager (Team Lead)</option>
  <option value="admin">Admin (Full Access)</option>
- <option value="owner">Owner (Executive)</option>
  <option value="viewer">Viewer (Read-Only)</option>
  </select>
  </div>

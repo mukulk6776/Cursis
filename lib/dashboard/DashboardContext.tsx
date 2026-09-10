@@ -71,6 +71,7 @@ import {
  INITIAL_ORDIS_SETTINGS,
 } from './data';
 import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
+import { isFounderEmail } from '@/lib/auth/founder';
 
 interface ToastItem {
  id: string;
@@ -468,60 +469,73 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  .toUpperCase()
  .substring(0, 2) || 'CU';
 
- const userPlanTier = (sessUser.planTier as 'standard' | 'premium') || 'premium';
- const activeUser: User = {
- id: sessUser.uid || 'u1',
- name: displayName,
- email: sessUser.email,
- initials,
- role: sessUser.role === 'owner' ? 'Founder & CEO' : 'Team Member',
- avatar: sessUser.photoURL || null,
- color: '#0f4cff',
- photoURL: sessUser.photoURL,
- planTier: userPlanTier,
- };
+        const isFounder = isFounderEmail(sessUser.email);
+        const userRoleTitle = isFounder ? 'Founder & CEO' : 'User';
+        const userWorkspaceRole = isFounder ? 'owner' : 'member';
+        const userDept = isFounder ? 'Leadership' : 'General';
+        const userDeptId = isFounder ? 'dept_leadership' : 'dept_general';
+        const userSkills = isFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General'];
 
- setUser(activeUser);
- setOrdisPlan(userPlanTier === 'premium' ? 'paid' : 'basic');
+        const userPlanTier = (sessUser.planTier as 'standard' | 'premium') || 'premium';
+        const activeUser: User = {
+          id: sessUser.uid || 'u1',
+          name: displayName,
+          email: sessUser.email,
+          initials,
+          role: userRoleTitle,
+          avatar: sessUser.photoURL || null,
+          color: '#0f4cff',
+          photoURL: sessUser.photoURL,
+          planTier: userPlanTier,
+        };
 
- // Ensure current user is in employees list
- setEmployees((prev) => {
- const existingIdx = prev.findIndex((e) => e.id === activeUser.id || e.email === activeUser.email || e.id === 'u1');
- if (existingIdx !== -1) {
- const updated = [...prev];
- updated[existingIdx] = {
- ...updated[existingIdx],
- id: activeUser.id,
- name: activeUser.name,
- email: activeUser.email,
- initials: activeUser.initials,
- planTier: updated[existingIdx].planTier || userPlanTier,
- };
- return updated;
- } else {
- return [
- {
- id: activeUser.id,
- name: activeUser.name,
- initials: activeUser.initials,
- role: activeUser.role,
- department: 'Leadership',
- departmentId: 'dept_leadership',
- teamIds: ['team_core'],
- workspaceRole: 'owner',
- status: 'online',
- color: '#0f4cff',
- tasks: 0,
- projects: 0,
- email: activeUser.email,
- skills: ['Strategy', 'Leadership'],
- joinedAt: new Date().toISOString().split('T')[0],
- planTier: userPlanTier,
- },
- ...prev,
- ];
- }
- });
+        setUser(activeUser);
+        setOrdisPlan(userPlanTier === 'premium' ? 'paid' : 'basic');
+
+        // Ensure current user is in employees list
+        setEmployees((prev) => {
+          const existingIdx = prev.findIndex((e) => e.id === activeUser.id || (e.email && activeUser.email && e.email.toLowerCase() === activeUser.email.toLowerCase()) || e.id === 'u1');
+          if (existingIdx !== -1) {
+            const updated = [...prev];
+            const prevEmp = updated[existingIdx];
+            const targetIsFounder = isFounderEmail(activeUser.email);
+            updated[existingIdx] = {
+              ...prevEmp,
+              id: activeUser.id,
+              name: activeUser.name,
+              email: activeUser.email,
+              initials: activeUser.initials,
+              role: targetIsFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(prevEmp.role) ? prevEmp.role : 'User'),
+              department: targetIsFounder ? 'Leadership' : (prevEmp.department === 'Leadership' ? 'General' : (prevEmp.department || 'General')),
+              departmentId: targetIsFounder ? 'dept_leadership' : (prevEmp.departmentId === 'dept_leadership' ? 'dept_general' : (prevEmp.departmentId || 'dept_general')),
+              workspaceRole: targetIsFounder ? 'owner' : (prevEmp.workspaceRole === 'owner' ? 'member' : (prevEmp.workspaceRole || 'member')),
+              planTier: prevEmp.planTier || userPlanTier,
+            };
+            return updated;
+          } else {
+            return [
+              {
+                id: activeUser.id,
+                name: activeUser.name,
+                initials: activeUser.initials,
+                role: userRoleTitle,
+                department: userDept,
+                departmentId: userDeptId,
+                teamIds: ['team_core'],
+                workspaceRole: userWorkspaceRole,
+                status: 'online',
+                color: '#0f4cff',
+                tasks: 0,
+                projects: 0,
+                email: activeUser.email,
+                skills: userSkills,
+                joinedAt: new Date().toISOString().split('T')[0],
+                planTier: userPlanTier,
+              },
+              ...prev,
+            ];
+          }
+        });
  }
  }
  } catch (err) {
@@ -961,67 +975,98 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }
  }
 
- const newEmp: Employee = {
- id: 'u_' + Date.now(),
- name: empData.name,
- initials,
- role: empData.role || 'Team Member',
- department: empData.department,
- departmentId: empData.departmentId || 'dept_' + empData.department.toLowerCase().replace(/\s+/g, '_'),
- teamIds: empData.teamIds || ['team_core'],
- workspaceRole: empData.workspaceRole || teamSettings.defaultRole,
- status: empData.status || 'online',
- color: empData.color || '#0f4cff',
- tasks: 0,
- projects: 0,
- email: empData.email || `${empData.name.toLowerCase().replace(/\s+/g, '.')}@cursis.io`,
- skills: empData.skills && empData.skills.length > 0 ? empData.skills : ['General'],
- joinedAt: new Date().toISOString().split('T')[0],
- invitedBy: user.id,
- planTier: assignedTier,
- };
+    const cleanEmpEmail = empData.email ? empData.email.trim().toLowerCase() : `${empData.name.toLowerCase().replace(/\s+/g, '.')}@cursis.io`;
+    const isEmpFounder = isFounderEmail(cleanEmpEmail);
+    let sanitizedRole = empData.role || 'Team Member';
+    let sanitizedWorkspaceRole = empData.workspaceRole || teamSettings.defaultRole;
 
- setEmployees((prev) => [...prev, newEmp]);
- addAuditEntry(user.name, 'team.member.added', newEmp.name, `Added ${newEmp.name} as ${newEmp.role} in ${newEmp.department} (${assignedTier === 'premium' ? 'Autonomous Pro' : 'Standard Core'})`);
+    if (!isEmpFounder) {
+      if (/founder|ceo/i.test(sanitizedRole)) {
+        sanitizedRole = 'Team Member';
+      }
+      if (sanitizedWorkspaceRole === 'owner') {
+        sanitizedWorkspaceRole = 'member';
+      }
+    } else {
+      sanitizedRole = 'Founder & CEO';
+      sanitizedWorkspaceRole = 'owner';
+    }
 
- // Asynchronously persist to MongoDB
- try {
- fetch('/api/team', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({
- workspaceId: activeWorkspaceId,
- name: newEmp.name,
- displayName: newEmp.name,
- email: newEmp.email,
- role: newEmp.workspaceRole,
- department: newEmp.department,
- title: newEmp.role,
- skills: newEmp.skills,
- presence: newEmp.status,
- planTier: newEmp.planTier,
- }),
- }).catch(() => {});
- } catch {}
+    const newEmp: Employee = {
+      id: 'u_' + Date.now(),
+      name: empData.name,
+      initials,
+      role: sanitizedRole,
+      department: isEmpFounder ? 'Leadership' : empData.department,
+      departmentId: isEmpFounder ? 'dept_leadership' : (empData.departmentId || 'dept_' + empData.department.toLowerCase().replace(/\s+/g, '_')),
+      teamIds: empData.teamIds || ['team_core'],
+      workspaceRole: sanitizedWorkspaceRole,
+      status: empData.status || 'online',
+      color: empData.color || '#0f4cff',
+      tasks: 0,
+      projects: 0,
+      email: cleanEmpEmail,
+      skills: isEmpFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (empData.skills && empData.skills.length > 0 ? empData.skills : ['General']),
+      joinedAt: new Date().toISOString().split('T')[0],
+      invitedBy: user.id,
+      planTier: assignedTier,
+    };
 
- showToast(`Added ${newEmp.name} to team (${assignedTier === 'premium' ? 'Autonomous Pro' : 'Standard Core'}) `);
- };
+    setEmployees((prev) => [...prev, newEmp]);
+    addAuditEntry(user.name, 'team.member.added', newEmp.name, `Added ${newEmp.name} as ${newEmp.role} in ${newEmp.department} (${assignedTier === 'premium' ? 'Autonomous Pro' : 'Standard Core'})`);
 
- const updateEmployee = (id: string, updates: Partial<Employee>) => {
- setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
- const emp = employees.find((e) => e.id === id);
- addAuditEntry(user.name, 'team.member.updated', emp?.name || id, `Updated profile / role details`);
+    // Asynchronously persist to MongoDB
+    try {
+      fetch('/api/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspaceId: activeWorkspaceId,
+          name: newEmp.name,
+          displayName: newEmp.name,
+          email: newEmp.email,
+          role: newEmp.workspaceRole,
+          department: newEmp.department,
+          title: newEmp.role,
+          skills: newEmp.skills,
+          presence: newEmp.status,
+          planTier: newEmp.planTier,
+        }),
+      }).catch(() => {});
+    } catch {}
 
- try {
- fetch('/api/team', {
- method: 'PATCH',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ userId: id, updates }),
- }).catch(() => {});
- } catch {}
+    showToast(`Added ${newEmp.name} to team (${assignedTier === 'premium' ? 'Autonomous Pro' : 'Standard Core'}) `);
+  };
 
- showToast('Team member updated ');
- };
+  const updateEmployee = (id: string, updates: Partial<Employee>) => {
+    const existing = employees.find((e) => e.id === id);
+    const targetEmail = updates.email || existing?.email;
+    const isTargetFounder = isFounderEmail(targetEmail);
+
+    const sanitizedUpdates = { ...updates };
+    if (!isTargetFounder) {
+      if (sanitizedUpdates.role && /founder|ceo/i.test(sanitizedUpdates.role)) {
+        sanitizedUpdates.role = 'User';
+      }
+      if (sanitizedUpdates.workspaceRole === 'owner') {
+        sanitizedUpdates.workspaceRole = 'member';
+      }
+    }
+
+    setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, ...sanitizedUpdates } : e)));
+    const emp = employees.find((e) => e.id === id);
+    addAuditEntry(user.name, 'team.member.updated', emp?.name || id, `Updated profile / role details`);
+
+    try {
+      fetch('/api/team', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: id, updates: sanitizedUpdates }),
+      }).catch(() => {});
+    } catch {}
+
+    showToast('Team member updated ');
+  };
 
  const assignSeatTier = (employeeId: string, tier: 'standard' | 'premium'): boolean => {
  const emp = employees.find((e) => e.id === employeeId);
@@ -1090,25 +1135,35 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  ];
  const depts = ['Engineering', 'Product & Design', 'Growth & Marketing', 'Operations & SecOps', 'Leadership'];
  
- // Existing active user is guaranteed Seat #1
- const leadEmp: Employee = employees[0] || {
- id: user.id || 'u_owner',
- name: user.name || 'Workspace Lead',
- initials: user.initials || 'WL',
- role: 'Founder & CEO',
- department: 'Leadership',
- departmentId: 'dept_leadership',
- teamIds: ['team_core'],
- workspaceRole: 'owner',
- status: 'online',
- color: '#0f4cff',
- tasks: 8,
- projects: 3,
- email: user.email || 'admin@cursis.io',
- skills: ['Strategy', 'Leadership', 'Architecture'],
- joinedAt: '2026-01-01',
- planTier: 'premium',
- };
+    // Existing active user is guaranteed Seat #1
+    const isFounder = isFounderEmail(user.email);
+    const existingLead = employees.find((e) => e.id === user.id || (e.email && user.email && e.email.toLowerCase() === user.email.toLowerCase())) || employees[0];
+
+    const leadEmp: Employee = existingLead
+      ? {
+          ...existingLead,
+          role: isFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(existingLead.role) ? existingLead.role : 'User'),
+          workspaceRole: isFounder ? 'owner' : (existingLead.workspaceRole === 'owner' ? 'member' : existingLead.workspaceRole),
+          department: isFounder ? 'Leadership' : (existingLead.department === 'Leadership' ? 'General' : existingLead.department),
+        }
+      : {
+          id: user.id || (isFounder ? 'u_owner' : 'u_member'),
+          name: user.name || (isFounder ? 'Founder' : 'User'),
+          initials: user.initials || (isFounder ? 'FC' : 'CU'),
+          role: isFounder ? 'Founder & CEO' : 'User',
+          department: isFounder ? 'Leadership' : 'General',
+          departmentId: isFounder ? 'dept_leadership' : 'dept_general',
+          teamIds: ['team_core'],
+          workspaceRole: isFounder ? 'owner' : 'member',
+          status: 'online',
+          color: '#0f4cff',
+          tasks: 8,
+          projects: 3,
+          email: user.email || (isFounder ? 'mukulk3962364@gmail.com' : 'user@cursis.io'),
+          skills: isFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General'],
+          joinedAt: '2026-01-01',
+          planTier: 'premium',
+        };
 
  const roster: Employee[] = [
  { ...leadEmp, planTier: 'premium' },
@@ -1205,28 +1260,38 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  showToast(` Enterprise Directory Active: ${targetCount.toLocaleString()} members (4 Pro Seats / ${(targetCount - 4).toLocaleString()} Standard Seats)`);
  };
 
- const resetEnterpriseDirectory = () => {
- const leadEmp: Employee = employees.find((e) => e.id === user.id || e.email === user.email) || {
- id: user.id || 'u_owner',
- name: user.name || 'Workspace Lead',
- initials: user.initials || 'WL',
- role: 'Founder & CEO',
- department: 'Leadership',
- departmentId: 'dept_leadership',
- teamIds: ['team_core'],
- workspaceRole: 'owner',
- status: 'online',
- color: '#0f4cff',
- tasks: 0,
- projects: 0,
- email: user.email || 'admin@cursis.io',
- skills: ['Strategy', 'Leadership'],
- joinedAt: new Date().toISOString().split('T')[0],
- planTier: 'premium',
- };
- setEmployees([leadEmp]);
- showToast('Directory reset to workspace lead ');
- };
+  const resetEnterpriseDirectory = () => {
+    const isFounder = isFounderEmail(user.email);
+    const existingLead = employees.find((e) => e.id === user.id || (e.email && user.email && e.email.toLowerCase() === user.email.toLowerCase()));
+
+    const leadEmp: Employee = existingLead
+      ? {
+          ...existingLead,
+          role: isFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(existingLead.role) ? existingLead.role : 'User'),
+          workspaceRole: isFounder ? 'owner' : (existingLead.workspaceRole === 'owner' ? 'member' : existingLead.workspaceRole),
+          department: isFounder ? 'Leadership' : (existingLead.department === 'Leadership' ? 'General' : existingLead.department),
+        }
+      : {
+          id: user.id || (isFounder ? 'u_owner' : 'u_member'),
+          name: user.name || (isFounder ? 'Founder' : 'User'),
+          initials: user.initials || (isFounder ? 'FC' : 'CU'),
+          role: isFounder ? 'Founder & CEO' : 'User',
+          department: isFounder ? 'Leadership' : 'General',
+          departmentId: isFounder ? 'dept_leadership' : 'dept_general',
+          teamIds: ['team_core'],
+          workspaceRole: isFounder ? 'owner' : 'member',
+          status: 'online',
+          color: '#0f4cff',
+          tasks: 0,
+          projects: 0,
+          email: user.email || (isFounder ? 'mukulk3962364@gmail.com' : 'user@cursis.io'),
+          skills: isFounder ? ['Strategy', 'Leadership'] : ['General'],
+          joinedAt: new Date().toISOString().split('T')[0],
+          planTier: 'premium',
+        };
+    setEmployees([leadEmp]);
+    showToast('Directory reset to workspace lead ');
+  };
 
   const redeemCode = async (rawCode: string): Promise<{ success: boolean; message: string; perks?: string[] }> => {
     const code = rawCode.trim().toUpperCase();

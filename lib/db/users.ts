@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { inMemoryStore } from './store';
 import { UserProfile, UserRole } from './types';
 import { getCollection } from '@/lib/mongodb';
+import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
 
 /**
  * Generate a cryptographically strong salt
@@ -30,6 +31,25 @@ export function verifyPassword(password: string, salt: string, expectedHash: str
 }
 
 /**
+ * Sanitize user profile to ensure only mukulk3962364@gmail.com can be Founder & CEO
+ */
+function sanitizeFounderIntegrity(user: UserProfile): UserProfile {
+  const isFounder = isFounderEmail(user.email);
+  if (isFounder) {
+    user.role = 'owner';
+    user.title = 'Founder & CEO';
+    user.department = 'Leadership';
+  } else {
+    if (user.role === 'owner') {
+      user.role = 'member';
+    }
+    user.title = getAuthorizedTitle(user.email, user.title || 'User');
+    user.department = getAuthorizedDepartment(user.email, user.department || 'Operations');
+  }
+  return user;
+}
+
+/**
  * Find user by email from in-memory cache or MongoDB
  */
 export async function findUserByEmail(email: string): Promise<UserProfile | null> {
@@ -38,7 +58,7 @@ export async function findUserByEmail(email: string): Promise<UserProfile | null
   // 1. Check in-memory store
   for (const u of inMemoryStore.users.values()) {
     if (u.email.toLowerCase() === normalized) {
-      return u;
+      return sanitizeFounderIntegrity(u);
     }
   }
 
@@ -48,8 +68,9 @@ export async function findUserByEmail(email: string): Promise<UserProfile | null
     if (col) {
       const doc = await col.findOne({ email: { $regex: new RegExp(`^${normalized}$`, 'i') } });
       if (doc) {
-        inMemoryStore.users.set(doc.uid || doc.id, doc);
-        return doc;
+        const sanitized = sanitizeFounderIntegrity(doc);
+        inMemoryStore.users.set(sanitized.uid || sanitized.id, sanitized);
+        return sanitized;
       }
     }
   } catch (e) {
@@ -61,11 +82,11 @@ export async function findUserByEmail(email: string): Promise<UserProfile | null
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   const user = inMemoryStore.users.get(uid);
-  if (user) return user;
+  if (user) return sanitizeFounderIntegrity(user);
 
   // Check by email in memory
   for (const u of inMemoryStore.users.values()) {
-    if (u.email === uid || u.uid === uid || u.id === uid) return u;
+    if (u.email === uid || u.uid === uid || u.id === uid) return sanitizeFounderIntegrity(u);
   }
 
   try {
@@ -75,8 +96,9 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
         $or: [{ uid }, { id: uid }, { email: uid }],
       });
       if (doc) {
-        inMemoryStore.users.set(doc.uid || doc.id, doc);
-        return doc;
+        const sanitized = sanitizeFounderIntegrity(doc);
+        inMemoryStore.users.set(doc.uid || doc.id, sanitized);
+        return sanitized;
       }
     }
   } catch (e) {
@@ -110,18 +132,24 @@ export async function registerUser(params: {
     passwordHash = hashPassword(params.password, salt);
   }
 
+  const isFounder = isFounderEmail(cleanEmail);
+  const assignedRole: UserRole = isFounder ? 'owner' : (params.role && params.role !== 'owner' ? params.role : 'member');
+  const assignedTitle = isFounder ? 'Founder & CEO' : 'User';
+  const assignedDept = isFounder ? 'Leadership' : 'Operations';
+  const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : ['Workspace Collaborator'];
+
   const newUser: UserProfile = {
     id: uid,
     uid,
     email: cleanEmail,
     displayName: cleanName,
     photoURL: params.photoURL,
-    role: params.role || 'owner',
+    role: assignedRole,
     passwordHash,
     salt,
-    department: 'Leadership',
-    title: params.role === 'owner' ? 'Founder & CEO' : 'Team Member',
-    skills: ['Workspace Owner', 'Strategy'],
+    department: assignedDept,
+    title: assignedTitle,
+    skills: assignedSkills,
     workspaceIds: [workspaceId],
     activeWorkspaceId: workspaceId,
     onboardingStatus: 'completed',
@@ -150,18 +178,26 @@ export async function registerUser(params: {
 
 export async function createUserProfile(uid: string, data: Partial<UserProfile>): Promise<UserProfile> {
   const existing = inMemoryStore.users.get(uid);
+  const cleanEmail = (data.email || existing?.email || `${uid}@cursis.ai`).trim().toLowerCase();
+  const isFounder = isFounderEmail(cleanEmail);
+
+  const assignedRole: UserRole = isFounder ? 'owner' : (data.role && data.role !== 'owner' ? data.role : (existing?.role && existing.role !== 'owner' ? existing.role : 'member'));
+  const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, data.title || existing?.title || 'User');
+  const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, data.department || existing?.department || 'Operations');
+  const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (data.skills || existing?.skills || ['General']);
+
   const updatedUser: UserProfile = {
     id: uid,
     uid,
-    email: data.email || existing?.email || `${uid}@cursis.ai`,
+    email: cleanEmail,
     displayName: data.displayName || existing?.displayName || 'Cursis User',
     photoURL: data.photoURL || existing?.photoURL,
-    role: data.role || existing?.role || 'owner',
+    role: assignedRole,
     passwordHash: data.passwordHash || existing?.passwordHash,
     salt: data.salt || existing?.salt,
-    department: data.department || existing?.department || 'Leadership',
-    title: data.title || existing?.title || 'Team Member',
-    skills: data.skills || existing?.skills || ['General'],
+    department: assignedDept,
+    title: assignedTitle,
+    skills: assignedSkills,
     workspaceIds: data.workspaceIds || existing?.workspaceIds || ['ws_cursis_user'],
     activeWorkspaceId: data.activeWorkspaceId || existing?.activeWorkspaceId || 'ws_cursis_user',
     onboardingStatus: data.onboardingStatus || existing?.onboardingStatus || 'completed',
@@ -192,9 +228,22 @@ export async function updateUserProfile(uid: string, updates: Partial<UserProfil
   const existing = await getUserProfile(uid);
   if (!existing) return null;
 
+  const isFounder = isFounderEmail(existing.email);
+  const cleanUpdates = { ...updates };
+
+  if (!isFounder) {
+    if (cleanUpdates.role === 'owner') cleanUpdates.role = 'member';
+    if (cleanUpdates.title && (cleanUpdates.title.toLowerCase().includes('founder') || cleanUpdates.title.toLowerCase().includes('ceo') || cleanUpdates.title.toLowerCase().includes('owner'))) {
+      cleanUpdates.title = 'User';
+    }
+    if (cleanUpdates.department === 'Leadership') {
+      cleanUpdates.department = 'Operations';
+    }
+  }
+
   const updated: UserProfile = {
     ...existing,
-    ...updates,
+    ...cleanUpdates,
     lastActiveAt: new Date().toISOString(),
   };
 

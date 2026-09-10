@@ -1,6 +1,22 @@
 import { inMemoryStore } from './store';
 import { UserProfile, UserRole, WorkspaceInvitation } from './types';
 import { getCollection } from '@/lib/mongodb';
+import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
+
+function sanitizeTeamUser(u: UserProfile): UserProfile {
+  const isFounder = isFounderEmail(u.email);
+  if (isFounder) {
+    u.role = 'owner';
+    u.title = 'Founder & CEO';
+    u.department = 'Leadership';
+  } else {
+    if (u.role === 'owner') u.role = 'member';
+    if (u.title && (u.title.toLowerCase().includes('founder') || u.title.toLowerCase().includes('ceo') || u.title.toLowerCase().includes('owner'))) {
+      u.title = 'User';
+    }
+  }
+  return u;
+}
 
 export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile[]> {
   try {
@@ -16,17 +32,20 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
         .toArray();
 
       if (docs.length > 0) {
-        docs.forEach((u) => inMemoryStore.users.set(u.id, u));
-        return docs;
+        const sanitized = docs.map(sanitizeTeamUser);
+        sanitized.forEach((u) => inMemoryStore.users.set(u.id, u));
+        return sanitized;
       }
     }
   } catch (e) {
     console.warn('MongoDB getWorkspaceTeam notice:', e);
   }
 
-  return Array.from(inMemoryStore.users.values()).filter(
-    (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_user' || workspaceId === 'ws_public'
-  );
+  return Array.from(inMemoryStore.users.values())
+    .filter(
+      (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_user' || workspaceId === 'ws_public'
+    )
+    .map(sanitizeTeamUser);
 }
 
 export async function addTeamMember(
@@ -43,9 +62,16 @@ export async function addTeamMember(
     planTier?: 'standard' | 'premium';
   }
 ): Promise<UserProfile> {
+  const cleanEmail = memberData.email.toLowerCase().trim();
+  const isFounder = isFounderEmail(cleanEmail);
+  const assignedRole: UserRole = isFounder ? 'owner' : (memberData.role !== 'owner' ? memberData.role : 'member');
+  const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, memberData.title || 'Team Member');
+  const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, memberData.department || 'Engineering');
+  const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (memberData.skills || ['General']);
+
   // Check for existing user by email to prevent duplicate accounts
   const existingMem = Array.from(inMemoryStore.users.values()).find(
-    (u) => u.email.toLowerCase() === memberData.email.toLowerCase()
+    (u) => u.email.toLowerCase() === cleanEmail
   );
 
   if (existingMem) {
@@ -53,16 +79,15 @@ export async function addTeamMember(
       existingMem.workspaceIds.push(workspaceId);
     }
     existingMem.displayName = memberData.displayName || existingMem.displayName;
-    existingMem.role = memberData.role || existingMem.role;
-    existingMem.department = memberData.department || existingMem.department;
-    existingMem.title = memberData.title || existingMem.title;
+    existingMem.role = assignedRole;
+    existingMem.department = assignedDept;
+    existingMem.title = assignedTitle;
     if (memberData.planTier) {
       existingMem.planTier = memberData.planTier;
     }
-    if (memberData.skills && memberData.skills.length > 0) {
-      existingMem.skills = Array.from(new Set([...existingMem.skills, ...memberData.skills]));
-    }
+    existingMem.skills = Array.from(new Set([...(existingMem.skills || []), ...assignedSkills]));
     existingMem.lastActiveAt = new Date().toISOString();
+    sanitizeTeamUser(existingMem);
 
     try {
       const col = await getCollection<UserProfile>('users');
@@ -77,16 +102,16 @@ export async function addTeamMember(
   }
 
   const id = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-  const newMember: UserProfile = {
+  const newMember: UserProfile = sanitizeTeamUser({
     id,
     uid: id,
-    email: memberData.email.toLowerCase(),
+    email: cleanEmail,
     displayName: memberData.displayName,
     photoURL: memberData.photoURL,
-    role: memberData.role || 'member',
-    department: memberData.department || 'Engineering',
-    title: memberData.title || 'Team Member',
-    skills: memberData.skills || ['General'],
+    role: assignedRole,
+    department: assignedDept,
+    title: assignedTitle,
+    skills: assignedSkills,
     workspaceIds: [workspaceId],
     activeWorkspaceId: workspaceId,
     planTier: memberData.planTier || 'standard',
@@ -100,7 +125,7 @@ export async function addTeamMember(
     presence: memberData.presence || 'online',
     lastActiveAt: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-  };
+  });
 
   inMemoryStore.users.set(id, newMember);
 
@@ -159,7 +184,17 @@ export async function updateTeamMember(
   const user = inMemoryStore.users.get(userId);
   if (!user) return null;
 
-  Object.assign(user, updates, { lastActiveAt: new Date().toISOString() });
+  const isTargetFounder = isFounderEmail(user.email);
+  const cleanUpdates = { ...updates };
+  if (!isTargetFounder) {
+    if (cleanUpdates.role === 'owner') cleanUpdates.role = 'member';
+    if (cleanUpdates.title && (cleanUpdates.title.toLowerCase().includes('founder') || cleanUpdates.title.toLowerCase().includes('ceo') || cleanUpdates.title.toLowerCase().includes('owner'))) {
+      cleanUpdates.title = 'User';
+    }
+  }
+
+  Object.assign(user, cleanUpdates, { lastActiveAt: new Date().toISOString() });
+  sanitizeTeamUser(user);
 
   try {
     const col = await getCollection<UserProfile>('users');
@@ -193,14 +228,19 @@ export async function sendTeamInvitation(
   const token = 'tok_' + Math.random().toString(36).substring(2, 14) + Date.now().toString(36);
   const id = 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
 
+  const cleanInviteEmail = inviteData.email.toLowerCase().trim();
+  const isInviteeFounder = isFounderEmail(cleanInviteEmail);
+  const inviteRole = isInviteeFounder ? 'owner' : (inviteData.workspaceRole !== 'owner' ? (inviteData.workspaceRole as UserRole) : 'member');
+  const inviteTitle = isInviteeFounder ? 'Founder & CEO' : (inviteData.roleTitle && /founder|ceo/i.test(inviteData.roleTitle) ? 'Team Member' : (inviteData.roleTitle || 'Team Member'));
+
   const invitation: WorkspaceInvitation = {
     id,
     workspaceId,
-    email: inviteData.email.toLowerCase(),
-    name: inviteData.name || inviteData.email.split('@')[0],
-    roleTitle: inviteData.roleTitle || 'Team Member',
-    workspaceRole: inviteData.workspaceRole || 'member',
-    department: inviteData.department,
+    email: cleanInviteEmail,
+    name: inviteData.name || cleanInviteEmail.split('@')[0],
+    roleTitle: inviteTitle,
+    workspaceRole: inviteRole,
+    department: isInviteeFounder ? 'Leadership' : inviteData.department,
     team: inviteData.team || null,
     note: inviteData.note,
     status: 'pending',

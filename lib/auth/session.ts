@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { inMemoryStore } from '@/lib/db/store';
 import { UserRole } from '@/lib/db/types';
+import { isFounderEmail } from './founder';
 import {
   SESSION_SECRET,
   SessionPayload,
@@ -83,7 +84,8 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
         const uid = verified.uid;
         const email = verified.email;
         const displayName = verified.displayName || email.split('@')[0];
-        const role = (verified.role as UserRole) || 'owner';
+        const isFounder = isFounderEmail(email);
+        const role: UserRole = isFounder ? 'owner' : (verified.role !== 'owner' ? (verified.role as UserRole) : 'member');
         const workspaceId = verified.workspaceId || 'ws_cursis_user';
 
         // Auto-provision user in store if not present
@@ -95,9 +97,11 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
             displayName,
             photoURL: verified.photoURL,
             role,
+            title: isFounder ? 'Founder & CEO' : 'User',
+            department: isFounder ? 'Leadership' : 'Operations',
             workspaceIds: [workspaceId],
             activeWorkspaceId: workspaceId,
-            skills: ['Workspace Owner', 'Leadership'],
+            skills: isFounder ? ['Founder & CEO', 'Leadership', 'Strategy'] : ['Workspace Collaborator'],
             onboardingStatus: 'completed',
             onboardingChecklist: [],
             presence: 'online',

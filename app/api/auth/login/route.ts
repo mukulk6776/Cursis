@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { findUserByEmail, registerUser, verifyPassword } from '@/lib/db/users';
 import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
+import { isFounderEmail } from '@/lib/auth/founder';
 
 export async function POST(request: Request) {
   try {
@@ -31,11 +32,12 @@ export async function POST(request: Request) {
       }
     } else if (!user) {
       // Auto-provision new account if not already in system
+      const isFounder = isFounderEmail(email);
       user = await registerUser({
         displayName: email.split('@')[0],
         email,
         password,
-        role: 'owner',
+        role: isFounder ? 'owner' : 'member',
       });
     }
 

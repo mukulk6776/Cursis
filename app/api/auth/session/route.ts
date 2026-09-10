@@ -8,6 +8,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { getAuthenticatedUser, createSessionToken } from '@/lib/auth/session';
 import { adminAuth } from '@/lib/auth/firebase-admin';
 import { verifySessionToken } from '@/lib/auth/token';
+import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
 
 export async function GET(request: Request) {
   try {
@@ -91,12 +92,15 @@ export async function POST(request: Request) {
       }
     }
 
+    const isFounder = isFounderEmail(userEmail);
+    const sessionRole = isFounder ? ('owner' as const) : ('member' as const);
+
     const sessionPayload = {
       uid: userUid,
       email: userEmail,
       displayName: userName,
       photoURL,
-      role: 'owner' as const,
+      role: sessionRole,
       workspaceId: 'ws_cursis_user',
       createdAt: Date.now(),
     };
@@ -109,7 +113,9 @@ export async function POST(request: Request) {
       email: userEmail,
       displayName: userName,
       photoURL,
-      role: 'owner',
+      role: sessionRole,
+      title: isFounder ? 'Founder & CEO' : 'User',
+      department: isFounder ? 'Leadership' : 'Operations',
     }).catch(() => {});
 
     const cookieOptions = {

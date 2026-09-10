@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { MeetingPlatform, OrgSettings } from '@/lib/dashboard/types';
+import { isFounderEmail } from '@/lib/auth/founder';
 
 type SettingsTab = 'workspace' | 'team' | 'notifications' | 'meetings' | 'ordis' | 'security';
 
@@ -530,9 +531,9 @@ export default function SettingsPage() {
  </div>
  </td>
  <td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>{emp.role}</td>
- <td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>{emp.department}</td>
+<td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>{emp.department}</td>
  <td style={{ padding: 'var(--sp-3)' }}>
- {emp.workspaceRole === 'owner' ? (
+ {emp.workspaceRole === 'owner' && isFounderEmail(emp.email) ? (
  <span className="badge badge-brand" style={{ textTransform: 'capitalize' }}>
  Owner
  </span>
@@ -540,7 +541,7 @@ export default function SettingsPage() {
  <select
  className="input select"
  style={{ padding: '2px 8px', fontSize: '11px', height: '28px' }}
- value={emp.workspaceRole}
+ value={emp.workspaceRole === 'owner' ? 'member' : emp.workspaceRole}
  onChange={(e) => updateEmployee(emp.id, { workspaceRole: e.target.value })}
  >
  <option value="admin">Admin</option>

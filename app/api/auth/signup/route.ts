@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { findUserByEmail, registerUser } from '@/lib/db/users';
 import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
+import { isFounderEmail } from '@/lib/auth/founder';
 
 export async function POST(request: Request) {
   try {
@@ -31,11 +32,12 @@ export async function POST(request: Request) {
     }
 
     // Register user account with PBKDF2 salt & hash
+    const isFounder = isFounderEmail(email);
     const user = await registerUser({
       displayName: name,
       email,
       password,
-      role: 'owner',
+      role: isFounder ? 'owner' : 'member',
     });
 
     const sessionPayload = {

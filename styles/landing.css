@@ -4,6 +4,7 @@
    ============================================ */
 
 /* ---- Core Canvas & Typography ---- */
+/* ---- Core Canvas & Typography ---- */
 html,
 body,
 body.lp-body,
@@ -12,7 +13,8 @@ body.lp-body,
   padding: 0;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden !important;
+  max-width: 100vw;
+  overflow-x: clip !important;
   overflow-y: auto !important;
   height: auto !important;
   position: relative;
@@ -23,9 +25,10 @@ body.lp-body,
 }
 
 #main-content {
-  overflow-x: hidden;
+  overflow-x: clip;
   overflow-y: visible;
   width: 100%;
+  max-width: 100vw;
   position: relative;
   outline: none;
   background-color: #FAF6EE !important;
@@ -526,16 +529,23 @@ body.lp-body,
 .lp-mockup-subnav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
+  padding: 10px 18px;
   background: #FFFFFF;
   border-bottom: 2.5px solid #0A0A0A;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.lp-mockup-subnav::-webkit-scrollbar {
+  display: none;
 }
 .lp-mockup-tabs {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: nowrap;
+  width: max-content;
+  min-width: 100%;
 }
 .lp-mockup-tab {
   display: inline-flex;
@@ -543,6 +553,8 @@ body.lp-body,
   gap: 8px;
   padding: 8px 16px;
   font-family: 'Inter Tight', 'Inter', sans-serif;
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: 13px;
   font-weight: 800;
   color: #0A0A0A;
@@ -2051,13 +2063,22 @@ body.lp-body,
 }
 
 .lp-ordis-console-prompts-bar {
-  padding: 12px 24px;
+  padding: 14px 24px;
   background: #141414;
   border-bottom: 2px solid #0A0A0A;
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px 14px;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.lp-ordis-console-prompts-bar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 .lp-prompts-caption {
   font-family: 'Inter Tight', sans-serif;
@@ -2066,9 +2087,12 @@ body.lp-body,
   text-transform: uppercase;
   color: #A0A0A0;
   flex-shrink: 0;
+  letter-spacing: 0.04em;
 }
 .lp-prompts-pills {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 .lp-scenario-pill {
@@ -2748,7 +2772,9 @@ body.lp-body,
 /* ============================================
    RESPONSIVE MEDIA QUERIES
    ============================================ */
-@media (max-width: 991px) {
+
+/* ---- Tablet Landscape & Small Laptops (<= 1080px) ---- */
+@media (max-width: 1080px) {
   .lp-hide-mobile {
     display: none !important;
   }
@@ -2770,6 +2796,9 @@ body.lp-body,
     left: 0;
     right: 0;
     width: 100%;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     background: #FFFFFF;
     border: 3px solid #0A0A0A;
     border-radius: 14px;
@@ -2816,24 +2845,94 @@ body.lp-body,
     justify-content: center;
     text-align: center;
   }
-}
 
-@media (max-width: 1024px) {
+  /* Tablet Grids */
   .lp-workflow-timeline { grid-template-columns: repeat(3, 1fr); }
   .lp-bento-grid { grid-template-columns: repeat(2, 1fr); }
   .lp-bento-span-2 { grid-column: span 2; }
   .tano-modules-grid { grid-template-columns: repeat(2, 1fr); }
   .tano-module-card.tano-module-featured { grid-column: span 2; }
+  .lp-agency-grid { grid-template-columns: repeat(2, 1fr); }
+  .tano-case-cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .tano-case-cards-grid > *:nth-child(3) { grid-column: span 2; }
   .lp-steps-flow { grid-template-columns: repeat(3, 1fr); }
-  .tano-case-cards-grid { grid-template-columns: 1fr; }
   .lp-mockup-body { grid-template-columns: 1fr; }
   .lp-mockup-main { border-right: none; border-bottom: 3px solid #0A0A0A; }
 }
 
-@media (max-width: 768px) {
-  .lp-section { padding: 60px 16px; }
-  .lp-hero { padding-top: 30px; }
+/* ---- Small Tablets & Large Phones (<= 860px) ---- */
+@media (max-width: 860px) {
+  .lp-mockup-url {
+    display: none !important;
+  }
+
+  .lp-pipeline-columns {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 10px;
+    padding-bottom: 8px;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .lp-pipeline-columns::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  .lp-pipeline-col {
+    min-width: 175px;
+    flex-shrink: 0;
+  }
+
   .lp-comparison-grid { grid-template-columns: 1fr; }
+  .tano-case-cards-grid { grid-template-columns: 1fr; }
+  .tano-case-cards-grid > *:nth-child(3) { grid-column: span 1; }
+  .lp-footer-inner { grid-template-columns: 1fr; gap: 36px; }
+}
+
+/* ---- Tablet Portrait & Phones (<= 768px) ---- */
+@media (max-width: 768px) {
+  .lp-section { padding: 56px 18px; }
+  .tano-trust-section { padding: 40px 18px 56px; }
+  .lp-cta-section { padding: 50px 18px; }
+  .lp-footer { padding: 48px 18px 28px; }
+  #main-content { padding-top: 76px; }
+
+  .lp-hero {
+    padding-top: 24px;
+    padding-bottom: 50px;
+  }
+  .lp-hero-title {
+    font-size: clamp(2.1rem, 6.5vw, 3.8rem);
+    margin-bottom: 18px;
+  }
+  .lp-hero-text {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+  .lp-hero-ctas {
+    flex-direction: column;
+    width: 100%;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .lp-hero-ctas .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .lp-hero-benefits {
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+  .lp-benefit-sep {
+    display: none;
+  }
+
+  /* Single Column Stacking for Narrower Devices */
   .lp-workflow-timeline { grid-template-columns: 1fr; }
   .lp-bento-grid { grid-template-columns: 1fr; }
   .lp-bento-span-1, .lp-bento-span-2 { grid-column: span 1; }
@@ -2841,15 +2940,245 @@ body.lp-body,
   .tano-modules-grid { grid-template-columns: 1fr; }
   .tano-module-card.tano-module-featured { grid-column: span 1; }
   .lp-agency-grid { grid-template-columns: 1fr; }
-  .lp-footer-inner { grid-template-columns: 1fr; }
-  .lp-steps-flow { grid-template-columns: repeat(2, 1fr); }
-  .lp-hero-ctas { flex-direction: column; width: 100%; }
-  .lp-hero-ctas a, .lp-hero-ctas button { width: 100%; text-align: center; }
-  .tano-marquee-capsule { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  /* Trust Marquee Stacking */
+  .tano-marquee-capsule {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+  .tano-marquee-viewport {
+    width: 100%;
+  }
 }
 
-@media (max-width: 480px) {
-  .tano-modules-grid { grid-template-columns: 1fr; }
-  .lp-steps-flow { grid-template-columns: 1fr; }
-  .lp-footer-links-group { grid-template-columns: 1fr; }
+/* ---- Mobile Phones Standard (<= 640px) ---- */
+@media (max-width: 640px) {
+  /* Softened Shadows & Safe-Edge Padding to Prevent Horizontal Scrolling */
+  .lp-nav {
+    padding: 10px 14px;
+  }
+  .lp-nav.lp-nav-scrolled {
+    padding: 6px 14px;
+  }
+  .lp-nav-container {
+    padding: 8px 14px;
+    box-shadow: 3.5px 3.5px 0 0 #0A0A0A;
+    border-radius: 12px;
+  }
+  .lp-hero-mockup {
+    box-shadow: 5px 5px 0 0 #0A0A0A !important;
+    border-radius: 14px !important;
+    margin-top: 18px;
+  }
+  .tano-case-card {
+    box-shadow: 4px 4px 0 0 #0A0A0A;
+    padding: 22px 18px;
+    border-radius: 12px;
+  }
+  .lp-comparison-card {
+    box-shadow: 4px 4px 0 0 #0A0A0A !important;
+    padding: 22px 18px;
+    border-radius: 12px;
+  }
+  .lp-comparison-list li {
+    padding: 12px 12px;
+    gap: 10px;
+  }
+  .lp-workflow-timeline-card {
+    box-shadow: 4px 4px 0 0 #0A0A0A !important;
+    padding: 18px 16px;
+    border-radius: 12px;
+  }
+  .lp-bento-card {
+    box-shadow: 4px 4px 0 0 #0A0A0A !important;
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+  .lp-demo-container {
+    box-shadow: 5px 5px 0 0 #0A0A0A !important;
+    border-radius: 14px !important;
+  }
+  .lp-demo-body {
+    padding: 16px 14px;
+  }
+  .lp-demo-step {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .lp-demo-step-text {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .lp-ordis-console-card {
+    box-shadow: 5px 5px 0 0 #0A0A0A !important;
+    border-radius: 14px !important;
+  }
+  .lp-ordis-console-topbar {
+    padding: 10px 14px;
+  }
+  .lp-ordis-console-prompts-bar {
+    padding: 10px 14px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .lp-ordis-console-prompts-bar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  .lp-prompts-pills {
+    flex-wrap: nowrap;
+  }
+  .lp-ordis-console-body {
+    padding: 18px 14px;
+  }
+  .lp-bubble-content.ordis-box {
+    padding: 16px 14px;
+    box-shadow: 3px 3px 0 0 #FFD66B;
+  }
+  .tano-module-card {
+    box-shadow: 4px 4px 0 0 #0A0A0A !important;
+    padding: 18px 16px;
+    border-radius: 12px;
+  }
+  .tano-agency-card {
+    box-shadow: 4px 4px 0 0 #0A0A0A !important;
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+  .lp-creators-card {
+    padding: 20px 16px;
+  }
+  .lp-pipeline-tano-item,
+  .lp-role-tano-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .lp-cta-inner {
+    box-shadow: 5px 5px 0 0 #0A0A0A !important;
+    padding: 36px 18px;
+    border-radius: 14px !important;
+  }
+  .lp-cta-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .lp-cta-buttons .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Hero Mockup Internals on Mobile */
+  .lp-mockup-main {
+    padding: 16px 14px;
+  }
+  .lp-mockup-ordis-panel {
+    padding: 16px 14px;
+  }
+  .lp-sprint-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .lp-mockup-team-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .lp-mockup-task-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .lp-mockup-task-details {
+    width: 100%;
+  }
+  .lp-mockup-task-row .btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .lp-mockup-prompts-bar {
+    padding: 14px 12px;
+  }
+  .lp-prompt-chips {
+    gap: 6px;
+  }
+  .lp-prompt-chip {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+  .lp-ordis-tier-switcher {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .lp-tier-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .lp-steps-flow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .lp-step-circle {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+  .lp-footer-links-group {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .lp-footer-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+}
+
+/* ---- Mobile Phones Compact (<= 420px) ---- */
+@media (max-width: 420px) {
+  .lp-section {
+    padding: 44px 12px;
+  }
+  .lp-nav {
+    padding: 8px 10px;
+  }
+  .lp-nav-container {
+    padding: 6px 10px;
+  }
+  .lp-nav-logo-text {
+    font-size: 18px;
+  }
+  .lp-mockup-tag {
+    display: none;
+  }
+  .lp-mockup-topbar {
+    padding: 8px 12px;
+  }
+  .lp-mockup-subnav {
+    padding: 8px 10px;
+  }
+  .lp-mockup-tab {
+    padding: 5px 10px;
+    font-size: 11px;
+    gap: 6px;
+  }
+  .lp-footer-links-group {
+    grid-template-columns: 1fr;
+  }
+  .tano-washi-tape {
+    display: none;
+  }
 }

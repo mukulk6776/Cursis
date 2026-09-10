@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 // Core layout components
 import Sidebar from './Sidebar';
@@ -27,11 +28,22 @@ interface DashboardShellProps {
 }
 
 export default function DashboardShell({ children }: DashboardShellProps) {
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useDashboard();
+
   return (
     <div className="cursis-dashboard-root">
       <div className="app">
         {/* Sidebar */}
         <Sidebar />
+
+        {/* Mobile Sidebar Backdrop Overlay */}
+        {mobileSidebarOpen && (
+          <div
+            className="sidebar-backdrop"
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-label="Close sidebar"
+          />
+        )}
 
         {/* Main Section */}
         <div className="main-wrapper">
