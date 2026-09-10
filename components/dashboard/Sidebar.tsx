@@ -33,6 +33,12 @@ export default function Sidebar() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (sidebarCollapsed) {
+      setUserMenuOpen(false);
+    }
+  }, [sidebarCollapsed]);
+
   const handleNav = (page: DashboardPageType) => {
     setCurrentPage(page);
     setMobileSidebarOpen(false);
@@ -157,7 +163,7 @@ export default function Sidebar() {
         </div>
 
         <div className="sidebar-divider" />
-        <div className="sidebar-section-title">Core Workspace</div>
+        {!sidebarCollapsed && <div className="sidebar-section-title">Core Workspace</div>}
 
         {/* Tasks */}
         <div
@@ -244,7 +250,7 @@ export default function Sidebar() {
 
 
         <div className="sidebar-divider" />
-        <div className="sidebar-section-title">Operations</div>
+        {!sidebarCollapsed && <div className="sidebar-section-title">Operations</div>}
 
         {/* Documents */}
         <div
@@ -303,19 +309,27 @@ export default function Sidebar() {
         <div
           className="sidebar-user"
           id="sidebar-user-trigger"
-          onClick={() => setUserMenuOpen((prev) => !prev)}
+          onClick={() => {
+            if (sidebarCollapsed) {
+              setSidebarCollapsed(false);
+              setUserMenuOpen(true);
+            } else {
+              setUserMenuOpen((prev) => !prev);
+            }
+          }}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            padding: '8px 10px',
+            gap: sidebarCollapsed ? '0' : '8px',
+            padding: sidebarCollapsed ? '6px' : '8px 10px',
+            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
             border: '1px solid var(--border-color)',
             background: 'var(--c-white)',
             cursor: 'pointer',
             boxShadow: '1px 1px 0 0 var(--border-color)',
             position: 'relative',
           }}
-          title={`${user.name} (${user.email}) - Click for options`}
+          title={sidebarCollapsed ? 'Expand sidebar & open profile' : `${user.name} (${user.email}) - Click for options`}
         >
           <div
             className="sidebar-user-avatar"
@@ -355,11 +369,12 @@ export default function Sidebar() {
         {/* User Popover / Dropdown Menu */}
         {userMenuOpen && (
           <div
+            id="sidebar-user-menu"
             style={{
               position: 'absolute',
               bottom: '100%',
-              left: 0,
-              right: 0,
+              left: '8px',
+              right: '8px',
               marginBottom: '8px',
               background: 'var(--c-white)',
               border: '1px solid var(--border-color)',
@@ -367,7 +382,8 @@ export default function Sidebar() {
               borderRadius: '6px',
               padding: '6px',
               zIndex: 100,
-              minWidth: '220px',
+              boxSizing: 'border-box',
+              animation: 'userMenuFadeIn 0.15s ease-out',
             }}
           >
             <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--c-gray-200)', marginBottom: '4px' }}>

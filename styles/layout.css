@@ -105,7 +105,8 @@
   margin-bottom: var(--sp-4);
 }
 
-.sidebar-section-label {
+.sidebar-section-label,
+.sidebar-section-title {
   font-size: var(--fs-xs);
   font-weight: var(--fw-bold);
   color: var(--text-secondary);
@@ -114,13 +115,17 @@
   padding: var(--sp-2) var(--sp-3);
   white-space: nowrap;
   overflow: hidden;
+  transition: opacity var(--dur-fast) var(--ease-default);
 }
 
-.sidebar.collapsed .sidebar-section-label {
+.sidebar.collapsed .sidebar-section-label,
+.sidebar.collapsed .sidebar-section-title {
+  display: none !important;
   opacity: 0;
   height: 0;
   padding: 0;
   margin: 0;
+  overflow: hidden;
 }
 
 .sidebar-item {
@@ -172,7 +177,14 @@
   transition: opacity var(--dur-fast) var(--ease-default);
 }
 
+.sidebar.collapsed .sidebar-item {
+  justify-content: center;
+  padding: var(--sp-2) 0;
+  gap: 0;
+}
+
 .sidebar.collapsed .sidebar-item-text {
+  display: none;
   opacity: 0;
   width: 0;
 }
@@ -189,13 +201,17 @@
 }
 
 .sidebar.collapsed .sidebar-item-badge {
-  display: none;
+  display: none !important;
 }
 
 .sidebar-divider {
   height: var(--border-width);
   background: var(--border-color);
   margin: var(--sp-4) var(--sp-3);
+}
+
+.sidebar.collapsed .sidebar-divider {
+  margin: var(--sp-3) var(--sp-2);
 }
 
 .sidebar-add-module {
@@ -302,14 +318,33 @@
   flex-shrink: 0;
 }
 
+.sidebar.collapsed .sidebar-footer {
+  padding: var(--sp-3) var(--sp-2);
+  align-items: center;
+}
+
 .sidebar.collapsed .sidebar-user {
   justify-content: center;
-  padding: var(--sp-2);
+  padding: 6px;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
 }
 
 .sidebar.collapsed .sidebar-user-info,
 .sidebar.collapsed .sidebar-user-status {
-  display: none;
+  display: none !important;
+}
+
+@keyframes userMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---- Main Wrapper ---- */
