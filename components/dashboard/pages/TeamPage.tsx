@@ -23,8 +23,6 @@ export default function TeamPage() {
  premiumSeatLimit,
  premiumSeatsAllocated,
  assignSeatTier,
- seedEnterpriseDirectory,
- resetEnterpriseDirectory,
  } = useDashboard();
 
  const [activeTab, setActiveTab] = useState<TeamTab>('directory');
@@ -142,9 +140,6 @@ export default function TeamPage() {
  >
  Granular Seat Licensing Cockpit
  </span>
- <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
- Scale-tested for 2,000+ workspace members
- </span>
  </div>
  <h3 style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 800 }}>
  Autonomous Pro Seats: {premiumSeatsAllocated} / {premiumSeatLimit} Allocated
@@ -172,38 +167,6 @@ export default function TeamPage() {
  >
  Redeem Code
  </button>
-
- {employees.length < 100 ? (
- <button
- type="button"
- className="btn btn-primary btn-sm"
- style={{
- background: 'linear-gradient(135deg, #7c3aed 0%, #0f4cff 100%)',
- border: 'none',
- color: '#fff',
- fontWeight: 700,
- boxShadow: '0 4px 12px rgba(124, 58, 237, 0.25)',
- }}
- onClick={() => {
- seedEnterpriseDirectory(2000);
- setCurrentPage(1);
- }}
- >
- Load 2,000 Enterprise Members
- </button>
- ) : (
- <button
- type="button"
- className="btn btn-secondary btn-sm"
- style={{ fontSize: '11px' }}
- onClick={() => {
- resetEnterpriseDirectory();
- setCurrentPage(1);
- }}
- >
- ↺ Reset Directory
- </button>
- )}
  </div>
  </div>
 

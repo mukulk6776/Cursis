@@ -492,11 +492,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         setUser(activeUser);
         setOrdisPlan(userPlanTier === 'premium' ? 'paid' : 'basic');
 
-        // Ensure current user is in employees list
+        // Ensure current user is in employees list and purge any fake simulated members
         setEmployees((prev) => {
-          const existingIdx = prev.findIndex((e) => e.id === activeUser.id || (e.email && activeUser.email && e.email.toLowerCase() === activeUser.email.toLowerCase()) || e.id === 'u1');
+          const cleanPrev = prev.filter((e) => !e.id.startsWith('u_std_') && !e.id.startsWith('u_pro_') && !e.id.startsWith('emp_'));
+          const existingIdx = cleanPrev.findIndex((e) => e.id === activeUser.id || (e.email && activeUser.email && e.email.toLowerCase() === activeUser.email.toLowerCase()) || e.id === 'u1');
           if (existingIdx !== -1) {
-            const updated = [...prev];
+            const updated = [...cleanPrev];
             const prevEmp = updated[existingIdx];
             const targetIsFounder = isFounderEmail(activeUser.email);
             updated[existingIdx] = {
@@ -532,7 +533,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 joinedAt: new Date().toISOString().split('T')[0],
                 planTier: userPlanTier,
               },
-              ...prev,
+              ...cleanPrev,
             ];
           }
         });
@@ -1127,170 +1128,41 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  showToast(`Removed ${emp?.name || 'member'} from workspace`);
  };
 
- const seedEnterpriseDirectory = (targetCount: number = 2000) => {
- const roles = [
- 'Senior Software Engineer', 'Product Manager', 'UX Designer', 'DevOps Specialist',
- 'Data Engineer', 'Security Analyst', 'Full Stack Developer', 'Technical Writer',
- 'Frontend Engineer', 'Backend Architect', 'QA Automation Engineer', 'Cloud Engineer'
- ];
- const depts = ['Engineering', 'Product & Design', 'Growth & Marketing', 'Operations & SecOps', 'Leadership'];
- 
-    // Existing active user is guaranteed Seat #1
-    const isFounder = isFounderEmail(user.email);
-    const existingLead = employees.find((e) => e.id === user.id || (e.email && user.email && e.email.toLowerCase() === user.email.toLowerCase())) || employees[0];
-
-    const leadEmp: Employee = existingLead
-      ? {
-          ...existingLead,
-          role: isFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(existingLead.role) ? existingLead.role : 'User'),
-          workspaceRole: isFounder ? 'owner' : (existingLead.workspaceRole === 'owner' ? 'member' : existingLead.workspaceRole),
-          department: isFounder ? 'Leadership' : (existingLead.department === 'Leadership' ? 'General' : existingLead.department),
-        }
-      : {
-          id: user.id || (isFounder ? 'u_owner' : 'u_member'),
-          name: user.name || (isFounder ? 'Founder' : 'User'),
-          initials: user.initials || (isFounder ? 'FC' : 'CU'),
-          role: isFounder ? 'Founder & CEO' : 'User',
-          department: isFounder ? 'Leadership' : 'General',
-          departmentId: isFounder ? 'dept_leadership' : 'dept_general',
-          teamIds: ['team_core'],
-          workspaceRole: isFounder ? 'owner' : 'member',
-          status: 'online',
-          color: '#0f4cff',
-          tasks: 8,
-          projects: 3,
-          email: user.email || (isFounder ? 'mukulk3962364@gmail.com' : 'user@cursis.io'),
-          skills: isFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General'],
-          joinedAt: '2026-01-01',
-          planTier: 'premium',
-        };
-
- const roster: Employee[] = [
- { ...leadEmp, planTier: 'premium' },
- {
- id: 'u_pro_2',
- name: 'Elena Rostova',
- initials: 'ER',
- role: 'VP of Engineering',
- department: 'Engineering',
- departmentId: 'dept_engineering',
- teamIds: ['team_core'],
- workspaceRole: 'admin',
- status: 'online',
- color: '#7c3aed',
- tasks: 12,
- projects: 4,
- email: 'elena.rostova@cursis.io',
- skills: ['Distributed Systems', 'Cloud Native', 'Team Scaling'],
- joinedAt: '2026-01-15',
- planTier: 'premium',
- },
- {
- id: 'u_pro_3',
- name: 'Marcus Vance',
- initials: 'MV',
- role: 'Principal AI Architect',
- department: 'Engineering',
- departmentId: 'dept_engineering',
- teamIds: ['team_core'],
- workspaceRole: 'admin',
- status: 'online',
- color: '#0f4cff',
- tasks: 7,
- projects: 2,
- email: 'marcus.vance@cursis.io',
- skills: ['LLM Orchestration', 'Vector DBs', 'Ordis Agents'],
- joinedAt: '2026-02-01',
- planTier: 'premium',
- },
- {
- id: 'u_pro_4',
- name: 'Sophia Chen',
- initials: 'SC',
- role: 'Head of Product',
- department: 'Product & Design',
- departmentId: 'dept_product',
- teamIds: ['team_core'],
- workspaceRole: 'manager',
- status: 'online',
- color: '#10b981',
- tasks: 9,
- projects: 3,
- email: 'sophia.chen@cursis.io',
- skills: ['Roadmapping', 'User Research', 'Sprint Velocity'],
- joinedAt: '2026-02-10',
- planTier: 'premium',
- },
- ];
-
- const firstNames = ['Liam', 'Olivia', 'Noah', 'Emma', 'Oliver', 'Ava', 'Elijah', 'Charlotte', 'William', 'Sophia', 'James', 'Amelia', 'Benjamin', 'Isabella', 'Lucas', 'Mia', 'Henry', 'Evelyn', 'Alexander', 'Harper', 'Daniel', 'Aria', 'Matthew', 'Chloe'];
- const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White'];
- const colors = ['#0f4cff', '#7c3aed', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#64748b'];
-
- for (let i = 5; i <= targetCount; i++) {
- const fn = firstNames[(i * 3) % firstNames.length];
- const ln = lastNames[(i * 7) % lastNames.length];
- const dept = depts[i % depts.length];
- const role = roles[i % roles.length];
- const initials = `${fn[0]}${ln[0]}`;
- const color = colors[i % colors.length];
-
- roster.push({
- id: `u_std_${i}`,
- name: `${fn} ${ln} #${i}`,
- initials,
- role,
- department: dept,
- departmentId: `dept_${dept.toLowerCase().replace(/[^a-z]/g, '')}`,
- teamIds: ['team_core'],
- workspaceRole: 'member',
- status: i % 5 === 0 ? 'offline' : i % 8 === 0 ? 'busy' : 'online',
- color,
- tasks: (i % 6) + 1,
- projects: (i % 3) + 1,
- email: `${fn.toLowerCase()}.${ln.toLowerCase()}.${i}@cursis.io`,
- skills: [role.split(' ')[0], 'Collaboration'],
- joinedAt: '2026-03-01',
- planTier: 'standard',
- });
- }
-
- setEmployees(roster);
- addAuditEntry(user.name, 'directory.simulated', '2,000 Members', 'Provisioned 2,000 enterprise members with 4 Autonomous Pro seats and 1,996 Standard seats');
- showToast(` Enterprise Directory Active: ${targetCount.toLocaleString()} members (4 Pro Seats / ${(targetCount - 4).toLocaleString()} Standard Seats)`);
- };
+  const seedEnterpriseDirectory = () => {
+    // Production Mode: Simulated fake directory generation is disabled.
+    showToast('Enterprise directory is active. Team members are managed via invitations.');
+  };
 
   const resetEnterpriseDirectory = () => {
-    const isFounder = isFounderEmail(user.email);
-    const existingLead = employees.find((e) => e.id === user.id || (e.email && user.email && e.email.toLowerCase() === user.email.toLowerCase()));
-
-    const leadEmp: Employee = existingLead
-      ? {
-          ...existingLead,
-          role: isFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(existingLead.role) ? existingLead.role : 'User'),
-          workspaceRole: isFounder ? 'owner' : (existingLead.workspaceRole === 'owner' ? 'member' : existingLead.workspaceRole),
-          department: isFounder ? 'Leadership' : (existingLead.department === 'Leadership' ? 'General' : existingLead.department),
-        }
-      : {
-          id: user.id || (isFounder ? 'u_owner' : 'u_member'),
-          name: user.name || (isFounder ? 'Founder' : 'User'),
-          initials: user.initials || (isFounder ? 'FC' : 'CU'),
-          role: isFounder ? 'Founder & CEO' : 'User',
-          department: isFounder ? 'Leadership' : 'General',
-          departmentId: isFounder ? 'dept_leadership' : 'dept_general',
-          teamIds: ['team_core'],
-          workspaceRole: isFounder ? 'owner' : 'member',
-          status: 'online',
-          color: '#0f4cff',
-          tasks: 0,
-          projects: 0,
-          email: user.email || (isFounder ? 'mukulk3962364@gmail.com' : 'user@cursis.io'),
-          skills: isFounder ? ['Strategy', 'Leadership'] : ['General'],
-          joinedAt: new Date().toISOString().split('T')[0],
-          planTier: 'premium',
-        };
-    setEmployees([leadEmp]);
-    showToast('Directory reset to workspace lead ');
+    // Purges any mock or simulated records, keeping only genuine workspace members
+    setEmployees((prev) => {
+      const genuine = prev.filter((e) => !e.id.startsWith('u_std_') && !e.id.startsWith('u_pro_') && !e.id.startsWith('emp_'));
+      return genuine.length > 0
+        ? genuine
+        : (user.email
+          ? [
+              {
+                id: user.id || 'u_owner',
+                name: user.name || 'Founder',
+                initials: user.initials || 'FC',
+                role: user.role || 'Founder & CEO',
+                department: 'Leadership',
+                departmentId: 'dept_leadership',
+                teamIds: ['team_core'],
+                workspaceRole: user.workspaceRole || 'owner',
+                status: 'online',
+                color: '#0f4cff',
+                tasks: 0,
+                projects: 0,
+                email: user.email,
+                skills: ['Leadership', 'Strategy'],
+                joinedAt: new Date().toISOString().split('T')[0],
+                planTier: 'premium',
+              },
+            ]
+          : []);
+    });
+    showToast('Enterprise directory cleaned: zero mock records');
   };
 
   const redeemCode = async (rawCode: string): Promise<{ success: boolean; message: string; perks?: string[] }> => {
