@@ -9,6 +9,7 @@ import {
   revokeTeamInvitation,
   acceptTeamInvitation,
 } from '@/lib/db/team';
+import { createNotification } from '@/lib/db/notifications';
 
 export async function GET(request: Request) {
   try {
@@ -68,16 +69,26 @@ export async function POST(request: Request) {
         planTier: body.planTier || 'standard',
       });
 
+      // Dispatch notification to recipient
+      await createNotification({
+        userEmail: email,
+        workspaceId,
+        type: 'team',
+        text: `<strong>${authUser.displayName || 'Workspace Admin'}</strong> invited you to join the team as <strong>${body.roleTitle || 'Team Member'}</strong>.`,
+        icon: '📨',
+      });
+
       return apiSuccess({ invitation, message: `Invitation sent to ${email}` }, 201);
     }
 
     // Default: Direct Provision Member
-    const email = body.email?.trim()?.toLowerCase();
     const displayName = (body.displayName || body.name)?.trim();
-
-    if (!email || !displayName) {
-      return apiError('Email and display name are required', 400);
+    if (!displayName) {
+      return apiError('Display name is required', 400);
     }
+
+    // Fallback to internal email if no email provided
+    const email = body.email?.trim()?.toLowerCase() || `${displayName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@cursis.io`;
 
     const member = await addTeamMember(workspaceId, {
       email,
@@ -89,6 +100,23 @@ export async function POST(request: Request) {
       photoURL: body.photoURL,
       presence: body.presence || 'online',
       planTier: body.planTier || 'standard',
+    });
+
+    // Dispatch persistent notifications
+    await createNotification({
+      userEmail: email,
+      workspaceId,
+      type: 'team',
+      text: `<strong>${authUser.displayName || 'Workspace Admin'}</strong> added you to the workspace as <strong>${member.title}</strong> in <strong>${member.department}</strong>.`,
+      icon: '👥',
+    });
+
+    await createNotification({
+      userEmail: authUser.email,
+      workspaceId,
+      type: 'team',
+      text: `Added <strong>${member.displayName}</strong> (${email}) to team as <strong>${member.title}</strong>.`,
+      icon: '✅',
     });
 
     return apiSuccess({ member, message: `Added ${member.displayName} to team` }, 201);

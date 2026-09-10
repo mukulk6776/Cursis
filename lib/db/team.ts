@@ -19,17 +19,27 @@ function sanitizeTeamUser(u: UserProfile): UserProfile {
 }
 
 export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile[]> {
+  const isDefaultWs = !workspaceId || workspaceId === 'ws_public' || workspaceId === 'ws_cursis_user' || workspaceId === 'ws_default';
   try {
     const col = await getCollection<UserProfile>('users');
     if (col) {
-      const docs = await col
-        .find({
-          $or: [
-            { workspaceIds: workspaceId },
-            { activeWorkspaceId: workspaceId },
-          ],
-        })
-        .toArray();
+      const query = isDefaultWs
+        ? {
+            $or: [
+              { workspaceIds: { $in: ['ws_public', 'ws_cursis_user', 'ws_default', workspaceId] } },
+              { activeWorkspaceId: { $in: ['ws_public', 'ws_cursis_user', 'ws_default', workspaceId] } },
+              { workspaceId: { $in: ['ws_public', 'ws_cursis_user', 'ws_default', workspaceId] } },
+            ],
+          }
+        : {
+            $or: [
+              { workspaceIds: workspaceId },
+              { activeWorkspaceId: workspaceId },
+              { workspaceId: workspaceId },
+            ],
+          };
+
+      const docs = await col.find(query).toArray();
 
       if (docs.length > 0) {
         const sanitized = docs.map(sanitizeTeamUser);
@@ -43,7 +53,10 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
 
   return Array.from(inMemoryStore.users.values())
     .filter(
-      (u) => u.workspaceIds.includes(workspaceId) || workspaceId === 'ws_cursis_user' || workspaceId === 'ws_public'
+      (u) =>
+        isDefaultWs ||
+        u.workspaceIds?.includes(workspaceId) ||
+        u.activeWorkspaceId === workspaceId
     )
     .map(sanitizeTeamUser);
 }
@@ -68,16 +81,28 @@ export async function addTeamMember(
   const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, memberData.title || 'Team Member');
   const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, memberData.department || 'Engineering');
   const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (memberData.skills || ['General']);
+  const effectiveWsIds = Array.from(new Set([workspaceId, 'ws_public', 'ws_cursis_user', 'ws_default']));
 
-  // Check for existing user by email to prevent duplicate accounts
-  const existingMem = Array.from(inMemoryStore.users.values()).find(
-    (u) => u.email.toLowerCase() === cleanEmail
-  );
+  // Check MongoDB first for existing user by email to prevent duplicate accounts
+  let existingMem: UserProfile | null = null;
+  try {
+    const col = await getCollection<UserProfile>('users');
+    if (col) {
+      existingMem = await col.findOne({ email: cleanEmail });
+    }
+  } catch (e) {
+    console.warn('MongoDB find existing team member notice:', e);
+  }
+
+  if (!existingMem) {
+    existingMem = Array.from(inMemoryStore.users.values()).find(
+      (u) => u.email.toLowerCase() === cleanEmail
+    ) || null;
+  }
 
   if (existingMem) {
-    if (!existingMem.workspaceIds.includes(workspaceId)) {
-      existingMem.workspaceIds.push(workspaceId);
-    }
+    existingMem.workspaceIds = Array.from(new Set([...(existingMem.workspaceIds || []), ...effectiveWsIds]));
+    existingMem.activeWorkspaceId = workspaceId;
     existingMem.displayName = memberData.displayName || existingMem.displayName;
     existingMem.role = assignedRole;
     existingMem.department = assignedDept;
@@ -92,12 +117,17 @@ export async function addTeamMember(
     try {
       const col = await getCollection<UserProfile>('users');
       if (col) {
-        await col.updateOne({ id: existingMem.id }, { $set: existingMem });
+        await col.updateOne(
+          { $or: [{ id: existingMem.id }, { uid: existingMem.uid }, { email: cleanEmail }] },
+          { $set: existingMem },
+          { upsert: true }
+        );
       }
     } catch (e) {
       console.warn('MongoDB updateTeamMember notice:', e);
     }
 
+    inMemoryStore.users.set(existingMem.id, existingMem);
     return existingMem;
   }
 
@@ -112,7 +142,7 @@ export async function addTeamMember(
     department: assignedDept,
     title: assignedTitle,
     skills: assignedSkills,
-    workspaceIds: [workspaceId],
+    workspaceIds: effectiveWsIds,
     activeWorkspaceId: workspaceId,
     planTier: memberData.planTier || 'standard',
     onboardingStatus: 'in_progress',
@@ -138,7 +168,7 @@ export async function addTeamMember(
   try {
     const col = await getCollection<UserProfile>('users');
     if (col) {
-      await col.insertOne(newMember);
+      await col.updateOne({ email: cleanEmail }, { $set: newMember }, { upsert: true });
     }
   } catch (e) {
     console.warn('MongoDB insertTeamMember notice:', e);

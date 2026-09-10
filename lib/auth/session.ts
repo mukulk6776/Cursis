@@ -25,6 +25,10 @@ export interface AuthenticatedUser {
   role: UserRole;
   workspaceId: string;
   photoURL?: string;
+  title?: string;
+  department?: string;
+  skills?: string[];
+  planTier?: 'standard' | 'premium';
   isDev?: boolean;
 }
 
@@ -88,6 +92,13 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
         const role: UserRole = isFounder ? 'owner' : (verified.role !== 'owner' ? (verified.role as UserRole) : 'member');
         const workspaceId = verified.workspaceId || 'ws_cursis_user';
 
+        // Retrieve existing user from cache if present
+        const storedUser = inMemoryStore.users.get(uid) || Array.from(inMemoryStore.users.values()).find((u) => u.email === email);
+        const title = isFounder ? 'Founder & CEO' : (storedUser?.title || 'Team Member');
+        const department = isFounder ? 'Leadership' : (storedUser?.department || 'Engineering');
+        const skills = isFounder ? ['Founder & CEO', 'Leadership', 'Strategy'] : (storedUser?.skills || ['General']);
+        const planTier = storedUser?.planTier || 'standard';
+
         // Auto-provision user in store if not present
         if (!inMemoryStore.users.has(uid)) {
           inMemoryStore.users.set(uid, {
@@ -97,11 +108,12 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
             displayName,
             photoURL: verified.photoURL,
             role,
-            title: isFounder ? 'Founder & CEO' : 'User',
-            department: isFounder ? 'Leadership' : 'Operations',
+            title,
+            department,
             workspaceIds: [workspaceId],
             activeWorkspaceId: workspaceId,
-            skills: isFounder ? ['Founder & CEO', 'Leadership', 'Strategy'] : ['Workspace Collaborator'],
+            skills,
+            planTier,
             onboardingStatus: 'completed',
             onboardingChecklist: [],
             presence: 'online',
@@ -117,6 +129,10 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
           role,
           workspaceId,
           photoURL: verified.photoURL,
+          title,
+          department,
+          skills,
+          planTier,
           isDev: false,
         };
       }

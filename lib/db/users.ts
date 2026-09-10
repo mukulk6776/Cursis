@@ -177,17 +177,33 @@ export async function registerUser(params: {
 }
 
 export async function createUserProfile(uid: string, data: Partial<UserProfile>): Promise<UserProfile> {
-  const existing = inMemoryStore.users.get(uid);
+  let existing: UserProfile | null = inMemoryStore.users.get(uid) || null;
   const cleanEmail = (data.email || existing?.email || `${uid}@cursis.ai`).trim().toLowerCase();
+
+  try {
+    const col = await getCollection<UserProfile>('users');
+    if (col) {
+      const doc = await col.findOne({
+        $or: [{ uid }, { id: uid }, { email: cleanEmail }],
+      });
+      if (doc) existing = doc;
+    }
+  } catch (e) {
+    console.warn('MongoDB createUserProfile lookup notice:', e);
+  }
+
   const isFounder = isFounderEmail(cleanEmail);
 
   const assignedRole: UserRole = isFounder ? 'owner' : (data.role && data.role !== 'owner' ? data.role : (existing?.role && existing.role !== 'owner' ? existing.role : 'member'));
-  const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, data.title || existing?.title || 'User');
-  const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, data.department || existing?.department || 'Operations');
+  const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, data.title || existing?.title || 'Team Member');
+  const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, data.department || existing?.department || 'Engineering');
   const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (data.skills || existing?.skills || ['General']);
 
+  const userWorkspaceIds = data.workspaceIds || existing?.workspaceIds || ['ws_public', 'ws_default', 'ws_cursis_user'];
+  const userActiveWorkspaceId = data.activeWorkspaceId || existing?.activeWorkspaceId || userWorkspaceIds[0] || 'ws_public';
+
   const updatedUser: UserProfile = {
-    id: uid,
+    id: existing?.id || uid,
     uid,
     email: cleanEmail,
     displayName: data.displayName || existing?.displayName || 'Cursis User',
@@ -198,8 +214,9 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
     department: assignedDept,
     title: assignedTitle,
     skills: assignedSkills,
-    workspaceIds: data.workspaceIds || existing?.workspaceIds || ['ws_cursis_user'],
-    activeWorkspaceId: data.activeWorkspaceId || existing?.activeWorkspaceId || 'ws_cursis_user',
+    workspaceIds: userWorkspaceIds,
+    activeWorkspaceId: userActiveWorkspaceId,
+    planTier: data.planTier || existing?.planTier || 'standard',
     onboardingStatus: data.onboardingStatus || existing?.onboardingStatus || 'completed',
     onboardingChecklist: data.onboardingChecklist || existing?.onboardingChecklist || [
       { id: 'ob_1', title: 'Complete profile setup', completed: true },
@@ -215,7 +232,7 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
   try {
     const col = await getCollection<UserProfile>('users');
     if (col) {
-      await col.updateOne({ uid }, { $set: updatedUser }, { upsert: true });
+      await col.updateOne({ $or: [{ uid }, { id: uid }, { email: cleanEmail }] }, { $set: updatedUser }, { upsert: true });
     }
   } catch (e) {
     console.warn('MongoDB createUserProfile notice:', e);

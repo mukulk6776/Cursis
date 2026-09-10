@@ -568,3 +568,16 @@ export interface CustomBuildRequest {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface DbNotification {
+  id: string;
+  userId?: string;
+  userEmail?: string;
+  workspaceId?: string;
+  type: 'task' | 'mention' | 'meeting' | 'deadline' | 'ai' | 'project' | 'team' | 'automation' | 'agent' | 'security' | 'system';
+  text: string;
+  time?: string;
+  read: boolean;
+  icon?: string;
+  createdAt: string;
+}

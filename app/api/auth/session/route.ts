@@ -16,7 +16,15 @@ export async function GET(request: Request) {
     if (!user) {
       return apiError('Unauthorized', 401);
     }
-    return apiSuccess({ user });
+    const profile = await findUserByEmail(user.email);
+    const enrichedUser = {
+      ...user,
+      title: profile?.title || user.title || 'Team Member',
+      department: profile?.department || user.department || 'Engineering',
+      skills: profile?.skills || user.skills || ['General'],
+      planTier: profile?.planTier || user.planTier || 'standard',
+    };
+    return apiSuccess({ user: enrichedUser });
   } catch (error: any) {
     return apiError(error.message || 'Authentication check failed', 500);
   }
@@ -69,17 +77,19 @@ export async function POST(request: Request) {
     }
 
     // Check for existing user in database
+    let existing: any = null;
     if (userEmail) {
-      const existing = await findUserByEmail(userEmail);
+      existing = await findUserByEmail(userEmail);
       if (existing) {
-        userUid = existing.uid;
+        userUid = existing.uid || existing.id || userUid;
         userName = existing.displayName || userName;
         photoURL = existing.photoURL || photoURL;
       }
     }
 
     const isFounder = isFounderEmail(userEmail);
-    const sessionRole = isFounder ? ('owner' as const) : ('member' as const);
+    const sessionRole = isFounder ? ('owner' as const) : (existing?.role || 'member');
+    const sessionWorkspaceId = existing?.activeWorkspaceId || existing?.workspaceIds?.[0] || 'ws_public';
 
     const sessionPayload = {
       uid: userUid,
@@ -87,12 +97,16 @@ export async function POST(request: Request) {
       displayName: userName,
       photoURL,
       role: sessionRole,
-      workspaceId: 'ws_cursis_user',
+      workspaceId: sessionWorkspaceId,
       createdAt: Date.now(),
     };
 
     const sessionToken = createSessionToken(sessionPayload);
     const maxAgeSeconds = 60 * 60 * 24 * 7; // 7 days
+
+    const userWorkspaceIds = existing?.workspaceIds && existing.workspaceIds.length > 0
+      ? Array.from(new Set([...existing.workspaceIds, 'ws_public', 'ws_default', 'ws_cursis_user']))
+      : ['ws_public', 'ws_default', 'ws_cursis_user'];
 
     createUserProfile(userUid, {
       uid: userUid,
@@ -100,8 +114,12 @@ export async function POST(request: Request) {
       displayName: userName,
       photoURL,
       role: sessionRole,
-      title: isFounder ? 'Founder & CEO' : 'User',
-      department: isFounder ? 'Leadership' : 'Operations',
+      title: isFounder ? 'Founder & CEO' : (existing?.title || 'Team Member'),
+      department: isFounder ? 'Leadership' : (existing?.department || 'Engineering'),
+      skills: isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (existing?.skills || ['General']),
+      workspaceIds: userWorkspaceIds,
+      activeWorkspaceId: sessionWorkspaceId,
+      planTier: existing?.planTier || 'standard',
     }).catch(() => {});
 
     const cookieOptions = {

@@ -508,6 +508,120 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
   }, [user.name]);
 
+  // Persistent Team & Notifications Synchronization with MongoDB
+  const syncTeamAndNotifications = async (wsId?: string) => {
+    const targetWsId = wsId || activeWorkspaceId || 'ws_public';
+    try {
+      // 1. Fetch live team members and invitations from MongoDB
+      const teamRes = await fetch(`/api/team?workspaceId=${encodeURIComponent(targetWsId)}`, {
+        credentials: 'include',
+      });
+      if (teamRes.ok) {
+        const teamData = await teamRes.json();
+        const serverTeam = teamData.data?.team || teamData.team;
+        const serverInvs = teamData.data?.invitations || teamData.invitations;
+
+        if (Array.isArray(serverTeam) && serverTeam.length > 0) {
+          setEmployees((prev) => {
+            const mappedServer = serverTeam.map((u: any): Employee => {
+              const cleanEmail = (u.email || '').trim().toLowerCase();
+              const isMemFounder = isFounderEmail(cleanEmail);
+              const displayName = u.displayName || u.name || (cleanEmail ? cleanEmail.split('@')[0] : 'Team Member');
+              const initials = displayName
+                .split(' ')
+                .filter(Boolean)
+                .map((n: string) => n[0])
+                .join('')
+                .toUpperCase()
+                .substring(0, 2) || 'CU';
+
+              const roleTitle = isMemFounder ? 'Founder & CEO' : (u.title || u.role || 'Team Member');
+              const deptName = isMemFounder ? 'Leadership' : (u.department || 'Engineering');
+              const deptId = isMemFounder ? 'dept_leadership' : ('dept_' + deptName.toLowerCase().replace(/\s+/g, '_'));
+              const wsRole = isMemFounder ? 'owner' : (u.role === 'owner' ? 'member' : (u.role || 'member'));
+              const tier = (u.planTier as 'standard' | 'premium') || 'standard';
+
+              return {
+                id: u.id || u.uid || 'u_' + Math.random().toString(36).substring(2, 8),
+                name: displayName,
+                initials,
+                role: roleTitle,
+                department: deptName,
+                departmentId: deptId,
+                teamIds: u.teamIds || ['team_core'],
+                workspaceRole: wsRole,
+                status: u.presence || 'online',
+                color: u.color || (isMemFounder ? '#0f4cff' : '#f59e0b'),
+                tasks: typeof u.tasks === 'number' ? u.tasks : 0,
+                projects: typeof u.projects === 'number' ? u.projects : 0,
+                email: cleanEmail,
+                skills: u.skills && u.skills.length > 0 ? u.skills : (isMemFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General']),
+                joinedAt: u.createdAt ? u.createdAt.split('T')[0] : (u.joinedAt || new Date().toISOString().split('T')[0]),
+                invitedBy: u.invitedBy || null,
+                planTier: tier,
+              };
+            });
+
+            // Merge with local state to preserve any optimistic items without duplicates
+            const combined = [...mappedServer];
+            for (const p of prev) {
+              if (
+                !p.id.startsWith('u_std_') &&
+                !p.id.startsWith('u_pro_') &&
+                !p.id.startsWith('emp_') &&
+                !combined.some((c) => c.id === p.id || (c.email && p.email && c.email.toLowerCase() === p.email.toLowerCase()))
+              ) {
+                combined.push(p);
+              }
+            }
+            return combined;
+          });
+        }
+
+        if (Array.isArray(serverInvs)) {
+          setInvitations(serverInvs);
+        }
+      }
+
+      // 2. Fetch user's persistent notifications from MongoDB
+      const notifRes = await fetch(`/api/notifications?workspaceId=${encodeURIComponent(targetWsId)}`, {
+        credentials: 'include',
+      });
+      if (notifRes.ok) {
+        const notifData = await notifRes.json();
+        const serverNotifs = notifData.data?.notifications || notifData.notifications;
+        if (Array.isArray(serverNotifs)) {
+          setNotifications(
+            serverNotifs.map((n: any): NotificationItem => {
+              let timeStr = 'Just now';
+              if (n.createdAt) {
+                const diffMs = Date.now() - new Date(n.createdAt).getTime();
+                const diffMin = Math.floor(diffMs / 60000);
+                if (diffMin < 1) timeStr = 'Just now';
+                else if (diffMin < 60) timeStr = `${diffMin}m ago`;
+                else {
+                  const diffHr = Math.floor(diffMin / 60);
+                  if (diffHr < 24) timeStr = `${diffHr}h ago`;
+                  else timeStr = `${Math.floor(diffHr / 24)}d ago`;
+                }
+              }
+              return {
+                id: n.id || 'notif_' + Math.random().toString(36).substring(2, 8),
+                type: n.type || 'team',
+                text: n.text || n.message || 'Notification',
+                time: timeStr,
+                read: Boolean(n.read),
+                icon: n.icon || '🔔',
+              };
+            })
+          );
+        }
+      }
+    } catch (e) {
+      console.warn('Notice: Background sync error:', e);
+    }
+  };
+
  // Sync authenticated user from session on mount
  useEffect(() => {
  let isMounted = true;
@@ -528,11 +642,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  .substring(0, 2) || 'CU';
 
         const isFounder = isFounderEmail(sessUser.email);
-        const userRoleTitle = isFounder ? 'Founder & CEO' : 'User';
-        const userWorkspaceRole = isFounder ? 'owner' : 'member';
-        const userDept = isFounder ? 'Leadership' : 'General';
-        const userDeptId = isFounder ? 'dept_leadership' : 'dept_general';
-        const userSkills = isFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General'];
+        const userRoleTitle = isFounder ? 'Founder & CEO' : (sessUser.title || 'User');
+        const userWorkspaceRole = isFounder ? 'owner' : (sessUser.role === 'owner' ? 'member' : (sessUser.role || 'member'));
+        const userDept = isFounder ? 'Leadership' : (sessUser.department || 'Engineering');
+        const userDeptId = isFounder ? 'dept_leadership' : ('dept_' + userDept.toLowerCase().replace(/\s+/g, '_'));
+        const userSkills = isFounder ? ['Strategy', 'Leadership', 'Architecture'] : (sessUser.skills || ['General']);
 
         const userPlanTier = (sessUser.planTier as 'standard' | 'premium') || 'premium';
         const activeUser: User = {
@@ -542,7 +656,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           initials,
           role: userRoleTitle,
           avatar: sessUser.photoURL || null,
-          color: '#0f4cff',
+          color: isFounder ? '#0f4cff' : '#f59e0b',
           photoURL: sessUser.photoURL,
           planTier: userPlanTier,
         };
@@ -595,9 +709,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               name: activeUser.name,
               email: activeUser.email,
               initials: activeUser.initials,
-              role: targetIsFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(prevEmp.role) ? prevEmp.role : 'User'),
-              department: targetIsFounder ? 'Leadership' : (prevEmp.department === 'Leadership' ? 'General' : (prevEmp.department || 'General')),
-              departmentId: targetIsFounder ? 'dept_leadership' : (prevEmp.departmentId === 'dept_leadership' ? 'dept_general' : (prevEmp.departmentId || 'dept_general')),
+              role: targetIsFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(prevEmp.role) ? prevEmp.role : (activeUser.role || 'User')),
+              department: targetIsFounder ? 'Leadership' : (prevEmp.department === 'Leadership' ? 'Engineering' : (prevEmp.department || 'Engineering')),
+              departmentId: targetIsFounder ? 'dept_leadership' : (prevEmp.departmentId === 'dept_leadership' ? 'dept_engineering' : (prevEmp.departmentId || 'dept_engineering')),
               workspaceRole: targetIsFounder ? 'owner' : (prevEmp.workspaceRole === 'owner' ? 'member' : (prevEmp.workspaceRole || 'member')),
               planTier: prevEmp.planTier || userPlanTier,
             };
@@ -614,7 +728,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 teamIds: ['team_core'],
                 workspaceRole: userWorkspaceRole,
                 status: 'online',
-                color: '#0f4cff',
+                color: isFounder ? '#0f4cff' : '#f59e0b',
                 tasks: 0,
                 projects: 0,
                 email: activeUser.email,
@@ -626,6 +740,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             ];
           }
         });
+
+        // Hydrate team and notifications from MongoDB
+        syncTeamAndNotifications(sessUser.workspaceId || 'ws_public');
  }
  }
  } catch (err) {
@@ -637,6 +754,23 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  isMounted = false;
  };
  }, []);
+
+  // Real-time polling & window focus synchronization for multi-user dashboard updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      syncTeamAndNotifications(activeWorkspaceId);
+    }, 15000);
+
+    const handleFocus = () => {
+      syncTeamAndNotifications(activeWorkspaceId);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [activeWorkspaceId]);
 
  const handleSignOut = async () => {
  showToast('Signing out of workspace...');
@@ -1125,7 +1259,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           presence: newEmp.status,
           planTier: newEmp.planTier,
         }),
-      }).catch(() => {});
+      })
+        .then(() => {
+          syncTeamAndNotifications(activeWorkspaceId);
+        })
+        .catch(() => {});
     } catch {}
 
     showToast(`Added ${newEmp.name} to team (${assignedTier === 'premium' ? 'Autonomous Pro' : 'Standard Core'}) `);
@@ -1466,86 +1604,105 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  workspaceId: activeWorkspaceId,
  email: newInv.email,
  name: newInv.name,
- roleTitle: newInv.roleTitle,
- workspaceRole: newInv.workspaceRole,
- department: newInv.department,
- team: newInv.team,
- planTier: assignedTier,
- }),
- }).catch(() => {});
- } catch {}
+        roleTitle: newInv.roleTitle,
+        workspaceRole: newInv.workspaceRole,
+        department: newInv.department,
+        team: newInv.team,
+        planTier: assignedTier,
+      }),
+    })
+      .then(() => {
+        syncTeamAndNotifications(activeWorkspaceId);
+      })
+      .catch(() => {});
+    } catch {}
 
- showToast(`Invitation sent to ${inv.email} (${assignedTier === 'premium' ? 'Pro' : 'Standard'}) `);
- };
+    showToast(`Invitation sent to ${inv.email} (${assignedTier === 'premium' ? 'Pro' : 'Standard'}) `);
+  };
 
- const revokeInvitation = (id: string) => {
- const inv = invitations.find((i) => i.id === id);
- setInvitations((prev) => prev.filter((i) => i.id !== id));
- addAuditEntry(user.name, 'team.invitation.revoked', inv?.email || id, `Revoked invitation token`);
+  const revokeInvitation = (id: string) => {
+    const inv = invitations.find((i) => i.id === id);
+    setInvitations((prev) => prev.filter((i) => i.id !== id));
+    addAuditEntry(user.name, 'team.invitation.revoked', inv?.email || id, `Revoked invitation token`);
 
- try {
- fetch(`/api/team?invitationId=${id}&workspaceId=${activeWorkspaceId}`, {
- method: 'DELETE',
- }).catch(() => {});
- } catch {}
+    try {
+      fetch(`/api/team?invitationId=${id}&workspaceId=${activeWorkspaceId}`, {
+        method: 'DELETE',
+      })
+        .then(() => {
+          syncTeamAndNotifications(activeWorkspaceId);
+        })
+        .catch(() => {});
+    } catch {}
 
- showToast('Invitation revoked');
- };
+    showToast('Invitation revoked');
+  };
 
- const acceptInvitation = (invitationIdOrToken: string) => {
- const inv = invitations.find((i) => i.id === invitationIdOrToken || i.token === invitationIdOrToken);
- if (!inv) {
- showToast('Invitation not found or expired');
- return;
- }
+  const acceptInvitation = (invitationIdOrToken: string) => {
+    const inv = invitations.find((i) => i.id === invitationIdOrToken || i.token === invitationIdOrToken);
+    if (!inv) {
+      showToast('Invitation not found or expired');
+      return;
+    }
 
- const initials = inv.name
- .split(' ')
- .filter(Boolean)
- .map((n) => n[0])
- .join('')
- .toUpperCase()
- .substring(0, 2) || 'CU';
+    const initials = inv.name
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2) || 'CU';
 
- const newEmp: Employee = {
- id: 'u_' + Date.now(),
- name: inv.name,
- initials,
- role: inv.roleTitle || 'Team Member',
- department: inv.department,
- departmentId: 'dept_' + inv.department.toLowerCase().replace(/\s+/g, '_'),
- teamIds: inv.team ? [inv.team] : ['team_core'],
- workspaceRole: inv.workspaceRole || teamSettings.defaultRole,
- status: 'online',
- color: '#10b981',
- tasks: 0,
- projects: 0,
- email: inv.email,
- skills: ['Collaboration', 'Cursis'],
- joinedAt: new Date().toISOString().split('T')[0],
- invitedBy: inv.invitedBy || user.id,
- planTier: inv.planTier || 'standard',
- };
+    const newEmp: Employee = {
+      id: 'u_' + Date.now(),
+      name: inv.name,
+      initials,
+      role: inv.roleTitle || 'Team Member',
+      department: inv.department,
+      departmentId: 'dept_' + inv.department.toLowerCase().replace(/\s+/g, '_'),
+      teamIds: inv.team ? [inv.team] : ['team_core'],
+      workspaceRole: inv.workspaceRole || teamSettings.defaultRole,
+      status: 'online',
+      color: '#10b981',
+      tasks: 0,
+      projects: 0,
+      email: inv.email,
+      skills: ['Collaboration', 'Cursis'],
+      joinedAt: new Date().toISOString().split('T')[0],
+      invitedBy: inv.invitedBy || user.id,
+      planTier: inv.planTier || 'standard',
+    };
 
- setEmployees((prev) => [...prev, newEmp]);
- setInvitations((prev) => prev.filter((i) => i.id !== inv.id));
- addAuditEntry(inv.name, 'team.invitation.accepted', inv.email, `Accepted workspace invitation as ${newEmp.role}`);
+    setEmployees((prev) => [...prev, newEmp]);
+    setInvitations((prev) => prev.filter((i) => i.id !== inv.id));
+    addAuditEntry(inv.name, 'team.invitation.accepted', inv.email, `Accepted workspace invitation as ${newEmp.role}`);
 
- try {
- fetch('/api/team', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ action: 'accept', token: inv.token }),
- }).catch(() => {});
- } catch {}
+    try {
+      fetch('/api/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'accept', token: inv.token }),
+      })
+        .then(() => {
+          syncTeamAndNotifications(activeWorkspaceId);
+        })
+        .catch(() => {});
+    } catch {}
 
- showToast(`Welcome ${newEmp.name} to the team! `);
- };
+    showToast(`Welcome ${newEmp.name} to the team! `);
+  };
 
- const markNotificationsRead = () => {
- setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
- showToast('All notifications marked as read ');
- };
+  const markNotificationsRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_all_read' }),
+      });
+    } catch {}
+    showToast('All notifications marked as read ');
+  };
 
  // ---- Ordis Natural Language Commander & Conversational AI Chatbot ----
  const sendOrdisMessage = async (text: string) => {

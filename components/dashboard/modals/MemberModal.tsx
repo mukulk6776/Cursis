@@ -403,15 +403,18 @@ export default function MemberModal() {
  </div>
  <div className="input-group" style={{ margin: 0 }}>
  <label className="input-label" style={{ fontSize: '11px', fontWeight: 600 }}>
- Work Email (Optional)
+ Google / Work Email (Optional)
  </label>
  <input
  className="input"
  type="email"
- placeholder="sarah@company.com"
+ placeholder="member@gmail.com"
  value={email}
  onChange={(e) => setEmail(e.target.value)}
  />
+ <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '4px', display: 'block', lineHeight: 1.3 }}>
+ Tip: Enter their real Google email so they can log in, see this workspace on their dashboard, and receive notifications.
+ </span>
  </div>
  </div>
 
