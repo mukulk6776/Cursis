@@ -156,6 +156,7 @@ export async function DELETE(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const email = searchParams.get('email');
     const invitationId = searchParams.get('invitationId');
     const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId || 'ws_public';
 
@@ -164,12 +165,12 @@ export async function DELETE(request: Request) {
       return apiSuccess({ message: 'Invitation revoked' });
     }
 
-    if (userId) {
-      const removed = await removeTeamMember(workspaceId, userId);
+    if (userId || email) {
+      const removed = await removeTeamMember(workspaceId, userId || '', email || undefined);
       return apiSuccess({ removed, message: 'Team member removed from workspace' });
     }
 
-    return apiError('User ID or Invitation ID is required', 400);
+    return apiError('User ID, Email, or Invitation ID is required', 400);
   } catch (error: any) {
     return apiError(error.message || 'Failed to remove member or invitation', 500);
   }

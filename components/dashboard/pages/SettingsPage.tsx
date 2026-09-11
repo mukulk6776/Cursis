@@ -549,7 +549,11 @@ export default function SettingsPage() {
  type="button"
  className="btn btn-ghost btn-sm"
  style={{ color: 'var(--c-error)', fontSize: 'var(--fs-xs)' }}
- onClick={() => removeEmployee(emp.id)}
+ onClick={async () => {
+ if (window.confirm(`Are you sure you want to remove ${emp.name} from the workspace?`)) {
+ await removeEmployee(emp.id);
+ }
+ }}
  >
  Remove
  </button>

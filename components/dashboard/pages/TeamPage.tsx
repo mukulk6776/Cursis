@@ -330,10 +330,10 @@ export default function TeamPage() {
  borderRadius: '4px',
  }}
  title={`Remove ${emp.name} from workspace`}
- onClick={(e) => {
+ onClick={async (e) => {
  e.stopPropagation();
  if (window.confirm(`Are you sure you want to remove ${emp.name} from the workspace? They will lose access to all projects and tasks.`)) {
- removeEmployee(emp.id);
+ await removeEmployee(emp.id);
  }
  }}
  >

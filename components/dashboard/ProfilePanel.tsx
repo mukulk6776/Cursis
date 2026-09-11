@@ -281,9 +281,9 @@ export default function ProfilePanel() {
  fontWeight: 700,
  fontSize: 'var(--fs-sm)',
  }}
- onClick={() => {
+ onClick={async () => {
  if (window.confirm(`Are you sure you want to remove ${emp.name} from the workspace?`)) {
- removeEmployee(emp.id);
+ await removeEmployee(emp.id);
  closeProfilePanel();
  }
  }}

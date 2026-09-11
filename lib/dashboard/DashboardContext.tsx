@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOutUser } from '@/lib/auth/firebase';
 import {
@@ -211,7 +211,7 @@ interface DashboardContextType {
  deleteMeeting: (id: string) => void;
  addEmployee: (emp: Partial<Employee> & { name: string; role: string; department: string }) => void;
  updateEmployee: (id: string, updates: Partial<Employee>) => void;
- removeEmployee: (id: string) => void;
+ removeEmployee: (id: string) => Promise<void> | void;
  sendInvitation: (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard' }) => void;
  revokeInvitation: (id: string) => void;
  acceptInvitation: (invitationIdOrToken: string) => void;
@@ -382,6 +382,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  // Base State Entities
   const [user, setUser] = useState<User>(INITIAL_USER);
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
+  const removedMemberIdsRef = useRef<Set<string>>(new Set());
   const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
  const [teams] = useState<Team[]>(INITIAL_TEAMS);
  const [invitations, setInvitations] = useState<Invitation[]>(INITIAL_INVITATIONS);
@@ -529,49 +530,60 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
         if (Array.isArray(serverTeam) && serverTeam.length > 0) {
           setEmployees((prev) => {
-            const mappedServer = serverTeam.map((u: any): Employee => {
-              const cleanEmail = (u.email || '').trim().toLowerCase();
-              const isMemFounder = isFounderEmail(cleanEmail);
-              const displayName = u.displayName || u.name || (cleanEmail ? cleanEmail.split('@')[0] : 'Team Member');
-              const initials = displayName
-                .split(' ')
-                .filter(Boolean)
-                .map((n: string) => n[0])
-                .join('')
-                .toUpperCase()
-                .substring(0, 2) || 'CU';
+            const mappedServer = serverTeam
+              .filter((u: any) => {
+                const uId = u.id || u.uid;
+                const cleanEmail = (u.email || '').trim().toLowerCase();
+                if (uId && removedMemberIdsRef.current.has(uId)) return false;
+                if (cleanEmail && removedMemberIdsRef.current.has(cleanEmail)) return false;
+                return true;
+              })
+              .map((u: any): Employee => {
+                const cleanEmail = (u.email || '').trim().toLowerCase();
+                const isMemFounder = isFounderEmail(cleanEmail);
+                const displayName = u.displayName || u.name || (cleanEmail ? cleanEmail.split('@')[0] : 'Team Member');
+                const initials = displayName
+                  .split(' ')
+                  .filter(Boolean)
+                  .map((n: string) => n[0])
+                  .join('')
+                  .toUpperCase()
+                  .substring(0, 2) || 'CU';
 
-              const roleTitle = isMemFounder ? 'Founder & CEO' : (u.title || u.role || 'Team Member');
-              const deptName = isMemFounder ? 'Leadership' : (u.department || 'Engineering');
-              const deptId = isMemFounder ? 'dept_leadership' : ('dept_' + deptName.toLowerCase().replace(/\s+/g, '_'));
-              const wsRole = isMemFounder ? 'owner' : (u.role === 'owner' ? 'member' : (u.role || 'member'));
-              const tier = (u.planTier as 'standard') || 'standard';
+                const roleTitle = isMemFounder ? 'Founder & CEO' : (u.title || u.role || 'Team Member');
+                const deptName = isMemFounder ? 'Leadership' : (u.department || 'Engineering');
+                const deptId = isMemFounder ? 'dept_leadership' : ('dept_' + deptName.toLowerCase().replace(/\s+/g, '_'));
+                const wsRole = isMemFounder ? 'owner' : (u.role === 'owner' ? 'member' : (u.role || 'member'));
+                const tier = (u.planTier as 'standard') || 'standard';
 
-              return {
-                id: u.id || u.uid || 'u_' + Math.random().toString(36).substring(2, 8),
-                name: displayName,
-                initials,
-                role: roleTitle,
-                department: deptName,
-                departmentId: deptId,
-                teamIds: u.teamIds || ['team_core'],
-                workspaceRole: wsRole,
-                status: u.presence || 'online',
-                color: u.color || (isMemFounder ? '#0f4cff' : '#f59e0b'),
-                tasks: typeof u.tasks === 'number' ? u.tasks : 0,
-                projects: typeof u.projects === 'number' ? u.projects : 0,
-                email: cleanEmail,
-                skills: u.skills && u.skills.length > 0 ? u.skills : (isMemFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General']),
-                joinedAt: u.createdAt ? u.createdAt.split('T')[0] : (u.joinedAt || new Date().toISOString().split('T')[0]),
-                invitedBy: u.invitedBy || null,
-                planTier: tier,
-              };
-            });
+                return {
+                  id: u.id || u.uid || 'u_' + Math.random().toString(36).substring(2, 8),
+                  name: displayName,
+                  initials,
+                  role: roleTitle,
+                  department: deptName,
+                  departmentId: deptId,
+                  teamIds: u.teamIds || ['team_core'],
+                  workspaceRole: wsRole,
+                  status: u.presence || 'online',
+                  color: u.color || (isMemFounder ? '#0f4cff' : '#f59e0b'),
+                  tasks: typeof u.tasks === 'number' ? u.tasks : 0,
+                  projects: typeof u.projects === 'number' ? u.projects : 0,
+                  email: cleanEmail,
+                  skills: u.skills && u.skills.length > 0 ? u.skills : (isMemFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General']),
+                  joinedAt: u.createdAt ? u.createdAt.split('T')[0] : (u.joinedAt || new Date().toISOString().split('T')[0]),
+                  invitedBy: u.invitedBy || null,
+                  planTier: tier,
+                };
+              });
 
             // Merge with local state to preserve any optimistic items without duplicates
             const combined = [...mappedServer];
             for (const p of prev) {
+              const pEmail = (p.email || '').trim().toLowerCase();
               if (
+                !removedMemberIdsRef.current.has(p.id) &&
+                (!pEmail || !removedMemberIdsRef.current.has(pEmail)) &&
                 !p.id.startsWith('u_std_') &&
                 !p.id.startsWith('u_pro_') &&
                 !p.id.startsWith('emp_') &&
@@ -767,13 +779,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       syncTeamAndNotifications(activeWorkspaceId);
     }, 15000);
 
+    let focusTimer: NodeJS.Timeout | null = null;
     const handleFocus = () => {
-      syncTeamAndNotifications(activeWorkspaceId);
+      if (focusTimer) clearTimeout(focusTimer);
+      focusTimer = setTimeout(() => {
+        syncTeamAndNotifications(activeWorkspaceId);
+      }, 1000);
     };
 
     window.addEventListener('focus', handleFocus);
     return () => {
       clearInterval(interval);
+      if (focusTimer) clearTimeout(focusTimer);
       window.removeEventListener('focus', handleFocus);
     };
   }, [activeWorkspaceId]);
@@ -1384,22 +1401,42 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     showToast('Team member updated ');
   };
 
- const removeEmployee = (id: string) => {
- const emp = employees.find((e) => e.id === id);
- setEmployees((prev) => prev.filter((e) => e.id !== id));
- if (profilePanelEmployeeId === id) {
- setProfilePanelEmployeeId(null);
- }
- addAuditEntry(user.name, 'team.member.removed', emp?.name || id, `Removed member from workspace`);
+  const removeEmployee = async (id: string) => {
+    const emp = employees.find((e) => e.id === id);
+    const empEmail = (emp?.email || '').trim().toLowerCase();
 
- try {
- fetch(`/api/team?userId=${id}&workspaceId=${activeWorkspaceId}`, {
- method: 'DELETE',
- }).catch(() => {});
- } catch {}
+    // Blacklist immediately from any incoming background syncs
+    removedMemberIdsRef.current.add(id);
+    if (empEmail) {
+      removedMemberIdsRef.current.add(empEmail);
+    }
 
- showToast(`Removed ${emp?.name || 'member'} from workspace`);
- };
+    setEmployees((prev) =>
+      prev.filter((e) => e.id !== id && (!empEmail || (e.email || '').trim().toLowerCase() !== empEmail))
+    );
+    if (profilePanelEmployeeId === id) {
+      setProfilePanelEmployeeId(null);
+    }
+    addAuditEntry(user.name, 'team.member.removed', emp?.name || id, `Removed member from workspace`);
+    showToast(`Removed ${emp?.name || 'member'} from workspace`);
+
+    try {
+      const queryParams = new URLSearchParams({
+        userId: id,
+        workspaceId: activeWorkspaceId,
+      });
+      if (empEmail) {
+        queryParams.set('email', empEmail);
+      }
+
+      await fetch(`/api/team?${queryParams.toString()}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+    } catch (err) {
+      console.warn('Notice: Error removing member:', err);
+    }
+  };
 
   const seedEnterpriseDirectory = () => {
     showToast('Enterprise directory is active. Team members are managed via invitations.');
