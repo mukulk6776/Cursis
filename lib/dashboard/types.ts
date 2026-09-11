@@ -14,7 +14,7 @@ export interface User {
   color: string;
   workspaceRole?: string;
   photoURL?: string | null;
-  planTier?: 'standard' | 'premium';
+  planTier?: 'standard';
 }
 
 export interface Workspace {
@@ -29,8 +29,6 @@ export interface Workspace {
   color: string;
   ownerId: string;
   createdAt: string;
-  premiumSeatLimit?: number;
-  premiumSeatsAllocated?: number;
   clientDetails?: {
     industry: string;
     customModules: string[];
@@ -47,8 +45,16 @@ export interface WorkspaceSummary {
 export interface Department {
   id: string;
   name: string;
-  head: string | null;
-  memberCount: number;
+  head?: string | null;
+  lead?: string | null;
+  memberCount?: number;
+  membersCount?: number;
+  description?: string;
+  color?: string;
+  budget?: number | string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Team {
@@ -73,7 +79,7 @@ export interface Invitation {
   sentAt: string;
   expiresAt: string;
   invitedBy: string;
-  planTier?: 'standard' | 'premium';
+  planTier?: 'standard';
 }
 
 export interface Employee {
@@ -93,7 +99,7 @@ export interface Employee {
   skills?: string[];
   joinedAt?: string;
   invitedBy?: string | null;
-  planTier?: 'standard' | 'premium';
+  planTier?: 'standard';
 }
 
 export interface Project {
@@ -196,7 +202,7 @@ export interface AutomationRule {
   lastRun?: string | null;
 }
 
-export type OrdisPlanType = 'basic' | 'paid';
+export type OrdisPlanType = 'standard';
 
 export interface DynamicFeature {
   id: string;
@@ -303,6 +309,11 @@ export interface DocumentItem {
   keyClauses: string[];
   sharedWith: string[];
   esignStatus: 'signed' | 'pending' | null;
+  fileUrl?: string;
+  fileType?: string;
+  fileSize?: string;
+  category?: string;
+  content?: string;
 }
 
 export interface PaperworkPipelineStep {
@@ -549,6 +560,7 @@ export type DashboardPageType =
   | 'tasks'
   | 'projects'
   | 'team'
+  | 'departments'
   | 'calendar'
   | 'meetings'
   | 'analytics'

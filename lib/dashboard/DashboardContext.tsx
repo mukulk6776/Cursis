@@ -38,7 +38,6 @@ import {
  MeetingCalendarSettings,
  OrdisSettings,
  DynamicFeature,
- OrdisPlanType,
 } from './types';
 import {
  INITIAL_USER,
@@ -169,6 +168,8 @@ interface DashboardContextType {
  // Documents & Paperwork
  documents: DocumentItem[];
  addDocument: (doc: Partial<DocumentItem> & { name: string; type: DocumentItem['type'] }) => void;
+ updateDocument: (id: string, updates: Partial<DocumentItem>) => void;
+ deleteDocument: (id: string) => void;
  workflows: PaperworkWorkflow[];
 
  // Automations
@@ -211,35 +212,35 @@ interface DashboardContextType {
  addEmployee: (emp: Partial<Employee> & { name: string; role: string; department: string }) => void;
  updateEmployee: (id: string, updates: Partial<Employee>) => void;
  removeEmployee: (id: string) => void;
- sendInvitation: (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard' | 'premium' }) => void;
+ sendInvitation: (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard' }) => void;
  revokeInvitation: (id: string) => void;
  acceptInvitation: (invitationIdOrToken: string) => void;
  sendOrdisMessage: (text: string) => void;
  markNotificationsRead: () => void;
 
- // Ordis Plan & Dynamic Features
- ordisPlan: OrdisPlanType;
- setOrdisPlan: (plan: OrdisPlanType) => void;
- toggleOrdisPlan: () => void;
- dynamicFeatures: DynamicFeature[];
- setDynamicFeatures: React.Dispatch<React.SetStateAction<DynamicFeature[]>>;
+  // Department Management
+  setDepartments: React.Dispatch<React.SetStateAction<Department[]>>;
+  addDepartment: (dept: { name: string; description?: string; lead?: string; budget?: string; color?: string; tags?: string[] }) => void;
+  updateDepartment: (id: string, updates: Partial<Department>) => void;
+  deleteDepartment: (id: string) => boolean;
+  assignEmployeeDepartment: (employeeId: string, departmentId: string, departmentName: string) => void;
 
- // Ordis AI Engine State & Settings
- geminiApiKey: string;
- setGeminiApiKey: (key: string) => void;
- ordisModel: string;
- setOrdisModel: (model: string) => void;
- aiEngineStatus: 'gemini' | 'local_fallback';
+  // Dynamic Features
+  dynamicFeatures: DynamicFeature[];
+  setDynamicFeatures: React.Dispatch<React.SetStateAction<DynamicFeature[]>>;
 
- // Enterprise Seat & Plan Allocation
- premiumSeatLimit: number;
- setPremiumSeatLimit: (limit: number) => void;
- premiumSeatsAllocated: number;
- assignSeatTier: (employeeId: string, tier: 'standard' | 'premium') => boolean;
- seedEnterpriseDirectory: (targetCount?: number) => void;
- resetEnterpriseDirectory: () => void;
- redeemedCodes: string[];
- redeemCode: (code: string) => Promise<{ success: boolean; message: string; perks?: string[] }>;
+  // Ordis AI Engine State & Settings
+  geminiApiKey: string;
+  setGeminiApiKey: (key: string) => void;
+  ordisModel: string;
+  setOrdisModel: (model: string) => void;
+  aiEngineStatus: 'gemini' | 'local_fallback';
+
+  // Enterprise Directory & Vouchers
+  seedEnterpriseDirectory: (targetCount?: number) => void;
+  resetEnterpriseDirectory: () => void;
+  redeemedCodes: string[];
+  redeemCode: (code: string) => Promise<{ success: boolean; message: string; perks?: string[] }>;
 
  // Helper getters
  getEmployee: (id: string) => Employee | undefined;
@@ -263,10 +264,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const getPageFromPathname = (path: string | null): DashboardPageType => {
  if (!path || path === '/dashboard' || path === '/dashboard/') return 'home';
  const segment = path.replace(/^\/dashboard\/?/, '').split('/')[0];
- const validPages: DashboardPageType[] = [
-      'home', 'ordis', 'tasks', 'projects', 'team', 'calendar',
-      'meetings', 'analytics', 'documents', 'settings'
- ];
+    const validPages: DashboardPageType[] = [
+      'home', 'ordis', 'tasks', 'projects', 'team', 'departments', 'documents', 'calendar',
+      'meetings', 'analytics', 'settings'
+    ];
  if (validPages.includes(segment as DashboardPageType)) {
  return segment as DashboardPageType;
  }
@@ -289,9 +290,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const [ordisFloatingOpen, setOrdisFloatingOpen] = useState(false);
  const [voiceMode, setVoiceMode] = useState(false);
 
- // Ordis Plan & Dynamic Features State
- const [ordisPlan, setOrdisPlan] = useState<OrdisPlanType>('basic');
- const [dynamicFeatures, setDynamicFeatures] = useState<DynamicFeature[]>([
+  // Dynamic Features State
+  const [dynamicFeatures, setDynamicFeatures] = useState<DynamicFeature[]>([
  {
  id: 'feat_csat_enterprise',
  name: 'Client CSAT & Feedback Collector',
@@ -313,18 +313,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  },
  ]);
 
-  const toggleOrdisPlan = () => {
-    if (ordisPlan === 'basic') {
-      showToast('Pro Plan requires an activation key. Click "Redeem Code" to activate.');
-      openModal('redeem-code-modal');
-      return;
-    }
-    setOrdisPlan((prev) => {
-      const nextPlan: OrdisPlanType = prev === 'basic' ? 'paid' : 'basic';
-      showToast(nextPlan === 'paid' ? 'Upgraded to Ordis Pro (Autonomous)' : 'Switched to Ordis Basic (Standard)');
-      return nextPlan;
-    });
-  };
+
 
  // Ordis AI Engine State & Persistent Settings
  const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => {
@@ -391,9 +380,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  // Base State Entities
- const [user, setUser] = useState<User>(INITIAL_USER);
- const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
- const [departments] = useState<Department[]>(INITIAL_DEPARTMENTS);
+  const [user, setUser] = useState<User>(INITIAL_USER);
+  const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
+  const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
  const [teams] = useState<Team[]>(INITIAL_TEAMS);
  const [invitations, setInvitations] = useState<Invitation[]>(INITIAL_INVITATIONS);
  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
@@ -420,12 +409,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const [meetingCalendarSettings, setMeetingCalendarSettings] = useState<MeetingCalendarSettings>(INITIAL_MEETING_CALENDAR_SETTINGS);
  const [ordisSettings, setOrdisSettings] = useState<OrdisSettings>(INITIAL_ORDIS_SETTINGS);
 
- // Enterprise Seat & Plan Allocation
- const [premiumSeatLimit, setPremiumSeatLimit] = useState<number>(4);
- const premiumSeatsAllocated = useMemo(
- () => employees.filter((e) => e.planTier === 'premium').length,
- [employees]
- );
+
 
  const [redeemedCodes, setRedeemedCodes] = useState<string[]>([]);
 
@@ -561,7 +545,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               const deptName = isMemFounder ? 'Leadership' : (u.department || 'Engineering');
               const deptId = isMemFounder ? 'dept_leadership' : ('dept_' + deptName.toLowerCase().replace(/\s+/g, '_'));
               const wsRole = isMemFounder ? 'owner' : (u.role === 'owner' ? 'member' : (u.role || 'member'));
-              const tier = (u.planTier as 'standard' | 'premium') || 'standard';
+              const tier = (u.planTier as 'standard') || 'standard';
 
               return {
                 id: u.id || u.uid || 'u_' + Math.random().toString(36).substring(2, 8),
@@ -670,7 +654,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const userDeptId = isFounder ? 'dept_leadership' : ('dept_' + userDept.toLowerCase().replace(/\s+/g, '_'));
         const userSkills = isFounder ? ['Strategy', 'Leadership', 'Architecture'] : (sessUser.skills || ['General']);
 
-        const userPlanTier = (sessUser.planTier as 'standard' | 'premium') || 'premium';
+        const userPlanTier = 'standard';
         const activeUser: User = {
           id: sessUser.uid || 'u1',
           name: displayName,
@@ -684,7 +668,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         };
 
         setUser(activeUser);
-        setOrdisPlan(userPlanTier === 'premium' ? 'paid' : 'basic');
 
         // Dynamically name default workspace based on authenticated user or custom setup name
         const customWsName = typeof window !== 'undefined' ? localStorage.getItem('cursis_custom_workspace_name') : null;
@@ -1171,10 +1154,34 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  showToast('Task updated ');
  };
 
- const deleteTask = (id: string) => {
- setTasks((prev) => prev.filter((t) => t.id !== id));
- showToast('Task deleted');
- };
+  const deleteTask = (id: string) => {
+    const existing = tasks.find((t) => t.id === id);
+    if (existing) {
+      // Decrement employee task count
+      if (existing.assignee) {
+        setEmployees((prev) =>
+          prev.map((e) => (e.id === existing.assignee ? { ...e, tasks: Math.max(0, e.tasks - 1) } : e))
+        );
+      }
+      // Decrement project task count
+      if (existing.project) {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === existing.project ? { ...p, tasks: Math.max(0, p.tasks - 1) } : p))
+        );
+      }
+      // Add audit entry
+      addAuditEntry(user.name, 'task.deleted', existing.name, `Deleted task "${existing.name}"`);
+    }
+
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+
+    // Async persist to API
+    try {
+      fetch(`/api/tasks/${id}`, { method: 'DELETE' }).catch(() => {});
+    } catch {}
+
+    showToast('Task deleted successfully');
+  };
 
  const assignTask = (taskId: string, assigneeIds: string[]) => {
  const primary = assigneeIds[0] || user.id;
@@ -1278,15 +1285,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  .toUpperCase()
  .substring(0, 2) || 'CU';
 
- const requestedTier = empData.planTier || 'standard';
- let assignedTier = requestedTier;
- if (requestedTier === 'premium') {
- const currentProCount = employees.filter((e) => e.planTier === 'premium').length;
- if (currentProCount >= premiumSeatLimit) {
- assignedTier = 'standard';
- showToast(` Pro seat quota reached (${premiumSeatLimit}/${premiumSeatLimit}). Member added with Standard Core tier.`);
- }
- }
+ const assignedTier = 'standard';
 
     const cleanEmpEmail = empData.email ? empData.email.trim().toLowerCase() : `${empData.name.toLowerCase().replace(/\s+/g, '.')}@cursis.io`;
     const isEmpFounder = isFounderEmail(cleanEmpEmail);
@@ -1326,7 +1325,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     };
 
     setEmployees((prev) => [...prev, newEmp]);
-    addAuditEntry(user.name, 'team.member.added', newEmp.name, `Added ${newEmp.name} as ${newEmp.role} in ${newEmp.department} (${assignedTier === 'premium' ? 'Autonomous Pro' : 'Standard Core'})`);
+    addAuditEntry(user.name, 'team.member.added', newEmp.name, `Added ${newEmp.name} as ${newEmp.role} in ${newEmp.department}`);
 
     // Asynchronously persist to MongoDB
     try {
@@ -1352,7 +1351,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         .catch(() => {});
     } catch {}
 
-    showToast(`Added ${newEmp.name} to team (${assignedTier === 'premium' ? 'Autonomous Pro' : 'Standard Core'}) `);
+    showToast(`Added ${newEmp.name} to team `);
   };
 
   const updateEmployee = (id: string, updates: Partial<Employee>) => {
@@ -1385,54 +1384,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     showToast('Team member updated ');
   };
 
- const assignSeatTier = (employeeId: string, tier: 'standard' | 'premium'): boolean => {
- const emp = employees.find((e) => e.id === employeeId);
- if (!emp) return false;
- if (emp.planTier === tier) return true;
-
- if (tier === 'premium') {
- const currentCount = employees.filter((e) => e.planTier === 'premium').length;
- if (currentCount >= premiumSeatLimit) {
- showToast(` License Quota Reached: All ${premiumSeatLimit} Autonomous Pro seats are currently allocated. Reclaim a Pro seat from another member first.`);
- return false;
- }
- }
-
- setEmployees((prev) =>
- prev.map((e) => (e.id === employeeId ? { ...e, planTier: tier } : e))
- );
-
- // If this affects current user, also update user & ordisPlan
- if (employeeId === user.id || (emp.email && user.email && emp.email.toLowerCase() === user.email.toLowerCase())) {
- setUser((prev) => ({ ...prev, planTier: tier }));
- setOrdisPlan(tier === 'premium' ? 'paid' : 'basic');
- }
-
- const actionDesc = tier === 'premium'
- ? `Allocated Autonomous Pro seat license to ${emp.name} (${emp.email || employeeId})`
- : `Reverted ${emp.name} (${emp.email || employeeId}) to Standard Core tier`;
-
- addAuditEntry(user.name, 'seat.allocation.updated', emp.name, actionDesc);
- showToast(
- tier === 'premium'
- ? ` Granted Autonomous Pro seat to ${emp.name} (${premiumSeatsAllocated + 1}/${premiumSeatLimit} allocated)`
- : `Reverted ${emp.name} to Standard Core tier`
- );
-
- try {
- fetch('/api/team', {
- method: 'PATCH',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ userId: employeeId, updates: { planTier: tier } }),
- }).catch(() => {});
- } catch {}
-
- return true;
- };
-
  const removeEmployee = (id: string) => {
  const emp = employees.find((e) => e.id === id);
  setEmployees((prev) => prev.filter((e) => e.id !== id));
+ if (profilePanelEmployeeId === id) {
+ setProfilePanelEmployeeId(null);
+ }
  addAuditEntry(user.name, 'team.member.removed', emp?.name || id, `Removed member from workspace`);
 
  try {
@@ -1445,12 +1402,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
   const seedEnterpriseDirectory = () => {
-    // Production Mode: Simulated fake directory generation is disabled.
     showToast('Enterprise directory is active. Team members are managed via invitations.');
   };
 
   const resetEnterpriseDirectory = () => {
-    // Purges any mock or simulated records, keeping only genuine workspace members
     setEmployees((prev) => {
       const genuine = prev.filter((e) => !e.id.startsWith('u_std_') && !e.id.startsWith('u_pro_') && !e.id.startsWith('emp_'));
       return genuine.length > 0
@@ -1473,7 +1428,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 email: user.email,
                 skills: ['Leadership', 'Strategy'],
                 joinedAt: new Date().toISOString().split('T')[0],
-                planTier: 'premium',
+                planTier: 'standard',
               },
             ]
           : []);
@@ -1491,7 +1446,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return { success: false, message: `Code "${code}" has already been redeemed and can only be used once.` };
     }
 
-    // Single-use verification with backend
     try {
       const res = await fetch('/api/redeem', {
         method: 'POST',
@@ -1516,194 +1470,176 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       console.warn('Backend redeem check error:', err);
     }
 
-    // Voucher catalog & perks
     let perks: string[] = [];
     let isSpecialFeatureUnlock = false;
 
- if (code === 'CURSIS-PRO-2026') {
- perks = [
- 'Autonomous Pro Seat Activated',
- 'Ordis Full Power Autonomous Copilot Unlocked',
- ' Real-Time Bottleneck Detection',
- ' Unlimited Multi-Agent Execution',
- ];
- } else if (code === 'ENTERPRISE-SCALE-4') {
- perks = [
- ' 4 Autonomous Pro Seat Licenses Granted',
- 'Ordis Autonomous Copilot & Ambient Scanner Active',
- ' Full 2,000-User Enterprise Scale Support',
- ' Instant Enterprise Telemetry Synthesis',
- ];
- setPremiumSeatLimit(4);
- } else if (code === 'ORDIS-VIP-ACCESS') {
- perks = [
- ' Executive VIP Access Activated',
- 'Autonomous Pro Seat Allocated',
- 'Ordis Autonomous Agents Active (Bottleneck Scanner & Copilot)',
- ' SOC-2 Audit Telemetry Access',
- ];
- } else if (code === 'FEATURE-STUDIO-PRO') {
- perks = [
- ' Dynamic Feature Builder Studio Unlocked',
- 'Autonomous Pro Seat Allocated',
- ' Executive KPI Telemetry Synthesized',
- ' AI Code Review & Deployment Gatekeeper Active',
- ];
- isSpecialFeatureUnlock = true;
- } else if (code === 'SPECIAL-FOUNDER') {
- perks = [
- ' Sovereign Founder Tier Activated',
- 'Autonomous Pro Seat + VIP Founder Badge',
- 'Unlimited Ambient Copilot Cycles',
- ' Zero Rate-Limit Autonomy',
- ];
- } else if (code.startsWith('CURSIS-') || code.startsWith('VIP-') || code.startsWith('PRO-')) {
- perks = [
- 'Autonomous Pro Seat Activated',
- 'Ordis Full Power Copilot Active',
- ' Enterprise Feature Entitlement',
- ];
- } else {
- return {
- success: false,
- message: 'Invalid or expired redeem code. Please check your voucher and try again.',
- };
- }
+    if (code === 'CURSIS-PRO-2026') {
+      perks = [
+        'Executive Autonomous Copilot Unlocked',
+        '⚡ Real-Time Bottleneck Detection',
+        '🚀 Unlimited Multi-Agent Execution',
+      ];
+    } else if (code === 'ENTERPRISE-SCALE-4') {
+      perks = [
+        '🏢 Enterprise Feature Pack Granted',
+        '🤖 Ordis Autonomous Copilot & Ambient Scanner Active',
+        '🌐 Full 2,000-User Enterprise Scale Support',
+        '📊 Instant Enterprise Telemetry Synthesis',
+      ];
+    } else if (code === 'ORDIS-VIP-ACCESS') {
+      perks = [
+        '👑 Executive VIP Access Activated',
+        '🤖 Ordis Autonomous Agents Active (Bottleneck Scanner & Copilot)',
+        '🔒 SOC-2 Audit Telemetry Access',
+      ];
+    } else if (code === 'FEATURE-STUDIO-PRO') {
+      perks = [
+        '✨ Dynamic Feature Builder Studio Unlocked',
+        '📈 Executive KPI Telemetry Synthesized',
+        '🛡️ AI Code Review & Deployment Gatekeeper Active',
+      ];
+      isSpecialFeatureUnlock = true;
+    } else if (code === 'SPECIAL-FOUNDER') {
+      perks = [
+        '👑 Sovereign Founder Tier Activated',
+        '🌟 VIP Founder Badge Unlocked',
+        '⚡ Unlimited Ambient Copilot Cycles',
+        '🚀 Zero Rate-Limit Autonomy',
+      ];
+    } else if (code.startsWith('CURSIS-') || code.startsWith('VIP-') || code.startsWith('PRO-')) {
+      perks = [
+        'Executive Autonomous Copilot Active',
+        '🏢 Enterprise Feature Entitlement',
+      ];
+    } else {
+      return {
+        success: false,
+        message: 'Invalid or expired redeem code. Please check your voucher and try again.',
+      };
+    }
 
- // 1. Elevate user to premium planTier & paid ordisPlan
- setUser((prev) => ({ ...prev, planTier: 'premium' }));
- setOrdisPlan('paid');
+    setUser((prev) => ({ ...prev, planTier: 'standard' }));
+    setWorkspaces((prev) =>
+      prev.map((w) => (w.id === activeWorkspaceId ? { ...w, tier: 'paid' } : w))
+    );
 
- // 2. Ensure current user in employees is updated to 'premium'
- setEmployees((prev) =>
- prev.map((e) => (e.id === user.id || (e.email && user.email && e.email.toLowerCase() === user.email.toLowerCase()) ? { ...e, planTier: 'premium' } : e))
- );
+    if (isSpecialFeatureUnlock || code === 'CURSIS-PRO-2026' || code === 'ENTERPRISE-SCALE-4') {
+      const specialTelemetryFeature: DynamicFeature = {
+        id: 'feat_exec_telemetry_' + Date.now(),
+        name: 'Executive KPI Telemetry Studio',
+        category: 'Analytics & Strategy',
+        description: 'Autonomous ambient scanner that computes company-wide sprint velocity, cost optimization, and bottleneck risks.',
+        icon: '',
+        fields: [
+          { name: 'targetQuarter', type: 'text', placeholder: 'Q3 / Q4 2026' },
+          { name: 'riskThreshold', type: 'select', placeholder: 'High Risk (>3 Blockers)' },
+        ],
+        actions: [
+          { label: 'Run Ambient Diagnostics', actionKey: 'run_diagnostics', style: 'primary' },
+          { label: 'Export Board Deck', actionKey: 'export_deck', style: 'secondary' },
+        ],
+        status: 'active',
+        createdAt: new Date().toISOString().split('T')[0],
+        builtBy: 'ordis_pro',
+      };
 
- // 3. Keep workspace tier clean without showing an enterprise/premium badge
- setWorkspaces((prev) =>
- prev.map((w) => (w.id === activeWorkspaceId ? { ...w, tier: 'paid' } : w))
- );
+      const specialCodeReviewFeature: DynamicFeature = {
+        id: 'feat_code_guard_' + Date.now(),
+        name: 'Autonomous Code Review & QA Pipeline',
+        category: 'Engineering & DevOps',
+        description: 'Auto-scans PRs and task commits for regression vulnerabilities, performance regressions, and architectural invariants.',
+        icon: '',
+        fields: [
+          { name: 'repositoryBranch', type: 'text', placeholder: 'main / production' },
+          { name: 'coverageGoal', type: 'text', placeholder: '90%' },
+        ],
+        actions: [
+          { label: 'Trigger Full Codebase Audit', actionKey: 'audit_codebase', style: 'primary' },
+          { label: 'Sync CI/CD Webhook', actionKey: 'sync_webhook', style: 'accent' },
+        ],
+        status: 'active',
+        createdAt: new Date().toISOString().split('T')[0],
+        builtBy: 'ordis_pro',
+      };
 
- // 4. Inject Special Features if unlocked
- if (isSpecialFeatureUnlock || code === 'CURSIS-PRO-2026' || code === 'ENTERPRISE-SCALE-4') {
- const specialTelemetryFeature: DynamicFeature = {
- id: 'feat_exec_telemetry_' + Date.now(),
- name: 'Executive KPI Telemetry Studio',
- category: 'Analytics & Strategy',
- description: 'Autonomous ambient scanner that computes company-wide sprint velocity, cost optimization, and bottleneck risks.',
- icon: '',
- fields: [
- { name: 'targetQuarter', type: 'text', placeholder: 'Q3 / Q4 2026' },
- { name: 'riskThreshold', type: 'select', placeholder: 'High Risk (>3 Blockers)' },
- ],
- actions: [
- { label: 'Run Ambient Diagnostics', actionKey: 'run_diagnostics', style: 'primary' },
- { label: 'Export Board Deck', actionKey: 'export_deck', style: 'secondary' },
- ],
- status: 'active',
- createdAt: new Date().toISOString().split('T')[0],
- builtBy: 'ordis_pro',
- };
+      setDynamicFeatures((prev) => {
+        const hasTelemetry = prev.some((f) => f.name.includes('Executive KPI'));
+        const additions = [];
+        if (!hasTelemetry) additions.push(specialTelemetryFeature);
+        additions.push(specialCodeReviewFeature);
+        return [...additions, ...prev];
+      });
+    }
 
- const specialCodeReviewFeature: DynamicFeature = {
- id: 'feat_code_guard_' + Date.now(),
- name: 'Autonomous Code Review & QA Pipeline',
- category: 'Engineering & DevOps',
- description: 'Auto-scans PRs and task commits for regression vulnerabilities, performance regressions, and architectural invariants.',
- icon: '',
- fields: [
- { name: 'repositoryBranch', type: 'text', placeholder: 'main / production' },
- { name: 'coverageGoal', type: 'text', placeholder: '90%' },
- ],
- actions: [
- { label: 'Trigger Full Codebase Audit', actionKey: 'audit_codebase', style: 'primary' },
- { label: 'Sync CI/CD Webhook', actionKey: 'sync_webhook', style: 'accent' },
- ],
- status: 'active',
- createdAt: new Date().toISOString().split('T')[0],
- builtBy: 'ordis_pro',
- };
-
- setDynamicFeatures((prev) => {
- const hasTelemetry = prev.some((f) => f.name.includes('Executive KPI'));
- const additions = [];
- if (!hasTelemetry) additions.push(specialTelemetryFeature);
- additions.push(specialCodeReviewFeature);
- return [...additions, ...prev];
- });
- }
-
- // 5. Save redeemed code
- const nextRedeemed = [...redeemedCodes, code];
- setRedeemedCodes(nextRedeemed);
- try {
- localStorage.setItem('cursis_redeemed_codes', JSON.stringify(nextRedeemed));
- } catch {}
-
- // 6. Audit entry & Toast
- addAuditEntry(user.name, 'voucher.code.redeemed', code, `Claimed ${perks.length} enterprise features via voucher`);
- showToast(` Code "${code}" redeemed! Autonomous Pro and Special Features unlocked.`);
-
- try {
- fetch('/api/team', {
- method: 'PATCH',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ userId: user.id, updates: { planTier: 'premium' } }),
- }).catch(() => {});
- } catch {}
-
- return {
- success: true,
- message: `Code "${code}" successfully redeemed!`,
- perks,
- };
- };
-
- const sendInvitation = (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard' | 'premium' }) => {
- const token = 'tok_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
- const assignedTier = inv.planTier || 'standard';
- const newInv: Invitation = {
- id: 'inv_' + Date.now(),
- email: inv.email.toLowerCase(),
- name: inv.name || inv.email.split('@')[0],
- roleTitle: inv.roleTitle || 'Team Member',
- workspaceRole: inv.workspaceRole || teamSettings.defaultRole,
- department: inv.department,
- team: inv.team,
- status: 'pending',
- token,
- sentAt: new Date().toISOString(),
- expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
- invitedBy: user.id,
- planTier: assignedTier,
- };
-
- setInvitations((prev) => [newInv, ...prev]);
- addAuditEntry(user.name, 'team.invitation.sent', newInv.email, `Dispatched 7-day invite to ${newInv.email} (${newInv.workspaceRole}, ${assignedTier})`);
-
- try {
- fetch('/api/team', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({
- action: 'invite',
- workspaceId: activeWorkspaceId,
- email: newInv.email,
- name: newInv.name,
-        roleTitle: newInv.roleTitle,
-        workspaceRole: newInv.workspaceRole,
-        department: newInv.department,
-        team: newInv.team,
-        planTier: assignedTier,
-      }),
-    })
-      .then(() => {
-        syncTeamAndNotifications(activeWorkspaceId);
-      })
-      .catch(() => {});
+    const nextRedeemed = [...redeemedCodes, code];
+    setRedeemedCodes(nextRedeemed);
+    try {
+      localStorage.setItem('cursis_redeemed_codes', JSON.stringify(nextRedeemed));
     } catch {}
 
-    showToast(`Invitation sent to ${inv.email} (${assignedTier === 'premium' ? 'Pro' : 'Standard'}) `);
+    addAuditEntry(user.name, 'voucher.code.redeemed', code, `Claimed ${perks.length} enterprise features via voucher`);
+    showToast(` Code "${code}" redeemed! Executive and Special Features unlocked.`);
+
+    try {
+      fetch('/api/team', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, updates: { planTier: 'standard' } }),
+      }).catch(() => {});
+    } catch {}
+
+    return {
+      success: true,
+      message: `Code "${code}" successfully redeemed!`,
+      perks,
+    };
+  };
+
+  const sendInvitation = (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard' }) => {
+    const token = 'tok_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+    const assignedTier = 'standard';
+    const newInv: Invitation = {
+      id: 'inv_' + Date.now(),
+      email: inv.email.toLowerCase(),
+      name: inv.name || inv.email.split('@')[0],
+      roleTitle: inv.roleTitle || 'Team Member',
+      workspaceRole: inv.workspaceRole || teamSettings.defaultRole,
+      department: inv.department,
+      team: inv.team,
+      status: 'pending',
+      token,
+      sentAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+      invitedBy: user.id,
+      planTier: assignedTier,
+    };
+
+    setInvitations((prev) => [newInv, ...prev]);
+    addAuditEntry(user.name, 'team.invitation.sent', newInv.email, `Dispatched 7-day invite to ${newInv.email} (${newInv.workspaceRole})`);
+
+    try {
+      fetch('/api/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'invite',
+          workspaceId: activeWorkspaceId,
+          email: newInv.email,
+          name: newInv.name,
+          roleTitle: newInv.roleTitle,
+          workspaceRole: newInv.workspaceRole,
+          department: newInv.department,
+          team: newInv.team,
+          planTier: assignedTier,
+        }),
+      })
+        .then(() => {
+          syncTeamAndNotifications(activeWorkspaceId);
+        })
+        .catch(() => {});
+    } catch {}
+
+    showToast(`Invitation sent to ${inv.email} `);
   };
 
   const revokeInvitation = (id: string) => {
@@ -1799,9 +1735,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  setChatHistory((prev) => [...prev, userMsg, typingMsg]);
 
  const ordisState: OrdisContextState = {
- plan: ordisPlan,
+ plan: 'basic',
  user,
- workspace: { name: activeWorkspace.name, plan: ordisPlan === 'paid' ? 'Enterprise Pro ($1B Tier)' : 'Cursis Starter Basic' },
+ workspace: { name: activeWorkspace.name, plan: 'Cursis Starter Basic' },
  activeWorkspace,
  employees,
  projects,
@@ -2049,28 +1985,175 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  showToast('API Key revoked');
  };
 
- // ---- Document Mutations ----
- const addDocument = (docData: Partial<DocumentItem> & { name: string; type: DocumentItem['type'] }) => {
- const newDoc: DocumentItem = {
- id: 'doc_' + Date.now(),
- name: docData.name,
- type: docData.type,
- size: docData.size || '1.2 MB',
- updated: new Date().toISOString().split('T')[0],
- author: user.name,
- project: docData.project || (projects[0]?.id || 'p1'),
- tags: docData.tags || ['Generated', 'AI'],
- version: 1,
- versions: [{ v: 1, date: new Date().toISOString().split('T')[0], author: user.name }],
- aiSummary: docData.aiSummary || 'Document automatically drafted by Cursis Document Engine.',
- keyClauses: docData.keyClauses || [],
- sharedWith: docData.sharedWith || [user.id],
- esignStatus: docData.esignStatus || null,
- };
- setDocuments((prev) => [newDoc, ...prev]);
- addAuditEntry('Alex Morgan', 'document.generated', newDoc.name, 'Generated document via paperwork engine');
- showToast(`Document "${newDoc.name}" added `);
- };
+  // ---- Document Mutations ----
+  const addDocument = (docData: Partial<DocumentItem> & { name: string; type: DocumentItem['type'] }) => {
+    const newDoc: DocumentItem = {
+      id: 'doc_' + Date.now(),
+      name: docData.name,
+      type: docData.type,
+      size: docData.size || '1.2 MB',
+      updated: new Date().toISOString().split('T')[0],
+      author: user.name,
+      project: docData.project || (projects[0]?.id || 'p1'),
+      tags: docData.tags || ['Generated', 'AI'],
+      version: 1,
+      versions: [{ v: 1, date: new Date().toISOString().split('T')[0], author: user.name }],
+      aiSummary: docData.aiSummary || 'Document automatically drafted by Cursis Document Engine.',
+      keyClauses: docData.keyClauses || [],
+      sharedWith: docData.sharedWith || [user.id],
+      esignStatus: docData.esignStatus || null,
+      fileUrl: docData.fileUrl,
+      fileType: docData.fileType,
+      fileSize: docData.fileSize,
+      category: docData.category || 'General',
+    };
+    setDocuments((prev) => [newDoc, ...prev]);
+    addAuditEntry(user.name, 'document.generated', newDoc.name, 'Generated document via paperwork engine');
+    showToast(`Document "${newDoc.name}" added `);
+  };
+
+  const updateDocument = (id: string, updates: Partial<DocumentItem>) => {
+    setDocuments((prev) =>
+      prev.map((doc) => {
+        if (doc.id !== id) return doc;
+        const newVersion = updates.version !== undefined ? updates.version : (doc.version || 1) + 1;
+        const updatedVersions = doc.versions ? [...doc.versions] : [{ v: doc.version || 1, date: doc.updated, author: doc.author }];
+        if (updates.name && updates.name !== doc.name) {
+          updatedVersions.push({
+            v: newVersion,
+            date: new Date().toISOString().split('T')[0],
+            author: user.name,
+          });
+        }
+        return {
+          ...doc,
+          ...updates,
+          version: newVersion,
+          versions: updatedVersions,
+          updated: new Date().toISOString().split('T')[0],
+        };
+      })
+    );
+    const doc = documents.find((d) => d.id === id);
+    addAuditEntry(user.name, 'document.updated', doc?.name || id, `Updated document metadata`);
+    showToast('Document updated successfully');
+
+    try {
+      fetch('/api/documents', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...updates }),
+      }).catch(() => {});
+    } catch {}
+  };
+
+  const deleteDocument = (id: string) => {
+    const doc = documents.find((d) => d.id === id);
+    setDocuments((prev) => prev.filter((d) => d.id !== id));
+    addAuditEntry(user.name, 'document.deleted', doc?.name || id, `Deleted document`);
+    showToast('Document deleted');
+
+    try {
+      fetch(`/api/documents?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      }).catch(() => {});
+    } catch {}
+  };
+
+  // ---- Department Mutations ----
+  const addDepartment = (deptData: { name: string; description?: string; lead?: string; budget?: string; color?: string; tags?: string[] }) => {
+    const newDept: Department = {
+      id: 'dept_' + deptData.name.toLowerCase().replace(/\s+/g, '_') + '_' + Math.random().toString(36).substring(2, 6),
+      name: deptData.name,
+      description: deptData.description || `${deptData.name} strategic operational unit.`,
+      lead: deptData.lead || user.name,
+      membersCount: 0,
+      budget: deptData.budget || '$150,000 / yr',
+      color: deptData.color || '#0f4cff',
+      tags: deptData.tags || ['Core Team'],
+    };
+    setDepartments((prev) => [...prev, newDept]);
+    addAuditEntry(user.name, 'department.created', newDept.name, `Created department ${newDept.name} led by ${newDept.lead}`);
+    showToast(`Department "${newDept.name}" created `);
+
+    try {
+      fetch('/api/departments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newDept),
+      }).catch(() => {});
+    } catch {}
+  };
+
+  const updateDepartment = (id: string, updates: Partial<Department>) => {
+    setDepartments((prev) => prev.map((d) => (d.id === id ? { ...d, ...updates } : d)));
+    const dept = departments.find((d) => d.id === id);
+    addAuditEntry(user.name, 'department.updated', dept?.name || id, `Updated department parameters`);
+    showToast('Department updated');
+
+    try {
+      fetch('/api/departments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...updates }),
+      }).catch(() => {});
+    } catch {}
+  };
+
+  const deleteDepartment = (id: string): boolean => {
+    const dept = departments.find((d) => d.id === id);
+    if (!dept) return false;
+
+    const memberCount = employees.filter((e) => e.departmentId === id || e.department === dept.name).length;
+    if (memberCount > 0) {
+      showToast(`Cannot delete "${dept.name}" while ${memberCount} members are assigned. Reassign them first.`);
+      return false;
+    }
+
+    setDepartments((prev) => prev.filter((d) => d.id !== id));
+    addAuditEntry(user.name, 'department.deleted', dept.name, `Deleted department`);
+    showToast(`Department "${dept.name}" removed`);
+
+    try {
+      fetch(`/api/departments?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      }).catch(() => {});
+    } catch {}
+
+    return true;
+  };
+
+  const assignEmployeeDepartment = (employeeId: string, departmentId: string, departmentName: string) => {
+    setEmployees((prev) =>
+      prev.map((e) =>
+        e.id === employeeId
+          ? { ...e, departmentId, department: departmentName }
+          : e
+      )
+    );
+    setDepartments((prev) =>
+      prev.map((d) => {
+        const count = employees.filter((e) =>
+          e.id === employeeId ? d.id === departmentId : (e.departmentId === d.id || e.department === d.name)
+        ).length;
+        return { ...d, membersCount: count };
+      })
+    );
+    const emp = employees.find((e) => e.id === employeeId);
+    addAuditEntry(user.name, 'member.reassigned', emp?.name || employeeId, `Assigned to ${departmentName}`);
+    showToast(`Reassigned ${emp?.name || 'Member'} to ${departmentName}`);
+
+    try {
+      fetch('/api/team', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: employeeId,
+          updates: { departmentId, department: departmentName },
+        }),
+      }).catch(() => {});
+    } catch {}
+  };
 
  // ---- Automation Mutations ----
  const toggleAutomation = (id: string) => {
@@ -2211,6 +2294,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  updateAutomation,
  documents,
  addDocument,
+ updateDocument,
+ deleteDocument,
+ setDepartments,
+ addDepartment,
+ updateDepartment,
+ deleteDepartment,
+ assignEmployeeDepartment,
  workflows,
  crm,
  customCrm: crm,
@@ -2267,9 +2357,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  acceptInvitation,
  sendOrdisMessage,
  markNotificationsRead,
- ordisPlan,
- setOrdisPlan,
- toggleOrdisPlan,
  geminiApiKey,
  setGeminiApiKey,
  ordisModel,
@@ -2277,10 +2364,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  aiEngineStatus,
  dynamicFeatures,
  setDynamicFeatures,
- premiumSeatLimit,
- setPremiumSeatLimit,
- premiumSeatsAllocated,
- assignSeatTier,
  seedEnterpriseDirectory,
  resetEnterpriseDirectory,
  redeemedCodes,

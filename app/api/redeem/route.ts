@@ -8,32 +8,29 @@ const inMemoryRedeemedCodes = new Set<string>();
 // Authorized single-use promo codes catalogue
 const AUTHORIZED_CODES: Record<string, string[]> = {
   'CURSIS-PRO-2026': [
-    'Autonomous Pro Seat Activated',
-    'Ordis Full Power Autonomous Copilot Unlocked',
+    'Executive Autonomous Copilot Unlocked',
     'Real-Time Bottleneck Detection',
     'Unlimited Multi-Agent Execution',
   ],
   'ENTERPRISE-SCALE-4': [
-    '4 Autonomous Pro Seat Licenses Granted',
+    'Enterprise Feature Pack Granted',
     'Ordis Autonomous Copilot & Ambient Scanner Active',
     'Full 2,000-User Enterprise Scale Support',
     'Instant Enterprise Telemetry Synthesis',
   ],
   'ORDIS-VIP-ACCESS': [
     'Executive VIP Access Activated',
-    'Autonomous Pro Seat Allocated',
     'Ordis Autonomous Agents Active (Bottleneck Scanner & Copilot)',
     'SOC-2 Audit Telemetry Access',
   ],
   'FEATURE-STUDIO-PRO': [
     'Dynamic Feature Builder Studio Unlocked',
-    'Autonomous Pro Seat Allocated',
     'Executive KPI Telemetry Synthesized',
     'AI Code Review & Deployment Gatekeeper Active',
   ],
   'SPECIAL-FOUNDER': [
     'Sovereign Founder Tier Activated',
-    'Autonomous Pro Seat + VIP Founder Badge',
+    'VIP Founder Badge Unlocked',
     'Unlimited Ambient Copilot Cycles',
     'Zero Rate-Limit Autonomy',
   ],
@@ -125,7 +122,7 @@ export async function POST(request: Request) {
 
     // Determine perks
     const perks = AUTHORIZED_CODES[code] || [
-      'Autonomous Pro Seat Activated',
+      'Executive Copilot Feature Pack Activated',
       'Ordis Full Power Autonomous Copilot Unlocked',
       'Unlimited Multi-Agent Execution',
     ];
@@ -149,11 +146,11 @@ export async function POST(request: Request) {
           perks,
         });
 
-        // Also update user's planTier to premium in users collection if logged in
+        // Normalize user planTier to standard if user is logged in
         if (authUser?.uid) {
           await db.collection('users').updateOne(
             { uid: authUser.uid },
-            { $set: { planTier: 'premium', updatedAt: new Date().toISOString() } }
+            { $set: { planTier: 'standard', updatedAt: new Date().toISOString() } }
           );
         }
       } catch (err) {

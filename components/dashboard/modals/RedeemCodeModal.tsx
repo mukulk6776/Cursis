@@ -91,12 +91,12 @@ export default function RedeemCodeModal() {
  
  </div>
  <div>
- <h3 style={{ margin: 0, fontSize: 'var(--fs-md)', fontWeight: 800 }}>
- Redeem Voucher &amp; License Key
- </h3>
- <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-tertiary)' }}>
- Claim Autonomous Pro seats, unlock special features, and activate advanced AI capabilities.
- </p>
+              <h3 style={{ margin: 0, fontSize: 'var(--fs-md)', fontWeight: 800 }}>
+                Redeem Voucher &amp; Activation Key
+              </h3>
+              <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-tertiary)' }}>
+                Claim executive feature packs, unlock special studio modules, and activate advanced AI capabilities.
+              </p>
  </div>
  </div>
 
@@ -256,33 +256,33 @@ export default function RedeemCodeModal() {
             SINGLE-USE ACTIVATION GUARANTEE
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
-            Each redeem code is strictly <strong>single-use</strong>. Once activated by a user, it is permanently locked and cannot be redeemed again by anyone. Redeeming upgrades your workspace to <strong>Autonomous Pro</strong> and activates <strong>Ordis Full Power AI multi-agent orchestration</strong>.
+            Each redeem code is strictly <strong>single-use</strong>. Once activated by a user, it is permanently locked and cannot be redeemed again by anyone. Redeeming activates <strong>Executive feature modules</strong> and unlocks <strong>Ordis Full Power AI multi-agent orchestration</strong>.
           </div>
         </div>
 
- {/* Action Buttons */}
- <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'flex-end' }}>
- <button
- type="button"
- className="btn btn-secondary btn-sm"
- onClick={handleClose}
- >
- Cancel
- </button>
- <button
- type="submit"
- className="btn btn-primary btn-sm"
- style={{
- background: 'linear-gradient(135deg, #7c3aed 0%, #0f4cff 100%)',
- border: 'none',
- fontWeight: 700,
- padding: '8px 18px',
- boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
- }}
- disabled={!inputCode.trim()}
- >
- Claim Pro Features →
- </button>
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={handleClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="btn btn-primary btn-sm"
+            style={{
+              background: 'linear-gradient(135deg, #7c3aed 0%, #0f4cff 100%)',
+              border: 'none',
+              fontWeight: 700,
+              padding: '8px 18px',
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
+            }}
+            disabled={!inputCode.trim()}
+          >
+            Claim Feature Perks →
+          </button>
  </div>
  </form>
  )}

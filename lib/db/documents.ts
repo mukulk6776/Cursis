@@ -67,6 +67,9 @@ export async function createDocument(workspaceId: string, data: Partial<Document
     version: 1,
     isCompanyBrainResource: data.isCompanyBrainResource ?? true,
     summary: data.summary || (data.content ? `${data.content.substring(0, 100)}...` : ''),
+    fileUrl: data.fileUrl,
+    fileType: data.fileType,
+    fileSize: data.fileSize,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -92,7 +95,7 @@ export async function updateDocument(id: string, updates: Partial<DocumentItem>)
   const updated: DocumentItem = {
     ...doc,
     ...updates,
-    version: doc.version + 1,
+    version: (doc.version || 1) + 1,
     updatedAt: new Date().toISOString(),
   };
 
@@ -108,6 +111,22 @@ export async function updateDocument(id: string, updates: Partial<DocumentItem>)
   }
 
   return updated;
+}
+
+export async function deleteDocument(id: string): Promise<boolean> {
+  const existed = inMemoryStore.documents.delete(id);
+
+  try {
+    const col = await getCollection<DocumentItem>('documents');
+    if (col) {
+      const res = await col.deleteOne({ id });
+      return res.deletedCount > 0 || existed;
+    }
+  } catch (e) {
+    console.warn('MongoDB delete document notice:', e);
+  }
+
+  return existed;
 }
 
 // Generate document on the spot (e.g. Kickoff spec, proposal deck, technical SOW)

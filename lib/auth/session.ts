@@ -28,7 +28,7 @@ export interface AuthenticatedUser {
   title?: string;
   department?: string;
   skills?: string[];
-  planTier?: 'standard' | 'premium';
+  planTier?: 'standard';
   isDev?: boolean;
 }
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 interface OrdisOperationalScenario {
   id: string;
-  tier: 'basic' | 'paid';
+  mode: 'conversational' | 'autonomous';
   label: string;
   userPrompt: string;
   responseHeadline: string;
@@ -16,14 +16,14 @@ interface OrdisOperationalScenario {
 }
 
 export default function OrdisSection() {
-  const [activeTier, setActiveTier] = useState<'basic' | 'paid'>('basic');
+  const [activeMode, setActiveMode] = useState<'conversational' | 'autonomous'>('conversational');
   const [executedActions, setExecutedActions] = useState<Record<string, boolean>>({});
 
   const scenarios: OrdisOperationalScenario[] = [
-    // --- BASIC PLAN SCENARIOS ---
+    // --- CONVERSATIONAL GUIDANCE SCENARIOS ---
     {
       id: 'feature-doubt',
-      tier: 'basic',
+      mode: 'conversational',
       label: 'Platform Guidance: "Operating Tasks & Kanban"',
       userPrompt: 'How do I operate the Task Kanban, automated routing, and priority filters in Cursis?',
       metaBadge: 'STANDARD · WORKFLOW GUIDE',
@@ -34,7 +34,7 @@ export default function OrdisSection() {
     },
     {
       id: 'summarize',
-      tier: 'basic',
+      mode: 'conversational',
       label: 'Executive Briefing: "Sprint Velocity & Status"',
       userPrompt: 'Synthesize current sprint velocity, open dependency blockers, and approaching deliverables',
       metaBadge: 'STANDARD · EXECUTIVE BRIEFING',
@@ -45,7 +45,7 @@ export default function OrdisSection() {
     },
     {
       id: 'list-features',
-      tier: 'basic',
+      mode: 'conversational',
       label: 'Architecture Roster: "Integrated Subsystems"',
       userPrompt: 'Provide comprehensive architecture roster of all unified Cursis modules',
       metaBadge: 'STANDARD · SUBSYSTEM AUDIT',
@@ -56,7 +56,7 @@ export default function OrdisSection() {
     },
     {
       id: 'strategic-roadmap',
-      tier: 'basic',
+      mode: 'conversational',
       label: 'Strategic Roadmap: "Enterprise Migration"',
       userPrompt: 'Synthesize an autonomous execution roadmap for migrating multi-vendor stacks to Cursis',
       metaBadge: 'STANDARD · STRATEGIC SYNTHESIS',
@@ -66,13 +66,13 @@ export default function OrdisSection() {
       actionExecutedText: 'Enterprise migration blueprint generated',
     },
 
-    // --- PAID VERSION SCENARIOS ---
+    // --- AUTONOMOUS EXECUTION SCENARIOS ---
     {
       id: 'paid-every-feature',
-      tier: 'paid',
+      mode: 'autonomous',
       label: 'Telemetry: "Subsystem Telemetry Audit"',
       userPrompt: 'Audit all enterprise subsystems, run deep ambient scan, evaluate CRM deals, and check API dispatch',
-      metaBadge: 'PRO · FULL SUBSYSTEM AUDIT',
+      metaBadge: 'AUTONOMOUS · FULL SUBSYSTEM AUDIT',
       responseHeadline: 'Full Subsystem Omniscience Active',
       responseBody: '• Workload Deadlock Scan: 0 deadlocks detected across 38 enterprise tasks.\n• CRM Pipeline Velocity: $145,000 across 4 enterprise contracts in negotiation stage.\n• Financial Telemetry: $58,000 settled this billing cycle; 2 invoices awaiting reconciliation.\n• Webhook Dispatch: 2 active production endpoints streaming events with 99.99% success rate.\n• Database Throughput: Multi-collection read/write latency under 12ms globally.',
       actionButtonLabel: 'Run Subsystem Telemetry Audit',
@@ -80,10 +80,10 @@ export default function OrdisSection() {
     },
     {
       id: 'paid-make-csat-feature',
-      tier: 'paid',
+      mode: 'autonomous',
       label: 'Synthesis: "Client CSAT & NPS Collector"',
       userPrompt: 'Synthesize custom feature: Client CSAT & NPS Feedback Collector with 1-click rating',
-      metaBadge: 'PRO · DYNAMIC FEATURE SYNTHESIS',
+      metaBadge: 'AUTONOMOUS · DYNAMIC FEATURE SYNTHESIS',
       responseHeadline: 'Custom Feature Synthesized & Deployed',
       responseBody: 'Ordis Autonomous Engine has compiled and deployed: "Client CSAT & NPS Collector"\n\n• Schema: Client Organization, Star Rating (1-5), NPS Category, Feedback Payload\n• Automated Actions: [Send Survey Invite], [Export CSV], [Trigger Follow-up Task]\n• Persistence: Registered in workspace custom tools & live database collection.\n• Widget: Live interactive card synthesized below for your team to use!',
       actionButtonLabel: 'Deploy Custom Tool to Workspace',
@@ -91,10 +91,10 @@ export default function OrdisSection() {
     },
     {
       id: 'paid-make-bounty-feature',
-      tier: 'paid',
+      mode: 'autonomous',
       label: 'Synthesis: "Incentive & Bounty Engine"',
       userPrompt: 'Build custom feature for Team Bounty Coins rewarding engineers for completing urgent tasks',
-      metaBadge: 'PRO · DYNAMIC FEATURE SYNTHESIS',
+      metaBadge: 'AUTONOMOUS · DYNAMIC FEATURE SYNTHESIS',
       responseHeadline: 'Custom Feature Created: "Team Bounty Engine"',
       responseBody: 'Autonomous feature compilation complete!\n\n• Feature ID: feat_bounty_engine_v1\n• Fields: Contributor Name, Deliverable Closed, Bounty Credits, Payout Status\n• Automation Trigger: Awards +50 credits whenever an urgent task transitions to Done.\n• Deployment: Live in Workspace Custom Tools Shelf.',
       actionButtonLabel: 'Activate Bounty Engine',
@@ -102,11 +102,11 @@ export default function OrdisSection() {
     },
   ];
 
-  const filteredScenarios = scenarios.filter((s) => s.tier === activeTier);
+  const filteredScenarios = scenarios.filter((s) => s.mode === activeMode);
   const [activeScenarioId, setActiveScenarioId] = useState<string>('feature-doubt');
 
   const activeScenario =
-    scenarios.find((s) => s.id === activeScenarioId && s.tier === activeTier) ||
+    scenarios.find((s) => s.id === activeScenarioId && s.mode === activeMode) ||
     filteredScenarios[0];
 
   const handleActionClick = (id: string) => {
@@ -123,34 +123,34 @@ export default function OrdisSection() {
           <span className="lp-highlight">To Autonomous Orchestration.</span>
         </h2>
         <p className="lp-section-subtitle">
-          In <strong>Standard Tier</strong>, Ordis operates as an omnipresent intelligence partner — answering operational queries, generating sprint summaries, and mapping workflows. In <strong>Autonomous Pro</strong>, Ordis achieves full system telemetry, automatically detecting delivery bottlenecks and synthesizing custom software widgets on the fly.
+          Ordis operates as an omnipresent intelligence and autonomous execution partner across your entire workspace — answering operational queries, generating sprint summaries, automatically detecting delivery bottlenecks, and synthesizing custom software widgets on the fly.
         </p>
       </div>
 
-      {/* Tier Mode Selector Switcher (Pill Style) */}
+      {/* Mode Selector Switcher (Pill Style) */}
       <div className="lp-ordis-tier-switcher">
         <button
           type="button"
-          className={`lp-tier-btn ${activeTier === 'basic' ? 'active' : ''}`}
+          className={`lp-tier-btn ${activeMode === 'conversational' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTier('basic');
+            setActiveMode('conversational');
             setActiveScenarioId('feature-doubt');
           }}
         >
           <span className="lp-tier-dot" />
-          Standard Intelligence (Included)
+          Conversational Intelligence
         </button>
 
         <button
           type="button"
-          className={`lp-tier-btn ${activeTier === 'paid' ? 'active' : ''}`}
+          className={`lp-tier-btn ${activeMode === 'autonomous' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTier('paid');
+            setActiveMode('autonomous');
             setActiveScenarioId('paid-every-feature');
           }}
         >
           <span className="lp-tier-dot pro" />
-          Autonomous Pro (Full Orchestration)
+          Autonomous Orchestration
         </button>
       </div>
 
@@ -161,7 +161,7 @@ export default function OrdisSection() {
           <div className="lp-console-left">
             <span className="lp-console-logo">O</span>
             <span className="lp-console-title">
-              {activeTier === 'basic' ? 'Ordis Standard Intelligence Copilot' : 'Ordis Pro Autonomous Engine'}
+              {activeMode === 'conversational' ? 'Ordis Conversational Intelligence Copilot' : 'Ordis Autonomous Orchestration Engine'}
             </span>
           </div>
 
@@ -205,7 +205,7 @@ export default function OrdisSection() {
             <div className="lp-bubble-sender">
               <span className="lp-ordis-live-dot" />
               <span className="lp-sender-label ordis">
-                {activeTier === 'basic' ? 'ORDIS COPILOT RESPONSE' : 'ORDIS AUTONOMOUS SYNTHESIS'}
+                {activeMode === 'conversational' ? 'ORDIS COPILOT RESPONSE' : 'ORDIS AUTONOMOUS SYNTHESIS'}
               </span>
             </div>
 

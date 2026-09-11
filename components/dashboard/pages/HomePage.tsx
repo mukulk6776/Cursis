@@ -19,7 +19,6 @@ export default function HomePage() {
     getProject,
     getEmployee,
     sendOrdisMessage,
-    ordisPlan,
   } = useDashboard();
 
   const [aiInput, setAiInput] = useState('');
@@ -119,33 +118,15 @@ export default function HomePage() {
                 padding: '2px 10px',
                 borderRadius: '9999px',
                 border: '1.5px solid #0A0A0A',
-                background: ordisPlan === 'paid' ? '#FF5500' : '#FAF6EE',
-                color: ordisPlan === 'paid' ? '#FFFFFF' : '#0A0A0A',
+                background: '#FF5500',
+                color: '#FFFFFF',
               }}
             >
-              {ordisPlan === 'paid' ? 'PRO • AUTONOMOUS ACTIONS' : 'FREE • TEXT REPORTS & CHAT (CHATGPT STYLE)'}
+              AUTONOMOUS AI COPILOT
             </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {ordisPlan !== 'paid' && (
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => openModal('redeem-code-modal')}
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  border: '1.5px solid #7c3aed',
-                  background: 'rgba(124, 58, 237, 0.08)',
-                  color: '#7c3aed',
-                  boxShadow: '2px 2px 0 0 #0A0A0A',
-                  cursor: 'pointer',
-                }}
-              >
-                Redeem Code
-              </button>
-            )}
             <button
               type="button"
               className="btn btn-ghost btn-sm"
@@ -169,11 +150,7 @@ export default function HomePage() {
               fontWeight: 600,
               background: '#FAF8F5',
             }}
-            placeholder={
-              ordisPlan === 'paid'
-                ? "Ask Ordis: e.g. 'Add a team member and give him xyz task', 'Mark auth task completed'..."
-                : "Ask Ordis: e.g. 'Give me a workspace status report', 'What is our current sprint status?'..."
-            }
+            placeholder="Ask Ordis: e.g. 'Add a team member and give him xyz task', 'Mark auth task completed'..."
             value={aiInput}
             onChange={(e) => setAiInput(e.target.value)}
             onKeyDown={(e) => {
@@ -196,7 +173,7 @@ export default function HomePage() {
               boxShadow: '2px 2px 0 0 #0A0A0A',
             }}
           >
-            {ordisPlan === 'paid' ? 'Execute Action →' : 'Ask Ordis →'}
+            Execute Action →
           </button>
         </div>
 
@@ -208,9 +185,7 @@ export default function HomePage() {
             'Give me a workspace status report',
             'What is my team working on?',
             'Show sprint bottlenecks & overdue items',
-            ordisPlan === 'paid'
-              ? 'Add a team member and give him xyz task'
-              : 'How should I prioritize our sprint roadmap?',
+            'Add a team member and give him xyz task',
           ].map((prompt, i) => (
             <button
               key={i}

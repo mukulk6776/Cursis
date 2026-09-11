@@ -25,12 +25,11 @@ import {
  ChatActionCard,
  DashboardPageType,
  DynamicFeature,
- OrdisPlanType,
 } from '@/lib/dashboard/types';
 import { formatDate, isOverdue } from '@/lib/dashboard/data';
 
 export interface OrdisContextState {
- plan?: OrdisPlanType;
+ plan?: string;
  user: User;
  workspace: WorkspaceSummary;
  activeWorkspace: Workspace;

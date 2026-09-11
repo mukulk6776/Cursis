@@ -12,9 +12,7 @@ export default function ProfilePanel() {
  projects,
  user,
  signOut,
- assignSeatTier,
- premiumSeatLimit,
- premiumSeatsAllocated,
+ removeEmployee,
  openModal,
  } = useDashboard();
 
@@ -37,7 +35,6 @@ export default function ProfilePanel() {
  const activeTasks = empTasks.filter((t) => t.status !== 'completed');
  const doneTasks = empTasks.filter((t) => t.status === 'completed');
  const empProjects = projects.filter((p) => p.team.includes(emp.id));
- const isPro = emp.planTier === 'premium';
 
  return (
  <>
@@ -106,21 +103,6 @@ export default function ProfilePanel() {
  </p>
 
  <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'center', alignItems: 'center', marginTop: 'var(--sp-3)', flexWrap: 'wrap' }}>
- {isPro ? (
- <span
- style={{
- background: 'linear-gradient(135deg, #7c3aed, #0f4cff)',
- color: '#fff',
- fontSize: '10px',
- fontWeight: 800,
- padding: '2px 10px',
- borderRadius: '12px',
- border: '1px solid rgba(255,255,255,0.3)',
- }}
- >
- AUTONOMOUS PRO
- </span>
- ) : (
  <span
  style={{
  background: 'var(--c-surface)',
@@ -130,11 +112,11 @@ export default function ProfilePanel() {
  padding: '2px 8px',
  borderRadius: '12px',
  border: '1px solid var(--border-color)',
+ textTransform: 'uppercase',
  }}
  >
- STANDARD CORE
+ {emp.workspaceRole || 'Member'}
  </span>
- )}
  <span
  className={`badge badge-${
  emp.status === 'online' ? 'success' : emp.status === 'busy' ? 'error' : 'neutral'
@@ -142,40 +124,6 @@ export default function ProfilePanel() {
  >
  ● {emp.status}
  </span>
- </div>
-
- {/* Seat Tier Toggle Button */}
- <div style={{ marginTop: 'var(--sp-2)' }}>
- {isPro ? (
- <button
- type="button"
- className="btn btn-ghost btn-sm"
- style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}
- onClick={() => assignSeatTier(emp.id, 'standard')}
- >
- Revert to Standard Tier
- </button>
- ) : (
- <button
- type="button"
- className="btn btn-secondary btn-sm"
- style={{ fontSize: '11px', color: '#7c3aed', borderColor: 'rgba(124, 58, 237, 0.4)', fontWeight: 700 }}
- onClick={() => assignSeatTier(emp.id, 'premium')}
- >
- Grant Autonomous Pro Seat ({premiumSeatsAllocated}/{premiumSeatLimit})
- </button>
- )}
-
- <div style={{ marginTop: '6px' }}>
- <button
- type="button"
- className="btn btn-ghost btn-sm"
- style={{ fontSize: '11px', color: '#7c3aed', fontWeight: 600, padding: '2px 8px' }}
- onClick={() => openModal('redeem-code-modal')}
- >
- Have a voucher code? Redeem License
- </button>
- </div>
  </div>
  </div>
 
@@ -301,6 +249,50 @@ export default function ProfilePanel() {
  <line x1="21" y1="12" x2="9" y2="12" />
  </svg>
  Sign Out of Cursis
+ </button>
+ </div>
+ )}
+
+ {/* Member Management Actions (for Admins / other members) */}
+ {emp.id !== user.id && emp.id !== 'u1' && emp.id !== 'u_owner' && emp.workspaceRole !== 'owner' && (
+ <div
+ style={{
+ marginTop: 'var(--sp-6)',
+ paddingTop: 'var(--sp-5)',
+ borderTop: '1px solid var(--border-light)',
+ }}
+ >
+ <h4 style={{ margin: '0 0 var(--sp-2) 0', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>Workspace Membership</h4>
+ <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--sp-3)' }}>
+ Remove this member from the organization workspace and revoke their active seats.
+ </p>
+ <button
+ type="button"
+ className="btn btn-secondary"
+ style={{
+ width: '100%',
+ display: 'flex',
+ alignItems: 'center',
+ justifyContent: 'center',
+ gap: '8px',
+ color: 'var(--c-error)',
+ borderColor: '#fca5a5',
+ background: '#fff5f5',
+ fontWeight: 700,
+ fontSize: 'var(--fs-sm)',
+ }}
+ onClick={() => {
+ if (window.confirm(`Are you sure you want to remove ${emp.name} from the workspace?`)) {
+ removeEmployee(emp.id);
+ closeProfilePanel();
+ }
+ }}
+ >
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+ <path d="M3 6h18" />
+ <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+ </svg>
+ Remove {emp.name} from Workspace
  </button>
  </div>
  )}

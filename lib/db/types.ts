@@ -29,8 +29,6 @@ export interface Workspace {
   };
   ownerId: string;
   memberCount: number;
-  premiumSeatLimit?: number;
-  premiumSeatsAllocated?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -52,7 +50,7 @@ export interface UserProfile {
   skills: string[]; // e.g. ["Next.js", "UI/UX", "Copywriting", "Sales", "Accounting"]
   workspaceIds: string[];
   activeWorkspaceId?: string;
-  planTier?: 'standard' | 'premium';
+  planTier?: 'standard';
   onboardingStatus: 'pending' | 'in_progress' | 'completed';
   onboardingChecklist: {
     id: string;
@@ -80,7 +78,7 @@ export interface WorkspaceInvitation {
   sentAt: string;
   expiresAt: string;
   invitedBy: string;
-  planTier?: 'standard' | 'premium';
+  planTier?: 'standard';
 }
 
 
@@ -228,13 +226,35 @@ export interface DocumentItem {
   projectId?: string;
   title: string;
   content: string; // Markdown or rich text
-  category: 'proposal' | 'kickoff' | 'sow' | 'spec' | 'knowledge' | 'report' | 'general';
+  category: 'proposal' | 'kickoff' | 'sow' | 'spec' | 'knowledge' | 'report' | 'general' | string;
   tags: string[];
   authorId: string;
   authorName: string;
   version: number;
   isCompanyBrainResource?: boolean; // Ingested for Ordis memory
   summary?: string;
+  fileUrl?: string;
+  fileType?: string;
+  fileSize?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ==========================================
+// 8B. DEPARTMENT MANAGEMENT MODULE
+// ==========================================
+export interface Department {
+  id: string;
+  workspaceId: string;
+  name: string;
+  description?: string;
+  lead?: string | null;
+  head?: string | null;
+  membersCount?: number;
+  memberCount?: number;
+  budget?: string | number;
+  color?: string;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }

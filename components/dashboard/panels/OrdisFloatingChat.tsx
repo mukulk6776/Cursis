@@ -28,7 +28,6 @@ export default function OrdisFloatingChat() {
  employees,
  meetings,
  activeWorkspace,
- ordisPlan,
  geminiApiKey,
  setGeminiApiKey,
  ordisModel,
@@ -186,23 +185,14 @@ export default function OrdisFloatingChat() {
  }
  };
 
-  const quickPrompts = ordisPlan === 'basic'
-    ? [
-        { label: 'Status Report', prompt: 'Give me a workspace status report with active deliverables and team status' },
-        { label: 'Sprint Status', prompt: 'What is our current sprint status and open blockers?' },
-        { label: 'Team Workload', prompt: 'What is my team working on and who is online?' },
-        { label: 'Executive Briefing', prompt: 'Summarize what needs to be delivered and which team members are available.' },
-        { label: 'Creator Pipeline', prompt: 'How does the Creator Content Pipeline work and what are the roles?' },
-        { label: 'Agile Guidance', prompt: 'How should I prioritize tasks to maximize sprint velocity?' },
-      ]
-    : [
-        { label: 'Add Member & Task', prompt: 'Add a team member and give him xyz task' },
-        { label: 'Create Task', prompt: 'Create high-priority task: Deploy payment webhook integration' },
-        { label: 'Schedule Sync', prompt: 'Schedule urgent team sprint sync tomorrow at 3:00 PM for 30 mins' },
-        { label: 'Add CRM Deal', prompt: 'Add new CRM deal: Acme Enterprise SaaS for $75,000 in Negotiation' },
-        { label: 'Build CSAT Feature', prompt: 'Make a new feature for Client CSAT & NPS Feedback Surveys with 1-click rating' },
-        { label: 'Auto-Assign Rule', prompt: 'Create automation: Auto-assign urgent tasks to Lead Engineer' },
-      ];
+  const quickPrompts = [
+    { label: 'Add Member & Task', prompt: 'Add a team member and give him xyz task' },
+    { label: 'Status Report', prompt: 'Give me a workspace status report with active deliverables and team status' },
+    { label: 'Create Task', prompt: 'Create high-priority task: Deploy payment webhook integration' },
+    { label: 'Schedule Sync', prompt: 'Schedule urgent team sprint sync tomorrow at 3:00 PM for 30 mins' },
+    { label: 'Executive Briefing', prompt: 'Summarize what needs to be delivered and which team members are available.' },
+    { label: 'Build CSAT Feature', prompt: 'Make a new feature for Client CSAT & NPS Feedback Surveys with 1-click rating' },
+  ];
 
  const activeTaskCount = tasks.filter((t) => t.status !== 'completed').length;
  const onlineMemberCount = employees.filter((e) => e.status === 'online').length;
@@ -296,45 +286,45 @@ export default function OrdisFloatingChat() {
  {aiEngineStatus === 'gemini' ? modelDisplayName : 'Local Engine'}
  </span>
  </div>
- <div style={{ fontSize: '11px', color: '#9ca3af' }}>
- {activeWorkspace.name} • {ordisPlan === 'paid' ? 'Pro Autonomous Actions' : 'Free Text Reports (ChatGPT Style)'}
- </div>
- </div>
- </div>
+            <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+              {activeWorkspace.name} • Autonomous Workspace Copilot
+            </div>
+          </div>
+        </div>
 
- {/* Header Controls */}
- <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
- {/* AI Engine Settings Gear */}
- <button
- type="button"
- onClick={() => setSettingsOpen((prev) => !prev)}
- title="AI Settings (API Key & Model)"
- style={{
- padding: '6px 8px',
- borderRadius: '7px',
- background: settingsOpen ? 'rgba(15, 76, 255, 0.3)' : 'rgba(255, 255, 255, 0.06)',
- border: `1px solid ${settingsOpen ? '#38bdf8' : 'rgba(255, 255, 255, 0.12)'}`,
- color: settingsOpen ? '#38bdf8' : '#9ca3af',
- cursor: 'pointer',
- fontSize: '12px',
- display: 'flex',
- alignItems: 'center',
- gap: '4px',
- fontWeight: 600,
- }}
- >
- <span style={{ fontSize: '10px' }}>AI</span>
- </button>
+        {/* Header Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          {/* AI Engine Settings Gear */}
+          <button
+            type="button"
+            onClick={() => setSettingsOpen((prev) => !prev)}
+            title="AI Settings (API Key & Model)"
+            style={{
+              padding: '6px 8px',
+              borderRadius: '7px',
+              background: settingsOpen ? 'rgba(15, 76, 255, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+              border: `1px solid ${settingsOpen ? '#38bdf8' : 'rgba(255, 255, 255, 0.12)'}`,
+              color: settingsOpen ? '#38bdf8' : '#9ca3af',
+              cursor: 'pointer',
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: 600,
+            }}
+          >
+            <span style={{ fontSize: '10px' }}>AI</span>
+          </button>
 
-          {/* Plan Status Badge */}
+          {/* Autonomous Status Badge */}
           <span
-            title={ordisPlan === 'paid' ? 'Pro Plan: Autonomous Mode Active' : 'Basic Plan: Standard Assistant'}
+            title="Ordis Autonomous Intelligence Active"
             style={{
               padding: '4px 8px',
               borderRadius: '9999px',
-              background: ordisPlan === 'paid' ? '#0A0A0A' : 'rgba(255, 255, 255, 0.08)',
-              border: `1px solid ${ordisPlan === 'paid' ? '#FF5500' : 'rgba(255, 255, 255, 0.2)'}`,
-              color: ordisPlan === 'paid' ? '#FF5500' : '#ffffff',
+              background: '#0A0A0A',
+              border: '1px solid #FF5500',
+              color: '#FF5500',
               fontSize: '9.5px',
               fontWeight: 900,
               display: 'flex',
@@ -343,7 +333,7 @@ export default function OrdisFloatingChat() {
               letterSpacing: '0.03em',
             }}
           >
-            <span>{ordisPlan === 'paid' ? 'PRO' : 'BASIC'}</span>
+            <span>AUTONOMOUS</span>
           </span>
 
  {/* Voice Mode Toggle */}
@@ -868,7 +858,7 @@ export default function OrdisFloatingChat() {
  value={inputVal}
  onChange={(e) => setInputVal(e.target.value)}
  onKeyDown={handleKeyDown}
- placeholder={ordisPlan === "paid" ? "Ask Ordis: e.g. Add a team member and give him xyz task..." : "Ask Ordis: e.g. Give me a workspace report, what is our status?..."}
+ placeholder="Ask Ordis: e.g. Add a team member, schedule a sync, or give me a sprint report..."
  style={{
  flex: 1,
  padding: '10px 14px',

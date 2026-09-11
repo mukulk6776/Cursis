@@ -66,14 +66,6 @@ export default function CommandPalette() {
  shortcut: '/project',
  action: () => openModal('project-modal'),
  },
- {
- id: 'new-doc',
- group: 'Quick Actions',
- icon: 'D',
- text: 'Upload Document & Run OCR',
- shortcut: '/doc',
- action: () => openModal('document-modal'),
- },
 
  {
  id: 'agency-req',
@@ -158,18 +150,27 @@ export default function CommandPalette() {
  action: () => setCurrentPage('meetings'),
  },
  {
- id: 'go-documents',
- group: 'Navigate',
- icon: '',
- text: 'Go to Documents & Paperwork Studio',
- action: () => setCurrentPage('documents'),
- },
- {
  id: 'go-analytics',
  group: 'Navigate',
  icon: 'A',
  text: 'Go to Analytics & Velocity',
  action: () => setCurrentPage('analytics'),
+ },
+ {
+ id: 'go-departments',
+ group: 'Navigate',
+ icon: 'D',
+ text: 'Go to Department Management',
+ shortcut: '/departments',
+ action: () => setCurrentPage('departments'),
+ },
+ {
+ id: 'go-documents',
+ group: 'Navigate',
+ icon: 'DOC',
+ text: 'Go to Document Section Management',
+ shortcut: '/docs',
+ action: () => setCurrentPage('documents'),
  },
  {
  id: 'go-settings',

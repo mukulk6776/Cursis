@@ -29,7 +29,6 @@ export default function OrdisPage() {
  showToast,
  addAuditEntry,
  openModal,
- ordisPlan,
  dynamicFeatures,
  ordisModel,
  aiEngineStatus,
@@ -138,13 +137,13 @@ export default function OrdisPage() {
  </div>
 
  <div className="page-actions" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-        {/* Plan Status Indicator Badge (Cannot switch without redeem code) */}
+        {/* Autonomous Copilot Status Badge */}
         <span
           style={{
             padding: '6px 14px',
             borderRadius: '4px',
-            background: ordisPlan === 'paid' ? '#0A0A0A' : '#FAF6EE',
-            color: ordisPlan === 'paid' ? '#FF5500' : '#0A0A0A',
+            background: '#0A0A0A',
+            color: '#FF5500',
             border: '2px solid #000000',
             fontWeight: 900,
             boxShadow: '2.5px 2.5px 0 #000000',
@@ -161,29 +160,11 @@ export default function OrdisPage() {
               width: '6px',
               height: '6px',
               borderRadius: '50%',
-              background: ordisPlan === 'paid' ? '#FF5500' : '#888',
+              background: '#FF5500',
             }}
           />
-          {ordisPlan === 'paid' ? 'Pro Plan (Autonomous)' : 'Basic Plan (Standard)'}
+          Autonomous Copilot Active
         </span>
-        {ordisPlan !== 'paid' && (
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            style={{
-              fontWeight: 700,
-              color: '#7c3aed',
-              borderColor: 'rgba(124, 58, 237, 0.4)',
-              background: 'rgba(124, 58, 237, 0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-            onClick={() => openModal('redeem-code-modal')}
-          >
-            Redeem Code
-          </button>
-        )}
  <button type="button" className="btn btn-secondary btn-sm" onClick={clearChatHistory}>
  Clear History
  </button>

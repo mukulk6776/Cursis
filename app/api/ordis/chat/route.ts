@@ -17,11 +17,9 @@ export async function POST(request: NextRequest) {
     }
 
     const history = Array.isArray(body.history) ? body.history : [];
-    const clientPlan = body.plan || body.state?.plan || 'basic';
     const state: OrdisContextState = body.state || {
-      plan: clientPlan,
       user: { id: 'u_commander', name: 'Commander', email: 'commander@cursis.io', role: 'Owner' },
-      workspace: { name: 'Cursis Workspace', plan: clientPlan === 'paid' ? 'Enterprise Pro ($1B Tier)' : 'Cursis Starter Basic' },
+      workspace: { name: 'Cursis Workspace', plan: 'Cursis Standard' },
       activeWorkspace: { id: 'ws_cursis_main', name: 'Cursis Workspace', role: 'owner' } as any,
       employees: [],
       projects: [],
@@ -50,7 +48,6 @@ export async function POST(request: NextRequest) {
         allowWorkloadRebalancing: true,
       },
     };
-    state.plan = clientPlan;
 
     const userApiKey = body.apiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const model = body.model || 'gemini-2.5-flash';

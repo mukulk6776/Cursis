@@ -13,7 +13,6 @@ export default function Sidebar() {
     tasks,
     meetings,
     employees,
-    documents,
     openProfilePanel,
     user,
     activeWorkspace,
@@ -252,11 +251,27 @@ export default function Sidebar() {
         <div className="sidebar-divider" />
         {!sidebarCollapsed && <div className="sidebar-section-title">Operations</div>}
 
-        {/* Documents */}
+
+        {/* Departments Management */}
+        <div
+          className={`sidebar-item ${currentPage === 'departments' ? 'active' : ''}`}
+          onClick={() => handleNav('departments')}
+          title="Department Management"
+        >
+          <span className="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+            </svg>
+          </span>
+          <span className="sidebar-item-text">Departments</span>
+        </div>
+
+        {/* Documents Management */}
         <div
           className={`sidebar-item ${currentPage === 'documents' ? 'active' : ''}`}
           onClick={() => handleNav('documents')}
-          title="Paperwork Studio & Documents"
+          title="Document Management"
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -264,11 +279,9 @@ export default function Sidebar() {
               <polyline points="14 2 14 8 20 8" />
               <line x1="16" y1="13" x2="8" y2="13" />
               <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10 9 9 9 8 9" />
             </svg>
           </span>
           <span className="sidebar-item-text">Documents</span>
-          {documents?.length > 0 && <span className="sidebar-item-badge">{documents.length}</span>}
         </div>
 
         {/* Analytics */}

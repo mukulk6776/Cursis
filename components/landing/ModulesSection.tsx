@@ -11,7 +11,7 @@ export default function ModulesSection() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const end = 11;
+            const end = 10;
             const duration = 900;
             let startTime: number | null = null;
 
@@ -23,7 +23,7 @@ export default function ModulesSection() {
               if (progress < 1) {
                 requestAnimationFrame(step);
               } else {
-                setCount(11);
+                setCount(10);
               }
             };
             requestAnimationFrame(step);
@@ -94,18 +94,12 @@ export default function ModulesSection() {
     },
     {
       num: '09',
-      name: 'Documents',
-      desc: 'Collaborative rich-text specifications, architecture RFCs, and paperwork templates.',
-      featured: false,
-    },
-    {
-      num: '10',
       name: 'Analytics',
       desc: 'Visual velocity dashboards, sprint burnup trajectory, and delivery SLA adherence tracking.',
       featured: false,
     },
     {
-      num: '11',
+      num: '10',
       name: 'Settings',
       desc: 'Deterministic RBAC, session security guard, audit logs, and workspace configuration.',
       featured: false,
@@ -118,7 +112,7 @@ export default function ModulesSection() {
         <div className="lp-section-label lp-reveal">
           <span>{count}</span> Real Workspace Modules
         </div>
-        <h2 className="lp-section-title lp-reveal">One unified workspace. Eleven integrated subsystems.</h2>
+        <h2 className="lp-section-title lp-reveal">One unified workspace. Ten integrated subsystems.</h2>
         <p className="lp-section-subtitle lp-reveal">
           Every module connects directly to your live workspace graph. Zero fake point tools, zero third-party glue code, and zero context switching.
         </p>

@@ -72,7 +72,7 @@ export async function addTeamMember(
     skills?: string[];
     photoURL?: string;
     presence?: 'online' | 'busy' | 'away' | 'offline';
-    planTier?: 'standard' | 'premium';
+    planTier?: 'standard';
   }
 ): Promise<UserProfile> {
   const cleanEmail = memberData.email.toLowerCase().trim();
@@ -252,7 +252,7 @@ export async function sendTeamInvitation(
     team?: string | null;
     note?: string;
     invitedBy: string;
-    planTier?: 'standard' | 'premium';
+    planTier?: 'standard';
   }
 ): Promise<WorkspaceInvitation> {
   const token = 'tok_' + Math.random().toString(36).substring(2, 14) + Date.now().toString(36);
