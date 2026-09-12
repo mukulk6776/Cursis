@@ -63,21 +63,33 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface WorkspaceMembership {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  role: UserRole;
+  createdAt: string;
+}
+
 export interface WorkspaceInvitation {
   id: string;
   workspaceId: string;
+  inviterUserId: string;
+  inviteeUserId: string;
   email: string;
   name?: string;
   roleTitle?: string;
   workspaceRole: UserRole | string;
-  department: string;
+  department?: string;
   team?: string | null;
   status: 'pending' | 'accepted' | 'declined' | 'revoked';
-  token: string;
+  token?: string;
   note?: string;
-  sentAt: string;
+  createdAt?: string;
+  sentAt?: string;
   expiresAt: string;
-  invitedBy: string;
+  respondedAt?: string;
+  invitedBy?: string;
   planTier?: 'standard';
 }
 
@@ -594,10 +606,18 @@ export interface DbNotification {
   userId?: string;
   userEmail?: string;
   workspaceId?: string;
-  type: 'task' | 'mention' | 'meeting' | 'deadline' | 'ai' | 'project' | 'team' | 'automation' | 'agent' | 'security' | 'system';
+  type: 'task' | 'mention' | 'meeting' | 'deadline' | 'ai' | 'project' | 'team' | 'automation' | 'agent' | 'security' | 'system' | 'workspace_invite';
   text: string;
   time?: string;
   read: boolean;
   icon?: string;
+  referenceId?: string;
+  invitationData?: {
+    workspaceId?: string;
+    workspaceName?: string;
+    inviterName?: string;
+    role?: string;
+    status?: 'pending' | 'accepted' | 'declined' | 'revoked';
+  };
   createdAt: string;
 }

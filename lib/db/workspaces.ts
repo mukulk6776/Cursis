@@ -37,17 +37,97 @@ export async function getAllWorkspaces(): Promise<Workspace[]> {
 }
 
 export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
+  const wsMap = new Map<string, Workspace>();
+
   try {
-    const col = await getCollection<Workspace>('workspaces');
-    if (col) {
-      const docs = await col.find({ ownerId: userId }).toArray();
-      if (docs.length > 0) {
-        docs.forEach((w) => inMemoryStore.workspaces.set(w.id, w));
-        return docs;
+    const userCol = await getCollection<any>('users');
+    const memCol = await getCollection<any>('workspace_memberships');
+    const wsCol = await getCollection<Workspace>('workspaces');
+
+    // 1. Get user profile to check workspaceIds
+    let userWorkspaceIds: string[] = [];
+    let userName = 'User';
+    if (userCol) {
+      const userDoc = await userCol.findOne({
+        $or: [{ uid: userId }, { id: userId }],
+      });
+      if (userDoc) {
+        userWorkspaceIds = userDoc.workspaceIds || [];
+        userName = userDoc.displayName || userDoc.name || userName;
       }
     }
-  } catch {}
-  return Array.from(inMemoryStore.workspaces.values()).filter((ws) => ws.ownerId === userId);
+
+    // 2. Get memberships from workspace_memberships
+    let membershipWsIds: string[] = [];
+    if (memCol) {
+      const memDocs = await memCol.find({ userId }).toArray();
+      membershipWsIds = memDocs.map((m) => m.workspaceId).filter(Boolean);
+    }
+
+    const allTargetIds = Array.from(
+      new Set([...userWorkspaceIds, ...membershipWsIds, `ws_${userId}`])
+    );
+
+    // 3. Query workspaces in MongoDB
+    if (wsCol) {
+      const query: any = {
+        $or: [
+          { ownerId: userId },
+          { id: { $in: allTargetIds } },
+        ],
+      };
+
+      const docs = await wsCol.find(query).toArray();
+      docs.forEach((w) => {
+        wsMap.set(w.id, w);
+        inMemoryStore.workspaces.set(w.id, w);
+      });
+    }
+
+    // 4. Also check in-memory store
+    for (const ws of inMemoryStore.workspaces.values()) {
+      if (ws.ownerId === userId || allTargetIds.includes(ws.id)) {
+        if (!wsMap.has(ws.id)) {
+          wsMap.set(ws.id, ws);
+        }
+      }
+    }
+
+    // 5. If user has no workspaces found at all, guarantee at least their personal workspace
+    if (wsMap.size === 0) {
+      const personalWsId = `ws_${userId}`;
+      const defaultWs: Workspace = {
+        id: personalWsId,
+        name: `${userName}'s Workspace`,
+        slug: `${userName.toLowerCase().replace(/\s+/g, '-')}-workspace`,
+        tier: 'free',
+        ordisMode: 'chill',
+        industry: 'Technology',
+        teamSize: '1-10',
+        features: ['workspace_core', 'team'],
+        settings: {
+          ambientMonitoring: true,
+          approvalRequiredForActions: true,
+          simulationMode: false,
+          riskTolerance: 'medium',
+        },
+        ownerId: userId,
+        memberCount: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      wsMap.set(personalWsId, defaultWs);
+      inMemoryStore.workspaces.set(personalWsId, defaultWs);
+      if (wsCol) {
+        wsCol.insertOne(defaultWs).catch(() => {});
+      }
+    }
+
+    return Array.from(wsMap.values());
+  } catch (e) {
+    console.warn('MongoDB getUserWorkspaces error:', e);
+    return Array.from(inMemoryStore.workspaces.values()).filter((ws) => ws.ownerId === userId);
+  }
 }
 
 export async function createWorkspace(userId: string, data: Partial<Workspace>): Promise<string> {

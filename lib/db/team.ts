@@ -24,24 +24,36 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
 
   try {
     const col = await getCollection<UserProfile>('users');
-    if (col) {
-      const query = isDefaultWs
-        ? {
-            $or: [
-              { workspaceIds: { $in: defaultAliases } },
-              { activeWorkspaceId: { $in: defaultAliases } },
-              { workspaceId: { $in: defaultAliases } },
-            ],
-          }
-        : {
-            $or: [
-              { workspaceIds: workspaceId },
-              { activeWorkspaceId: workspaceId },
-              { workspaceId: workspaceId },
-            ],
-          };
+    const memCol = await getCollection<any>('workspace_memberships');
 
-      const docs = await col.find(query).toArray();
+    // Find any user IDs from workspace_memberships
+    let memberUserIds: string[] = [];
+    if (memCol) {
+      const memDocs = await memCol.find({
+        workspaceId: isDefaultWs ? { $in: defaultAliases } : workspaceId
+      }).toArray();
+      memberUserIds = memDocs.map((m: any) => m.userId).filter(Boolean);
+    }
+
+    if (col) {
+      const orClauses: any[] = isDefaultWs
+        ? [
+            { workspaceIds: { $in: defaultAliases } },
+            { activeWorkspaceId: { $in: defaultAliases } },
+            { workspaceId: { $in: defaultAliases } },
+          ]
+        : [
+            { workspaceIds: workspaceId },
+            { activeWorkspaceId: workspaceId },
+            { workspaceId: workspaceId },
+          ];
+
+      if (memberUserIds.length > 0) {
+        orClauses.push({ uid: { $in: memberUserIds } });
+        orClauses.push({ id: { $in: memberUserIds } });
+      }
+
+      const docs = await col.find({ $or: orClauses }).toArray();
 
       if (docs.length > 0) {
         const sanitized = docs.map(sanitizeTeamUser);
@@ -311,6 +323,19 @@ export async function removeTeamMember(
         }
       }
     }
+
+    const memCol = await getCollection<any>('workspace_memberships');
+    if (memCol) {
+      const memConditions: any[] = [];
+      if (targetId) memConditions.push({ userId: targetId });
+      if (cleanEmail) memConditions.push({ userId: cleanEmail });
+      if (memConditions.length > 0) {
+        await memCol.deleteMany({
+          workspaceId: { $in: aliasesToRemove },
+          $or: memConditions,
+        });
+      }
+    }
   } catch (e) {
     console.warn('MongoDB removeTeamMember notice:', e);
   }
@@ -350,141 +375,15 @@ export async function updateTeamMember(
   return user;
 }
 
-// In-memory fallback map for invitations
-const inMemoryInvitations = new Map<string, WorkspaceInvitation>();
-
-export async function sendTeamInvitation(
-  workspaceId: string,
-  inviteData: {
-    email: string;
-    name?: string;
-    roleTitle?: string;
-    workspaceRole: UserRole | string;
-    department: string;
-    team?: string | null;
-    note?: string;
-    invitedBy: string;
-    planTier?: 'standard';
-  }
-): Promise<WorkspaceInvitation> {
-  const token = 'tok_' + Math.random().toString(36).substring(2, 14) + Date.now().toString(36);
-  const id = 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-
-  const cleanInviteEmail = inviteData.email.toLowerCase().trim();
-  const isInviteeFounder = isFounderEmail(cleanInviteEmail);
-  const inviteRole = isInviteeFounder ? 'owner' : (inviteData.workspaceRole !== 'owner' ? (inviteData.workspaceRole as UserRole) : 'member');
-  const inviteTitle = isInviteeFounder ? 'Founder & CEO' : (inviteData.roleTitle && /founder|ceo/i.test(inviteData.roleTitle) ? 'Team Member' : (inviteData.roleTitle || 'Team Member'));
-
-  const invitation: WorkspaceInvitation = {
-    id,
-    workspaceId,
-    email: cleanInviteEmail,
-    name: inviteData.name || cleanInviteEmail.split('@')[0],
-    roleTitle: inviteTitle,
-    workspaceRole: inviteRole,
-    department: isInviteeFounder ? 'Leadership' : inviteData.department,
-    team: inviteData.team || null,
-    note: inviteData.note,
-    status: 'pending',
-    token,
-    sentAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
-    invitedBy: inviteData.invitedBy,
-    planTier: inviteData.planTier || 'standard',
-  };
-
-  inMemoryInvitations.set(id, invitation);
-
-  try {
-    const col = await getCollection<WorkspaceInvitation>('invitations');
-    if (col) {
-      await col.insertOne(invitation);
-    }
-  } catch (e) {
-    console.warn('MongoDB insertInvitation notice:', e);
-  }
-
-  return invitation;
-}
-
-export async function getWorkspaceInvitations(workspaceId: string): Promise<WorkspaceInvitation[]> {
-  try {
-    const col = await getCollection<WorkspaceInvitation>('invitations');
-    if (col) {
-      const docs = await col.find({ workspaceId }).sort({ sentAt: -1 }).toArray();
-      if (docs.length > 0) {
-        docs.forEach((inv) => inMemoryInvitations.set(inv.id, inv));
-        return docs;
-      }
-    }
-  } catch (e) {
-    console.warn('MongoDB getWorkspaceInvitations notice:', e);
-  }
-
-  return Array.from(inMemoryInvitations.values()).filter(
-    (inv) => inv.workspaceId === workspaceId || workspaceId === 'ws_public'
-  );
-}
-
-export async function revokeTeamInvitation(invitationId: string): Promise<boolean> {
-  inMemoryInvitations.delete(invitationId);
-
-  try {
-    const col = await getCollection<WorkspaceInvitation>('invitations');
-    if (col) {
-      await col.deleteOne({ id: invitationId });
-    }
-  } catch (e) {
-    console.warn('MongoDB revokeInvitation notice:', e);
-  }
-
-  return true;
-}
-
-export async function acceptTeamInvitation(token: string): Promise<UserProfile | null> {
-  let invitation: WorkspaceInvitation | undefined;
-
-  for (const inv of inMemoryInvitations.values()) {
-    if (inv.token === token && inv.status === 'pending') {
-      invitation = inv;
-      break;
-    }
-  }
-
-  if (!invitation) {
-    try {
-      const col = await getCollection<WorkspaceInvitation>('invitations');
-      if (col) {
-        const found = await col.findOne({ token, status: 'pending' });
-        if (found) invitation = found;
-      }
-    } catch {}
-  }
-
-  if (!invitation) return null;
-
-  invitation.status = 'accepted';
-
-  // Provision user into team
-  const newMember = await addTeamMember(invitation.workspaceId, {
-    email: invitation.email,
-    displayName: invitation.name || invitation.email.split('@')[0],
-    role: invitation.workspaceRole as UserRole,
-    department: invitation.department,
-    title: invitation.roleTitle || 'Team Member',
-    skills: ['Collaboration', 'Cursis'],
-    planTier: invitation.planTier || 'standard',
-  });
-
-  try {
-    const col = await getCollection<WorkspaceInvitation>('invitations');
-    if (col) {
-      await col.updateOne({ id: invitation.id }, { $set: { status: 'accepted' } });
-    }
-  } catch {}
-
-  return newMember;
-}
+export {
+  createTeamInvitation,
+  getWorkspaceInvitations,
+  revokeWorkspaceInvitation,
+  revokeWorkspaceInvitation as revokeTeamInvitation,
+  acceptWorkspaceInvitation,
+  acceptWorkspaceInvitation as acceptTeamInvitation,
+  declineWorkspaceInvitation,
+} from './invitations';
 
 export async function updateOnboardingChecklistItem(
   userId: string,

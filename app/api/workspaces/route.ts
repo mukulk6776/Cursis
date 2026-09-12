@@ -8,7 +8,20 @@ export async function GET(request: Request) {
     const authUser = auth.user;
 
     const workspaces = await getUserWorkspaces(authUser.uid);
-    return apiSuccess({ workspaces });
+    const formatted = workspaces.map((w) => ({
+      id: w.id,
+      name: w.name || 'Workspace',
+      shortName: (w as any).shortName || (w.name ? w.name.slice(0, 3).toUpperCase() : 'WS'),
+      tagline: (w as any).tagline || 'Intelligent Workspace for Modern Teams',
+      isCustomClient: Boolean((w as any).isCustomClient),
+      badge: w.ownerId === authUser.uid ? 'Owner' : 'Member',
+      color: (w as any).color || '#0f4cff',
+      ownerId: w.ownerId,
+      memberCount: w.memberCount || 1,
+      createdAt: w.createdAt,
+      updatedAt: w.updatedAt,
+    }));
+    return apiSuccess({ workspaces: formatted });
   } catch (error: any) {
     return apiError(error.message || 'Failed to retrieve workspaces', 500);
   }

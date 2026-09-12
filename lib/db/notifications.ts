@@ -68,7 +68,32 @@ export async function getUserNotifications(params: {
 
       const query = orClauses.length > 0 ? { $or: orClauses } : {};
       const docs = await col.find(query).sort({ createdAt: -1 }).limit(50).toArray();
-      if (docs.length > 0) return docs;
+      if (docs.length > 0) {
+        // Enrich invitation status dynamically from invitations collection
+        try {
+          const invCol = await getCollection<any>('invitations');
+          if (invCol) {
+            const invIds = docs
+              .filter((d) => d.type === 'workspace_invite' && d.referenceId)
+              .map((d) => d.referenceId);
+            if (invIds.length > 0) {
+              const liveInvs = await invCol.find({ id: { $in: invIds } }).toArray();
+              const invMap = new Map<string, any>(liveInvs.map((i: any) => [i.id, i]));
+              docs.forEach((d) => {
+                if (d.referenceId && invMap.has(d.referenceId)) {
+                  const liveInv = invMap.get(d.referenceId);
+                  d.invitationData = {
+                    ...(d.invitationData || {}),
+                    status: liveInv.status,
+                    role: liveInv.workspaceRole || liveInv.roleTitle,
+                  };
+                }
+              });
+            }
+          }
+        } catch {}
+        return docs;
+      }
     }
   } catch (e) {
     console.warn('MongoDB getUserNotifications notice:', e);

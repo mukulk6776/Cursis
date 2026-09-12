@@ -83,11 +83,8 @@ export default function TeamPage() {
  </p>
  </div>
  <div className="page-actions" style={{ display: 'flex', gap: 'var(--sp-2)' }}>
- <button className="btn btn-secondary btn-sm" onClick={() => openModal('invite-modal')}>
+ <button className="btn btn-primary btn-sm" onClick={() => openModal('invite-modal')}>
  Invite via Email
- </button>
- <button className="btn btn-primary btn-sm" onClick={() => openModal('member-modal')}>
- + Add Team Member
  </button>
  </div>
  </div>
@@ -206,8 +203,8 @@ export default function TeamPage() {
  Clear Filters
  </button>
  )}
- <button className="btn btn-primary btn-sm" onClick={() => openModal('member-modal')}>
- + Add Member
+ <button className="btn btn-primary btn-sm" onClick={() => openModal('invite-modal')}>
+ Invite via Email
  </button>
  </div>
  </div>
@@ -471,7 +468,7 @@ export default function TeamPage() {
  {pendingInvites.length === 0 ? (
  <tr>
  <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--sp-8)', color: 'var(--text-tertiary)', fontSize: 'var(--fs-sm)' }}>
- No pending invitations. Click &quot;+ Add Team Member&quot; or &quot; Invite via Email&quot; to send secure workspace links.
+ No pending invitations. Click &quot;Invite via Email&quot; to invite a team member.
  </td>
  </tr>
  ) : (
@@ -484,33 +481,19 @@ export default function TeamPage() {
  {inv.workspaceRole} ({inv.roleTitle})
  </span>
  </td>
- <td style={{ padding: 'var(--sp-3)' }}>{inv.department.replace('dept_', '')}</td>
+ <td style={{ padding: 'var(--sp-3)' }}>{(inv.department || 'Engineering').replace('dept_', '')}</td>
  <td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>
  {formatDate(inv.expiresAt)}
  </td>
  <td style={{ padding: 'var(--sp-3)' }}>
- <div style={{ display: 'flex', gap: '6px' }}>
- <button
- type="button"
- className="btn btn-secondary btn-sm"
- style={{ fontSize: '10px', padding: '3px 8px' }}
- onClick={() => handleCopyLink(inv.token)}
- >
- Copy Link
- </button>
- <button
- type="button"
- className="btn btn-primary btn-sm"
- style={{ fontSize: '10px', padding: '3px 8px' }}
- title="Simulate token acceptance and convert directly to active team member"
- onClick={() => acceptInvitation(inv.id)}
- >
- Accept / Add
- </button>
+ <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+ <span className="badge badge-warning" style={{ fontSize: '10px' }}>
+ Pending Response
+ </span>
  <button
  type="button"
  className="btn btn-ghost btn-sm"
- style={{ fontSize: '10px', padding: '3px 6px', color: 'var(--c-error)' }}
+ style={{ fontSize: '10px', padding: '3px 8px', color: 'var(--c-error)' }}
  onClick={() => revokeInvitation(inv.id)}
  >
  Revoke
@@ -650,8 +633,8 @@ export default function TeamPage() {
  Real-time capacity tracking calibrated to sprint velocity limits (8 concurrent tasks nominal).
  </p>
  </div>
- <button className="btn btn-primary btn-sm" onClick={() => openModal('member-modal')}>
- + Add Member to Balance Load
+ <button className="btn btn-primary btn-sm" onClick={() => openModal('invite-modal')}>
+ Invite Team Member
  </button>
  </div>
 

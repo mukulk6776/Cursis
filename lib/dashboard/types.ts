@@ -74,11 +74,14 @@ export interface Invitation {
   workspaceRole: string;
   department: string;
   team: string | null;
-  status: 'pending' | 'accepted' | 'expired';
-  token: string;
-  sentAt: string;
+  status: 'pending' | 'accepted' | 'declined' | 'revoked' | 'expired';
+  token?: string;
+  sentAt?: string;
+  createdAt?: string;
   expiresAt: string;
-  invitedBy: string;
+  invitedBy?: string;
+  inviterUserId?: string;
+  inviteeUserId?: string;
   planTier?: 'standard';
 }
 
@@ -173,11 +176,19 @@ export interface Meeting {
 
 export interface NotificationItem {
   id: string;
-  type: 'task' | 'mention' | 'meeting' | 'deadline' | 'ai' | 'project' | 'team' | 'automation' | 'agent' | 'security' | 'system';
+  type: 'task' | 'mention' | 'meeting' | 'deadline' | 'ai' | 'project' | 'team' | 'automation' | 'agent' | 'security' | 'system' | 'workspace_invite';
   text: string;
   time: string;
   read: boolean;
   icon: string;
+  referenceId?: string;
+  invitationData?: {
+    workspaceId: string;
+    workspaceName: string;
+    inviterName: string;
+    role: string;
+    status: 'pending' | 'accepted' | 'declined' | 'revoked';
+  };
 }
 
 export interface ActivityItem {

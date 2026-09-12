@@ -98,6 +98,8 @@ interface DashboardContextType {
  activeWorkspaceId: string;
  activeWorkspace: Workspace;
  switchWorkspace: (workspaceId: string) => void;
+ fetchWorkspaces: () => Promise<void>;
+ syncTeamAndNotifications: (wsId?: string) => Promise<void>;
  workspace: WorkspaceSummary;
 
  // Panels & Overlays
@@ -215,6 +217,7 @@ interface DashboardContextType {
  sendInvitation: (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard' }) => void;
  revokeInvitation: (id: string) => void;
  acceptInvitation: (invitationIdOrToken: string) => void;
+ declineInvitation: (invitationId: string) => void;
  sendOrdisMessage: (text: string) => void;
  markNotificationsRead: () => void;
 
@@ -371,13 +374,29 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>('ws_public');
  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
 
- const switchWorkspace = (workspaceId: string) => {
- if (workspaces.some((w) => w.id === workspaceId)) {
- setActiveWorkspaceId(workspaceId);
- const ws = workspaces.find((w) => w.id === workspaceId);
- showToast(`Switched to ${ws?.name || 'workspace'}`);
- }
- };
+  const fetchWorkspaces = async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/workspaces', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        const serverWs = data.data?.workspaces || data.workspaces;
+        if (Array.isArray(serverWs) && serverWs.length > 0) {
+          setWorkspaces(serverWs);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch workspaces:', err);
+    }
+  };
+
+  const switchWorkspace = (workspaceId: string) => {
+    if (workspaces.some((w) => w.id === workspaceId)) {
+      setActiveWorkspaceId(workspaceId);
+      const ws = workspaces.find((w) => w.id === workspaceId);
+      showToast(`Switched to ${ws?.name || 'workspace'}`);
+      syncTeamAndNotifications(workspaceId);
+    }
+  };
 
  // Base State Entities
   const [user, setUser] = useState<User>(INITIAL_USER);
@@ -630,6 +649,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 time: timeStr,
                 read: Boolean(n.read),
                 icon: n.icon || 'bell',
+                referenceId: n.referenceId,
+                invitationData: n.invitationData,
               };
             })
           );
@@ -759,11 +780,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           }
         });
 
-        // Hydrate team and notifications from MongoDB
+        // Hydrate workspaces, team and notifications from MongoDB
+        await fetchWorkspaces();
         syncTeamAndNotifications(sessUser.workspaceId || 'ws_public');
- }
- }
- } catch (err) {
+      }
+    }
+  } catch (err) {
  console.warn('Session sync notice:', err);
  }
  }
@@ -1642,123 +1664,99 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  const sendInvitation = (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard' }) => {
-    const token = 'tok_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
-    const assignedTier = 'standard';
-    const newInv: Invitation = {
-      id: 'inv_' + Date.now(),
-      email: inv.email.toLowerCase(),
-      name: inv.name || inv.email.split('@')[0],
-      roleTitle: inv.roleTitle || 'Team Member',
-      workspaceRole: inv.workspaceRole || teamSettings.defaultRole,
-      department: inv.department,
-      team: inv.team,
-      status: 'pending',
-      token,
-      sentAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
-      invitedBy: user.id,
-      planTier: assignedTier,
-    };
-
-    setInvitations((prev) => [newInv, ...prev]);
-    addAuditEntry(user.name, 'team.invitation.sent', newInv.email, `Dispatched 7-day invite to ${newInv.email} (${newInv.workspaceRole})`);
-
+  const sendInvitation = async (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard'; note?: string }) => {
     try {
-      fetch('/api/team', {
+      const res = await fetch(`/api/workspaces/${activeWorkspaceId}/invitations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'invite',
-          workspaceId: activeWorkspaceId,
-          email: newInv.email,
-          name: newInv.name,
-          roleTitle: newInv.roleTitle,
-          workspaceRole: newInv.workspaceRole,
-          department: newInv.department,
-          team: newInv.team,
-          planTier: assignedTier,
+          email: inv.email,
+          role: inv.workspaceRole || 'member',
+          department: inv.department,
+          team: inv.team,
+          note: inv.note,
         }),
-      })
-        .then(() => {
-          syncTeamAndNotifications(activeWorkspaceId);
-        })
-        .catch(() => {});
-    } catch {}
+      });
 
-    showToast(`Invitation sent to ${inv.email} `);
-  };
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        showToast(data.error || 'Failed to send invitation');
+        return;
+      }
 
-  const revokeInvitation = (id: string) => {
-    const inv = invitations.find((i) => i.id === id);
-    setInvitations((prev) => prev.filter((i) => i.id !== id));
-    addAuditEntry(user.name, 'team.invitation.revoked', inv?.email || id, `Revoked invitation token`);
-
-    try {
-      fetch(`/api/team?invitationId=${id}&workspaceId=${activeWorkspaceId}`, {
-        method: 'DELETE',
-      })
-        .then(() => {
-          syncTeamAndNotifications(activeWorkspaceId);
-        })
-        .catch(() => {});
-    } catch {}
-
-    showToast('Invitation revoked');
-  };
-
-  const acceptInvitation = (invitationIdOrToken: string) => {
-    const inv = invitations.find((i) => i.id === invitationIdOrToken || i.token === invitationIdOrToken);
-    if (!inv) {
-      showToast('Invitation not found or expired');
-      return;
+      showToast(`Invitation sent to ${inv.email}`);
+      addAuditEntry(user.name, 'team.invitation.sent', inv.email, `Dispatched invite to ${inv.email} (${inv.workspaceRole || 'member'})`);
+      syncTeamAndNotifications(activeWorkspaceId);
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to send invitation');
     }
+  };
 
-    const initials = inv.name
-      .split(' ')
-      .filter(Boolean)
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2) || 'CU';
-
-    const newEmp: Employee = {
-      id: 'u_' + Date.now(),
-      name: inv.name,
-      initials,
-      role: inv.roleTitle || 'Team Member',
-      department: inv.department,
-      departmentId: 'dept_' + inv.department.toLowerCase().replace(/\s+/g, '_'),
-      teamIds: inv.team ? [inv.team] : ['team_core'],
-      workspaceRole: inv.workspaceRole || teamSettings.defaultRole,
-      status: 'online',
-      color: '#10b981',
-      tasks: 0,
-      projects: 0,
-      email: inv.email,
-      skills: ['Collaboration', 'Cursis'],
-      joinedAt: new Date().toISOString().split('T')[0],
-      invitedBy: inv.invitedBy || user.id,
-      planTier: inv.planTier || 'standard',
-    };
-
-    setEmployees((prev) => [...prev, newEmp]);
-    setInvitations((prev) => prev.filter((i) => i.id !== inv.id));
-    addAuditEntry(inv.name, 'team.invitation.accepted', inv.email, `Accepted workspace invitation as ${newEmp.role}`);
-
+  const revokeInvitation = async (id: string) => {
     try {
-      fetch('/api/team', {
+      const res = await fetch(`/api/workspaces/${activeWorkspaceId}/invitations?invitationId=${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        showToast(data.error || 'Failed to revoke invitation');
+        return;
+      }
+
+      setInvitations((prev) => prev.filter((i) => i.id !== id));
+      showToast('Invitation revoked');
+      addAuditEntry(user.name, 'team.invitation.revoked', id, 'Revoked invitation');
+      syncTeamAndNotifications(activeWorkspaceId);
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to revoke invitation');
+    }
+  };
+
+  const acceptInvitation = async (invitationId: string) => {
+    try {
+      const res = await fetch(`/api/invitations/${invitationId}/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'accept', token: inv.token }),
-      })
-        .then(() => {
-          syncTeamAndNotifications(activeWorkspaceId);
-        })
-        .catch(() => {});
-    } catch {}
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        showToast(data.error || 'Failed to accept invitation');
+        return;
+      }
 
-    showToast(`Welcome ${newEmp.name} to the team! `);
+      showToast(data.message || 'Invitation accepted! You have joined the workspace.');
+      addAuditEntry(user.name, 'team.invitation.accepted', invitationId, 'Accepted workspace invitation');
+
+      // Refresh workspaces to immediately list the new workspace
+      await fetchWorkspaces();
+
+      if (data.workspaceId) {
+        setActiveWorkspaceId(data.workspaceId);
+        await syncTeamAndNotifications(data.workspaceId);
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to accept invitation');
+    }
+  };
+
+  const declineInvitation = async (invitationId: string) => {
+    try {
+      const res = await fetch(`/api/invitations/${invitationId}/decline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        showToast(data.error || 'Failed to decline invitation');
+        return;
+      }
+
+      showToast(data.message || 'Invitation declined');
+      addAuditEntry(user.name, 'team.invitation.declined', invitationId, 'Declined workspace invitation');
+      await syncTeamAndNotifications(activeWorkspaceId);
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to decline invitation');
+    }
   };
 
   const markNotificationsRead = async () => {
@@ -2300,6 +2298,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  activeWorkspaceId,
  activeWorkspace,
  switchWorkspace,
+ fetchWorkspaces,
+ syncTeamAndNotifications,
  workspace: INITIAL_WORKSPACE_SUMMARY,
  activeModal,
  openModal,
@@ -2402,6 +2402,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  sendInvitation,
  revokeInvitation,
  acceptInvitation,
+ declineInvitation,
  sendOrdisMessage,
  markNotificationsRead,
  geminiApiKey,
