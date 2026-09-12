@@ -1405,21 +1405,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const emp = employees.find((e) => e.id === id);
     const empEmail = (emp?.email || '').trim().toLowerCase();
 
-    // Blacklist immediately from any incoming background syncs
-    removedMemberIdsRef.current.add(id);
-    if (empEmail) {
-      removedMemberIdsRef.current.add(empEmail);
-    }
-
-    setEmployees((prev) =>
-      prev.filter((e) => e.id !== id && (!empEmail || (e.email || '').trim().toLowerCase() !== empEmail))
-    );
-    if (profilePanelEmployeeId === id) {
-      setProfilePanelEmployeeId(null);
-    }
-    addAuditEntry(user.name, 'team.member.removed', emp?.name || id, `Removed member from workspace`);
-    showToast(`Removed ${emp?.name || 'member'} from workspace`);
-
     try {
       const queryParams = new URLSearchParams({
         userId: id,
@@ -1429,12 +1414,37 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         queryParams.set('email', empEmail);
       }
 
-      await fetch(`/api/team?${queryParams.toString()}`, {
+      const res = await fetch(`/api/team?${queryParams.toString()}`, {
         method: 'DELETE',
         credentials: 'include',
       });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        showToast(data.error || 'Failed to remove team member', 'error');
+        return;
+      }
+
+      // Success! Now remove from local state
+      removedMemberIdsRef.current.add(id);
+      if (empEmail) {
+        removedMemberIdsRef.current.add(empEmail);
+      }
+
+      setEmployees((prev) =>
+        prev.filter((e) => e.id !== id && (!empEmail || (e.email || '').trim().toLowerCase() !== empEmail))
+      );
+      if (profilePanelEmployeeId === id) {
+        setProfilePanelEmployeeId(null);
+      }
+      addAuditEntry(user.name, 'team.member.removed', emp?.name || id, `Removed member from workspace`);
+      showToast(`Removed ${emp?.name || 'member'} from workspace`);
+      
+      // Re-sync authoritative list from server
+      fetchDashboardData();
     } catch (err) {
       console.warn('Notice: Error removing member:', err);
+      showToast('Network error while removing member.', 'error');
     }
   };
 

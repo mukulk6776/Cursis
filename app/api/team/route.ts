@@ -193,6 +193,12 @@ export async function DELETE(request: Request) {
     }
 
     if (userId || email) {
+      // Authorization Guard: Only Owners/Admins can remove OTHER members
+      const isSelfLeave = (userId && userId === authUser.uid) || (email && email.toLowerCase() === authUser.email.toLowerCase());
+      if (!isSelfLeave && authUser.role !== 'owner' && authUser.workspaceRole !== 'owner') {
+        return apiError('Forbidden: Only Workspace Owners can remove other members.', 403);
+      }
+
       const removed = await removeTeamMember(workspaceId, userId || '', email || undefined);
       return apiSuccess({ removed, message: 'Team member removed from workspace' });
     }

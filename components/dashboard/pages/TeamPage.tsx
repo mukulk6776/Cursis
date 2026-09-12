@@ -314,7 +314,7 @@ export default function TeamPage() {
  >
  Profile
  </button>
- {emp.id !== user.id && emp.id !== 'u1' && emp.id !== 'u_owner' && emp.workspaceRole !== 'owner' && (
+ {(user.workspaceRole === 'owner' || user.role === 'owner') && emp.id !== user.id && emp.id !== 'u1' && emp.id !== 'u_owner' && emp.workspaceRole !== 'owner' && (
  <button
  type="button"
  className="btn btn-ghost btn-sm"

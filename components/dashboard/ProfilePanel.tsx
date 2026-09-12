@@ -254,7 +254,7 @@ export default function ProfilePanel() {
  )}
 
  {/* Member Management Actions (for Admins / other members) */}
- {emp.id !== user.id && emp.id !== 'u1' && emp.id !== 'u_owner' && emp.workspaceRole !== 'owner' && (
+ {(user.workspaceRole === 'owner' || user.role === 'owner') && emp.id !== user.id && emp.id !== 'u1' && emp.id !== 'u_owner' && emp.workspaceRole !== 'owner' && (
  <div
  style={{
  marginTop: 'var(--sp-6)',
