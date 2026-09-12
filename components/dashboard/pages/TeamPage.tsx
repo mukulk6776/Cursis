@@ -344,6 +344,37 @@ export default function TeamPage() {
  Remove
  </button>
  )}
+ {emp.id === user.id && emp.workspaceRole !== 'owner' && (
+ <button
+ type="button"
+ className="btn btn-ghost btn-sm"
+ style={{
+ fontSize: '10px',
+ padding: '2px 8px',
+ color: 'var(--c-warning)',
+ border: '1px solid rgba(245, 158, 11, 0.25)',
+ background: 'rgba(245, 158, 11, 0.04)',
+ display: 'inline-flex',
+ alignItems: 'center',
+ gap: '4px',
+ borderRadius: '4px',
+ }}
+ title="Leave this workspace"
+ onClick={async (e) => {
+ e.stopPropagation();
+ if (window.confirm('Are you sure you want to leave this workspace? You will lose access immediately.')) {
+ await removeEmployee(emp.id);
+ }
+ }}
+ >
+ <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+ <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+ <polyline points="16 17 21 12 16 7" />
+ <line x1="21" y1="12" x2="9" y2="12" />
+ </svg>
+ Leave
+ </button>
+ )}
  </div>
  </div>
  </div>

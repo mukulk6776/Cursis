@@ -1676,6 +1676,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         .catch(() => {});
     } catch {}
 
+    if (typeof window !== 'undefined') {
+      const inviteLink = `${window.location.origin}/invite/${token}`;
+      const subject = encodeURIComponent(`You've been invited to join Cursis`);
+      const bodyText = `Hi ${inv.name || ''},\n\nYou have been invited to join Cursis as a ${inv.roleTitle || 'Team Member'}.\n\nClick the link below to accept the invitation:\n${inviteLink}\n\nBest,\n${user.name || 'Workspace Admin'}`;
+      window.location.href = `mailto:${inv.email}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+    }
     showToast(`Invitation sent to ${inv.email} `);
   };
 
