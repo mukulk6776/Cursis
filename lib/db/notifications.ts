@@ -68,44 +68,94 @@ export async function getUserNotifications(params: {
 
       const query = orClauses.length > 0 ? { $or: orClauses } : {};
       const docs = await col.find(query).sort({ createdAt: -1 }).limit(50).toArray();
-      if (docs.length > 0) {
-        // Enrich invitation status dynamically from invitations collection
-        try {
-          const invCol = await getCollection<any>('invitations');
-          if (invCol) {
-            const invIds = docs
-              .filter((d) => d.type === 'workspace_invite' && d.referenceId)
-              .map((d) => d.referenceId);
-            if (invIds.length > 0) {
-              const liveInvs = await invCol.find({ id: { $in: invIds } }).toArray();
-              const invMap = new Map<string, any>(liveInvs.map((i: any) => [i.id, i]));
-              docs.forEach((d) => {
-                if (d.referenceId && invMap.has(d.referenceId)) {
-                  const liveInv = invMap.get(d.referenceId);
-                  d.invitationData = {
-                    ...(d.invitationData || {}),
-                    status: liveInv.status,
-                    role: liveInv.workspaceRole || liveInv.roleTitle,
-                  };
-                }
-              });
+
+      // Dynamically guarantee all pending invitations for this user's email are present
+      try {
+        const invCol = await getCollection<any>('invitations');
+        if (invCol && cleanEmail) {
+          const pendingInvs = await invCol.find({ email: cleanEmail, status: 'pending' }).toArray();
+          for (const pinv of pendingInvs) {
+            const existingIdx = docs.findIndex((d) => d.referenceId === pinv.id);
+            if (existingIdx === -1) {
+              docs.unshift({
+                id: `notif_inv_${pinv.id}`,
+                userId: uid || pinv.inviteeUserId,
+                userEmail: cleanEmail,
+                workspaceId: pinv.workspaceId,
+                type: 'workspace_invite',
+                referenceId: pinv.id,
+                text: `<strong>${pinv.invitedBy || 'Workspace Admin'}</strong> invited you to join <strong>${pinv.workspaceName || 'a workspace'}</strong> as <strong>${pinv.workspaceRole === 'admin' ? 'Admin' : 'Member'}</strong>.`,
+                read: false,
+                icon: 'mail',
+                createdAt: pinv.createdAt || new Date().toISOString(),
+                invitationData: {
+                  workspaceId: pinv.workspaceId,
+                  workspaceName: pinv.workspaceName || 'Workspace',
+                  inviterName: pinv.invitedBy || 'Workspace Admin',
+                  role: pinv.workspaceRole || 'member',
+                  status: 'pending',
+                },
+              } as any);
+            } else {
+              docs[existingIdx].invitationData = {
+                ...(docs[existingIdx].invitationData || {}),
+                status: pinv.status,
+                role: pinv.workspaceRole || pinv.roleTitle || 'member',
+                workspaceName: pinv.workspaceName || docs[existingIdx].invitationData?.workspaceName,
+              };
             }
           }
-        } catch {}
-        return docs;
+        }
+      } catch (e) {
+        console.warn('MongoDB invitation enrichment notice:', e);
       }
+
+      return docs;
     }
   } catch (e) {
     console.warn('MongoDB getUserNotifications notice:', e);
   }
 
-  // Fallback to in-memory notifications
-  return inMemoryNotifications.filter((n) => {
+  // Fallback to in-memory notifications and in-memory invitations
+  const resultNotifs = inMemoryNotifications.filter((n) => {
     if (cleanEmail && n.userEmail === cleanEmail) return true;
     if (uid && n.userId === uid) return true;
     if (wsId && n.workspaceId === wsId && !n.userEmail) return true;
     return false;
   });
+
+  try {
+    const { inMemoryInvitations } = await import('./invitations');
+    if (cleanEmail && inMemoryInvitations) {
+      for (const pinv of inMemoryInvitations.values()) {
+        if (pinv.email === cleanEmail && pinv.status === 'pending') {
+          if (!resultNotifs.some((d) => d.referenceId === pinv.id)) {
+            resultNotifs.unshift({
+              id: `notif_inv_${pinv.id}`,
+              userId: uid,
+              userEmail: cleanEmail,
+              workspaceId: pinv.workspaceId,
+              type: 'workspace_invite',
+              referenceId: pinv.id,
+              text: `<strong>Workspace Admin</strong> invited you to join <strong>Workspace</strong> as <strong>${pinv.workspaceRole === 'admin' ? 'Admin' : 'Member'}</strong>.`,
+              read: false,
+              icon: 'mail',
+              createdAt: pinv.createdAt || new Date().toISOString(),
+              invitationData: {
+                workspaceId: pinv.workspaceId,
+                workspaceName: 'Workspace',
+                inviterName: 'Workspace Admin',
+                role: pinv.workspaceRole || 'member',
+                status: 'pending',
+              },
+            });
+          }
+        }
+      }
+    }
+  } catch {}
+
+  return resultNotifs;
 }
 
 export async function markAllNotificationsRead(params: {
