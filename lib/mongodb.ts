@@ -67,9 +67,19 @@ export default clientPromise;
  */
 export async function getDb(): Promise<Db | null> {
   try {
-    if (global._mongoIsConnected === false) return null;
-    const mongoClient = await clientPromise;
-    if (!mongoClient || !global._mongoIsConnected) return null;
+    let mongoClient = await clientPromise;
+    if (!mongoClient || !global._mongoIsConnected) {
+      try {
+        const freshClient = new MongoClient(MONGODB_URI, options);
+        mongoClient = await freshClient.connect();
+        global._mongoClientPromise = Promise.resolve(mongoClient);
+        clientPromise = global._mongoClientPromise;
+        global._mongoIsConnected = true;
+        isConnected = true;
+      } catch {
+        return null;
+      }
+    }
     return mongoClient.db(DB_NAME);
   } catch (error) {
     return null;

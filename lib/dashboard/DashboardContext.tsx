@@ -542,7 +542,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // Persistent Team & Notifications Synchronization with MongoDB
   const syncTeamAndNotifications = async (wsId?: string) => {
-    const targetWsId = wsId || (activeWorkspaceId !== 'ws_public' && activeWorkspaceId !== 'ws_default' ? activeWorkspaceId : '');
+    const targetWsId = wsId || (activeWorkspaceId && activeWorkspaceId !== 'ws_public' && activeWorkspaceId !== 'ws_default' ? activeWorkspaceId : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || ''));
     try {
       // 1. Fetch live team members and invitations from MongoDB
       const url = targetWsId ? `/api/team?workspaceId=${encodeURIComponent(targetWsId)}` : '/api/team';
@@ -777,7 +777,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         // Hydrate workspaces, team and notifications from MongoDB
         await fetchWorkspaces();
         const primaryWsId = sessUser.workspaceId || 'ws_' + sessUser.uid;
-        setActiveWorkspaceId(primaryWsId);
+        setActiveWorkspaceId((prev) => (prev && prev !== 'ws_default' && prev !== 'ws_public' ? prev : primaryWsId));
         syncTeamAndNotifications(primaryWsId);
       }
     }
@@ -1723,12 +1723,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       showToast(data.message || 'Invitation accepted! You have joined the workspace.');
       addAuditEntry(user.name, 'team.invitation.accepted', invitationId, 'Accepted workspace invitation');
 
+      if (data.workspaceId) {
+        setActiveWorkspaceId(data.workspaceId);
+      }
+
       // Refresh workspaces to immediately list the new workspace
       await fetchWorkspaces();
 
-      if (data.workspaceId) {
-        setActiveWorkspaceId(data.workspaceId);
-        await syncTeamAndNotifications(data.workspaceId);
+      const finalWsId = data.workspaceId || activeWorkspaceId;
+      if (finalWsId && finalWsId !== 'ws_default' && finalWsId !== 'ws_public') {
+        setActiveWorkspaceId(finalWsId);
+        await syncTeamAndNotifications(finalWsId);
       }
     } catch (err: any) {
       showToast(err?.message || 'Failed to accept invitation');

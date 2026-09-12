@@ -10,6 +10,7 @@ import {
   Workspace,
 } from './types';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { ensureWorkspaceExists } from './workspaces';
 import { Resend } from 'resend';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -78,13 +79,22 @@ export async function createTeamInvitation(params: {
   note?: string;
   reqHost?: string;
 }): Promise<WorkspaceInvitation> {
-  const { workspaceId, inviterUser, department, team, note, reqHost } = params;
+  const { inviterUser, department, team, note, reqHost } = params;
+  let workspaceId = (params.workspaceId || '').trim();
+  if (!workspaceId || workspaceId === 'ws_default' || workspaceId === 'ws_public') {
+    workspaceId = (inviterUser as any).workspaceId || ('ws_' + inviterUser.uid);
+  }
   const cleanInviteEmail = (params.inviteeEmail || '').toLowerCase().trim();
   const assignedRole: UserRole = params.role === 'admin' ? 'admin' : 'member';
 
   if (!cleanInviteEmail || !cleanInviteEmail.includes('@')) {
     throw new Error('A valid email address is required.');
   }
+
+  // Ensure workspace exists
+  try {
+    await ensureWorkspaceExists(workspaceId, inviterUser.uid);
+  } catch {}
 
   // 1. Authorization check: Inviter must be Owner or Admin
   const isAuthorized = await isWorkspaceAdminOrOwner(workspaceId, inviterUser);
@@ -430,6 +440,12 @@ export async function acceptWorkspaceInvitation(
   const now = new Date().toISOString();
   const membershipId = `mem_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
+  // Ensure workspace document exists in workspaces collection
+  let wsDoc: Workspace | null = null;
+  try {
+    wsDoc = await ensureWorkspaceExists(workspaceId, invitation.inviterUserId);
+  } catch {}
+
   // 1. Create WorkspaceMembership
   const membership: WorkspaceMembership = {
     id: membershipId,
@@ -556,6 +572,26 @@ export async function acceptWorkspaceInvitation(
         { referenceId: invitationId },
         { $set: { read: true, 'invitationData.status': 'accepted' } }
       );
+    }
+  } catch {}
+
+  // 6. Send notification to inviter that the invitee has joined
+  try {
+    if (invitation.inviterUserId && invitation.inviterUserId !== actingUser.uid) {
+      const inviterNotif: DbNotification = {
+        id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        userId: invitation.inviterUserId,
+        workspaceId,
+        type: 'team',
+        text: `<strong>${actingUser.displayName || actingUser.email}</strong> accepted your invitation and joined <strong>${wsDoc?.name || 'Workspace'}</strong>.`,
+        read: false,
+        icon: 'user-check',
+        createdAt: now,
+      };
+      const notifCol = await getCollection<DbNotification>('notifications');
+      if (notifCol) {
+        await notifCol.insertOne(inviterNotif);
+      }
     }
   } catch {}
 

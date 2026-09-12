@@ -18,10 +18,11 @@ export async function GET(
     if (auth.errorResponse) return auth.errorResponse;
     const authUser = auth.user;
 
-    const { id: workspaceId } = await params;
-    if (!workspaceId) {
-      return apiError('Workspace ID is required', 400);
-    }
+    const { id: rawWorkspaceId } = await params;
+    const workspaceId =
+      rawWorkspaceId && rawWorkspaceId !== 'ws_default' && rawWorkspaceId !== 'ws_public'
+        ? rawWorkspaceId
+        : authUser.workspaceId || ('ws_' + authUser.uid);
 
     // Authorization check: Only Owner or Admin can view pending invitations
     const isAuth = await isWorkspaceAdminOrOwner(workspaceId, {
@@ -51,10 +52,11 @@ export async function POST(
     if (auth.errorResponse) return auth.errorResponse;
     const authUser = auth.user;
 
-    const { id: workspaceId } = await params;
-    if (!workspaceId) {
-      return apiError('Workspace ID is required', 400);
-    }
+    const { id: rawWorkspaceId } = await params;
+    const workspaceId =
+      rawWorkspaceId && rawWorkspaceId !== 'ws_default' && rawWorkspaceId !== 'ws_public'
+        ? rawWorkspaceId
+        : authUser.workspaceId || ('ws_' + authUser.uid);
 
     const body = await request.json().catch(() => ({}));
     const email = body.email?.trim()?.toLowerCase();
@@ -97,7 +99,11 @@ export async function DELETE(
     if (auth.errorResponse) return auth.errorResponse;
     const authUser = auth.user;
 
-    const { id: workspaceId } = await params;
+    const { id: rawWorkspaceId } = await params;
+    const workspaceId =
+      rawWorkspaceId && rawWorkspaceId !== 'ws_default' && rawWorkspaceId !== 'ws_public'
+        ? rawWorkspaceId
+        : authUser.workspaceId || ('ws_' + authUser.uid);
     const { searchParams } = new URL(request.url);
     const invitationId = searchParams.get('invitationId') || searchParams.get('id');
 

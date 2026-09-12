@@ -36,6 +36,102 @@ export async function getAllWorkspaces(): Promise<Workspace[]> {
   return Array.from(inMemoryStore.workspaces.values());
 }
 
+export async function ensureWorkspaceExists(
+  workspaceId: string,
+  ownerIdHint?: string,
+  nameHint?: string
+): Promise<Workspace> {
+  const cleanId = (workspaceId || '').trim();
+  if (!cleanId || cleanId === 'ws_public' || cleanId === 'ws_default') {
+    throw new Error('A valid workspace ID is required.');
+  }
+
+  // 1. Check in memory
+  let ws = inMemoryStore.workspaces.get(cleanId) || null;
+
+  // 2. Check MongoDB
+  try {
+    const col = await getCollection<Workspace>('workspaces');
+    if (col) {
+      const doc = await col.findOne({ id: cleanId });
+      if (doc) {
+        ws = doc;
+        inMemoryStore.workspaces.set(cleanId, doc);
+      }
+    }
+  } catch {}
+
+  if (ws) return ws;
+
+  // 3. Needs to be created/reconstructed
+  let resolvedOwnerId = ownerIdHint || '';
+  let resolvedName = nameHint || '';
+
+  if (!resolvedOwnerId && cleanId.startsWith('ws_usr_')) {
+    resolvedOwnerId = cleanId.replace(/^ws_/, '');
+  }
+
+  try {
+    const userCol = await getCollection<any>('users');
+    if (userCol) {
+      let ownerUser: any = null;
+      if (resolvedOwnerId) {
+        ownerUser = await userCol.findOne({ $or: [{ uid: resolvedOwnerId }, { id: resolvedOwnerId }] });
+      }
+      if (!ownerUser) {
+        ownerUser = await userCol.findOne({
+          $or: [
+            { workspaceIds: cleanId },
+            { activeWorkspaceId: cleanId },
+            { role: 'owner' },
+          ],
+        });
+      }
+      if (ownerUser) {
+        if (!resolvedOwnerId) resolvedOwnerId = ownerUser.uid || ownerUser.id;
+        if (!resolvedName) resolvedName = `${ownerUser.displayName || 'Workspace'}'s Workspace`;
+      }
+    }
+  } catch {}
+
+  if (!resolvedOwnerId) resolvedOwnerId = 'usr_owner';
+  if (!resolvedName) resolvedName = cleanId === 'ws_cursis_user' ? 'Cursis HQ' : 'Workspace';
+
+  const newWs: Workspace = {
+    id: cleanId,
+    name: resolvedName,
+    slug: resolvedName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    tier: 'free',
+    ordisMode: 'chill',
+    industry: 'Technology',
+    teamSize: '1-10',
+    features: ['workspace_core', 'team'],
+    settings: {
+      ambientMonitoring: true,
+      approvalRequiredForActions: true,
+      simulationMode: false,
+      riskTolerance: 'medium',
+    },
+    ownerId: resolvedOwnerId,
+    memberCount: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  inMemoryStore.workspaces.set(cleanId, newWs);
+
+  try {
+    const col = await getCollection<Workspace>('workspaces');
+    if (col) {
+      await col.updateOne({ id: cleanId }, { $set: newWs }, { upsert: true });
+    }
+  } catch (e) {
+    console.warn('MongoDB ensureWorkspaceExists notice:', e);
+  }
+
+  return newWs;
+}
+
 export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
   const wsMap = new Map<string, Workspace>();
 
@@ -66,7 +162,7 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
     }
 
     const allTargetIds = Array.from(
-      new Set([...userWorkspaceIds, ...membershipWsIds, `ws_${userId}`])
+      new Set([...userWorkspaceIds, ...membershipWsIds, userDoc?.activeWorkspaceId, `ws_${userId}`].filter(Boolean))
     );
 
     // 3. Query workspaces in MongoDB
@@ -83,6 +179,16 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
         wsMap.set(w.id, w);
         inMemoryStore.workspaces.set(w.id, w);
       });
+
+      // For any target workspace ID that was NOT found in docs, auto-ensure it exists
+      for (const tId of allTargetIds) {
+        if (!wsMap.has(tId) && tId !== 'ws_public' && tId !== 'ws_default') {
+          try {
+            const ensured = await ensureWorkspaceExists(tId, userId, `${userName}'s Workspace`);
+            wsMap.set(tId, ensured);
+          } catch {}
+        }
+      }
     }
 
     // 4. Also check in-memory store

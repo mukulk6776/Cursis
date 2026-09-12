@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function InviteModal() {
-  const { activeModal, closeModal, activeWorkspaceId, showToast, syncTeamAndNotifications } = useDashboard();
+  const { activeModal, closeModal, activeWorkspaceId, workspaces, user, showToast, syncTeamAndNotifications } = useDashboard();
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'member' | 'admin'>('member');
@@ -32,9 +32,13 @@ export default function InviteModal() {
       return;
     }
 
+    const effectiveWsId = (activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public')
+      ? activeWorkspaceId
+      : (workspaces?.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || 'ws_cursis_user');
+
     setIsSubmitting(true);
     try {
-      const res = await fetch(`/api/workspaces/${activeWorkspaceId}/invitations`, {
+      const res = await fetch(`/api/workspaces/${encodeURIComponent(effectiveWsId)}/invitations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -55,7 +59,7 @@ export default function InviteModal() {
 
       showToast(`Invitation sent to ${cleanEmail}`);
       if (typeof syncTeamAndNotifications === 'function') {
-        syncTeamAndNotifications(activeWorkspaceId);
+        syncTeamAndNotifications(effectiveWsId);
       }
       handleClose();
     } catch (err: any) {

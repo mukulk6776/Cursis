@@ -19,6 +19,7 @@ export async function GET(request: Request) {
     const profile = await findUserByEmail(user.email);
     const enrichedUser = {
       ...user,
+      workspaceId: profile?.activeWorkspaceId || profile?.workspaceIds?.[0] || user.workspaceId,
       title: profile?.title || user.title || 'Team Member',
       department: profile?.department || user.department || 'Engineering',
       skills: profile?.skills || user.skills || ['General'],

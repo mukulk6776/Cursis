@@ -18,6 +18,8 @@ function sanitizeTeamUser(u: UserProfile): UserProfile {
   return u;
 }
 
+import { ensureWorkspaceExists } from './workspaces';
+
 export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile[]> {
   const targetWsId = (workspaceId || '').trim();
   if (!targetWsId || targetWsId === 'ws_public') {
@@ -25,116 +27,168 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
   }
 
   try {
+    // 1. Ensure workspace exists in DB
+    try {
+      await ensureWorkspaceExists(targetWsId);
+    } catch {}
+
     const teamCol = await getCollection<WorkspaceTeamMember>('workspace_teams');
     const usersCol = await getCollection<UserProfile>('users');
     const wsCol = await getCollection<Workspace>('workspaces');
     const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
 
-    if (teamCol) {
-      let teamDocs: (WorkspaceTeamMember | any)[] = await teamCol.find({ workspaceId: targetWsId }).toArray();
+    // 2. Fetch workspace document to know the owner
+    const ws = wsCol ? await wsCol.findOne({ id: targetWsId }) : null;
+    const ownerId = ws?.ownerId || (targetWsId.startsWith('ws_usr_') ? targetWsId.replace(/^ws_/, '') : '');
 
-      // If workspace_teams is empty for this workspace, auto-seed the Owner & accepted members
-      if (teamDocs.length === 0 && wsCol) {
-        const ws = await wsCol.findOne({ id: targetWsId });
-        if (ws && ws.ownerId) {
-          const ownerUser = usersCol ? await usersCol.findOne({ $or: [{ uid: ws.ownerId }, { id: ws.ownerId }] }) : null;
-          const ownerDisplayName = ownerUser?.displayName || 'Workspace Owner';
-          const ownerEmail = ownerUser?.email || '';
+    // 3. Collect all user IDs associated with this workspace:
+    // - Members currently recorded in workspace_teams
+    // - Members with accepted records in workspace_memberships
+    // - The workspace owner
+    // - Users who have this targetWsId in their workspaceIds or activeWorkspaceId
+    const teamDocs = teamCol ? await teamCol.find({ workspaceId: targetWsId }).toArray() : [];
+    const membershipDocs = memCol ? await memCol.find({ workspaceId: targetWsId }).toArray() : [];
 
-          if (ownerEmail) {
-            const ownerTeamMember: WorkspaceTeamMember = {
-              id: `wtm_${targetWsId}_${ws.ownerId}`,
-              workspaceId: targetWsId,
-              workspaceName: ws.name || 'Workspace',
-              userId: ws.ownerId,
-              name: ownerDisplayName,
-              email: ownerEmail,
-              role: 'owner',
-              title: ownerUser?.title || 'Workspace Owner',
-              department: ownerUser?.department || 'Leadership',
-              skills: ownerUser?.skills || ['Leadership'],
-              photoURL: ownerUser?.photoURL,
-              presence: ownerUser?.presence || 'online',
-              joinedAt: ws.createdAt || new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            };
-            await teamCol.updateOne(
-              { workspaceId: targetWsId, userId: ws.ownerId },
-              { $set: ownerTeamMember },
-              { upsert: true }
-            );
-            teamDocs = [ownerTeamMember];
-          }
+    const memberUidMap = new Map<string, { role?: UserRole; title?: string; department?: string; joinedAt?: string }>();
 
-          // Also check accepted memberships in workspace_memberships to backfill if any exist
-          if (memCol && usersCol) {
-            const mems = await memCol.find({ workspaceId: targetWsId }).toArray();
-            for (const m of mems) {
-              if (m.userId === ws.ownerId) continue;
-              const u = await usersCol.findOne({ $or: [{ uid: m.userId }, { id: m.userId }] });
-              if (u) {
-                const memDoc: WorkspaceTeamMember = {
-                  id: `wtm_${targetWsId}_${u.uid}`,
-                  workspaceId: targetWsId,
-                  workspaceName: ws.name || 'Workspace',
-                  userId: u.uid,
-                  name: u.displayName || u.email.split('@')[0],
-                  email: u.email,
-                  role: m.role || 'member',
-                  title: u.title || 'Team Member',
-                  department: u.department || 'Engineering',
-                  skills: u.skills || ['General'],
-                  photoURL: u.photoURL,
-                  presence: u.presence || 'online',
-                  joinedAt: m.createdAt || new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                };
-                await teamCol.updateOne(
-                  { workspaceId: targetWsId, userId: u.uid },
-                  { $set: memDoc },
-                  { upsert: true }
-                );
-                teamDocs.push(memDoc);
-              }
-            }
-          }
-        }
+    // Owner
+    if (ownerId) {
+      memberUidMap.set(ownerId, { role: 'owner' });
+    }
+
+    // Existing workspace_teams docs
+    teamDocs.forEach((t) => {
+      if (t.userId) {
+        memberUidMap.set(t.userId, {
+          role: t.role,
+          title: t.title,
+          department: t.department,
+          joinedAt: t.joinedAt,
+        });
+      }
+    });
+
+    // Accepted workspace memberships
+    membershipDocs.forEach((m) => {
+      if (m.userId) {
+        const existing = memberUidMap.get(m.userId);
+        memberUidMap.set(m.userId, {
+          ...existing,
+          role: m.role || existing?.role || 'member',
+          joinedAt: m.createdAt || existing?.joinedAt,
+        });
+      }
+    });
+
+    // Users with workspaceId in users collection
+    if (usersCol) {
+      const searchUids = Array.from(memberUidMap.keys());
+      const orConditions: any[] = [
+        { workspaceIds: targetWsId },
+        { activeWorkspaceId: targetWsId },
+      ];
+      if (searchUids.length > 0) {
+        orConditions.push({ uid: { $in: searchUids } });
+        orConditions.push({ id: { $in: searchUids } });
       }
 
-      if (teamDocs.length > 0) {
-        // Hydrate real-time presence from users collection for these specific workspace team members only
-        const uids = teamDocs.map((t) => t.userId).filter(Boolean);
-        const liveUsers = usersCol ? await usersCol.find({ $or: [{ uid: { $in: uids } }, { id: { $in: uids } }] }).toArray() : [];
+      const relatedUsers = await usersCol.find({ $or: orConditions }).toArray();
+
+      relatedUsers.forEach((u) => {
+        const uid = u.uid || u.id;
+        if (uid && !memberUidMap.has(uid)) {
+          memberUidMap.set(uid, {
+            role: (u.role === 'owner' || uid === ownerId) ? 'owner' : 'member',
+            title: u.title,
+            department: u.department,
+            joinedAt: u.createdAt,
+          });
+        }
+      });
+
+      // Query complete user profiles for all collected IDs
+      const allUids = Array.from(memberUidMap.keys());
+      if (allUids.length > 0) {
+        const liveUsers = await usersCol
+          .find({
+            $or: [{ uid: { $in: allUids } }, { id: { $in: allUids } }],
+          })
+          .toArray();
+
         const liveUserMap = new Map(liveUsers.map((u) => [u.uid || u.id, u]));
 
-        const result: UserProfile[] = teamDocs.map((doc) => {
-          const live = liveUserMap.get(doc.userId);
+        const results: UserProfile[] = [];
+        const now = new Date().toISOString();
+
+        for (const [uid, meta] of memberUidMap.entries()) {
+          const live = liveUserMap.get(uid) || inMemoryStore.users.get(uid);
+          const cleanEmail = (live?.email || '').trim().toLowerCase();
+          const isFounder = isFounderEmail(cleanEmail);
+          const isOwner = isFounder || uid === ownerId || meta.role === 'owner';
+          const assignedRole: UserRole = isOwner ? 'owner' : (meta.role || live?.role || 'member');
+          const displayName = live?.displayName || (cleanEmail ? cleanEmail.split('@')[0] : 'Team Member');
+          const title = isFounder ? 'Founder & CEO' : (live?.title || meta.title || (isOwner ? 'Workspace Owner' : 'Team Member'));
+          const department = isFounder ? 'Leadership' : (live?.department || meta.department || (isOwner ? 'Leadership' : 'Engineering'));
+          const joinedAt = meta.joinedAt || live?.createdAt || ws?.createdAt || now;
+
+          const teamMemberDoc: WorkspaceTeamMember = {
+            id: `wtm_${targetWsId}_${uid}`,
+            workspaceId: targetWsId,
+            workspaceName: ws?.name || 'Workspace',
+            userId: uid,
+            name: displayName,
+            email: cleanEmail,
+            role: assignedRole,
+            title,
+            department,
+            skills: live?.skills || (isOwner ? ['Leadership', 'Strategy'] : ['General']),
+            photoURL: live?.photoURL,
+            presence: live?.presence || 'online',
+            joinedAt,
+            updatedAt: now,
+          };
+
+          // Upsert into workspace_teams so it remains synchronized
+          if (teamCol) {
+            teamCol
+              .updateOne(
+                { workspaceId: targetWsId, userId: uid },
+                { $set: teamMemberDoc },
+                { upsert: true }
+              )
+              .catch(() => {});
+          }
+
           const userObj: UserProfile = {
-            id: doc.userId || doc.id,
-            uid: doc.userId || doc.id,
-            email: doc.email,
-            displayName: doc.name || doc.email.split('@')[0],
-            role: doc.role,
-            title: doc.title || (doc.role === 'owner' ? 'Workspace Owner' : 'Team Member'),
-            department: doc.department || (doc.role === 'owner' ? 'Leadership' : 'Engineering'),
-            skills: doc.skills || [],
-            photoURL: doc.photoURL,
-            workspaceIds: [doc.workspaceId],
-            activeWorkspaceId: doc.workspaceId,
-            presence: live?.presence || doc.presence || 'offline',
-            lastActiveAt: live?.lastActiveAt || doc.updatedAt || doc.joinedAt,
-            createdAt: doc.joinedAt,
+            id: uid,
+            uid,
+            email: cleanEmail,
+            displayName,
+            role: assignedRole,
+            title,
+            department,
+            skills: teamMemberDoc.skills || [],
+            photoURL: live?.photoURL,
+            workspaceIds: [targetWsId],
+            activeWorkspaceId: targetWsId,
+            presence: live?.presence || 'online',
+            lastActiveAt: live?.lastActiveAt || now,
+            createdAt: joinedAt,
             onboardingStatus: 'completed',
             onboardingChecklist: [],
           };
-          return sanitizeTeamUser(userObj);
-        });
 
-        result.forEach((u) => {
+          results.push(sanitizeTeamUser(userObj));
+        }
+
+        results.forEach((u) => {
           if (u.id) inMemoryStore.users.set(u.id, u);
           if (u.uid) inMemoryStore.users.set(u.uid, u);
         });
-        return result;
+
+        if (results.length > 0) {
+          return results;
+        }
       }
     }
   } catch (e) {
