@@ -1,37 +1,49 @@
 import { NextResponse } from 'next/server';
-import { getDb, isMongoConnected } from '@/lib/mongodb';
+import { MongoClient } from 'mongodb';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET() {
-  let mongoConnected = false;
-  let dbError = null;
-  let dbCollections: string[] = [];
-  let counts: Record<string, number> = {};
-
-  try {
-    mongoConnected = await isMongoConnected();
-    const db = await getDb();
-    if (db) {
-      const cols = await db.listCollections().toArray();
-      dbCollections = cols.map((c) => c.name);
-      for (const name of ['users', 'invitations', 'notifications', 'workspace_teams', 'workspaces']) {
-        if (dbCollections.includes(name)) {
-          counts[name] = await db.collection(name).countDocuments();
-        }
-      }
-    }
-  } catch (err: any) {
-    dbError = err?.message || String(err);
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    return NextResponse.json({
+      success: false,
+      error: 'MONGODB_URI environment variable is not defined',
+    });
   }
 
-  return NextResponse.json({
-    mongoConnected,
-    dbError,
-    dbCollections,
-    counts,
-    hasMongoUri: Boolean(process.env.MONGODB_URI),
-    mongoUriHost: process.env.MONGODB_URI ? process.env.MONGODB_URI.split('@')[1]?.split('/')[0] : null,
-  });
+  let client: MongoClient | null = null;
+  try {
+    client = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 6000,
+      connectTimeoutMS: 6000,
+    });
+    await client.connect();
+    const db = client.db(process.env.MONGODB_DB_NAME || 'cursis');
+    await db.command({ ping: 1 });
+    const cols = await db.listCollections().toArray();
+
+    return NextResponse.json({
+      success: true,
+      mongoConnected: true,
+      collections: cols.map((c) => c.name),
+      cluster: uri.split('@')[1]?.split('/')[0],
+      dbName: db.databaseName,
+    });
+  } catch (err: any) {
+    return NextResponse.json({
+      success: false,
+      mongoConnected: false,
+      errorName: err.name,
+      errorMessage: err.message,
+      errorCode: err.code,
+      errorCause: err.cause ? (err.cause.message || String(err.cause)) : null,
+      cluster: uri.split('@')[1]?.split('/')[0],
+    });
+  } finally {
+    if (client) {
+      await client.close().catch(() => {});
+    }
+  }
 }
