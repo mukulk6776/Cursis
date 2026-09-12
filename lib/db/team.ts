@@ -1,5 +1,5 @@
 import { inMemoryStore } from './store';
-import { UserProfile, UserRole, WorkspaceInvitation } from './types';
+import { UserProfile, UserRole, Workspace, WorkspaceMembership, WorkspaceTeamMember } from './types';
 import { getCollection } from '@/lib/mongodb';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
 
@@ -19,49 +19,122 @@ function sanitizeTeamUser(u: UserProfile): UserProfile {
 }
 
 export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile[]> {
-  const isDefaultWs = !workspaceId || workspaceId === 'ws_public' || workspaceId === 'ws_cursis_user' || workspaceId === 'ws_default';
-  const defaultAliases = ['ws_public', 'ws_cursis_user', 'ws_default', workspaceId].filter(Boolean);
+  const targetWsId = (workspaceId || '').trim();
+  if (!targetWsId || targetWsId === 'ws_public') {
+    return [];
+  }
 
   try {
-    const col = await getCollection<UserProfile>('users');
-    const memCol = await getCollection<any>('workspace_memberships');
+    const teamCol = await getCollection<WorkspaceTeamMember>('workspace_teams');
+    const usersCol = await getCollection<UserProfile>('users');
+    const wsCol = await getCollection<Workspace>('workspaces');
+    const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
 
-    // Find any user IDs from workspace_memberships
-    let memberUserIds: string[] = [];
-    if (memCol) {
-      const memDocs = await memCol.find({
-        workspaceId: isDefaultWs ? { $in: defaultAliases } : workspaceId
-      }).toArray();
-      memberUserIds = memDocs.map((m: any) => m.userId).filter(Boolean);
-    }
+    if (teamCol) {
+      let teamDocs: (WorkspaceTeamMember | any)[] = await teamCol.find({ workspaceId: targetWsId }).toArray();
 
-    if (col) {
-      const orClauses: any[] = isDefaultWs
-        ? [
-            { workspaceIds: { $in: defaultAliases } },
-            { activeWorkspaceId: { $in: defaultAliases } },
-            { workspaceId: { $in: defaultAliases } },
-          ]
-        : [
-            { workspaceIds: workspaceId },
-            { activeWorkspaceId: workspaceId },
-            { workspaceId: workspaceId },
-          ];
+      // If workspace_teams is empty for this workspace, auto-seed the Owner & accepted members
+      if (teamDocs.length === 0 && wsCol) {
+        const ws = await wsCol.findOne({ id: targetWsId });
+        if (ws && ws.ownerId) {
+          const ownerUser = usersCol ? await usersCol.findOne({ $or: [{ uid: ws.ownerId }, { id: ws.ownerId }] }) : null;
+          const ownerDisplayName = ownerUser?.displayName || 'Workspace Owner';
+          const ownerEmail = ownerUser?.email || '';
 
-      if (memberUserIds.length > 0) {
-        orClauses.push({ uid: { $in: memberUserIds } });
-        orClauses.push({ id: { $in: memberUserIds } });
+          if (ownerEmail) {
+            const ownerTeamMember: WorkspaceTeamMember = {
+              id: `wtm_${targetWsId}_${ws.ownerId}`,
+              workspaceId: targetWsId,
+              workspaceName: ws.name || 'Workspace',
+              userId: ws.ownerId,
+              name: ownerDisplayName,
+              email: ownerEmail,
+              role: 'owner',
+              title: ownerUser?.title || 'Workspace Owner',
+              department: ownerUser?.department || 'Leadership',
+              skills: ownerUser?.skills || ['Leadership'],
+              photoURL: ownerUser?.photoURL,
+              presence: ownerUser?.presence || 'online',
+              joinedAt: ws.createdAt || new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await teamCol.updateOne(
+              { workspaceId: targetWsId, userId: ws.ownerId },
+              { $set: ownerTeamMember },
+              { upsert: true }
+            );
+            teamDocs = [ownerTeamMember];
+          }
+
+          // Also check accepted memberships in workspace_memberships to backfill if any exist
+          if (memCol && usersCol) {
+            const mems = await memCol.find({ workspaceId: targetWsId }).toArray();
+            for (const m of mems) {
+              if (m.userId === ws.ownerId) continue;
+              const u = await usersCol.findOne({ $or: [{ uid: m.userId }, { id: m.userId }] });
+              if (u) {
+                const memDoc: WorkspaceTeamMember = {
+                  id: `wtm_${targetWsId}_${u.uid}`,
+                  workspaceId: targetWsId,
+                  workspaceName: ws.name || 'Workspace',
+                  userId: u.uid,
+                  name: u.displayName || u.email.split('@')[0],
+                  email: u.email,
+                  role: m.role || 'member',
+                  title: u.title || 'Team Member',
+                  department: u.department || 'Engineering',
+                  skills: u.skills || ['General'],
+                  photoURL: u.photoURL,
+                  presence: u.presence || 'online',
+                  joinedAt: m.createdAt || new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                };
+                await teamCol.updateOne(
+                  { workspaceId: targetWsId, userId: u.uid },
+                  { $set: memDoc },
+                  { upsert: true }
+                );
+                teamDocs.push(memDoc);
+              }
+            }
+          }
+        }
       }
 
-      const docs = await col.find({ $or: orClauses }).toArray();
+      if (teamDocs.length > 0) {
+        // Hydrate real-time presence from users collection for these specific workspace team members only
+        const uids = teamDocs.map((t) => t.userId).filter(Boolean);
+        const liveUsers = usersCol ? await usersCol.find({ $or: [{ uid: { $in: uids } }, { id: { $in: uids } }] }).toArray() : [];
+        const liveUserMap = new Map(liveUsers.map((u) => [u.uid || u.id, u]));
 
-      if (docs.length > 0) {
-        const sanitized = docs.map(sanitizeTeamUser);
-        sanitized.forEach((u) => {
+        const result: UserProfile[] = teamDocs.map((doc) => {
+          const live = liveUserMap.get(doc.userId);
+          const userObj: UserProfile = {
+            id: doc.userId || doc.id,
+            uid: doc.userId || doc.id,
+            email: doc.email,
+            displayName: doc.name || doc.email.split('@')[0],
+            role: doc.role,
+            title: doc.title || (doc.role === 'owner' ? 'Workspace Owner' : 'Team Member'),
+            department: doc.department || (doc.role === 'owner' ? 'Leadership' : 'Engineering'),
+            skills: doc.skills || [],
+            photoURL: doc.photoURL,
+            workspaceIds: [doc.workspaceId],
+            activeWorkspaceId: doc.workspaceId,
+            presence: live?.presence || doc.presence || 'offline',
+            lastActiveAt: live?.lastActiveAt || doc.updatedAt || doc.joinedAt,
+            createdAt: doc.joinedAt,
+            onboardingStatus: 'completed',
+            onboardingChecklist: [],
+          };
+          return sanitizeTeamUser(userObj);
+        });
+
+        result.forEach((u) => {
           if (u.id) inMemoryStore.users.set(u.id, u);
           if (u.uid) inMemoryStore.users.set(u.uid, u);
         });
-        return sanitized;
+        return result;
       }
     }
   } catch (e) {
@@ -69,20 +142,7 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
   }
 
   return Array.from(inMemoryStore.users.values())
-    .filter((u) => {
-      if (isDefaultWs) {
-        return (
-          u.workspaceIds?.some((w) => defaultAliases.includes(w)) ||
-          defaultAliases.includes(u.activeWorkspaceId || '') ||
-          defaultAliases.includes((u as any).workspaceId || '')
-        );
-      }
-      return (
-        u.workspaceIds?.includes(workspaceId) ||
-        u.activeWorkspaceId === workspaceId ||
-        (u as any).workspaceId === workspaceId
-      );
-    })
+    .filter((u) => u.workspaceIds?.includes(targetWsId) || u.activeWorkspaceId === targetWsId)
     .map(sanitizeTeamUser);
 }
 
@@ -210,6 +270,7 @@ export async function removeTeamMember(
 ): Promise<boolean> {
   const targetId = (userId || '').trim();
   const cleanEmail = (emailHint || '').toLowerCase().trim();
+  const targetWsId = (workspaceId || '').trim();
 
   // Founder protection: cannot remove founder
   if (cleanEmail && isFounderEmail(cleanEmail)) {
@@ -238,92 +299,36 @@ export async function removeTeamMember(
     return false;
   }
 
-  const isDefaultWs = !workspaceId || workspaceId === 'ws_public' || workspaceId === 'ws_cursis_user' || workspaceId === 'ws_default';
-  const aliasesToRemove = isDefaultWs
-    ? ['ws_public', 'ws_cursis_user', 'ws_default', workspaceId].filter(Boolean)
-    : [workspaceId];
-
-
   // 2. Remove from memory store
   if (memoryUser) {
-    memoryUser.workspaceIds = (memoryUser.workspaceIds || []).filter((w) => !aliasesToRemove.includes(w));
-    if (memoryUser.activeWorkspaceId && aliasesToRemove.includes(memoryUser.activeWorkspaceId)) {
+    memoryUser.workspaceIds = (memoryUser.workspaceIds || []).filter((w) => w !== targetWsId);
+    if (memoryUser.activeWorkspaceId === targetWsId) {
       memoryUser.activeWorkspaceId = memoryUser.workspaceIds[0] || undefined;
     }
-
-    // If no workspaces left or this was a provisioned team member without custom account, delete entirely from memory
-    if (memoryUser.workspaceIds.length === 0 || !memoryUser.passwordHash) {
-      if (memoryUser.id) inMemoryStore.users.delete(memoryUser.id);
-      if (memoryUser.uid) inMemoryStore.users.delete(memoryUser.uid);
-      if (targetId) inMemoryStore.users.delete(targetId);
-    }
-  } else if (targetId) {
-    inMemoryStore.users.delete(targetId);
   }
 
   // 3. Update workspace member count in memory
-  const ws = inMemoryStore.workspaces.get(workspaceId);
+  const ws = inMemoryStore.workspaces.get(targetWsId);
   if (ws && ws.memberCount > 1) {
     ws.memberCount -= 1;
   }
 
-  // 4. Locate and remove/update in MongoDB
+  // 4. Locate and remove from MongoDB workspace_teams collection
   try {
-    const col = await getCollection<UserProfile>('users');
-    if (col) {
-      const matchQueries: any[] = [];
-      if (targetId) {
-        matchQueries.push({ id: targetId }, { uid: targetId });
-        try {
-          const { ObjectId } = await import('mongodb');
-          if (ObjectId.isValid(targetId)) {
-            matchQueries.push({ _id: new ObjectId(targetId) as any });
-          }
-        } catch {}
-      }
-      if (cleanEmail) {
-        matchQueries.push({ email: cleanEmail });
-      }
-      if (targetId && targetId.includes('@')) {
-        matchQueries.push({ email: targetId.toLowerCase() });
-      }
-
-      if (matchQueries.length > 0) {
-        const mongoUser = await col.findOne({ $or: matchQueries });
-        if (mongoUser) {
-          if (isFounderEmail(mongoUser.email)) {
-            return false;
-          }
-
-          const remainingWs = (mongoUser.workspaceIds || []).filter((w) => !aliasesToRemove.includes(w));
-          // If no workspaces left or provisioned user (no passwordHash), delete permanently
-          if (remainingWs.length === 0 || !mongoUser.passwordHash) {
-            await col.deleteMany({ $or: matchQueries });
-          } else {
-            const nextActiveWs = mongoUser.activeWorkspaceId && aliasesToRemove.includes(mongoUser.activeWorkspaceId)
-              ? (remainingWs[0] || undefined)
-              : mongoUser.activeWorkspaceId;
-
-            await col.updateMany(
-              { $or: matchQueries },
-              { $pull: { workspaceIds: { $in: aliasesToRemove } } }
-            );
-            await col.updateMany(
-              { $or: matchQueries, activeWorkspaceId: { $in: aliasesToRemove } },
-              { $unset: { activeWorkspaceId: "" } }
-            );
-            await col.updateMany(
-              { $or: matchQueries, workspaceId: { $in: aliasesToRemove } },
-              { $unset: { workspaceId: "" } }
-            );
-          }
-        } else {
-          // Attempt deletion by queries just in case
-          await col.deleteMany({ $or: matchQueries });
-        }
+    const teamCol = await getCollection<WorkspaceTeamMember>('workspace_teams');
+    if (teamCol) {
+      const orClauses: any[] = [];
+      if (targetId) orClauses.push({ userId: targetId }, { id: targetId });
+      if (cleanEmail) orClauses.push({ email: cleanEmail });
+      if (orClauses.length > 0) {
+        await teamCol.deleteMany({
+          workspaceId: targetWsId,
+          $or: orClauses,
+        });
       }
     }
 
+    // 5. Remove from workspace_memberships
     const memCol = await getCollection<any>('workspace_memberships');
     if (memCol) {
       const memConditions: any[] = [];
@@ -331,10 +336,33 @@ export async function removeTeamMember(
       if (cleanEmail) memConditions.push({ userId: cleanEmail });
       if (memConditions.length > 0) {
         await memCol.deleteMany({
-          workspaceId: { $in: aliasesToRemove },
+          workspaceId: targetWsId,
           $or: memConditions,
         });
       }
+    }
+
+    // 6. Update user's workspaceIds in users collection
+    const col = await getCollection<UserProfile>('users');
+    if (col) {
+      const matchQueries: any[] = [];
+      if (targetId) matchQueries.push({ id: targetId }, { uid: targetId });
+      if (cleanEmail) matchQueries.push({ email: cleanEmail });
+      if (matchQueries.length > 0) {
+        await col.updateMany(
+          { $or: matchQueries },
+          { $pull: { workspaceIds: targetWsId } }
+        );
+      }
+    }
+
+    // 7. Update workspace member count
+    const wsCol = await getCollection<Workspace>('workspaces');
+    if (wsCol) {
+      await wsCol.updateOne(
+        { id: targetWsId, memberCount: { $gt: 1 } },
+        { $inc: { memberCount: -1 } }
+      );
     }
   } catch (e) {
     console.warn('MongoDB removeTeamMember notice:', e);

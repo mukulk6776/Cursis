@@ -19,7 +19,11 @@ export async function GET(request: Request) {
     const authUser = auth.user;
 
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId || 'ws_public';
+    const requestedWs = searchParams.get('workspaceId');
+    const workspaceId =
+      requestedWs && requestedWs !== 'ws_public' && requestedWs !== 'ws_default'
+        ? requestedWs
+        : authUser.workspaceId || ('ws_' + authUser.uid);
 
     const [team, invitations] = await Promise.all([
       getWorkspaceTeam(workspaceId),
@@ -39,7 +43,11 @@ export async function POST(request: Request) {
     const authUser = auth.user;
 
     const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId || 'ws_public';
+    const requestedWs = body.workspaceId;
+    const workspaceId =
+      requestedWs && requestedWs !== 'ws_public' && requestedWs !== 'ws_default'
+        ? requestedWs
+        : authUser.workspaceId || ('ws_' + authUser.uid);
 
     // Check action type: only invitation and accept/decline actions are supported
     const action = body.action || 'invite';
@@ -139,7 +147,11 @@ export async function DELETE(request: Request) {
     const userId = searchParams.get('userId');
     const email = searchParams.get('email');
     const invitationId = searchParams.get('invitationId');
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId || 'ws_public';
+    const requestedWs = searchParams.get('workspaceId');
+    const workspaceId =
+      requestedWs && requestedWs !== 'ws_public' && requestedWs !== 'ws_default'
+        ? requestedWs
+        : authUser.workspaceId || ('ws_' + authUser.uid);
 
     if (invitationId) {
       await revokeWorkspaceInvitation(workspaceId, invitationId, {

@@ -371,7 +371,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  // Multi-Workspace State
  const [workspaces, setWorkspaces] = useState<Workspace[]>(INITIAL_WORKSPACES);
- const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>('ws_public');
+ const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>('ws_default');
  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
 
   const fetchWorkspaces = async (): Promise<void> => {
@@ -382,6 +382,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const serverWs = data.data?.workspaces || data.workspaces;
         if (Array.isArray(serverWs) && serverWs.length > 0) {
           setWorkspaces(serverWs);
+          setActiveWorkspaceId((prev) => {
+            if (!prev || prev === 'ws_public' || prev === 'ws_default' || !serverWs.some((w) => w.id === prev)) {
+              return serverWs[0].id;
+            }
+            return prev;
+          });
         }
       }
     } catch (err) {
@@ -536,10 +542,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // Persistent Team & Notifications Synchronization with MongoDB
   const syncTeamAndNotifications = async (wsId?: string) => {
-    const targetWsId = wsId || activeWorkspaceId || 'ws_public';
+    const targetWsId = wsId || (activeWorkspaceId !== 'ws_public' && activeWorkspaceId !== 'ws_default' ? activeWorkspaceId : '');
     try {
       // 1. Fetch live team members and invitations from MongoDB
-      const teamRes = await fetch(`/api/team?workspaceId=${encodeURIComponent(targetWsId)}`, {
+      const url = targetWsId ? `/api/team?workspaceId=${encodeURIComponent(targetWsId)}` : '/api/team';
+      const teamRes = await fetch(url, {
         credentials: 'include',
       });
       if (teamRes.ok) {
@@ -596,23 +603,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 };
               });
 
-            // Merge with local state to preserve any optimistic items without duplicates
-            const combined = [...mappedServer];
-            for (const p of prev) {
-              const pEmail = (p.email || '').trim().toLowerCase();
-              if (
-                !removedMemberIdsRef.current.has(p.id) &&
-                (!pEmail || !removedMemberIdsRef.current.has(pEmail)) &&
-                !p.id.startsWith('u_std_') &&
-                !p.id.startsWith('u_pro_') &&
-                !p.id.startsWith('emp_') &&
-                !combined.some((c) => c.id === p.id || (c.email && p.email && c.email.toLowerCase() === p.email.toLowerCase()))
-              ) {
-                combined.push(p);
-              }
-            }
-            return combined;
+            return mappedServer;
           });
+        } else if (Array.isArray(serverTeam)) {
+          setEmployees([]);
         }
 
         if (Array.isArray(serverInvs)) {
@@ -782,7 +776,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
         // Hydrate workspaces, team and notifications from MongoDB
         await fetchWorkspaces();
-        syncTeamAndNotifications(sessUser.workspaceId || 'ws_public');
+        const primaryWsId = sessUser.workspaceId || 'ws_' + sessUser.uid;
+        setActiveWorkspaceId(primaryWsId);
+        syncTeamAndNotifications(primaryWsId);
       }
     }
   } catch (err) {

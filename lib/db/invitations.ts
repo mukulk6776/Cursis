@@ -1,6 +1,14 @@
 import { getCollection } from '@/lib/mongodb';
 import { inMemoryStore } from './store';
-import { WorkspaceInvitation, WorkspaceMembership, UserProfile, DbNotification, UserRole, Workspace } from './types';
+import {
+  WorkspaceInvitation,
+  WorkspaceMembership,
+  WorkspaceTeamMember,
+  UserProfile,
+  DbNotification,
+  UserRole,
+  Workspace,
+} from './types';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { Resend } from 'resend';
 
@@ -444,6 +452,45 @@ export async function acceptWorkspaceInvitation(
     console.warn('MongoDB insert membership error:', e);
   }
   inMemoryMemberships.set(`${workspaceId}_${actingUser.uid}`, membership);
+
+  // 1b. Create/Upsert record in dedicated workspace_teams collection with workspaceName
+  try {
+    const wsCol = await getCollection<Workspace>('workspaces');
+    const ws = wsCol ? await wsCol.findOne({ id: workspaceId }) : null;
+    const wsName = ws?.name || 'Workspace';
+
+    const userCol = await getCollection<UserProfile>('users');
+    const userProfile = userCol
+      ? await userCol.findOne({ $or: [{ uid: actingUser.uid }, { id: actingUser.uid }, { email: actingUser.email.toLowerCase() }] })
+      : null;
+
+    const teamCol = await getCollection<WorkspaceTeamMember>('workspace_teams');
+    if (teamCol) {
+      const teamMemberDoc: WorkspaceTeamMember = {
+        id: `wtm_${workspaceId}_${actingUser.uid}`,
+        workspaceId,
+        workspaceName: wsName,
+        userId: actingUser.uid,
+        name: actingUser.displayName || userProfile?.displayName || actingUser.email.split('@')[0],
+        email: actingUser.email.toLowerCase(),
+        role,
+        title: userProfile?.title || (role === 'admin' ? 'Workspace Admin' : 'Team Member'),
+        department: invitation.department || userProfile?.department || 'Engineering',
+        skills: userProfile?.skills || ['General'],
+        photoURL: userProfile?.photoURL,
+        presence: userProfile?.presence || 'online',
+        joinedAt: now,
+        updatedAt: now,
+      };
+      await teamCol.updateOne(
+        { workspaceId, userId: actingUser.uid },
+        { $set: teamMemberDoc },
+        { upsert: true }
+      );
+    }
+  } catch (e) {
+    console.warn('MongoDB workspace_teams upsert error on accept:', e);
+  }
 
   // 2. Append workspaceId to user's workspaceIds array in users collection
   try {

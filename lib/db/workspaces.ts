@@ -47,8 +47,9 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
     // 1. Get user profile to check workspaceIds
     let userWorkspaceIds: string[] = [];
     let userName = 'User';
+    let userDoc: any = null;
     if (userCol) {
-      const userDoc = await userCol.findOne({
+      userDoc = await userCol.findOne({
         $or: [{ uid: userId }, { id: userId }],
       });
       if (userDoc) {
@@ -120,6 +121,32 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
       inMemoryStore.workspaces.set(personalWsId, defaultWs);
       if (wsCol) {
         wsCol.insertOne(defaultWs).catch(() => {});
+        getCollection<any>('workspace_teams').then(async (teamCol) => {
+          if (teamCol) {
+            teamCol.updateOne(
+              { workspaceId: personalWsId, userId },
+              {
+                $set: {
+                  id: `wtm_${personalWsId}_${userId}`,
+                  workspaceId: personalWsId,
+                  workspaceName: defaultWs.name,
+                  userId,
+                  name: userName,
+                  email: userDoc?.email || '',
+                  role: 'owner',
+                  title: userDoc?.title || 'Workspace Owner',
+                  department: userDoc?.department || 'Leadership',
+                  skills: userDoc?.skills || ['Leadership'],
+                  photoURL: userDoc?.photoURL,
+                  presence: userDoc?.presence || 'online',
+                  joinedAt: defaultWs.createdAt,
+                  updatedAt: defaultWs.updatedAt,
+                },
+              },
+              { upsert: true }
+            ).catch(() => {});
+          }
+        }).catch(() => {});
       }
     }
 
@@ -178,6 +205,35 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
     const col = await getCollection<Workspace>('workspaces');
     if (col) {
       await col.insertOne(newWorkspace);
+    }
+    const teamCol = await getCollection<any>('workspace_teams');
+    const userCol = await getCollection<any>('users');
+    if (teamCol && userCol) {
+      const owner = await userCol.findOne({ $or: [{ uid: userId }, { id: userId }] });
+      if (owner) {
+        await teamCol.updateOne(
+          { workspaceId: id, userId },
+          {
+            $set: {
+              id: `wtm_${id}_${userId}`,
+              workspaceId: id,
+              workspaceName: newWorkspace.name,
+              userId,
+              name: owner.displayName || owner.name || owner.email.split('@')[0],
+              email: owner.email,
+              role: 'owner',
+              title: owner.title || 'Workspace Owner',
+              department: owner.department || 'Leadership',
+              skills: owner.skills || ['Leadership'],
+              photoURL: owner.photoURL,
+              presence: owner.presence || 'online',
+              joinedAt: newWorkspace.createdAt,
+              updatedAt: newWorkspace.updatedAt,
+            },
+          },
+          { upsert: true }
+        );
+      }
     }
   } catch (e) {
     console.warn('MongoDB insert workspace notice:', e);

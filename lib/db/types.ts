@@ -71,6 +71,23 @@ export interface WorkspaceMembership {
   createdAt: string;
 }
 
+export interface WorkspaceTeamMember {
+  id: string; // wtm_${workspaceId}_${userId}
+  workspaceId: string;
+  workspaceName: string;
+  userId: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  title?: string;
+  department?: string;
+  skills?: string[];
+  photoURL?: string;
+  presence?: 'online' | 'busy' | 'away' | 'offline';
+  joinedAt: string;
+  updatedAt?: string;
+}
+
 export interface WorkspaceInvitation {
   id: string;
   workspaceId: string;
