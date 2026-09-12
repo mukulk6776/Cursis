@@ -96,7 +96,7 @@ export async function POST(request: Request) {
 
     const isFounder = isFounderEmail(userEmail);
     const sessionRole = isFounder ? ('owner' as const) : (existing?.role || 'member');
-    const sessionWorkspaceId = existing?.activeWorkspaceId || existing?.workspaceIds?.[0] || 'ws_public';
+    const sessionWorkspaceId = existing?.activeWorkspaceId || existing?.workspaceIds?.[0] || `ws_${userUid}`;
 
     const sessionPayload = {
       uid: userUid,
