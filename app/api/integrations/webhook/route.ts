@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const eventType = body.event || body.type || 'generic_webhook';
-    const workspaceId = body.workspaceId || authUser.activeWorkspaceId || `ws_${authUser.uid}`;
+    const workspaceId = body.workspaceId || 'ws_public';
 
     // If incoming lead form submission
     if (eventType === 'contact_form_submission' || body.email) {

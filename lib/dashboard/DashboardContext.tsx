@@ -1421,7 +1421,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.error) {
-        showToast(data.error || 'Failed to remove team member', 'error');
+        showToast(data.error || 'Failed to remove team member');
         return;
       }
 
@@ -1441,10 +1441,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       showToast(`Removed ${emp?.name || 'member'} from workspace`);
       
       // Re-sync authoritative list from server
-      fetchDashboardData();
+      syncTeamAndNotifications();
     } catch (err) {
       console.warn('Notice: Error removing member:', err);
-      showToast('Network error while removing member.', 'error');
+      showToast('Error: Network error while removing member.');
     }
   };
 
