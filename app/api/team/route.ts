@@ -1,4 +1,7 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 import {
   getWorkspaceTeam,
   addTeamMember,
@@ -69,14 +72,38 @@ export async function POST(request: Request) {
         planTier: body.planTier || 'standard',
       });
 
-      // Dispatch notification to recipient
-      await createNotification({
-        userEmail: email,
-        workspaceId,
-        type: 'team',
-        text: `<strong>${authUser.displayName || 'Workspace Admin'}</strong> invited you to join the team as <strong>${body.roleTitle || 'Team Member'}</strong>.`,
-        icon: 'mail',
-      });
+      // Dispatch email internally using Resend
+      if (process.env.RESEND_API_KEY) {
+        const host = request.headers.get('host') || 'localhost:3000';
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const inviteLink = `${protocol}://${host}/invite/${invitation.token}`;
+        
+        try {
+          await resend.emails.send({
+            from: 'Cursis <onboarding@resend.dev>',
+            to: email,
+            subject: `You've been invited to join Cursis`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                <h2 style="color: #0f4cff;">You've been invited to Cursis!</h2>
+                <p>Hi ${body.name || 'there'},</p>
+                <p><strong>${authUser.displayName || 'Workspace Admin'}</strong> has invited you to join the workspace as a <strong>${body.roleTitle || 'Team Member'}</strong>.</p>
+                <p>Click the button below to securely accept the invitation and set up your account:</p>
+                <div style="margin: 30px 0;">
+                  <a href="${inviteLink}" style="background-color: #0f4cff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Accept Invitation</a>
+                </div>
+                <p style="font-size: 12px; color: #666;">Or copy and paste this link into your browser: <br/> ${inviteLink}</p>
+                <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
+                <p style="font-size: 12px; color: #999;">If you were not expecting this invitation, you can safely ignore this email.</p>
+              </div>
+            `,
+          });
+        } catch (emailError) {
+          console.error('Failed to send invitation email via Resend:', emailError);
+        }
+      } else {
+        console.log(`[Email Simulation] Invitation link for ${email}: /invite/${invitation.token}`);
+      }
 
       return apiSuccess({ invitation, message: `Invitation sent to ${email}` }, 201);
     }
