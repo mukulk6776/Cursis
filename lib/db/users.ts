@@ -122,7 +122,7 @@ export async function registerUser(params: {
   const cleanEmail = params.email.trim().toLowerCase();
   const cleanName = params.displayName.trim() || cleanEmail.split('@')[0];
   const uid = 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
-  const workspaceId = params.workspaceId || 'ws_cursis_user';
+  const workspaceId = params.workspaceId || `ws_${uid}`;
 
   let salt: string | undefined;
   let passwordHash: string | undefined;
@@ -199,8 +199,8 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
   const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, data.department || existing?.department || 'Engineering');
   const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (data.skills || existing?.skills || ['General']);
 
-  const userWorkspaceIds = data.workspaceIds || existing?.workspaceIds || ['ws_public', 'ws_default', 'ws_cursis_user'];
-  const userActiveWorkspaceId = data.activeWorkspaceId || existing?.activeWorkspaceId || userWorkspaceIds[0] || 'ws_public';
+  const userWorkspaceIds = data.workspaceIds || existing?.workspaceIds || [`ws_${uid}`];
+  const userActiveWorkspaceId = data.activeWorkspaceId || existing?.activeWorkspaceId || userWorkspaceIds[0];
 
   const updatedUser: UserProfile = {
     id: existing?.id || uid,

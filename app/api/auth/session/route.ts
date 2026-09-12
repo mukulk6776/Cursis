@@ -112,8 +112,8 @@ export async function POST(request: Request) {
     const maxAgeSeconds = 60 * 60 * 24 * 7; // 7 days
 
     const userWorkspaceIds = existing?.workspaceIds && existing.workspaceIds.length > 0
-      ? Array.from(new Set([...existing.workspaceIds, 'ws_public', 'ws_default', 'ws_cursis_user']))
-      : ['ws_public', 'ws_default', 'ws_cursis_user'];
+      ? existing.workspaceIds
+      : [`ws_${userUid}`];
 
     createUserProfile(userUid, {
       uid: userUid,

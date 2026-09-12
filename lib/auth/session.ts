@@ -90,7 +90,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
         const displayName = verified.displayName || email.split('@')[0];
         const isFounder = isFounderEmail(email);
         const role: UserRole = isFounder ? 'owner' : (verified.role !== 'owner' ? (verified.role as UserRole) : 'member');
-        const workspaceId = verified.workspaceId || 'ws_cursis_user';
+        const workspaceId = verified.workspaceId || `ws_${verified.uid}`;
 
         // Retrieve existing user from cache if present
         const storedUser = inMemoryStore.users.get(uid) || Array.from(inMemoryStore.users.values()).find((u) => u.email === email);

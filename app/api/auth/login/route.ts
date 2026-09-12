@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       email: user.email,
       displayName: user.displayName,
       role: user.role,
-      workspaceId: user.activeWorkspaceId || 'ws_cursis_user',
+      workspaceId: user.activeWorkspaceId || `ws_${user.uid}`,
       photoURL: user.photoURL,
       createdAt: Date.now(),
     };

@@ -231,6 +231,13 @@ export async function removeTeamMember(
     ? ['ws_public', 'ws_cursis_user', 'ws_default', workspaceId].filter(Boolean)
     : [workspaceId];
 
+  if (memoryUser && memoryUser.workspaceIds && memoryUser.passwordHash) {
+    const remaining = memoryUser.workspaceIds.filter((w) => !aliasesToRemove.includes(w));
+    if (remaining.length === 0) {
+      throw new Error("Cannot leave your only workspace. You must join another workspace first.");
+    }
+  }
+
   // 2. Remove from memory store
   if (memoryUser) {
     memoryUser.workspaceIds = (memoryUser.workspaceIds || []).filter((w) => !aliasesToRemove.includes(w));
