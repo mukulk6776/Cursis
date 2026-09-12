@@ -120,9 +120,16 @@ export async function registerUser(params: {
   workspaceId?: string;
 }): Promise<UserProfile> {
   const cleanEmail = params.email.trim().toLowerCase();
+  
+  let existing = await findUserByEmail(cleanEmail);
+  if (existing && existing.passwordHash) {
+    throw new Error('An account with this email already exists.');
+  }
+
   const cleanName = params.displayName.trim() || cleanEmail.split('@')[0];
-  const uid = 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
-  const workspaceId = params.workspaceId || `ws_${uid}`;
+  const uid = existing?.uid || existing?.id || 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+  const defaultWsId = `ws_${uid}`;
+  const workspaceId = params.workspaceId || defaultWsId;
 
   let salt: string | undefined;
   let passwordHash: string | undefined;
@@ -133,25 +140,32 @@ export async function registerUser(params: {
   }
 
   const isFounder = isFounderEmail(cleanEmail);
-  const assignedRole: UserRole = isFounder ? 'owner' : (params.role && params.role !== 'owner' ? params.role : 'member');
-  const assignedTitle = isFounder ? 'Founder & CEO' : 'User';
-  const assignedDept = isFounder ? 'Leadership' : 'Operations';
-  const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : ['Workspace Collaborator'];
+  const assignedRole: UserRole = isFounder ? 'owner' : (params.role && params.role !== 'owner' ? params.role : (existing?.role || 'member'));
+  const assignedTitle = isFounder ? 'Founder & CEO' : (existing?.title || 'User');
+  const assignedDept = isFounder ? 'Leadership' : (existing?.department || 'Operations');
+  const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (existing?.skills || ['Workspace Collaborator']);
+
+  const mergedWorkspaceIds = Array.from(new Set([
+    ...(existing?.workspaceIds || []),
+    workspaceId
+  ]));
+
+  const activeWorkspaceId = existing?.activeWorkspaceId || workspaceId;
 
   const newUser: UserProfile = {
     id: uid,
     uid,
     email: cleanEmail,
-    displayName: cleanName,
-    photoURL: params.photoURL,
+    displayName: existing?.displayName && existing.displayName !== cleanEmail.split('@')[0] ? existing.displayName : cleanName,
+    photoURL: params.photoURL || existing?.photoURL,
     role: assignedRole,
     passwordHash,
     salt,
     department: assignedDept,
     title: assignedTitle,
     skills: assignedSkills,
-    workspaceIds: [workspaceId],
-    activeWorkspaceId: workspaceId,
+    workspaceIds: mergedWorkspaceIds,
+    activeWorkspaceId,
     onboardingStatus: 'completed',
     onboardingChecklist: [
       { id: 'ob_1', title: 'Complete profile setup', completed: true },
@@ -159,7 +173,7 @@ export async function registerUser(params: {
     ],
     presence: 'online',
     lastActiveAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
+    createdAt: existing?.createdAt || new Date().toISOString(),
   };
 
   inMemoryStore.users.set(uid, newUser);

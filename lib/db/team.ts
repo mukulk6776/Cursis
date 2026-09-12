@@ -95,7 +95,7 @@ export async function addTeamMember(
   const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, memberData.title || 'Team Member');
   const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, memberData.department || 'Engineering');
   const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (memberData.skills || ['General']);
-  const effectiveWsIds = Array.from(new Set([workspaceId, 'ws_public', 'ws_cursis_user', 'ws_default']));
+  const effectiveWsIds = Array.from(new Set([workspaceId]));
 
   // Check MongoDB first for existing user by email to prevent duplicate accounts
   let existingMem: UserProfile | null = null;
