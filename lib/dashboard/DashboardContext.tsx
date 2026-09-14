@@ -650,6 +650,101 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           );
         }
       }
+
+      // 3. Fetch workspace tasks from MongoDB
+      try {
+        const taskRes = await fetch(`/api/tasks?workspaceId=${encodeURIComponent(targetWsId)}`, {
+          credentials: 'include',
+        });
+        if (taskRes.ok) {
+          const taskData = await taskRes.json();
+          const serverTasks = taskData.data?.tasks || taskData.tasks;
+          if (Array.isArray(serverTasks) && serverTasks.length > 0) {
+            const reverseStatusMap: Record<string, TaskStatus> = {
+              todo: 'todo',
+              in_progress: 'in-progress',
+              in_review: 'review',
+              done: 'completed',
+              blocked: 'todo',
+            };
+            const mappedServerTasks: Task[] = serverTasks.map((st: any) => ({
+              id: st.id,
+              name: st.title || st.name || 'Untitled Task',
+              project: st.projectId || st.project || 'proj_core',
+              assignee: st.assigneeId || st.assignee || '',
+              assignees: st.assignees || (st.assigneeId ? [st.assigneeId] : []),
+              priority: (st.priority as any) || 'medium',
+              status: reverseStatusMap[st.status] || (st.status as TaskStatus) || 'todo',
+              deadline: st.dueDate ? st.dueDate.split('T')[0] : (st.deadline || new Date().toISOString().split('T')[0]),
+              tags: Array.isArray(st.tags) ? st.tags : [],
+              description: st.description || '',
+              subtasks: Array.isArray(st.subtasks)
+                ? st.subtasks.map((s: any) => ({
+                    id: s.id || 'sub_' + Math.random().toString(36).substring(2, 6),
+                    name: s.title || s.name || 'Subtask',
+                    done: Boolean(s.completed || s.done),
+                  }))
+                : [],
+            }));
+
+            setTasks((prev) => {
+              const serverIds = new Set(mappedServerTasks.map((t) => t.id));
+              const inFlight = prev.filter(
+                (t) =>
+                  !serverIds.has(t.id) &&
+                  t.id.startsWith('t_') &&
+                  Date.now() - parseInt(t.id.split('_')[1] || '0', 10) < 10000
+              );
+              return [...mappedServerTasks, ...inFlight];
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('Notice: Background task sync error:', e);
+      }
+
+      // 4. Fetch workspace meetings from MongoDB
+      try {
+        const mtgRes = await fetch(`/api/meetings?workspaceId=${encodeURIComponent(targetWsId)}`, {
+          credentials: 'include',
+        });
+        if (mtgRes.ok) {
+          const mtgData = await mtgRes.json();
+          const serverMtgs = mtgData.data?.meetings || mtgData.meetings;
+          if (Array.isArray(serverMtgs) && serverMtgs.length > 0) {
+            const mappedMtgs: Meeting[] = serverMtgs.map((m: any) => ({
+              id: m.id,
+              name: m.title || m.name || 'Meeting',
+              title: m.title || m.name || 'Meeting',
+              platform: m.platform || 'google_meet',
+              meetingUrl: m.meetingUrl || '',
+              date: m.date || (m.scheduledAt ? m.scheduledAt.split('T')[0] : '2026-09-09'),
+              time: m.time || (m.scheduledAt && m.scheduledAt.includes('T') ? m.scheduledAt.split('T')[1].substring(0, 5) : '14:00'),
+              duration: m.duration || m.durationMinutes || 30,
+              participants: m.participants || m.attendees || [],
+              hostId: m.hostId || '',
+              hostName: m.hostName || 'Host',
+              project: m.projectId || m.project || null,
+              status: m.status || 'scheduled',
+              agenda: m.agenda || '',
+              notes: m.notes || '',
+            }));
+
+            setMeetings((prev) => {
+              const serverIds = new Set(mappedMtgs.map((m) => m.id));
+              const inFlight = prev.filter(
+                (m) =>
+                  !serverIds.has(m.id) &&
+                  m.id.startsWith('m_') &&
+                  Date.now() - parseInt(m.id.split('_')[1] || '0', 10) < 10000
+              );
+              return [...mappedMtgs, ...inFlight];
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('Notice: Background meeting sync error:', e);
+      }
     } catch (e) {
       console.warn('Notice: Background sync error:', e);
     }
@@ -1182,11 +1277,80 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }
 
  showToast(`Task "${newTask.name}" created `);
+
+ // Persist task to MongoDB via API and trigger assignee notification
+ const statusMap: Record<string, string> = {
+   'in-progress': 'in_progress',
+   'completed': 'done',
+   'review': 'in_review',
+   'todo': 'todo',
+ };
+
+ const assigneeName = emp?.name || '';
+ const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+   ? activeWorkspaceId
+   : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+
+ fetch('/api/tasks', {
+   method: 'POST',
+   credentials: 'include',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({
+     id: newTask.id,
+     title: newTask.name,
+     description: newTask.description || '',
+     assigneeId: newTask.assignee,
+     assigneeName: assigneeName,
+     projectId: newTask.project,
+     priority: newTask.priority,
+     status: statusMap[newTask.status] || newTask.status,
+     dueDate: newTask.deadline ? new Date(newTask.deadline).toISOString() : undefined,
+     tags: newTask.tags || [],
+     workspaceId: wsId,
+   }),
+ })
+   .then((res) => {
+     if (res.ok) {
+       // Refresh notifications so assignee sees the task notification
+       setTimeout(() => syncTeamAndNotifications(), 1000);
+     }
+   })
+   .catch((err) => {
+     console.warn('Task API persist notice:', err);
+   });
  };
 
  const updateTask = (id: string, updates: Partial<Task>) => {
  setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
  showToast('Task updated ');
+
+ const statusMap: Record<string, string> = {
+   'in-progress': 'in_progress',
+   'completed': 'done',
+   'review': 'in_review',
+   'todo': 'todo',
+ };
+
+ const payload: Record<string, any> = { id };
+ if (updates.name !== undefined) payload.title = updates.name;
+ if (updates.description !== undefined) payload.description = updates.description;
+ if (updates.assignee !== undefined) {
+   payload.assigneeId = updates.assignee;
+   const emp = employees.find((e) => e.id === updates.assignee);
+   if (emp) payload.assigneeName = emp.name;
+ }
+ if (updates.project !== undefined) payload.projectId = updates.project;
+ if (updates.priority !== undefined) payload.priority = updates.priority;
+ if (updates.status !== undefined) payload.status = statusMap[updates.status] || updates.status;
+ if (updates.deadline !== undefined) payload.dueDate = updates.deadline ? new Date(updates.deadline).toISOString() : undefined;
+ if (updates.tags !== undefined) payload.tags = updates.tags;
+
+ fetch(`/api/tasks/${id}`, {
+   method: 'PATCH',
+   credentials: 'include',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify(payload),
+ }).catch((err) => console.warn('Task update persist notice:', err));
  };
 
   const deleteTask = (id: string) => {
@@ -1212,7 +1376,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     // Async persist to API
     try {
-      fetch(`/api/tasks/${id}`, { method: 'DELETE' }).catch(() => {});
+      fetch(`/api/tasks/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }).catch(() => {});
     } catch {}
 
     showToast('Task deleted successfully');
@@ -1220,22 +1387,50 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  const assignTask = (taskId: string, assigneeIds: string[]) => {
  const primary = assigneeIds[0] || user.id;
+ const emp = employees.find((e) => e.id === primary);
  setTasks((prev) =>
  prev.map((t) => (t.id === taskId ? { ...t, assignee: primary, assignees: assigneeIds } : t))
  );
  showToast('Task assigned ');
+
+ fetch(`/api/tasks/${taskId}`, {
+   method: 'PATCH',
+   credentials: 'include',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({
+     assigneeId: primary,
+     assigneeName: emp?.name || '',
+   }),
+ }).catch((err) => console.warn('Task assign persist notice:', err));
  };
 
  const updateTaskStatus = (taskId: string, status: TaskStatus) => {
  setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)));
  showToast(`Task status moved to ${status} `);
+
+ const statusMap: Record<string, string> = {
+   'in-progress': 'in_progress',
+   'completed': 'done',
+   'review': 'in_review',
+   'todo': 'todo',
+ };
+
+ fetch(`/api/tasks/${taskId}`, {
+   method: 'PATCH',
+   credentials: 'include',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({
+     status: statusMap[status] || status,
+   }),
+ }).catch((err) => console.warn('Task status persist notice:', err));
  };
 
  const toggleTaskComplete = (taskId: string) => {
+ let nextStatus: TaskStatus = 'in-progress';
  setTasks((prev) =>
  prev.map((t) => {
  if (t.id === taskId) {
- const nextStatus: TaskStatus = t.status === 'completed' ? 'in-progress' : 'completed';
+ nextStatus = t.status === 'completed' ? 'in-progress' : 'completed';
  const act = `Task "${t.name}" marked as ${nextStatus === 'completed' ? 'done' : 'in progress'}`;
  setActivity((a) => [{ id: 'act_' + Date.now(), text: act, time: 'Just now', dot: '#00b341' }, ...a]);
  return { ...t, status: nextStatus };
@@ -1243,6 +1438,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  return t;
  })
  );
+
+ const statusMap: Record<string, string> = {
+   'in-progress': 'in_progress',
+   'completed': 'done',
+   'review': 'in_review',
+   'todo': 'todo',
+ };
+
+ fetch(`/api/tasks/${taskId}`, {
+   method: 'PATCH',
+   credentials: 'include',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({
+     status: statusMap[nextStatus],
+   }),
+ }).catch((err) => console.warn('Task toggle complete persist notice:', err));
  };
 
  // ---- Project Mutations ----
@@ -1298,6 +1509,30 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const act = `Scheduled meeting "${newM.name}" for ${newM.date} at ${newM.time}`;
  setActivity((prev) => [{ id: 'act_' + Date.now(), text: act, time: 'Just now', dot: '#ccff00' }, ...prev]);
  showToast(`Meeting "${newM.name}" scheduled `);
+
+ const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+   ? activeWorkspaceId
+   : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+
+ fetch('/api/meetings', {
+   method: 'POST',
+   credentials: 'include',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({
+     id: newM.id,
+     title: newM.name,
+     name: newM.name,
+     platform: newM.platform,
+     meetingUrl: newM.meetingUrl,
+     date: newM.date,
+     time: newM.time,
+     duration: newM.duration,
+     participants: newM.participants,
+     workspaceId: wsId,
+     agenda: newM.agenda,
+     notes: newM.notes,
+   }),
+ }).catch((err) => console.warn('Meeting API persist notice:', err));
  };
 
  const updateMeeting = (id: string, updates: Partial<Meeting>) => {
@@ -1308,6 +1543,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const deleteMeeting = (id: string) => {
  setMeetings((prev) => prev.filter((m) => m.id !== id));
  showToast('Meeting removed');
+
+ fetch(`/api/meetings?id=${encodeURIComponent(id)}`, {
+   method: 'DELETE',
+   credentials: 'include',
+ }).catch((err) => console.warn('Meeting delete persist notice:', err));
  };
 
  // ---- Employee & Team Mutations ----

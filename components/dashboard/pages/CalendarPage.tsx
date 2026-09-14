@@ -618,9 +618,7 @@ export default function CalendarPage() {
  <div className="modal" style={{ maxWidth: '520px' }}>
  <div className="modal-header">
  <span className="modal-title">{selectedMeetingDetail.name}</span>
- <button className="modal-close" onClick={() => setSelectedMeetingDetail(null)}>
- 
- </button>
+ <button className="modal-close" onClick={() => setSelectedMeetingDetail(null)} aria-label="Close"></button>
  </div>
  <div className="modal-body">
  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)', fontSize: 'var(--fs-sm)' }}>

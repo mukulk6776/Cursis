@@ -2,19 +2,49 @@ import { inMemoryStore } from './store';
 import { Meeting, Task } from './types';
 import { createTask } from './tasks';
 import { getWorkspaceTeam } from './team';
+import { getCollection } from '@/lib/mongodb';
 
 export async function getMeetings(workspaceId: string): Promise<Meeting[]> {
+  try {
+    const col = await getCollection<Meeting>('meetings');
+    if (col) {
+      const docs = await col.find({ workspaceId }).sort({ scheduledAt: -1 }).toArray();
+      if (docs.length > 0) {
+        docs.forEach((m) => inMemoryStore.meetings.set(m.id, m));
+        return docs;
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getMeetings notice:', e);
+  }
+
   return Array.from(inMemoryStore.meetings.values())
     .filter((m) => m.workspaceId === workspaceId)
     .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
 }
 
 export async function getMeetingById(id: string): Promise<Meeting | null> {
-  return inMemoryStore.meetings.get(id) || null;
+  const mem = inMemoryStore.meetings.get(id);
+  if (mem) return mem;
+
+  try {
+    const col = await getCollection<Meeting>('meetings');
+    if (col) {
+      const found = await col.findOne({ id });
+      if (found) {
+        inMemoryStore.meetings.set(id, found);
+        return found;
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getMeetingById notice:', e);
+  }
+
+  return null;
 }
 
 export async function createMeeting(workspaceId: string, data: Partial<Meeting>): Promise<Meeting> {
-  const id = `mtg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const id = data.id || `mtg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const title = data.title || data.name || 'Untitled Meeting';
   const scheduledAt = data.scheduledAt || new Date().toISOString();
   const platform = data.platform || 'google_meet';
@@ -55,12 +85,36 @@ export async function createMeeting(workspaceId: string, data: Partial<Meeting>)
 
   inMemoryStore.meetings.set(id, meeting);
 
+  try {
+    const col = await getCollection<Meeting>('meetings');
+    if (col) {
+      await col.insertOne(meeting);
+    }
+  } catch (e) {
+    console.warn('MongoDB insert meeting notice:', e);
+  }
+
   // If meeting has a transcript/notes and is not processed yet, automatically process it!
   if ((data.transcript || data.notes) && !data.processedByOrdis) {
     await processMeetingWithOrdis(id, workspaceId);
   }
 
   return meeting;
+}
+
+export async function deleteMeeting(id: string): Promise<boolean> {
+  const deletedMem = inMemoryStore.meetings.delete(id);
+  let deletedMongo = false;
+  try {
+    const col = await getCollection<Meeting>('meetings');
+    if (col) {
+      const res = await col.deleteOne({ id });
+      deletedMongo = res.deletedCount > 0;
+    }
+  } catch (e) {
+    console.warn('MongoDB delete meeting notice:', e);
+  }
+  return deletedMem || deletedMongo;
 }
 
 export async function updateMeeting(id: string, updates: Partial<Meeting>): Promise<Meeting | null> {
@@ -84,9 +138,6 @@ export async function updateMeeting(id: string, updates: Partial<Meeting>): Prom
   return updated;
 }
 
-export async function deleteMeeting(id: string): Promise<boolean> {
-  return inMemoryStore.meetings.delete(id);
-}
 
 // Ordis Engine: Turn meeting into summary, auto-tasks, and follow-up draft
 export async function processMeetingWithOrdis(

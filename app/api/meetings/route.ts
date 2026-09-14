@@ -1,5 +1,5 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
-import { getMeetings, createMeeting } from '@/lib/db/meetings';
+import { getMeetings, createMeeting, deleteMeeting } from '@/lib/db/meetings';
 
 export async function GET(request: Request) {
   try {
@@ -41,5 +41,24 @@ export async function POST(request: Request) {
     return apiSuccess({ meeting }, 201);
   } catch (error: any) {
     return apiError(error.message || 'Failed to create meeting', 500);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await getAuthOrError(request);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return apiError('Meeting ID is required for deletion', 400);
+    }
+
+    const success = await deleteMeeting(id);
+    return apiSuccess({ success, message: 'Meeting deleted successfully' });
+  } catch (error: any) {
+    return apiError(error.message || 'Failed to delete meeting', 500);
   }
 }

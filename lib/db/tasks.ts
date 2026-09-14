@@ -1,7 +1,8 @@
 import { inMemoryStore } from './store';
-import { Task, TaskPriority, TaskStatus } from './types';
+import { Task, TaskPriority, TaskStatus, UserProfile } from './types';
 import { findBestMatchingHelpers } from './team';
 import { getCollection } from '@/lib/mongodb';
+import { createNotification } from './notifications';
 
 export async function getTasks(
   workspaceId: string,
@@ -64,7 +65,7 @@ export async function getTaskById(id: string): Promise<Task | null> {
 }
 
 export async function createTask(workspaceId: string, data: Partial<Task>): Promise<Task> {
-  const id = `tsk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const id = data.id || `tsk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
   // Find assignee name if assigneeId is given
   let assigneeName = data.assigneeName;
@@ -128,6 +129,64 @@ export async function createTask(workspaceId: string, data: Partial<Task>): Prom
     console.warn('MongoDB insert task notice:', e);
   }
 
+  // Send notification to the assigned team member
+  if (task.assigneeId) {
+    try {
+      // Look up creator name
+      let creatorName = 'Someone';
+      const creatorUser = inMemoryStore.users.get(task.creatorId);
+      if (creatorUser) {
+        creatorName = creatorUser.displayName || creatorUser.email?.split('@')[0] || 'Someone';
+      } else {
+        // Try MongoDB
+        const usersCol = await getCollection<UserProfile>('users');
+        if (usersCol) {
+          const creatorDoc = await usersCol.findOne({ $or: [{ id: task.creatorId }, { uid: task.creatorId }] });
+          if (creatorDoc) {
+            creatorName = creatorDoc.displayName || creatorDoc.email?.split('@')[0] || 'Someone';
+          }
+        }
+      }
+
+      // Look up assignee email for notification targeting
+      let assigneeEmail: string | undefined;
+      const assigneeUser = inMemoryStore.users.get(task.assigneeId);
+      if (assigneeUser) {
+        assigneeEmail = assigneeUser.email;
+      } else {
+        const usersCol = await getCollection<UserProfile>('users');
+        if (usersCol) {
+          const assigneeDoc = await usersCol.findOne({ $or: [{ id: task.assigneeId }, { uid: task.assigneeId }] });
+          if (assigneeDoc) {
+            assigneeEmail = assigneeDoc.email;
+          }
+        }
+      }
+
+      if (!assigneeEmail) {
+        const teamCol = await getCollection<any>('workspace_teams');
+        if (teamCol) {
+          const teamDoc = await teamCol.findOne({
+            workspaceId: task.workspaceId,
+            $or: [{ userId: task.assigneeId }, { id: task.assigneeId }],
+          });
+          if (teamDoc?.email) assigneeEmail = teamDoc.email;
+        }
+      }
+
+      await createNotification({
+        userId: task.assigneeId,
+        userEmail: assigneeEmail,
+        workspaceId: task.workspaceId,
+        type: 'task',
+        text: `<strong>${creatorName}</strong> assigned you a task: <strong>${task.title}</strong>`,
+        icon: 'clipboard',
+      });
+    } catch (e) {
+      console.warn('Task notification creation notice:', e);
+    }
+  }
+
   return task;
 }
 
@@ -186,6 +245,61 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     }
   } catch (e) {
     console.warn('MongoDB update task notice:', e);
+  }
+
+  // Send notification if assignee changed
+  if (updates.assigneeId && updates.assigneeId !== task.assigneeId) {
+    try {
+      let creatorName = 'Someone';
+      const creatorUser = inMemoryStore.users.get(task.creatorId);
+      if (creatorUser) {
+        creatorName = creatorUser.displayName || creatorUser.email?.split('@')[0] || 'Someone';
+      } else {
+        const usersCol = await getCollection<UserProfile>('users');
+        if (usersCol) {
+          const creatorDoc = await usersCol.findOne({ $or: [{ id: task.creatorId }, { uid: task.creatorId }] });
+          if (creatorDoc) {
+            creatorName = creatorDoc.displayName || creatorDoc.email?.split('@')[0] || 'Someone';
+          }
+        }
+      }
+
+      let assigneeEmail: string | undefined;
+      const assigneeUser = inMemoryStore.users.get(updates.assigneeId);
+      if (assigneeUser) {
+        assigneeEmail = assigneeUser.email;
+      } else {
+        const usersCol = await getCollection<UserProfile>('users');
+        if (usersCol) {
+          const assigneeDoc = await usersCol.findOne({ $or: [{ id: updates.assigneeId }, { uid: updates.assigneeId }] });
+          if (assigneeDoc) {
+            assigneeEmail = assigneeDoc.email;
+          }
+        }
+      }
+
+      if (!assigneeEmail) {
+        const teamCol = await getCollection<any>('workspace_teams');
+        if (teamCol) {
+          const teamDoc = await teamCol.findOne({
+            workspaceId: updated.workspaceId,
+            $or: [{ userId: updates.assigneeId }, { id: updates.assigneeId }],
+          });
+          if (teamDoc?.email) assigneeEmail = teamDoc.email;
+        }
+      }
+
+      await createNotification({
+        userId: updates.assigneeId,
+        userEmail: assigneeEmail,
+        workspaceId: updated.workspaceId,
+        type: 'task',
+        text: `<strong>${creatorName}</strong> assigned you a task: <strong>${updated.title}</strong>`,
+        icon: 'clipboard',
+      });
+    } catch (e) {
+      console.warn('Task reassignment notification notice:', e);
+    }
   }
 
   return updated;
