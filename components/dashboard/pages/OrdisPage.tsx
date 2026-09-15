@@ -123,11 +123,9 @@ export default function OrdisPage() {
               flexShrink: 0,
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 3L14.5 9.5L21 12L14.5 14.5L12 21L9.5 14.5L3 12L9.5 9.5L12 3Z"
-                fill="#ffffff"
-              />
+            <svg width="18" height="18" viewBox="0 0 1024 1024" fill="none">
+              <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#ffffff" strokeWidth="142" strokeLinecap="round" fill="none" />
+              <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#ff5710" />
             </svg>
           </div>
           <div>
@@ -225,11 +223,9 @@ export default function OrdisPage() {
                 justifyContent: 'center',
               }}
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 3L14.5 9.5L21 12L14.5 14.5L12 21L9.5 14.5L3 12L9.5 9.5L12 3Z"
-                  fill="#d1d5db"
-                />
+              <svg width="28" height="28" viewBox="0 0 1024 1024" fill="none">
+                <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#d1d5db" strokeWidth="142" strokeLinecap="round" fill="none" />
+                <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#ff5710" />
               </svg>
             </div>
             <div
