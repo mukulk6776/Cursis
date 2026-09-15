@@ -49,7 +49,8 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const userApiKey = resolveGeminiApiKey(body.apiKey);
+    // Always try server-side env fallback (.env.local) when client-provided key is empty
+    const userApiKey = resolveGeminiApiKey(body.apiKey) || resolveGeminiApiKey();
     let model = body.model || 'gemini-3.6-flash';
     if (
       typeof model !== 'string' ||
