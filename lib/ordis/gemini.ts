@@ -1,8 +1,8 @@
 import { GoogleGenAI, FunctionDeclaration, Type } from '@google/genai';
 import { OrdisContextState, OrdisExecutionResult, executeOrdisCommand } from './engine';
 import { normalizeSafeIsoDate } from '@/lib/db/tasks';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   Task,
   Project,
@@ -582,10 +582,18 @@ export async function executeGeminiOrdisChat(
   state: OrdisContextState,
   options?: { apiKey?: string; model?: string }
 ): Promise<OrdisExecutionResult> {
-  const apiKey = resolveGeminiApiKey(options?.apiKey);
+  const candidateKey = options?.apiKey?.trim();
+  const serverFallbackKey = resolveGeminiApiKey(); // resolves from process.env / .env.local
+  const keysToTry: string[] = [];
+  if (candidateKey && candidateKey !== 'PLACEHOLDER') {
+    keysToTry.push(candidateKey);
+  }
+  if (serverFallbackKey && !keysToTry.includes(serverFallbackKey)) {
+    keysToTry.push(serverFallbackKey);
+  }
 
-  // Fallback to local rule engine if no API key is available
-  if (!apiKey) {
+  // Fallback to local rule engine if no API key is available anywhere
+  if (keysToTry.length === 0) {
     return executeOrdisCommand(message, state);
   }
 
@@ -605,7 +613,6 @@ export async function executeGeminiOrdisChat(
     ? ['gemini-3.8-flash', 'gemini-3.6-flash']
     : ['gemini-3.6-flash', 'gemini-3.8-flash'];
 
-  const ai = new GoogleGenAI({ apiKey });
   const systemInstruction = buildOrdisSystemPrompt(state, state.ordisSettings?.tone || 'friendly');
 
   // Build conversation contents
@@ -626,60 +633,69 @@ export async function executeGeminiOrdisChat(
 
   let lastError: any = null;
 
-  for (const currentModel of modelsToTry) {
-    try {
-      const response = await ai.models.generateContent({
-        model: currentModel,
-        contents,
-        config: {
-          systemInstruction,
-          temperature: 0.7,
-          tools: [{ functionDeclarations: ordisToolDeclarations }],
-        },
-      });
+  for (const activeApiKey of keysToTry) {
+    const ai = new GoogleGenAI({ apiKey: activeApiKey });
 
-      const functionCalls = response.functionCalls || [];
-      let responseText = response.text || '';
+    for (const currentModel of modelsToTry) {
+      try {
+        const response = await ai.models.generateContent({
+          model: currentModel,
+          contents,
+          config: {
+            systemInstruction,
+            temperature: 0.7,
+            tools: [{ functionDeclarations: ordisToolDeclarations }],
+          },
+        });
 
-      // If Gemini called tools, execute them and format response
-      if (functionCalls.length > 0) {
-        const { mutations, actionCards, toastMessage, navigateToPage } = processGeminiToolCalls(functionCalls, state);
+        const functionCalls = response.functionCalls || [];
+        let responseText = response.text || '';
 
-        if (!responseText.trim()) {
-          const actionNames = functionCalls.map((c: any) => c.name.replace(/_/g, ' ')).join(', ');
-          responseText = `Done! I've executed **${actionNames}** for your workspace.`;
+        // If Gemini called tools, execute them and format response
+        if (functionCalls.length > 0) {
+          const { mutations, actionCards, toastMessage, navigateToPage } = processGeminiToolCalls(functionCalls, state);
+
+          if (!responseText.trim()) {
+            const actionNames = functionCalls.map((c: any) => c.name.replace(/_/g, ' ')).join(', ');
+            responseText = `Done! I've executed **${actionNames}** for your workspace.`;
+          }
+
+          return {
+            responseText,
+            toastMessage,
+            actionCard: actionCards[0],
+            navigateToPage,
+            stateMutations: mutations,
+            suggestedFollowUps: [
+              'Show me active tasks',
+              'What meetings do I have tomorrow?',
+              'How is our sprint velocity looking?',
+            ],
+          };
         }
 
+        // Regular conversational answer from Gemini
         return {
-          responseText,
-          toastMessage,
-          actionCard: actionCards[0],
-          navigateToPage,
-          stateMutations: mutations,
+          responseText: responseText.trim() || 'I am right here and ready to help. How can I assist you with your workspace today?',
           suggestedFollowUps: [
-            'Show me active tasks',
-            'What meetings do I have tomorrow?',
-            'How is our sprint velocity looking?',
+            'Assign a high priority task',
+            'Schedule a team catch-up',
+            'Inspect workload and deadlines',
           ],
         };
+      } catch (err: any) {
+        lastError = err;
+        const msg = String(err.message || err);
+        console.warn(`Gemini model ${currentModel} returned notice:`, msg.substring(0, 120));
+        // If the key itself is invalid, break inner model loop and try next key
+        if (msg.includes('API_KEY_INVALID') || msg.includes('API key not valid')) {
+          break;
+        }
       }
-
-      // Regular conversational answer from Gemini
-      return {
-        responseText: responseText.trim() || 'I am right here and ready to help. How can I assist you with your workspace today?',
-        suggestedFollowUps: [
-          'Assign a high priority task',
-          'Schedule a team catch-up',
-          'Inspect workload and deadlines',
-        ],
-      };
-    } catch (err: any) {
-      console.warn(`Gemini model ${currentModel} returned notice, trying failover:`, err.message || err);
-      lastError = err;
-      // Loop to try next model in modelsToTry
     }
   }
 
-  console.warn('All Gemini live models failed, falling back to local Ordis engine:', lastError?.message || lastError);
+  console.warn('All Gemini live keys/models failed, falling back to local Ordis engine:', lastError?.message || lastError);
   return executeOrdisCommand(message, state);
 }
+

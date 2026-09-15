@@ -111,15 +111,18 @@ function handleFreePlanOrdis(
  lower: string,
  state: OrdisContextState
 ): OrdisExecutionResult | null {
- const { employees, projects, tasks, meetings } = state;
- const activeTasks = tasks.filter((t) => t.status !== 'completed');
- const completedTasks = tasks.filter((t) => t.status === 'completed');
- const overdueTasks = activeTasks.filter((t) => isOverdue(t.deadline));
- const urgentTasks = activeTasks.filter((t) => t.priority === 'urgent' || t.priority === 'high');
- const onlineMembers = employees.filter((e) => e.status === 'online');
- const totalTasks = tasks.length;
- const velocityPercent = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 100;
- const upcomingMeetings = meetings.filter((m) => m.status !== 'completed');
+  const employees = state.employees || [];
+  const projects = state.projects || [];
+  const tasks = state.tasks || [];
+  const meetings = state.meetings || [];
+  const activeTasks = tasks.filter((t) => t.status !== 'completed');
+  const completedTasks = tasks.filter((t) => t.status === 'completed');
+  const overdueTasks = activeTasks.filter((t) => isOverdue(t.deadline));
+  const urgentTasks = activeTasks.filter((t) => t.priority === 'urgent' || t.priority === 'high');
+  const onlineMembers = employees.filter((e) => e.status === 'online');
+  const totalTasks = tasks.length;
+  const velocityPercent = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 100;
+  const upcomingMeetings = meetings.filter((m) => m.status !== 'completed');
 
  const isReportOrStatus =
   lower.includes('report') ||
@@ -262,18 +265,16 @@ export function executeOrdisCommand(
  state: OrdisContextState
 ): OrdisExecutionResult {
  const lower = text.toLowerCase().trim();
- const isPaid = state.plan === 'paid';
- const {
-  user,
-  employees,
-  projects,
-  tasks,
-  meetings,
-  documents,
-  automations,
-  crm,
-  activeWorkspace,
- } = state;
+  const isPaid = state.plan === 'paid' || !state.plan;
+  const user = state.user || { id: 'usr_me', name: 'Commander', email: 'user@cursis.io', role: 'Owner' };
+  const employees = state.employees || [];
+  const projects = state.projects || [];
+  const tasks = state.tasks || [];
+  const meetings = state.meetings || [];
+  const documents = state.documents || [];
+  const automations = state.automations || [];
+  const crm = state.crm || { deals: [], contacts: [] };
+  const activeWorkspace = state.activeWorkspace || { id: 'ws_main', name: "User's Workspace" } as any;
 
  // FREE PLAN: Text-only, conversational mode (reports, status, advice like ChatGPT)
  if (!isPaid) {
