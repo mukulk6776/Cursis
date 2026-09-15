@@ -653,8 +653,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
       // 3. Fetch workspace tasks from MongoDB
       try {
+        const authToken = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
         const taskRes = await fetch(`/api/tasks?workspaceId=${encodeURIComponent(targetWsId)}`, {
           credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          },
         });
         if (taskRes.ok) {
           const taskData = await taskRes.json();
@@ -1278,80 +1283,101 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  showToast(`Task "${newTask.name}" created `);
 
- // Persist task to MongoDB via API and trigger assignee notification
- const statusMap: Record<string, string> = {
-   'in-progress': 'in_progress',
-   'completed': 'done',
-   'review': 'in_review',
-   'todo': 'todo',
- };
+  // Persist task to MongoDB via API and trigger assignee notification
+  const statusMap: Record<string, string> = {
+    'in-progress': 'in_progress',
+    'completed': 'done',
+    'review': 'in_review',
+    'todo': 'todo',
+  };
 
- const assigneeName = emp?.name || '';
- const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
-   ? activeWorkspaceId
-   : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+  const assigneeName = emp?.name || '';
+  const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+    ? activeWorkspaceId
+    : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
 
- fetch('/api/tasks', {
-   method: 'POST',
-   credentials: 'include',
-   headers: { 'Content-Type': 'application/json' },
-   body: JSON.stringify({
-     id: newTask.id,
-     title: newTask.name,
-     description: newTask.description || '',
-     assigneeId: newTask.assignee,
-     assigneeName: assigneeName,
-     projectId: newTask.project,
-     priority: newTask.priority,
-     status: statusMap[newTask.status] || newTask.status,
-     dueDate: newTask.deadline ? new Date(newTask.deadline).toISOString() : undefined,
-     tags: newTask.tags || [],
-     workspaceId: wsId,
-   }),
- })
-   .then((res) => {
-     if (res.ok) {
-       // Refresh notifications so assignee sees the task notification
-       setTimeout(() => syncTeamAndNotifications(), 1000);
-     }
-   })
-   .catch((err) => {
-     console.warn('Task API persist notice:', err);
-   });
- };
+  const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
 
- const updateTask = (id: string, updates: Partial<Task>) => {
- setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
- showToast('Task updated ');
+  // Safe date parse helper
+  let safeDueDate = new Date(Date.now() + 3 * 86400000).toISOString();
+  if (newTask.deadline) {
+    const parsedD = new Date(newTask.deadline);
+    if (!isNaN(parsedD.getTime())) {
+      safeDueDate = parsedD.toISOString();
+    }
+  }
 
- const statusMap: Record<string, string> = {
-   'in-progress': 'in_progress',
-   'completed': 'done',
-   'review': 'in_review',
-   'todo': 'todo',
- };
+  fetch('/api/tasks', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({
+      id: newTask.id,
+      title: newTask.name,
+      description: newTask.description || '',
+      assigneeId: newTask.assignee,
+      assigneeName: assigneeName,
+      projectId: newTask.project,
+      priority: newTask.priority,
+      status: statusMap[newTask.status] || newTask.status,
+      dueDate: safeDueDate,
+      tags: newTask.tags || [],
+      workspaceId: wsId,
+    }),
+  })
+    .then((res) => {
+      if (res.ok) {
+        // Refresh notifications and sync state
+        setTimeout(() => syncTeamAndNotifications(), 800);
+      }
+    })
+    .catch((err) => {
+      console.warn('Task API persist notice:', err);
+    });
+  };
 
- const payload: Record<string, any> = { id };
- if (updates.name !== undefined) payload.title = updates.name;
- if (updates.description !== undefined) payload.description = updates.description;
- if (updates.assignee !== undefined) {
-   payload.assigneeId = updates.assignee;
-   const emp = employees.find((e) => e.id === updates.assignee);
-   if (emp) payload.assigneeName = emp.name;
- }
- if (updates.project !== undefined) payload.projectId = updates.project;
- if (updates.priority !== undefined) payload.priority = updates.priority;
- if (updates.status !== undefined) payload.status = statusMap[updates.status] || updates.status;
- if (updates.deadline !== undefined) payload.dueDate = updates.deadline ? new Date(updates.deadline).toISOString() : undefined;
- if (updates.tags !== undefined) payload.tags = updates.tags;
+  const updateTask = (id: string, updates: Partial<Task>) => {
+  setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
+  showToast('Task updated ');
 
- fetch(`/api/tasks/${id}`, {
-   method: 'PATCH',
-   credentials: 'include',
-   headers: { 'Content-Type': 'application/json' },
-   body: JSON.stringify(payload),
- }).catch((err) => console.warn('Task update persist notice:', err));
- };
+  const statusMap: Record<string, string> = {
+    'in-progress': 'in_progress',
+    'completed': 'done',
+    'review': 'in_review',
+    'todo': 'todo',
+  };
+
+  const payload: Record<string, any> = { id };
+  if (updates.name !== undefined) payload.title = updates.name;
+  if (updates.description !== undefined) payload.description = updates.description;
+  if (updates.assignee !== undefined) {
+    payload.assigneeId = updates.assignee;
+    const emp = employees.find((e) => e.id === updates.assignee);
+    if (emp) payload.assigneeName = emp.name;
+  }
+  if (updates.project !== undefined) payload.projectId = updates.project;
+  if (updates.priority !== undefined) payload.priority = updates.priority;
+  if (updates.status !== undefined) payload.status = statusMap[updates.status] || updates.status;
+  if (updates.deadline !== undefined) {
+    const d = new Date(updates.deadline);
+    payload.dueDate = !isNaN(d.getTime()) ? d.toISOString() : new Date().toISOString();
+  }
+  if (updates.tags !== undefined) payload.tags = updates.tags;
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+  fetch(`/api/tasks/${id}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(payload),
+  }).catch((err) => console.warn('Task update persist notice:', err));
+  };
 
   const deleteTask = (id: string) => {
     const existing = tasks.find((t) => t.id === id);
@@ -1374,89 +1400,104 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     setTasks((prev) => prev.filter((t) => t.id !== id));
 
-    // Async persist to API
+    // Async persist to API with auth token
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
       fetch(`/api/tasks/${id}`, {
         method: 'DELETE',
         credentials: 'include',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       }).catch(() => {});
     } catch {}
 
     showToast('Task deleted successfully');
   };
+  const assignTask = (taskId: string, assigneeIds: string[]) => {
+    const primary = assigneeIds[0] || user.id;
+    const emp = employees.find((e) => e.id === primary);
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, assignee: primary, assignees: assigneeIds } : t))
+    );
+    showToast('Task assigned ');
 
- const assignTask = (taskId: string, assigneeIds: string[]) => {
- const primary = assigneeIds[0] || user.id;
- const emp = employees.find((e) => e.id === primary);
- setTasks((prev) =>
- prev.map((t) => (t.id === taskId ? { ...t, assignee: primary, assignees: assigneeIds } : t))
- );
- showToast('Task assigned ');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+    fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        assigneeId: primary,
+        assigneeName: emp?.name || '',
+      }),
+    }).catch((err) => console.warn('Task assign persist notice:', err));
+  };
 
- fetch(`/api/tasks/${taskId}`, {
-   method: 'PATCH',
-   credentials: 'include',
-   headers: { 'Content-Type': 'application/json' },
-   body: JSON.stringify({
-     assigneeId: primary,
-     assigneeName: emp?.name || '',
-   }),
- }).catch((err) => console.warn('Task assign persist notice:', err));
- };
+  const updateTaskStatus = (taskId: string, status: TaskStatus) => {
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)));
+    showToast(`Task status moved to ${status} `);
 
- const updateTaskStatus = (taskId: string, status: TaskStatus) => {
- setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)));
- showToast(`Task status moved to ${status} `);
+    const statusMap: Record<string, string> = {
+      'in-progress': 'in_progress',
+      'completed': 'done',
+      'review': 'in_review',
+      'todo': 'todo',
+    };
 
- const statusMap: Record<string, string> = {
-   'in-progress': 'in_progress',
-   'completed': 'done',
-   'review': 'in_review',
-   'todo': 'todo',
- };
+    const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+    fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        status: statusMap[status] || status,
+      }),
+    }).catch((err) => console.warn('Task status persist notice:', err));
+  };
 
- fetch(`/api/tasks/${taskId}`, {
-   method: 'PATCH',
-   credentials: 'include',
-   headers: { 'Content-Type': 'application/json' },
-   body: JSON.stringify({
-     status: statusMap[status] || status,
-   }),
- }).catch((err) => console.warn('Task status persist notice:', err));
- };
+  const toggleTaskComplete = (taskId: string) => {
+    let nextStatus: TaskStatus = 'in-progress';
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          nextStatus = t.status === 'completed' ? 'in-progress' : 'completed';
+          const act = `Task "${t.name}" marked as ${nextStatus === 'completed' ? 'done' : 'in progress'}`;
+          setActivity((a) => [{ id: 'act_' + Date.now(), text: act, time: 'Just now', dot: '#00b341' }, ...a]);
+          return { ...t, status: nextStatus };
+        }
+        return t;
+      })
+    );
 
- const toggleTaskComplete = (taskId: string) => {
- let nextStatus: TaskStatus = 'in-progress';
- setTasks((prev) =>
- prev.map((t) => {
- if (t.id === taskId) {
- nextStatus = t.status === 'completed' ? 'in-progress' : 'completed';
- const act = `Task "${t.name}" marked as ${nextStatus === 'completed' ? 'done' : 'in progress'}`;
- setActivity((a) => [{ id: 'act_' + Date.now(), text: act, time: 'Just now', dot: '#00b341' }, ...a]);
- return { ...t, status: nextStatus };
- }
- return t;
- })
- );
+    const statusMap: Record<string, string> = {
+      'in-progress': 'in_progress',
+      'completed': 'done',
+      'review': 'in_review',
+      'todo': 'todo',
+    };
 
- const statusMap: Record<string, string> = {
-   'in-progress': 'in_progress',
-   'completed': 'done',
-   'review': 'in_review',
-   'todo': 'todo',
- };
+    const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+    fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        status: statusMap[nextStatus],
+      }),
+    }).catch((err) => console.warn('Task toggle complete persist notice:', err));
+  };
 
- fetch(`/api/tasks/${taskId}`, {
-   method: 'PATCH',
-   credentials: 'include',
-   headers: { 'Content-Type': 'application/json' },
-   body: JSON.stringify({
-     status: statusMap[nextStatus],
-   }),
- }).catch((err) => console.warn('Task toggle complete persist notice:', err));
- };
-
- // ---- Project Mutations ----
+  // ---- Project Mutations ----
  const addProject = (projData: Partial<Project> & { name: string }) => {
  const newProj: Project = {
  id: 'p_' + Date.now(),
@@ -2021,9 +2062,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  setChatHistory((prev) => [...prev, userMsg, typingMsg]);
 
  const ordisState: OrdisContextState = {
- plan: 'basic',
+ plan: 'paid',
  user,
- workspace: { name: activeWorkspace.name, plan: 'Cursis Starter Basic' },
+ workspace: { name: activeWorkspace.name, plan: 'Cursis Enterprise Pro' },
  activeWorkspace,
  employees,
  projects,
@@ -2058,9 +2099,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const m = result.stateMutations;
  if (m.createdTask) {
  setTasks((prev) => [m.createdTask!, ...prev]);
+ setTimeout(() => syncTeamAndNotifications(), 1000);
  }
  if (m.updatedTasks) {
  setTasks(m.updatedTasks);
+ setTimeout(() => syncTeamAndNotifications(), 1000);
  }
  if (m.createdProject) {
  setProjects((prev) => [m.createdProject!, ...prev]);
@@ -2155,9 +2198,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  try {
+ const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
  const response = await fetch('/api/ordis/chat', {
  method: 'POST',
- headers: { 'Content-Type': 'application/json' },
+ credentials: 'include',
+ headers: {
+ 'Content-Type': 'application/json',
+ ...(token ? { Authorization: `Bearer ${token}` } : {}),
+ },
  body: JSON.stringify({
  message: text,
  history: chatHistory.slice(-6).map((m) => ({ role: m.role, text: m.text })),

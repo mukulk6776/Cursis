@@ -69,13 +69,145 @@ export async function POST(request: NextRequest) {
       engineSource = 'local_fallback';
     }
 
+    const targetWsId = state.activeWorkspace?.id && state.activeWorkspace.id !== 'ws_default' && state.activeWorkspace.id !== 'ws_public'
+      ? state.activeWorkspace.id
+      : 'ws_cursis_main';
+
+    // Persist any created or updated entities directly to MongoDB collections
+    if (result?.stateMutations) {
+      const m = result.stateMutations;
+
+      // 1. Created Task
+      if (m.createdTask) {
+        try {
+          const col = await getCollection<any>('tasks');
+          if (col) {
+            const rawTask = m.createdTask as any;
+            const taskDoc = {
+              id: m.createdTask.id,
+              workspaceId: targetWsId,
+              title: m.createdTask.name || rawTask.title || 'Untitled Task',
+              description: m.createdTask.description || '',
+              status: m.createdTask.status === 'completed' ? 'done' : (m.createdTask.status || 'todo'),
+              priority: m.createdTask.priority || 'high',
+              assigneeId: m.createdTask.assignee || rawTask.assigneeId || undefined,
+              dueDate: m.createdTask.deadline ? new Date(m.createdTask.deadline).toISOString() : new Date(Date.now() + 3 * 86400000).toISOString(),
+              tags: m.createdTask.tags || ['AI-Dispatched'],
+              subtasks: m.createdTask.subtasks || [],
+              creatorId: state.user?.id || 'usr_ai',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await col.updateOne({ id: taskDoc.id }, { $set: taskDoc }, { upsert: true });
+          }
+        } catch (e) {
+          console.warn('Ordis MongoDB persist task notice:', e);
+        }
+      }
+
+      // 2. Updated Tasks
+      if (Array.isArray(m.updatedTasks)) {
+        try {
+          const col = await getCollection<any>('tasks');
+          if (col) {
+            for (const ut of m.updatedTasks) {
+              const mappedStatus = ut.status === 'completed' ? 'done' : ut.status;
+              await col.updateOne(
+                { id: ut.id },
+                { $set: { status: mappedStatus, updatedAt: new Date().toISOString() } }
+              );
+            }
+          }
+        } catch (e) {
+          console.warn('Ordis MongoDB update tasks notice:', e);
+        }
+      }
+
+      // 3. Created Project
+      if (m.createdProject) {
+        try {
+          const col = await getCollection<any>('projects');
+          if (col) {
+            const rawProj = m.createdProject as any;
+            const projDoc = {
+              id: m.createdProject.id,
+              workspaceId: targetWsId,
+              name: m.createdProject.name,
+              description: m.createdProject.desc || rawProj.description || '',
+              budget: 25000,
+              deadline: m.createdProject.deadline || new Date(Date.now() + 30 * 86400000).toISOString(),
+              health: 'on_track',
+              progressPercent: 0,
+              ownerId: state.user?.id || 'usr_ai',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await col.updateOne({ id: projDoc.id }, { $set: projDoc }, { upsert: true });
+          }
+        } catch (e) {
+          console.warn('Ordis MongoDB persist project notice:', e);
+        }
+      }
+
+      // 4. Created Meeting
+      if (m.createdMeeting) {
+        try {
+          const col = await getCollection<any>('meetings');
+          if (col) {
+            const mtgDoc = {
+              id: m.createdMeeting.id,
+              workspaceId: targetWsId,
+              title: m.createdMeeting.name || m.createdMeeting.title,
+              date: m.createdMeeting.date,
+              time: m.createdMeeting.time,
+              platform: m.createdMeeting.platform || 'google_meet',
+              meetingUrl: m.createdMeeting.meetingUrl || 'https://meet.google.com/crs-sync',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await col.updateOne({ id: mtgDoc.id }, { $set: mtgDoc }, { upsert: true });
+          }
+        } catch (e) {
+          console.warn('Ordis MongoDB persist meeting notice:', e);
+        }
+      }
+
+      // 5. Created Document
+      if (m.createdDocument) {
+        try {
+          const col = await getCollection<any>('documents');
+          if (col) {
+            await col.updateOne(
+              { id: m.createdDocument.id },
+              { $set: { ...m.createdDocument, workspaceId: targetWsId } },
+              { upsert: true }
+            );
+          }
+        } catch (e) {}
+      }
+
+      // 6. Created Automation
+      if (m.createdAutomation) {
+        try {
+          const col = await getCollection<any>('automations');
+          if (col) {
+            await col.updateOne(
+              { id: m.createdAutomation.id },
+              { $set: { ...m.createdAutomation, workspaceId: targetWsId } },
+              { upsert: true }
+            );
+          }
+        } catch (e) {}
+      }
+    }
+
     // Record audit trail if possible
     try {
       const auditCol = await getCollection<AuditLogEntry>('audit_logs');
       if (auditCol) {
         await auditCol.insertOne({
           id: 'aud_chat_' + Date.now(),
-          workspaceId: state.activeWorkspace?.id || 'ws_cursis_main',
+          workspaceId: targetWsId,
           actorType: 'ordis_assisted',
           actorId: state.user?.id || 'usr_ai',
           actorName: state.user?.name || 'User',

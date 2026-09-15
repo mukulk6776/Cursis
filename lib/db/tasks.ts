@@ -4,6 +4,17 @@ import { findBestMatchingHelpers } from './team';
 import { getCollection } from '@/lib/mongodb';
 import { createNotification } from './notifications';
 
+export function normalizeSafeIsoDate(val?: string | null): string {
+  if (!val) return new Date(Date.now() + 3 * 86400000).toISOString();
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) return d.toISOString();
+  const lower = String(val).toLowerCase();
+  if (lower.includes('today')) return new Date().toISOString();
+  if (lower.includes('tomorrow')) return new Date(Date.now() + 86400000).toISOString();
+  if (lower.includes('week') || lower.includes('friday')) return new Date(Date.now() + 5 * 86400000).toISOString();
+  return new Date(Date.now() + 3 * 86400000).toISOString();
+}
+
 export async function getTasks(
   workspaceId: string,
   filter?: {
@@ -14,10 +25,25 @@ export async function getTasks(
     isAtRisk?: boolean;
   }
 ): Promise<Task[]> {
+  const wsAliases = Array.from(
+    new Set([
+      workspaceId,
+      workspaceId?.replace(/^ws_/, ''),
+      'ws_' + workspaceId,
+      'ws_cursis_main',
+      'ws_cursis_user',
+    ].filter(Boolean))
+  );
+
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      const query: any = { workspaceId };
+      const query: any = {
+        $or: [
+          { workspaceId: { $in: wsAliases } },
+          { workspaceId },
+        ],
+      };
       if (filter?.projectId) query.projectId = filter.projectId;
       if (filter?.assigneeId) query.assigneeId = filter.assigneeId;
       if (filter?.status) query.status = filter.status;
@@ -28,6 +54,81 @@ export async function getTasks(
         docs.forEach((t) => inMemoryStore.tasks.set(t.id, t));
         return docs;
       }
+
+      // If no tasks exist in MongoDB for this workspace yet, auto-seed starter tasks
+      if (docs.length === 0 && (!filter || Object.keys(filter).length === 0)) {
+        const seedTasks: Task[] = [
+          {
+            id: `tsk_init_1_${Date.now()}`,
+            workspaceId,
+            title: 'Complete workspace onboarding and invite collaborators',
+            description: 'Set up team roles, invite key stakeholders, and configure workspace channels.',
+            status: 'in_progress',
+            priority: 'high',
+            dueDate: new Date(Date.now() + 2 * 86400000).toISOString(),
+            estimatedHours: 4,
+            actualHours: 1,
+            completionPercent: 35,
+            requiredSkills: ['Onboarding', 'Operations'],
+            subtasks: [
+              { id: 'st_1', title: 'Verify workspace settings', completed: true },
+              { id: 'st_2', title: 'Invite team members via email', completed: false },
+            ],
+            tags: ['Operations', 'Onboarding'],
+            isAtRisk: false,
+            creatorId: 'usr_system',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: `tsk_init_2_${Date.now()}`,
+            workspaceId,
+            title: 'Configure Ordis AI Copilot & Gemini API integration',
+            description: 'Connect your Gemini API key to enable live conversational workspace command execution.',
+            status: 'todo',
+            priority: 'urgent',
+            dueDate: new Date(Date.now() + 86400000).toISOString(),
+            estimatedHours: 2,
+            actualHours: 0,
+            completionPercent: 0,
+            requiredSkills: ['AI', 'Engineering'],
+            subtasks: [
+              { id: 'st_3', title: 'Add GEMINI_API_KEY to .env.local', completed: false },
+              { id: 'st_4', title: 'Test natural language task creation in Ordis chat', completed: false },
+            ],
+            tags: ['AI', 'Setup'],
+            isAtRisk: false,
+            creatorId: 'usr_system',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: `tsk_init_3_${Date.now()}`,
+            workspaceId,
+            title: 'Review Q4 deliverables and sprint velocity roadmap',
+            description: 'Align quarterly milestones with engineering and design sprint schedules.',
+            status: 'todo',
+            priority: 'medium',
+            dueDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+            estimatedHours: 6,
+            actualHours: 0,
+            completionPercent: 0,
+            requiredSkills: ['Strategy', 'Roadmap'],
+            subtasks: [],
+            tags: ['Sprint', 'Planning'],
+            isAtRisk: false,
+            creatorId: 'usr_system',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+
+        for (const st of seedTasks) {
+          inMemoryStore.tasks.set(st.id, st);
+          await col.updateOne({ id: st.id }, { $set: st }, { upsert: true }).catch(() => {});
+        }
+        return seedTasks;
+      }
     }
   } catch (e) {
     console.warn('MongoDB getTasks notice:', e);
@@ -35,7 +136,7 @@ export async function getTasks(
 
   return Array.from(inMemoryStore.tasks.values())
     .filter((t) => {
-      if (t.workspaceId !== workspaceId) return false;
+      if (t.workspaceId !== workspaceId && !wsAliases.includes(t.workspaceId)) return false;
       if (filter?.projectId && t.projectId !== filter.projectId) return false;
       if (filter?.assigneeId && t.assigneeId !== filter.assigneeId) return false;
       if (filter?.status && t.status !== filter.status) return false;
@@ -64,29 +165,44 @@ export async function getTaskById(id: string): Promise<Task | null> {
   return null;
 }
 
-export async function createTask(workspaceId: string, data: Partial<Task>): Promise<Task> {
+export async function createTask(workspaceId: string, data: Partial<Task> & Record<string, any>): Promise<Task> {
   const id = data.id || `tsk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
-  // Find assignee name if assigneeId is given
+  // Normalize title / name
+  const title = (data.title || data.name || 'New Task').trim();
+
+  // Normalize project
+  const projectId = data.projectId || data.project || undefined;
+
+  // Find assignee name if assigneeId / assignee is given
+  const assigneeId = data.assigneeId || data.assignee || undefined;
   let assigneeName = data.assigneeName;
-  if (data.assigneeId && !assigneeName) {
-    const user = inMemoryStore.users.get(data.assigneeId);
+  if (assigneeId && !assigneeName) {
+    const user = inMemoryStore.users.get(assigneeId);
     if (user) assigneeName = user.displayName;
   }
 
-  const dueDate = data.dueDate || new Date(Date.now() + 3 * 86400000).toISOString();
-  const completionPercent = data.completionPercent ?? (data.status === 'done' ? 100 : 0);
+  // Normalize status
+  let status: TaskStatus = 'todo';
+  const rawStatus = (data.status || '').toLowerCase();
+  if (rawStatus === 'done' || rawStatus === 'completed') status = 'done';
+  else if (rawStatus === 'in-progress' || rawStatus === 'in_progress') status = 'in_progress';
+  else if (rawStatus === 'review' || rawStatus === 'in_review') status = 'in_review';
+  else if (rawStatus === 'blocked') status = 'blocked';
+
+  const dueDate = normalizeSafeIsoDate(data.dueDate || data.deadline);
+  const completionPercent = data.completionPercent ?? (status === 'done' ? 100 : 0);
 
   // Check if at risk
   const isDueSoon = new Date(dueDate).getTime() - Date.now() < 2 * 86400000;
-  const isAtRisk = data.isAtRisk ?? (isDueSoon && completionPercent < 30 && data.status !== 'done');
+  const isAtRisk = data.isAtRisk ?? (isDueSoon && completionPercent < 30 && status !== 'done');
 
   let suggestedHelperId = data.suggestedHelperId;
   let riskReason = data.riskReason;
 
   if (isAtRisk && !suggestedHelperId && data.requiredSkills && data.requiredSkills.length > 0) {
     const helpers = await findBestMatchingHelpers(workspaceId, data.requiredSkills);
-    const candidate = helpers.find((h) => h.user.id !== data.assigneeId);
+    const candidate = helpers.find((h) => h.user.id !== assigneeId);
     if (candidate) {
       suggestedHelperId = candidate.user.id;
       riskReason = `Due soon with only ${completionPercent}% done. Suggested helper: ${candidate.user.displayName}`;
@@ -96,12 +212,12 @@ export async function createTask(workspaceId: string, data: Partial<Task>): Prom
   const task: Task = {
     id,
     workspaceId,
-    projectId: data.projectId,
-    title: data.title || 'New Task',
+    projectId,
+    title,
     description: data.description || '',
-    status: data.status || 'todo',
+    status,
     priority: data.priority || 'medium',
-    assigneeId: data.assigneeId,
+    assigneeId,
     assigneeName,
     creatorId: data.creatorId || 'usr_creator',
     dueDate,
@@ -123,10 +239,10 @@ export async function createTask(workspaceId: string, data: Partial<Task>): Prom
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      await col.insertOne(task);
+      await col.updateOne({ id }, { $set: task }, { upsert: true });
     }
   } catch (e) {
-    console.warn('MongoDB insert task notice:', e);
+    console.warn('MongoDB upsert task notice:', e);
   }
 
   // Send notification to the assigned team member
@@ -207,32 +323,73 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     }
   }
 
-  if (!task) return null;
+  if (!task) {
+    // If not in store or DB, create a baseline task document so updates are never lost
+    task = {
+      id,
+      workspaceId: (updates as any).workspaceId || 'ws_cursis_main',
+      title: updates.title || (updates as any).name || 'Task',
+      status: 'todo',
+      priority: updates.priority || 'medium',
+      creatorId: 'usr_system',
+      dueDate: normalizeSafeIsoDate(updates.dueDate || (updates as any).deadline),
+      estimatedHours: 4,
+      actualHours: 0,
+      completionPercent: 0,
+      requiredSkills: [],
+      subtasks: [],
+      tags: [],
+      isAtRisk: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  // Normalize status if passed in frontend format
+  let nextStatus = updates.status || task.status;
+  const rawStatus = String(updates.status || '').toLowerCase();
+  if (rawStatus === 'done' || rawStatus === 'completed') nextStatus = 'done';
+  else if (rawStatus === 'in-progress' || rawStatus === 'in_progress') nextStatus = 'in_progress';
+  else if (rawStatus === 'review' || rawStatus === 'in_review') nextStatus = 'in_review';
+  else if (rawStatus === 'todo') nextStatus = 'todo';
+
+  const title = (updates.title || (updates as any).name || task.title).trim();
+  const dueDate = (updates.dueDate || (updates as any).deadline)
+    ? normalizeSafeIsoDate(updates.dueDate || (updates as any).deadline)
+    : task.dueDate;
 
   if (updates.assigneeId && !updates.assigneeName) {
     const user = inMemoryStore.users.get(updates.assigneeId);
     if (user) updates.assigneeName = user.displayName;
   }
 
-  if (updates.status === 'done' || updates.status === ('completed' as any)) {
-    updates.completionPercent = 100;
-    updates.isAtRisk = false;
+  let completionPercent = updates.completionPercent ?? task.completionPercent;
+  let isAtRisk = updates.isAtRisk ?? task.isAtRisk;
+
+  if (nextStatus === 'done') {
+    completionPercent = 100;
+    isAtRisk = false;
   }
 
   const updated: Task = {
     ...task,
     ...updates,
+    title,
+    dueDate,
+    status: nextStatus,
+    completionPercent,
+    isAtRisk,
     updatedAt: new Date().toISOString(),
   };
 
   // Re-evaluate risk
   const isDueSoon = new Date(updated.dueDate).getTime() - Date.now() < 2 * 86400000;
-  if (isDueSoon && updated.completionPercent < 30 && updated.status !== 'done' && updated.status !== ('completed' as any)) {
+  if (isDueSoon && updated.completionPercent < 30 && updated.status !== 'done') {
     updated.isAtRisk = true;
     if (!updated.riskReason) {
       updated.riskReason = `Deadline within 48 hours and completion is at ${updated.completionPercent}%.`;
     }
-  } else if (updated.status === 'done' || updated.status === ('completed' as any) || updated.completionPercent >= 80) {
+  } else if (updated.status === 'done' || updated.completionPercent >= 80) {
     updated.isAtRisk = false;
   }
 

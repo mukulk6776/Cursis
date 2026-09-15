@@ -1,5 +1,6 @@
 import { GoogleGenAI, FunctionDeclaration, Type } from '@google/genai';
 import { OrdisContextState, OrdisExecutionResult, executeOrdisCommand } from './engine';
+import { normalizeSafeIsoDate } from '@/lib/db/tasks';
 import {
  Task,
  Project,
@@ -17,8 +18,8 @@ import {
 // Supported Gemini Models for Cursis Ordis Chatbot
 export const ORDIS_MODELS = [
  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Recommended - Fastest & Agentic)', default: true },
- { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (Hybrid Reasoning & Multimodal)', default: false },
  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Deep Architectural Reasoning)', default: false },
+ { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Fast Multimodal)', default: false },
 ];
 
 /**
@@ -301,7 +302,7 @@ export function processGeminiToolCalls(
  assignees: [assignedEmployee.id],
  priority: args.priority || 'high',
  status: 'todo',
- deadline: args.dueDate || 'Tomorrow, 5:00 PM',
+ deadline: normalizeSafeIsoDate(args.dueDate),
  subtasks: [
  { id: 'st_1', name: 'Initial draft & scoping', done: false },
  { id: 'st_2', name: 'Review & signoff', done: false },

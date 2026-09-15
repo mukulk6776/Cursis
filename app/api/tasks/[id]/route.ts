@@ -30,11 +30,6 @@ export async function PATCH(
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = await params;
-    const existing = await getTaskById(id);
-    if (!existing) {
-      return apiError('Task not found', 404);
-    }
-
     const body = await request.json().catch(() => ({}));
     const updated = await updateTask(id, body);
 
@@ -53,11 +48,6 @@ export async function DELETE(
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = await params;
-    const existing = await getTaskById(id);
-    if (!existing) {
-      return apiError('Task not found', 404);
-    }
-
     await deleteTask(id);
     return apiSuccess({ message: 'Task deleted successfully', id });
   } catch (error: any) {

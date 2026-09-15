@@ -8,7 +8,11 @@ export async function GET(request: Request) {
     const authUser = auth.user;
 
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
+    const paramWs = searchParams.get('workspaceId');
+    const workspaceId = (paramWs && paramWs !== 'ws_default' && paramWs !== 'ws_public')
+      ? paramWs
+      : (authUser.workspaceId || ('ws_' + authUser.uid));
+
     const projectId = searchParams.get('projectId') || undefined;
     const assigneeId = searchParams.get('assigneeId') || undefined;
     const status = (searchParams.get('status') as any) || undefined;
@@ -29,7 +33,10 @@ export async function POST(request: Request) {
     const authUser = auth.user;
 
     const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const rawWs = body.workspaceId;
+    const workspaceId = (rawWs && rawWs !== 'ws_default' && rawWs !== 'ws_public')
+      ? rawWs
+      : (authUser.workspaceId || ('ws_' + authUser.uid));
 
     const title = body.title || body.name;
     if (!title || typeof title !== 'string' || !title.trim()) {

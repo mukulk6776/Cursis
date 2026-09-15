@@ -1,33 +1,57 @@
 import { MongoClient, Db, Collection, Document } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cursis';
+function getMongoUri(): string {
+  if (process.env.MONGODB_URI && process.env.MONGODB_URI.trim() && !process.env.MONGODB_URI.includes('127.0.0.1')) {
+    return process.env.MONGODB_URI.trim();
+  }
+  // Try reading .env.local if on server/Node runtime
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('MONGODB_URI=')) {
+          const uri = trimmed.replace('MONGODB_URI=', '').replace(/^["']|["']$/g, '').trim();
+          if (uri) {
+            process.env.MONGODB_URI = uri;
+            return uri;
+          }
+        }
+      }
+    }
+  } catch {}
+
+  return process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cursis';
+}
 
 // Extract database name from URI or environment variable
 function resolveDbName(): string {
- if (process.env.MONGODB_DB_NAME && process.env.MONGODB_DB_NAME.trim()) {
- return process.env.MONGODB_DB_NAME.trim();
- }
- try {
- const url = new URL(MONGODB_URI.replace(/^mongodb\+srv:\/\//, 'http://').replace(/^mongodb:\/\//, 'http://'));
- const pathname = url.pathname.replace(/^\//, '').split('?')[0];
- if (pathname) return pathname;
- } catch {}
- return 'cursis';
+  if (process.env.MONGODB_DB_NAME && process.env.MONGODB_DB_NAME.trim()) {
+    return process.env.MONGODB_DB_NAME.trim();
+  }
+  try {
+    const uri = getMongoUri();
+    const url = new URL(uri.replace(/^mongodb\+srv:\/\//, 'http://').replace(/^mongodb:\/\//, 'http://'));
+    const pathname = url.pathname.replace(/^\//, '').split('?')[0];
+    if (pathname) return pathname;
+  } catch {}
+  return 'cursis';
 }
 
-const DB_NAME = resolveDbName();
-
-// Connection options optimized for both MongoDB Atlas Cloud Clusters and local instances
-const isAtlasCluster = MONGODB_URI.startsWith('mongodb+srv://');
-
-const options = {
- maxPoolSize: 10,
- minPoolSize: 2,
- serverSelectionTimeoutMS: 5000,
- socketTimeoutMS: 45000,
- appName: 'CursisWorkspace',
- ...(isAtlasCluster ? { retryWrites: true, w: 'majority' as const } : {}),
-};
+function getClientOptions(uri: string) {
+  const isAtlas = uri.startsWith('mongodb+srv://');
+  return {
+    maxPoolSize: 10,
+    minPoolSize: 1,
+    serverSelectionTimeoutMS: 6000,
+    socketTimeoutMS: 45000,
+    appName: 'CursisWorkspace',
+    ...(isAtlas ? { retryWrites: true, w: 'majority' as const } : {}),
+  };
+}
 
 let client: MongoClient | null = null;
 let clientPromise: Promise<MongoClient | null>;
@@ -38,15 +62,18 @@ declare global {
   var _mongoIsConnected: boolean | undefined;
 }
 
-// In both development and Vercel serverless production environments,
-// reuse the client promise cached on the global object to prevent connection leaks
-if (!global._mongoClientPromise) {
+function initClient(): Promise<MongoClient | null> {
+  const uri = getMongoUri();
+  const opts = getClientOptions(uri);
+  const isAtlas = uri.startsWith('mongodb+srv://');
+  const dbName = resolveDbName();
+
   try {
-    client = new MongoClient(MONGODB_URI, options);
-    global._mongoClientPromise = client.connect().then((c) => {
+    client = new MongoClient(uri, opts);
+    return client.connect().then((c) => {
       isConnected = true;
       global._mongoIsConnected = true;
-      console.log(`[MongoDB] Connected successfully to: ${isAtlasCluster ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${DB_NAME})`);
+      console.log(`[MongoDB] Connected successfully to: ${isAtlas ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${dbName})`);
       return c;
     }).catch((err) => {
       isConnected = false;
@@ -55,32 +82,34 @@ if (!global._mongoClientPromise) {
       return null;
     });
   } catch (err) {
-    global._mongoClientPromise = Promise.resolve(null);
+    return Promise.resolve(null);
   }
+}
+
+if (!global._mongoClientPromise) {
+  global._mongoClientPromise = initClient();
 }
 clientPromise = global._mongoClientPromise;
 
 export default clientPromise;
 
 /**
- * Get MongoDB Database instance (returns null immediately if disconnected)
+ * Get MongoDB Database instance (re-attempts connection if disconnected)
  */
 export async function getDb(): Promise<Db | null> {
   try {
     let mongoClient = await clientPromise;
     if (!mongoClient || !global._mongoIsConnected) {
-      try {
-        const freshClient = new MongoClient(MONGODB_URI, options);
-        mongoClient = await freshClient.connect();
-        global._mongoClientPromise = Promise.resolve(mongoClient);
-        clientPromise = global._mongoClientPromise;
-        global._mongoIsConnected = true;
-        isConnected = true;
-      } catch {
-        return null;
-      }
+      const uri = getMongoUri();
+      const opts = getClientOptions(uri);
+      const freshClient = new MongoClient(uri, opts);
+      mongoClient = await freshClient.connect();
+      global._mongoClientPromise = Promise.resolve(mongoClient);
+      clientPromise = global._mongoClientPromise;
+      global._mongoIsConnected = true;
+      isConnected = true;
     }
-    return mongoClient.db(DB_NAME);
+    return mongoClient.db(resolveDbName());
   } catch (error) {
     return null;
   }
