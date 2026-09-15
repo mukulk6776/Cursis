@@ -70,14 +70,31 @@ export async function POST(request: NextRequest) {
       try {
         result = await executeGeminiOrdisChat(message, history, state, { apiKey: userApiKey, model });
         engineSource = 'gemini';
-      } catch (err) {
-        console.warn('Gemini chat execution error, failing over to local engine:', err);
-        result = executeOrdisCommand(message, state);
-        engineSource = 'local_fallback';
+      } catch (err: any) {
+        const errMsg = err?.message || String(err);
+        console.error('Gemini chat execution error:', errMsg);
+        return NextResponse.json({
+          success: true,
+          data: {
+            responseText: `**⚠️ Gemini API Error**\n\n${errMsg}\n\nPlease check your API key and billing at [ai.google.dev](https://ai.google.dev).`,
+            suggestedFollowUps: ['Try again', 'Check API key status'],
+          },
+          source: 'error',
+          model: model,
+          error: errMsg,
+        });
       }
     } else {
-      result = executeOrdisCommand(message, state);
-      engineSource = 'local_fallback';
+      return NextResponse.json({
+        success: true,
+        data: {
+          responseText: '**⚠️ No Gemini API Key Found**\n\nNo API key is configured. Please add your `GEMINI_API_KEY` to `.env.local` or set it in Settings.',
+          suggestedFollowUps: ['How do I set up my API key?'],
+        },
+        source: 'error',
+        model: 'none',
+        error: 'No API key configured',
+      });
     }
 
     const targetWsId = state.activeWorkspace?.id && state.activeWorkspace.id !== 'ws_default' && state.activeWorkspace.id !== 'ws_public'

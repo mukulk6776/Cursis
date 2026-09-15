@@ -695,7 +695,8 @@ export async function executeGeminiOrdisChat(
     }
   }
 
-  console.warn('All Gemini live keys/models failed, falling back to local Ordis engine:', lastError?.message || lastError);
-  return executeOrdisCommand(message, state);
+  const errorMsg = lastError?.message || String(lastError) || 'Unknown Gemini API error';
+  console.error('All Gemini live keys/models failed:', errorMsg);
+  throw new Error(`Gemini API error: ${errorMsg}`);
 }
 

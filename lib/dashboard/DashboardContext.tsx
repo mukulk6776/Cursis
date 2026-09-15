@@ -2205,39 +2205,60 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  try {
- const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
- const response = await fetch('/api/ordis/chat', {
- method: 'POST',
- credentials: 'include',
- headers: {
- 'Content-Type': 'application/json',
- ...(token ? { Authorization: `Bearer ${token}` } : {}),
- },
- body: JSON.stringify({
- message: text,
- history: chatHistory.slice(-6).map((m) => ({ role: m.role, text: m.text })),
- state: ordisState,
- apiKey: geminiApiKey,
- model: ordisModel,
- }),
- });
+  const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+  const response = await fetch('/api/ordis/chat', {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+  'Content-Type': 'application/json',
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  },
+  body: JSON.stringify({
+  message: text,
+  history: chatHistory.slice(-6).map((m) => ({ role: m.role, text: m.text })),
+  state: ordisState,
+  apiKey: geminiApiKey,
+  model: ordisModel,
+  }),
+  });
 
- if (response.ok) {
- const payload = await response.json();
- if (payload.success && payload.data) {
- applyResult(payload.data, payload.source || 'gemini');
- return;
- }
- }
+  if (response.ok) {
+  const payload = await response.json();
+  if (payload.success && payload.data) {
+  applyResult(payload.data, payload.source === 'gemini' ? 'gemini' : 'local_fallback');
+  return;
+  }
+  }
 
- // If API route failed or returned error, failover smoothly to local engine
- const localResult = executeOrdisCommand(text, ordisState);
- applyResult(localResult, 'local_fallback');
- } catch (err) {
- console.warn('Live AI chat failed, running local Ordis engine:', err);
- const localResult = executeOrdisCommand(text, ordisState);
- applyResult(localResult, 'local_fallback');
- }
+  // If API route returned a non-ok response, show the error
+  const errPayload = await response.json().catch(() => null);
+  const errText = errPayload?.error || `Server returned ${response.status}`;
+  setChatHistory((prev) => prev.filter((m) => !m.typing));
+  const errTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  setChatHistory((prev) => [
+  ...prev,
+  {
+  role: 'ai',
+  text: `**⚠️ Connection Error**\n\n${errText}\n\nPlease check your Gemini API key and billing.`,
+  time: errTimeStr,
+  },
+  ]);
+  setAiEngineStatus('local_fallback');
+  } catch (err: any) {
+  const errMsg = err?.message || 'Network error';
+  console.error('Ordis chat fetch failed:', errMsg);
+  setChatHistory((prev) => prev.filter((m) => !m.typing));
+  const errTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  setChatHistory((prev) => [
+  ...prev,
+  {
+  role: 'ai',
+  text: `**⚠️ Connection Failed**\n\nCould not reach the Ordis API: ${errMsg}\n\nMake sure the dev server is running.`,
+  time: errTimeStr,
+  },
+  ]);
+  setAiEngineStatus('local_fallback');
+  }
  };
 
  // Lookups
