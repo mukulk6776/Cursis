@@ -196,7 +196,7 @@ export default function OrdisFloatingChat() {
 
  const activeTaskCount = tasks.filter((t) => t.status !== 'completed').length;
  const onlineMemberCount = employees.filter((e) => e.status === 'online').length;
- const modelDisplayName = ordisModel === 'gemini-2.5-pro' ? 'Gemini 2.5 Pro' : ordisModel === 'gemini-2.0-flash' ? 'Gemini 2.0 Flash' : 'Gemini 2.5 Flash';
+ const modelDisplayName = ordisModel === 'gemini-3.8-flash' ? 'Gemini 3.8 Flash' : 'Gemini 3.6 Flash';
 
  return (
  <>
@@ -551,9 +551,8 @@ export default function OrdisFloatingChat() {
  outline: 'none',
  }}
  >
- <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fastest & Recommended for Tools)</option>
- <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Reasoning & Complex Planning)</option>
- <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen Multimodal)</option>
+ <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fast & Agentic Copilot - Recommended)</option>
+ <option value="gemini-3.8-flash">Gemini 3.8 Flash (Flagship Reasoning & Vision)</option>
  </select>
  </div>
  </div>

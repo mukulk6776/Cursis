@@ -2464,30 +2464,35 @@ export function executeOrdisCommand(
  // =========================================================================
  // 14. DYNAMIC GENERATIVE CHATBOT FALLBACK (Handles any free-form question)
  // =========================================================================
+ let fallbackReply = '';
+ const activeCount = tasks.filter((t) => t.status !== 'completed').length;
+
+ if (lower.startsWith('hi') || lower.startsWith('hello') || lower.startsWith('hey')) {
+ fallbackReply = `Hey there! I am **Ordis**, your AI copilot for **${activeWorkspace.name}**.\n\nI can help you build and manage tasks, schedule syncs, analyze sprint velocity, coordinate with team members, or brainstorm ideas. What would you like to tackle today?`;
+ } else if (lower.includes('who are you') || lower.includes('what are you')) {
+ fallbackReply = `I am **Ordis**, your autonomous AI workspace copilot embedded in Cursis. I assist with team operations, sprint tracking, meeting scheduling, task creation, and automated workflows across your entire workspace.`;
+ } else if (lower.includes('help') || lower.includes('what can you do')) {
+ fallbackReply = `Here is how I can assist you directly:\n\n• **Tasks & Sprints**: Create, assign, prioritize, and track deliverables.\n• **Meetings**: Schedule calendar syncs and extract action items.\n• **Team & Operations**: Check who is online, rebalance workload, and invite teammates.\n• **Automations & Dynamic Features**: Build custom rules and interactive modules on the fly.\n\nJust tell me what you need in plain English!`;
  return {
- responseText: ` **Ordis Intelligent Assistant**\n\nRegarding: *"${text}"*\n\nHere is my analysis and actionable guidance:\n\n1. **Operational Context**: In your **${activeWorkspace.name}** workspace, you currently have **${tasks.filter((t) => t.status !== 'completed').length} active sprint deliverables**, **${projects.length} project(s)**, and **${employees.length} team members**.\n2. **Strategic Advice**: Break large initiatives into discrete, testable sub-tasks with clear deadlines and assignees. This keeps sprint velocity predictable and prevents delivery bottlenecks.\n3. **Next Steps**: You can instruct me to execute any operation directly:\n • *"Create task: [Title] due [Date] for [Name]"*\n • *"Schedule meeting: [Title] tomorrow at [Time]"*\n • *"Create deal: [Company] $[Amount]"*\n • *"Set accent color to emerald / indigo / sky"*\n • *"Generate executive performance brief"*\n\nHow would you like to proceed?`,
+ responseText: fallbackReply,
  suggestedFollowUps: [
  'What should I focus on today?',
- 'Create sprint task',
+ 'Create a sprint deliverable',
  'Schedule a team sync',
- 'Show sales pipeline',
+ 'Inspect workload and deadlines',
  ],
- actionCard: {
- type: 'navigation',
- title: 'Ordis Copilot Ready for Command',
- subtitle: `${activeWorkspace.name} · All 13 systems connected`,
- badge: 'ACTIVE COPILOT',
- badgeColor: '#10b981',
- primaryAction: {
- label: 'Open Tasks',
- actionType: 'navigate',
- target: 'tasks',
- },
- secondaryAction: {
- label: 'Open Dashboard',
- actionType: 'navigate',
- target: 'home',
- },
- },
+ };
+ } else {
+ fallbackReply = `I understand: *"${text}"*.\n\nCurrently in your **${activeWorkspace.name}** workspace, you have **${activeCount} active sprint tasks**, **${projects.length} project(s)**, and **${employees.length} team members**.\n\nYou can ask me to create tasks, assign work, schedule team syncs, or check velocity anytime. How can I assist you right now?`;
+ }
+
+ return {
+ responseText: fallbackReply,
+ suggestedFollowUps: [
+ 'What should I focus on today?',
+ 'Create a sprint deliverable',
+ 'Schedule a team sync',
+ 'Inspect workload and deadlines',
+ ],
  };
 }

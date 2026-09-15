@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeGeminiOrdisChat } from '@/lib/ordis/gemini';
+import { executeGeminiOrdisChat, resolveGeminiApiKey } from '@/lib/ordis/gemini';
 import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
 import { getCollection } from '@/lib/mongodb';
 import { AuditLogEntry } from '@/lib/db/types';
@@ -49,13 +49,23 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const userApiKey = body.apiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-    const model = body.model || 'gemini-2.5-flash';
+    const userApiKey = resolveGeminiApiKey(body.apiKey);
+    let model = body.model || 'gemini-3.6-flash';
+    if (
+      typeof model !== 'string' ||
+      model.includes('2.5') ||
+      model.includes('2.0') ||
+      model.includes('1.5') ||
+      model.includes('3.7') ||
+      !['gemini-3.6-flash', 'gemini-3.8-flash'].includes(model)
+    ) {
+      model = 'gemini-3.6-flash';
+    }
 
     let result;
     let engineSource: 'gemini' | 'local_fallback' = 'local_fallback';
 
-    if (userApiKey && userApiKey.trim() !== '' && userApiKey !== 'PLACEHOLDER') {
+    if (userApiKey) {
       try {
         result = await executeGeminiOrdisChat(message, history, state, { apiKey: userApiKey, model });
         engineSource = 'gemini';

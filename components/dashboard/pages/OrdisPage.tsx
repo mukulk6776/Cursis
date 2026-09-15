@@ -94,7 +94,7 @@ export default function OrdisPage() {
  const dynamicMember = employees.length > 0 ? employees[0].name.split(' ')[0] : 'team';
  const activeTaskCount = tasks.filter((t) => t.status !== 'completed').length;
  const onlineMembers = employees.filter((e) => e.status === 'online').length;
- const modelDisplayName = ordisModel === 'gemini-2.5-pro' ? 'Gemini 2.5 Pro' : ordisModel === 'gemini-2.0-flash' ? 'Gemini 2.0 Flash' : 'Gemini 2.5 Flash';
+  const modelDisplayName = ordisModel === 'gemini-3.8-flash' ? 'Gemini 3.8 Flash' : 'Gemini 3.6 Flash';
 
  return (
  <div className="page active" id="page-ordis" style={{ display: 'block' }}>

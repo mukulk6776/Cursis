@@ -1,26 +1,56 @@
 import { GoogleGenAI, FunctionDeclaration, Type } from '@google/genai';
 import { OrdisContextState, OrdisExecutionResult, executeOrdisCommand } from './engine';
 import { normalizeSafeIsoDate } from '@/lib/db/tasks';
+import fs from 'fs';
+import path from 'path';
 import {
- Task,
- Project,
- Meeting,
- DocumentItem,
- AutomationRule,
- CrmDeal,
- Invitation,
- Employee,
- DynamicFeature,
- ChatActionCard,
- DashboardPageType,
+  Task,
+  Project,
+  Meeting,
+  DocumentItem,
+  AutomationRule,
+  CrmDeal,
+  Invitation,
+  Employee,
+  DynamicFeature,
+  ChatActionCard,
+  DashboardPageType,
 } from '@/lib/dashboard/types';
 
 // Supported Gemini Models for Cursis Ordis Chatbot
 export const ORDIS_MODELS = [
- { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Recommended - Fastest & Agentic)', default: true },
- { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Deep Architectural Reasoning)', default: false },
- { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Fast Multimodal)', default: false },
+  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Fast & Agentic Copilot - Recommended)', default: true },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Flagship Reasoning & Vision)', default: false },
 ];
+
+/**
+ * Safely resolves the Gemini API key from explicit user input, environment variables, or .env.local
+ */
+export function resolveGeminiApiKey(candidateKey?: string): string {
+  if (candidateKey && candidateKey.trim() !== '' && candidateKey !== 'PLACEHOLDER') {
+    return candidateKey.trim();
+  }
+  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== '' && process.env.GEMINI_API_KEY !== 'PLACEHOLDER') {
+    return process.env.GEMINI_API_KEY.trim();
+  }
+  if (process.env.GOOGLE_API_KEY && process.env.GOOGLE_API_KEY.trim() !== '' && process.env.GOOGLE_API_KEY !== 'PLACEHOLDER') {
+    return process.env.GOOGLE_API_KEY.trim();
+  }
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('GEMINI_API_KEY=')) {
+          const val = trimmed.replace('GEMINI_API_KEY=', '').replace(/^["']|["']$/g, '').trim();
+          if (val && val !== 'PLACEHOLDER') return val;
+        }
+      }
+    }
+  } catch {}
+  return '';
+}
 
 /**
  * 12 Function Declarations representing all operational Cursis workspace domains.
@@ -236,21 +266,25 @@ export const ordisToolDeclarations: FunctionDeclaration[] = [
  * Builds the comprehensive system instruction for Ordis.
  */
 export function buildOrdisSystemPrompt(state: OrdisContextState, tone: string = 'friendly'): string {
- const userName = state.user?.name || 'Commander';
- const workspaceName = state.workspace?.name || 'Cursis Production';
- const taskCount = state.tasks?.length || 0;
- const projectCount = state.projects?.length || 0;
- const memberNames = state.employees?.map((e) => `${e.name} (${e.role})`).join(', ') || 'Sarah Chen, Alex Morgan';
- const openTasks = state.tasks?.slice(0, 8).map((t) => `"${t.name}" [${t.priority}]`).join(', ') || 'None';
-  return `You are ORDIS, the ultra-capable, witty, and autonomous AI Workspace Copilot embedded inside Cursis.
+  const userName = state.user?.name || 'Commander';
+  const workspaceName = state.workspace?.name || 'Cursis Production';
+  const taskCount = state.tasks?.length || 0;
+  const projectCount = state.projects?.length || 0;
+  const memberNames = state.employees?.map((e) => `${e.name} (${e.role})`).join(', ') || 'Sarah Chen, Alex Morgan';
+  const openTasks = state.tasks?.slice(0, 8).map((t) => `"${t.name}" [${t.priority}]`).join(', ') || 'None';
 
-Your Powers:
-- You have direct, autonomous API access to Cursis workspace features via tool calling!
-- When the user asks to add a team member, create tasks, assign work, schedule meetings, update statuses, or build features (e.g. "add a team member and give him xyz task"), EXECUTE IT immediately using the provided tools!
-- You can execute multiple tools in a single turn (e.g. call add_team_member AND create_task to onboard a member and assign them a task).
-- You provide comprehensive, beautifully structured executive summaries, sprint reports, workload breakdowns, and deadline audits in clear Markdown text.
-- Talk to users naturally, answer questions, brainstorm ideas, explain agile frameworks, give advice on prioritization, and chat warmly.
-- When you invoke tools, also provide an upbeat, clear confirmation response explaining what was executed.
+  return `You are ORDIS, the intelligent, articulate, and autonomous AI Workspace Copilot embedded inside Cursis.
+
+Your Personality & Conversational Style:
+- You are witty, smart, articulate, and naturally conversational—like ChatGPT or Gemini at their best.
+- Talk like a real human intelligence! When greeted, asked questions, or engaged in discussion, converse naturally, brainstorm, offer insights, and provide genuine assistance.
+- NEVER sound like a rigid rule-based chatbot or repeat robotic templates (avoid rigid "Operational Context / Strategic Advice / Next Steps" boilerplate unless explicitly asked for a structured briefing).
+
+Your Autonomous Capabilities & Tools:
+- You have direct, autonomous access to the Cursis workspace via tool calling!
+- When the user asks to create tasks, assign work, schedule meetings, update statuses, add team members, build features, or manage projects, EXECUTE THEM immediately using the provided tools.
+- You can execute multiple tools in a single turn if needed (e.g. invite a teammate and assign them a task).
+- When executing tools, accompany your action with an upbeat, natural confirmation message explaining what was created or updated.
 
 Current Workspace Snapshot:
 - Active User: ${userName}
@@ -261,9 +295,8 @@ Current Workspace Snapshot:
 - Recent Tasks: ${openTasks}
 
 Guidelines:
-1. Always format responses using clean, readable Markdown (bullet points, clear headings).
-2. Be engaging, articulate, and practical.
-3. Confirm executed actions clearly.`;
+1. Always format responses using clean, readable Markdown (bold highlights, clean lists when appropriate).
+2. Be engaging, practical, and direct.`;
 }
 
 export function processGeminiToolCalls(
@@ -541,90 +574,112 @@ export function processGeminiToolCalls(
 
 /**
  * Executes a conversational chat query through Google Gemini API.
- * Gracefully falls back to executeOrdisCommand if API key is not present or an error occurs.
+ * Uses Gemini 3.6 Flash (with auto-fallback to Gemini 3.8 Flash) and falls back to local engine if offline.
  */
 export async function executeGeminiOrdisChat(
- message: string,
- history: Array<{ role: 'user' | 'ai'; text: string | null }>,
- state: OrdisContextState,
- options?: { apiKey?: string; model?: string }
+  message: string,
+  history: Array<{ role: 'user' | 'ai'; text: string | null }>,
+  state: OrdisContextState,
+  options?: { apiKey?: string; model?: string }
 ): Promise<OrdisExecutionResult> {
- const apiKey = options?.apiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const apiKey = resolveGeminiApiKey(options?.apiKey);
 
- // Fallback to local rule engine if no API key is available
- if (!apiKey || apiKey === 'PLACEHOLDER' || apiKey.trim() === '') {
- return executeOrdisCommand(message, state);
- }
+  // Fallback to local rule engine if no API key is available
+  if (!apiKey) {
+    return executeOrdisCommand(message, state);
+  }
 
- try {
- const ai = new GoogleGenAI({ apiKey });
- const model = options?.model || 'gemini-2.5-flash';
- const systemInstruction = buildOrdisSystemPrompt(state, state.ordisSettings?.tone || 'friendly');
+  // Normalize model to active 3.x models - automatically migrate deprecated 2.5/2.0/3.7 values
+  let requestedModel = options?.model || 'gemini-3.6-flash';
+  if (
+    requestedModel.includes('2.5') ||
+    requestedModel.includes('2.0') ||
+    requestedModel.includes('1.5') ||
+    requestedModel.includes('3.7') ||
+    !['gemini-3.6-flash', 'gemini-3.8-flash'].includes(requestedModel)
+  ) {
+    requestedModel = 'gemini-3.6-flash';
+  }
 
- // Build conversation contents
- const contents: any[] = [];
- const recentHistory = history.slice(-6); // Last 6 turns for context
- for (const h of recentHistory) {
- if (!h.text) continue;
- contents.push({
- role: h.role === 'ai' ? 'model' : 'user',
- parts: [{ text: h.text }],
- });
- }
- // Add current user message
- contents.push({
- role: 'user',
- parts: [{ text: message }],
- });
+  const modelsToTry = requestedModel === 'gemini-3.8-flash'
+    ? ['gemini-3.8-flash', 'gemini-3.6-flash']
+    : ['gemini-3.6-flash', 'gemini-3.8-flash'];
 
- const response = await ai.models.generateContent({
- model,
- contents,
- config: {
- systemInstruction,
- temperature: 0.7,
- tools: [{ functionDeclarations: ordisToolDeclarations }],
- },
- });
+  const ai = new GoogleGenAI({ apiKey });
+  const systemInstruction = buildOrdisSystemPrompt(state, state.ordisSettings?.tone || 'friendly');
 
- const functionCalls = response.functionCalls || [];
- let responseText = response.text || '';
+  // Build conversation contents
+  const contents: any[] = [];
+  const recentHistory = history.slice(-6); // Last 6 turns for context
+  for (const h of recentHistory) {
+    if (!h.text) continue;
+    contents.push({
+      role: h.role === 'ai' ? 'model' : 'user',
+      parts: [{ text: h.text }],
+    });
+  }
+  // Add current user message
+  contents.push({
+    role: 'user',
+    parts: [{ text: message }],
+  });
 
- // If Gemini called tools, execute them and format response
- if (functionCalls.length > 0) {
- const { mutations, actionCards, toastMessage, navigateToPage } = processGeminiToolCalls(functionCalls, state);
+  let lastError: any = null;
 
- if (!responseText.trim()) {
- const actionNames = functionCalls.map((c: any) => c.name.replace(/_/g, ' ')).join(', ');
- responseText = ` Done! I've executed **${actionNames}** for your workspace.`;
- }
+  for (const currentModel of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({
+        model: currentModel,
+        contents,
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+          tools: [{ functionDeclarations: ordisToolDeclarations }],
+        },
+      });
 
- return {
- responseText,
- toastMessage,
- actionCard: actionCards[0],
- navigateToPage,
- stateMutations: mutations,
- suggestedFollowUps: [
- 'Show me active tasks',
- 'What meetings do I have tomorrow?',
- 'How is our sprint velocity looking?',
- ],
- };
- }
+      const functionCalls = response.functionCalls || [];
+      let responseText = response.text || '';
 
- // Regular conversational answer
- return {
- responseText,
- suggestedFollowUps: [
- 'Assign a high priority task',
- 'Schedule a team catch-up',
- 'Inspect workload and deadlines',
- ],
- };
- } catch (error: any) {
- console.warn('Gemini API call failed, switching to local Ordis engine:', error.message || error);
- // Graceful automatic fallback
- return executeOrdisCommand(message, state);
- }
+      // If Gemini called tools, execute them and format response
+      if (functionCalls.length > 0) {
+        const { mutations, actionCards, toastMessage, navigateToPage } = processGeminiToolCalls(functionCalls, state);
+
+        if (!responseText.trim()) {
+          const actionNames = functionCalls.map((c: any) => c.name.replace(/_/g, ' ')).join(', ');
+          responseText = `Done! I've executed **${actionNames}** for your workspace.`;
+        }
+
+        return {
+          responseText,
+          toastMessage,
+          actionCard: actionCards[0],
+          navigateToPage,
+          stateMutations: mutations,
+          suggestedFollowUps: [
+            'Show me active tasks',
+            'What meetings do I have tomorrow?',
+            'How is our sprint velocity looking?',
+          ],
+        };
+      }
+
+      // Regular conversational answer from Gemini
+      return {
+        responseText: responseText.trim() || 'I am right here and ready to help. How can I assist you with your workspace today?',
+        suggestedFollowUps: [
+          'Assign a high priority task',
+          'Schedule a team catch-up',
+          'Inspect workload and deadlines',
+        ],
+      };
+    } catch (err: any) {
+      console.warn(`Gemini model ${currentModel} returned notice, trying failover:`, err.message || err);
+      lastError = err;
+      // Loop to try next model in modelsToTry
+    }
+  }
+
+  console.warn('All Gemini live models failed, falling back to local Ordis engine:', lastError?.message || lastError);
+  return executeOrdisCommand(message, state);
 }

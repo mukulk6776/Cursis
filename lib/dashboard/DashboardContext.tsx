@@ -333,19 +333,26 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }
  };
 
- const [ordisModel, setOrdisModelState] = useState<string>(() => {
- if (typeof window !== 'undefined') {
- return localStorage.getItem('cursis_ordis_model') || 'gemini-2.5-flash';
- }
- return 'gemini-2.5-flash';
- });
+  const [ordisModel, setOrdisModelState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cursis_ordis_model');
+      if (saved === 'gemini-3.6-flash' || saved === 'gemini-3.8-flash') {
+        return saved;
+      }
+      // Migrate deprecated models
+      localStorage.setItem('cursis_ordis_model', 'gemini-3.6-flash');
+      return 'gemini-3.6-flash';
+    }
+    return 'gemini-3.6-flash';
+  });
 
- const setOrdisModel = (m: string) => {
- setOrdisModelState(m);
- if (typeof window !== 'undefined') {
- localStorage.setItem('cursis_ordis_model', m);
- }
- };
+  const setOrdisModel = (m: string) => {
+    const validModel = m === 'gemini-3.8-flash' ? 'gemini-3.8-flash' : 'gemini-3.6-flash';
+    setOrdisModelState(validModel);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cursis_ordis_model', validModel);
+    }
+  };
 
  const [aiEngineStatus, setAiEngineStatus] = useState<'gemini' | 'local_fallback'>('local_fallback');
 
