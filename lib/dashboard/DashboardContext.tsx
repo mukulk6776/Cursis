@@ -225,7 +225,7 @@ interface DashboardContextType {
   setDepartments: React.Dispatch<React.SetStateAction<Department[]>>;
   addDepartment: (dept: { name: string; description?: string; lead?: string; budget?: string; color?: string; tags?: string[] }) => void;
   updateDepartment: (id: string, updates: Partial<Department>) => void;
-  deleteDepartment: (id: string) => boolean;
+  deleteDepartment: (id: string, options?: { taskAction?: 'reassign' | 'unassign'; targetDepartmentId?: string }) => Promise<{ success: boolean; requiresHandling?: boolean; activeTaskCount?: number; message?: string }>;
   assignEmployeeDepartment: (employeeId: string, departmentId: string, departmentName: string) => void;
 
   // Dynamic Features
@@ -405,6 +405,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const switchWorkspace = (workspaceId: string) => {
     if (workspaces.some((w) => w.id === workspaceId)) {
       setActiveWorkspaceId(workspaceId);
+      setTasks([]);
+      setDepartments([]);
       const ws = workspaces.find((w) => w.id === workspaceId);
       showToast(`Switched to ${ws?.name || 'workspace'}`);
       syncTeamAndNotifications(workspaceId);
@@ -671,7 +673,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         if (taskRes.ok) {
           const taskData = await taskRes.json();
           const serverTasks = taskData.data?.tasks || taskData.tasks;
-          if (Array.isArray(serverTasks) && serverTasks.length > 0) {
+          if (Array.isArray(serverTasks)) {
             const reverseStatusMap: Record<string, TaskStatus> = {
               todo: 'todo',
               in_progress: 'in-progress',
@@ -681,6 +683,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             };
             const mappedServerTasks: Task[] = serverTasks.map((st: any) => ({
               id: st.id,
+              workspaceId: st.workspaceId || targetWsId,
+              departmentId: st.departmentId || st.department || undefined,
               name: st.title || st.name || 'Untitled Task',
               project: st.projectId || st.project || 'proj_core',
               assignee: st.assigneeId || st.assignee || '',
@@ -699,20 +703,43 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 : [],
             }));
 
-            setTasks((prev) => {
-              const serverIds = new Set(mappedServerTasks.map((t) => t.id));
-              const inFlight = prev.filter(
-                (t) =>
-                  !serverIds.has(t.id) &&
-                  t.id.startsWith('t_') &&
-                  Date.now() - parseInt(t.id.split('_')[1] || '0', 10) < 10000
-              );
-              return [...mappedServerTasks, ...inFlight];
-            });
+            setTasks(mappedServerTasks);
           }
         }
       } catch (e) {
         console.warn('Notice: Background task sync error:', e);
+      }
+
+      // 3B. Fetch workspace departments from MongoDB
+      try {
+        const deptRes = await fetch(`/api/departments?workspaceId=${encodeURIComponent(targetWsId)}`, {
+          credentials: 'include',
+        });
+        if (deptRes.ok) {
+          const deptData = await deptRes.json();
+          const serverDepts = deptData.data?.departments || deptData.departments;
+          if (Array.isArray(serverDepts)) {
+            setDepartments(serverDepts.map((d: any): Department => ({
+              id: d.id,
+              workspaceId: d.workspaceId || targetWsId,
+              name: d.name,
+              head: d.head || d.lead,
+              lead: d.lead || d.head,
+              createdBy: d.createdBy,
+              memberCount: d.memberCount ?? d.membersCount ?? 0,
+              membersCount: d.membersCount ?? d.memberCount ?? 0,
+              activeTaskCount: d.activeTaskCount ?? 0,
+              description: d.description || '',
+              color: d.color || '#0f4cff',
+              budget: d.budget,
+              tags: d.tags || [],
+              createdAt: d.createdAt,
+              updatedAt: d.updatedAt,
+            })));
+          }
+        }
+      } catch (e) {
+        console.warn('Notice: Background department sync error:', e);
       }
 
       // 4. Fetch workspace meetings from MongoDB
@@ -1333,12 +1360,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       dueDate: safeDueDate,
       tags: newTask.tags || [],
       workspaceId: wsId,
+      departmentId: newTask.departmentId || undefined,
     }),
   })
     .then((res) => {
       if (res.ok) {
         // Refresh notifications and sync state
-        setTimeout(() => syncTeamAndNotifications(), 800);
+        setTimeout(() => syncTeamAndNotifications(wsId), 600);
       }
     })
     .catch((err) => {
@@ -2438,12 +2466,28 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     addAuditEntry(user.name, 'department.created', newDept.name, `Created department ${newDept.name} led by ${newDept.lead}`);
     showToast(`Department "${newDept.name}" created `);
 
+    const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+      ? activeWorkspaceId
+      : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+
     try {
       fetch('/api/departments', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newDept),
-      }).catch(() => {});
+        body: JSON.stringify({
+          ...newDept,
+          workspaceId: wsId,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && (data.data?.department || data.department)) {
+            const created = data.data?.department || data.department;
+            setDepartments((prev) => [...prev.filter((d) => d.id !== newDept.id), created]);
+          }
+        })
+        .catch(() => {});
     } catch {}
   };
 
@@ -2456,33 +2500,54 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     try {
       fetch('/api/departments', {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, ...updates }),
       }).catch(() => {});
     } catch {}
   };
 
-  const deleteDepartment = (id: string): boolean => {
+  const deleteDepartment = async (
+    id: string,
+    options?: { taskAction?: 'reassign' | 'unassign'; targetDepartmentId?: string }
+  ): Promise<{ success: boolean; requiresHandling?: boolean; activeTaskCount?: number; message?: string }> => {
     const dept = departments.find((d) => d.id === id);
-    if (!dept) return false;
-
-    const memberCount = employees.filter((e) => e.departmentId === id || e.department === dept.name).length;
-    if (memberCount > 0) {
-      showToast(`Cannot delete "${dept.name}" while ${memberCount} members are assigned. Reassign them first.`);
-      return false;
-    }
-
-    setDepartments((prev) => prev.filter((d) => d.id !== id));
-    addAuditEntry(user.name, 'department.deleted', dept.name, `Deleted department`);
-    showToast(`Department "${dept.name}" removed`);
+    if (!dept) return { success: false, message: 'Department not found' };
 
     try {
-      fetch(`/api/departments?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      }).catch(() => {});
-    } catch {}
+      let url = `/api/departments?id=${encodeURIComponent(id)}`;
+      if (options?.taskAction) {
+        url += `&taskAction=${encodeURIComponent(options.taskAction)}`;
+        if (options.targetDepartmentId) {
+          url += `&targetDepartmentId=${encodeURIComponent(options.targetDepartmentId)}`;
+        }
+      }
 
-    return true;
+      const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data?.details?.code === 'ACTIVE_TASKS_EXIST') {
+          return {
+            success: false,
+            requiresHandling: true,
+            activeTaskCount: data.details.activeTaskCount,
+            message: data.error || data.message,
+          };
+        }
+        showToast(data.error || 'Failed to delete department.');
+        return { success: false, message: data.error };
+      }
+
+      setDepartments((prev) => prev.filter((d) => d.id !== id));
+      addAuditEntry(user.name, 'department.deleted', dept.name, `Deleted department`);
+      showToast(`Department "${dept.name}" removed`);
+      setTimeout(() => syncTeamAndNotifications(activeWorkspaceId), 400);
+      return { success: true };
+    } catch (err: any) {
+      showToast('Error deleting department.');
+      return { success: false, message: err.message };
+    }
   };
 
   const assignEmployeeDepartment = (employeeId: string, departmentId: string, departmentName: string) => {

@@ -111,82 +111,117 @@ export const ordisToolDeclarations: FunctionDeclaration[] = [
  },
  },
  {
- name: 'schedule_meeting',
- description: 'Schedule a calendar meeting, sprint review, or client sync.',
- parameters: {
- type: Type.OBJECT,
- properties: {
- title: { type: Type.STRING, description: 'Meeting title or purpose' },
- date: { type: Type.STRING, description: 'Date or day (e.g. "Tomorrow", "Monday", "2026-09-10")' },
- time: { type: Type.STRING, description: 'Time of the meeting (e.g. "14:00", "3:30 PM")' },
- attendees: {
- type: Type.ARRAY,
- items: { type: Type.STRING },
- description: 'List of attendee names or emails',
- },
- platform: { type: Type.STRING, description: 'Meeting platform: "Google Meet", "Zoom", or "Cursis Studio"' },
- },
- required: ['title'],
- },
- },
- {
- name: 'create_crm_deal',
- description: 'Create a new client or enterprise sales deal in the CRM pipeline.',
- parameters: {
- type: Type.OBJECT,
- properties: {
- title: { type: Type.STRING, description: 'Deal title (e.g. "Acme Enterprise License")' },
- company: { type: Type.STRING, description: 'Client or company organization name' },
- value: { type: Type.NUMBER, description: 'Monetary value of the deal' },
- stage: {
- type: Type.STRING,
- enum: ['lead', 'contacted', 'proposal', 'negotiation', 'won', 'lost'],
- description: 'Current sales pipeline stage',
- },
- contactName: { type: Type.STRING, description: 'Primary client contact name' },
- },
- required: ['title', 'company', 'value'],
- },
+   name: 'schedule_meeting',
+   description: 'Schedule a calendar meeting, sprint review, or client sync. If the user provides a Google Meet link, provide it in meetingUrl.',
+   parameters: {
+     type: Type.OBJECT,
+     properties: {
+       title: { type: Type.STRING, description: 'Meeting title or purpose' },
+       date: { type: Type.STRING, description: 'Date or day (e.g. "Tomorrow", "Monday", "2026-09-10")' },
+       time: { type: Type.STRING, description: 'Time of the meeting (e.g. "14:00", "3:30 PM")' },
+       meetingUrl: {
+         type: Type.STRING,
+         description: 'User-provided Google Meet link (e.g. https://meet.google.com/xxx-yyyy-zzz) or other video conference URL.',
+       },
+       attendees: {
+         type: Type.ARRAY,
+         items: { type: Type.STRING },
+         description: 'List of attendee names or emails',
+       },
+       platform: { type: Type.STRING, description: 'Meeting platform: "Google Meet", "Zoom", or "Cursis Studio"' },
+     },
+     required: ['title'],
+   },
  },
  {
- name: 'create_document',
- description: 'Create a workspace document, PRD, sprint retrospective, or technical guide.',
- parameters: {
- type: Type.OBJECT,
- properties: {
- title: { type: Type.STRING, description: 'Document title' },
- category: { type: Type.STRING, description: 'Category (e.g. "Engineering", "Product", "Operations")' },
- content: { type: Type.STRING, description: 'Initial markdown body or summary' },
- },
- required: ['title'],
- },
- },
- {
- name: 'create_automation',
- description: 'Create an autonomous trigger-action rule in Cursis.',
- parameters: {
- type: Type.OBJECT,
- properties: {
- name: { type: Type.STRING, description: 'Automation rule title' },
- trigger: { type: Type.STRING, description: 'Trigger condition (e.g. "task.urgent", "deal.won", "sprint.due")' },
- action: { type: Type.STRING, description: 'Automated action to take' },
- },
- required: ['name', 'trigger', 'action'],
- },
+   name: 'add_calendar_event',
+   description: 'Add an event, milestone, deadline, or appointment to the workspace calendar.',
+   parameters: {
+     type: Type.OBJECT,
+     properties: {
+       title: { type: Type.STRING, description: 'Title or name of the calendar event' },
+       date: { type: Type.STRING, description: 'Date or day (e.g. "Tomorrow", "Monday", "2026-09-20")' },
+       time: { type: Type.STRING, description: 'Time of the event (e.g. "10:00 AM", "14:30")' },
+       durationMinutes: { type: Type.NUMBER, description: 'Duration in minutes (e.g. 30, 60)' },
+       description: { type: Type.STRING, description: 'Event description or agenda' },
+       location: { type: Type.STRING, description: 'Location, room, or meet link' },
+       meetLink: { type: Type.STRING, description: 'Google Meet link if provided by user' },
+     },
+     required: ['title'],
+   },
  },
  {
- name: 'invite_team_member',
- description: 'Invite a new team member or contractor to the workspace.',
- parameters: {
- type: Type.OBJECT,
- properties: {
- name: { type: Type.STRING, description: 'Full name of the team member' },
- email: { type: Type.STRING, description: 'Email address' },
- role: { type: Type.STRING, description: 'Job role (e.g. "Lead Engineer", "Senior Video Editor")' },
- department: { type: Type.STRING, description: 'Department: "Engineering", "Creative", "Operations", "Sales"' },
+   name: 'create_crm_deal',
+   description: 'Create a new client or enterprise sales deal in the CRM pipeline.',
+   parameters: {
+     type: Type.OBJECT,
+     properties: {
+       title: { type: Type.STRING, description: 'Deal title (e.g. "Acme Enterprise License")' },
+       company: { type: Type.STRING, description: 'Client or company organization name' },
+       value: { type: Type.NUMBER, description: 'Monetary value of the deal' },
+       stage: {
+         type: Type.STRING,
+         enum: ['lead', 'contacted', 'proposal', 'negotiation', 'won', 'lost'],
+         description: 'Current sales pipeline stage',
+       },
+       contactName: { type: Type.STRING, description: 'Primary client contact name' },
+     },
+     required: ['title', 'company', 'value'],
+   },
  },
- required: ['name', 'email', 'role'],
+ {
+   name: 'create_document',
+   description: 'Create a workspace document, PRD, sprint retrospective, or technical guide.',
+   parameters: {
+     type: Type.OBJECT,
+     properties: {
+       title: { type: Type.STRING, description: 'Document title' },
+       category: { type: Type.STRING, description: 'Category (e.g. "Engineering", "Product", "Operations")' },
+       content: { type: Type.STRING, description: 'Initial markdown body or summary' },
+     },
+     required: ['title'],
+   },
  },
+ {
+   name: 'create_automation',
+   description: 'Create an autonomous trigger-action rule in Cursis.',
+   parameters: {
+     type: Type.OBJECT,
+     properties: {
+       name: { type: Type.STRING, description: 'Automation rule title' },
+       trigger: { type: Type.STRING, description: 'Trigger condition (e.g. "task.urgent", "deal.won", "sprint.due")' },
+       action: { type: Type.STRING, description: 'Automated action to take' },
+     },
+     required: ['name', 'trigger', 'action'],
+   },
+ },
+ {
+   name: 'add_team_member',
+   description: 'Add or onboard a team member to the workspace using their email address. If the email is invalid or missing, flag it as incorrect user.',
+   parameters: {
+     type: Type.OBJECT,
+     properties: {
+       email: { type: Type.STRING, description: 'The email address of the team member to add (e.g. alex@example.com)' },
+       name: { type: Type.STRING, description: 'Full name of the team member (optional)' },
+       role: { type: Type.STRING, description: 'Job role (e.g. "Senior Engineer", "Product Designer")' },
+       department: { type: Type.STRING, description: 'Department: "Engineering", "Creative", "Operations", "Sales", "Design"' },
+     },
+     required: ['email'],
+   },
+ },
+ {
+   name: 'invite_team_member',
+   description: 'Invite a team member or contractor to the workspace using their email address.',
+   parameters: {
+     type: Type.OBJECT,
+     properties: {
+       email: { type: Type.STRING, description: 'Email address of the invitee' },
+       name: { type: Type.STRING, description: 'Full name of the team member' },
+       role: { type: Type.STRING, description: 'Job role (e.g. "Lead Engineer", "Senior Video Editor")' },
+       department: { type: Type.STRING, description: 'Department: "Engineering", "Creative", "Operations", "Sales"' },
+     },
+     required: ['email'],
+   },
  },
  {
  name: 'navigate_to_page',
@@ -296,7 +331,14 @@ Current Workspace Snapshot:
 
 Guidelines:
 1. Always format responses using clean, readable Markdown (bold highlights, clean lists when appropriate).
-2. Be engaging, practical, and direct.`;
+2. Be engaging, practical, and direct.
+
+Special Instructions for Core Workspace Operations:
+- **Making Projects**: When the user requests to make, create, or start a project, call create_project with name, description, budget, and deadline.
+- **Creating Tasks**: When the user requests to create or add a task, call create_task with title, priority (urgent, high, medium, low), assigneeName, dueDate, and tags.
+- **Adding Calendar Events**: When the user requests to add an event or milestone on the calendar, call add_calendar_event with title, date, time, and details.
+- **Scheduling Meetings**: When the user requests to schedule a meeting, call schedule_meeting. If the user provides a Google Meet link (e.g. https://meet.google.com/xxx-yyyy-zzz), ALWAYS extract it and pass it to meetingUrl. Never replace the user's provided link with a placeholder.
+- **Adding Team Members**: When the user asks to add or invite a team member, the user will provide an email. You MUST check the email. If the email format is invalid, missing, malformed, or not an email (e.g. "notanemail", "user@", "abc"), DO NOT call the tool or if calling pass it, and explicitly return: "incorrect user".`;
 }
 
 export function processGeminiToolCalls(
@@ -372,33 +414,66 @@ export function processGeminiToolCalls(
  primaryAction: { label: 'View Tasks', actionType: 'navigate', target: 'tasks' },
  });
  } else if (fnName === 'schedule_meeting') {
- const newMeeting: Meeting = {
- id: 'm_ai_' + Date.now(),
- name: args.title || 'AI Scheduled Sync',
- title: args.title || 'AI Scheduled Sync',
- project: state.projects[0]?.id || null,
- date: args.date || 'Tomorrow',
- time: args.time || '15:00',
- duration: 45,
- platform: 'google_meet',
- meetingUrl: 'https://meet.google.com/cursis-ai-sync',
- participants: state.employees.slice(0, 2).map((e) => e.id),
- attendees: args.attendees || [state.user.name, 'Sarah Chen'],
- status: 'upcoming',
- agenda: 'Context & Alignment, Blocker Resolution, Next Steps',
- };
+    const rawMeetUrl = (args.meetingUrl || args.meetLink || '').trim();
+    const finalMeetUrl = rawMeetUrl || 'https://meet.google.com/cursis-ai-sync';
+    const isCustomGoogleMeet = /meet\.google\.com/i.test(finalMeetUrl);
 
- mutations.createdMeeting = newMeeting;
- toastMessage = `Meeting "${newMeeting.name}" scheduled for ${newMeeting.date} ${newMeeting.time} `;
- actionCards.push({
- type: 'meeting',
- title: newMeeting.name,
- subtitle: `${newMeeting.date} at ${newMeeting.time} via Google Meet`,
- badge: 'CALENDAR',
- badgeColor: '#10b981',
- primaryAction: { label: 'Open Calendar', actionType: 'navigate', target: 'calendar' },
- secondaryAction: { label: 'Join Meet', actionType: 'link', target: newMeeting.meetingUrl },
- });
+    const newMeeting: Meeting = {
+      id: 'm_ai_' + Date.now(),
+      name: args.title || 'AI Scheduled Sync',
+      title: args.title || 'AI Scheduled Sync',
+      project: state.projects[0]?.id || null,
+      date: args.date || 'Tomorrow',
+      time: args.time || '15:00',
+      duration: 45,
+      platform: 'google_meet',
+      meetingUrl: finalMeetUrl,
+      participants: state.employees.slice(0, 2).map((e) => e.id),
+      attendees: args.attendees || [state.user.name, 'Sarah Chen'],
+      status: 'upcoming',
+      agenda: args.description || 'Context & Alignment, Blocker Resolution, Next Steps',
+    };
+
+    mutations.createdMeeting = newMeeting;
+    toastMessage = `Meeting "${newMeeting.name}" scheduled for ${newMeeting.date} ${newMeeting.time} `;
+    actionCards.push({
+      type: 'meeting',
+      title: newMeeting.name,
+      subtitle: `${newMeeting.date} at ${newMeeting.time} via ${isCustomGoogleMeet ? 'Google Meet (' + finalMeetUrl + ')' : 'Google Meet'}`,
+      badge: 'CALENDAR',
+      badgeColor: '#10b981',
+      primaryAction: { label: 'Open Calendar', actionType: 'navigate', target: 'calendar' },
+      secondaryAction: { label: 'Join Meet', actionType: 'link', target: finalMeetUrl },
+    });
+  } else if (fnName === 'add_calendar_event') {
+    const rawMeetUrl = (args.meetLink || args.meetingUrl || '').trim();
+    const newEvent: Meeting = {
+      id: 'evt_ai_' + Date.now(),
+      name: args.title || 'Calendar Event',
+      title: args.title || 'Calendar Event',
+      project: state.projects[0]?.id || null,
+      date: args.date || 'Tomorrow',
+      time: args.time || '10:00 AM',
+      duration: args.durationMinutes || 60,
+      platform: rawMeetUrl ? 'google_meet' : 'other',
+      meetingUrl: rawMeetUrl,
+      participants: state.employees.slice(0, 2).map((e) => e.id),
+      attendees: [state.user.name],
+      status: 'upcoming',
+      agenda: args.description || 'Calendar Event created via Ordis AI Copilot',
+    };
+
+    mutations.createdMeeting = newEvent;
+    toastMessage = `Event "${newEvent.name}" added to Calendar for ${newEvent.date} ${newEvent.time} `;
+    actionCards.push({
+      type: 'meeting',
+      title: newEvent.name,
+      subtitle: `${newEvent.date} at ${newEvent.time}${args.location ? ' • ' + args.location : ''}`,
+      badge: 'CALENDAR EVENT',
+      badgeColor: '#6366f1',
+      primaryAction: { label: 'Open Calendar', actionType: 'navigate', target: 'calendar' },
+      ...(rawMeetUrl ? { secondaryAction: { label: 'Join Meet', actionType: 'link', target: rawMeetUrl } } : {}),
+    });
  } else if (fnName === 'create_project') {
  const newProj: Project = {
  id: 'proj_ai_' + Date.now(),
@@ -499,30 +574,61 @@ export function processGeminiToolCalls(
  badgeColor: '#0f4cff',
  primaryAction: { label: 'View Automations', actionType: 'navigate', target: 'automations' },
  });
- } else if (fnName === 'invite_team_member') {
- const newInv: Invitation = {
- id: 'inv_ai_' + Date.now(),
- name: args.name,
- email: args.email,
- workspaceRole: 'Member',
- roleTitle: args.role,
- department: args.department || 'Operations',
- team: null,
- status: 'pending',
- token: 'tok_' + Math.random().toString(36).substring(2, 9),
- sentAt: new Date().toISOString(),
- expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
- invitedBy: state.user.name,
- };
- mutations.createdInvitation = newInv;
- toastMessage = `Invitation sent to ${newInv.email} (${newInv.roleTitle}) `;
- actionCards.push({
- type: 'team',
- title: `Invite Sent: ${newInv.name}`,
- subtitle: `${newInv.email} as ${newInv.roleTitle}`,
- badge: 'INVITED',
- primaryAction: { label: 'View Team', actionType: 'navigate', target: 'team' },
- });
+ } else if (fnName === 'invite_team_member' || fnName === 'add_team_member') {
+    const rawEmail = (args.email || '').trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const isValidEmail = rawEmail && emailRegex.test(rawEmail);
+
+    if (!isValidEmail) {
+      toastMessage = 'incorrect user';
+      actionCards.push({
+        type: 'team',
+        title: 'incorrect user',
+        subtitle: `The email "${args.email || 'None'}" is invalid. A valid registered user email is required to add team members.`,
+        badge: 'INCORRECT USER',
+        badgeColor: '#ef4444',
+        primaryAction: { label: 'View Team', actionType: 'navigate', target: 'team' },
+      });
+    } else {
+      const derivedName = args.name || rawEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const newInv: Invitation = {
+        id: 'inv_ai_' + Date.now(),
+        name: derivedName,
+        email: rawEmail,
+        workspaceRole: 'Member',
+        roleTitle: args.role || 'Team Member',
+        department: args.department || 'Operations',
+        team: null,
+        status: 'pending',
+        token: 'tok_' + Math.random().toString(36).substring(2, 9),
+        sentAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+        invitedBy: state.user.name,
+      };
+      const newEmp: Employee = {
+        id: 'emp_ai_' + Date.now(),
+        name: derivedName,
+        initials: derivedName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'TM',
+        role: args.role || 'Team Member',
+        department: args.department || 'Operations',
+        status: 'online',
+        color: '#FF5500',
+        tasks: 0,
+        projects: 0,
+        email: rawEmail,
+        joinedAt: 'Just now',
+      };
+      mutations.createdInvitation = newInv;
+      mutations.createdEmployee = newEmp;
+      toastMessage = `Invitation sent to ${newInv.email} (${newInv.roleTitle}) `;
+      actionCards.push({
+        type: 'team',
+        title: `Invite Sent: ${newInv.name}`,
+        subtitle: `${newInv.email} as ${newInv.roleTitle}`,
+        badge: 'INVITED',
+        primaryAction: { label: 'View Team', actionType: 'navigate', target: 'team' },
+      });
+    }
  } else if (fnName === 'navigate_to_page') {
  navigateToPage = args.page as DashboardPageType;
  actionCards.push({
@@ -655,7 +761,9 @@ export async function executeGeminiOrdisChat(
         if (functionCalls.length > 0) {
           const { mutations, actionCards, toastMessage, navigateToPage } = processGeminiToolCalls(functionCalls, state);
 
-          if (!responseText.trim()) {
+          if (toastMessage === 'incorrect user') {
+            responseText = `**⚠️ incorrect user**\n\nThe provided email address is invalid or not a recognized user. Please provide a valid email to add a team member.`;
+          } else if (!responseText.trim()) {
             const actionNames = functionCalls.map((c: any) => c.name.replace(/_/g, ' ')).join(', ');
             responseText = `Done! I've executed **${actionNames}** for your workspace.`;
           }

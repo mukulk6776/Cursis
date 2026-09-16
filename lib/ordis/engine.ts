@@ -25,6 +25,7 @@ import {
  ChatActionCard,
  DashboardPageType,
  DynamicFeature,
+ PriorityLevel,
 } from '@/lib/dashboard/types';
 import { formatDate, isOverdue } from '@/lib/dashboard/data';
 
@@ -282,31 +283,375 @@ export function executeOrdisCommand(
   if (freeResult) return freeResult;
  }
 
+  // =========================================================================
+  // -0. CORE WORKSPACE OPERATIONS: PROJECT, TASK, CALENDAR EVENT, MEETINGS, TEAM MEMBERS
+  // =========================================================================
+  const isAddMember =
+   lower.includes('add a team member') ||
+   lower.includes('add team member') ||
+   lower.includes('add member') ||
+   lower.includes('invite team member') ||
+   lower.includes('invite a team member') ||
+   lower.includes('new member');
+
+  const hasTaskAssignment =
+   lower.includes('give him') ||
+   lower.includes('give her') ||
+   lower.includes('give them') ||
+   lower.includes('assign him') ||
+   lower.includes('assign her') ||
+   lower.includes('assign them') ||
+   lower.includes('and give') ||
+   lower.includes('and assign') ||
+   lower.includes('and create task') ||
+   lower.includes('give task') ||
+   lower.includes('assign task') ||
+   (lower.includes('task') && (lower.includes('give') || lower.includes('assign')));
+
+  // 1. ADD TEAM MEMBER (Validate email; if incorrect return "incorrect user")
+  const isTeamMemberAddOnly = isAddMember && !hasTaskAssignment;
+
+  if (isPaid && isTeamMemberAddOnly) {
+    const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    if (!emailMatch) {
+      return {
+        responseText: '**⚠️ incorrect user**\n\nPlease provide a valid registered user email address (e.g. `name@example.com`).',
+        toastMessage: 'incorrect user',
+        suggestedFollowUps: ['Add team member alex@example.com', 'View Team Directory'],
+        actionCard: {
+          type: 'team',
+          title: 'incorrect user',
+          subtitle: 'A valid user email address is required to add or invite a team member.',
+          badge: 'INCORRECT USER',
+          badgeColor: '#ef4444',
+          primaryAction: { label: 'View Team', actionType: 'navigate', target: 'team' },
+        },
+      };
+    }
+
+    const cleanEmail = emailMatch[0].toLowerCase();
+    let memberName = cleanEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const nameMatch = text.match(/(?:member|named|invite)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
+    if (nameMatch && !nameMatch[1].toLowerCase().includes('email') && !nameMatch[1].toLowerCase().includes('@')) {
+      memberName = nameMatch[1].trim();
+    }
+
+    let memberRole = 'Team Member';
+    let dept = 'Operations';
+    if (lower.includes('designer') || lower.includes('design')) {
+      memberRole = 'Product Designer';
+      dept = 'Design';
+    } else if (lower.includes('developer') || lower.includes('engineer') || lower.includes('coder')) {
+      memberRole = 'Software Engineer';
+      dept = 'Engineering';
+    } else if (lower.includes('marketing') || lower.includes('growth')) {
+      memberRole = 'Growth Specialist';
+      dept = 'Marketing';
+    }
+
+    const newEmpId = 'emp_' + Date.now();
+    const newEmp: Employee = {
+      id: newEmpId,
+      name: memberName,
+      initials: memberName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase() || 'TM',
+      role: memberRole,
+      department: dept,
+      status: 'online',
+      color: '#FF5500',
+      tasks: 0,
+      projects: 0,
+      email: cleanEmail,
+      joinedAt: 'Just now',
+    };
+
+    const newInv: Invitation = {
+      id: 'inv_' + Date.now(),
+      email: cleanEmail,
+      name: memberName,
+      roleTitle: memberRole,
+      workspaceRole: 'Member',
+      department: dept,
+      team: null,
+      status: 'pending',
+      token: 'tok_' + Math.random().toString(36).substring(2, 9),
+      sentAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+      invitedBy: user.name,
+    };
+
+    return {
+      responseText: `**Team Member Added & Invitation Dispatched**\n\n• **Name**: **${memberName}** (${memberRole})\n• **Email**: \`${cleanEmail}\`\n• **Department**: ${dept}\n\n*The invitation has been generated and the member profile is live in your Team directory.*`,
+      toastMessage: `Added team member ${memberName} (${cleanEmail})`,
+      auditEntry: {
+        actor: user.name,
+        action: 'team.member_added',
+        target: cleanEmail,
+        details: `Added ${memberName} (${cleanEmail}) via Ordis AI`,
+      },
+      stateMutations: {
+        createdEmployee: newEmp,
+        createdInvitation: newInv,
+      },
+      actionCard: {
+        type: 'team',
+        title: `Member Added: ${memberName}`,
+        subtitle: `${cleanEmail} as ${memberRole}`,
+        badge: 'INVITED',
+        primaryAction: { label: 'View Team', actionType: 'navigate', target: 'team' },
+      },
+    };
+  }
+
+  // 2. MAKING PROJECT
+  const isMakeProject =
+    lower.includes('make project') ||
+    lower.includes('makeing project') ||
+    lower.includes('create project') ||
+    lower.includes('start project') ||
+    lower.includes('new project:') ||
+    (lower.startsWith('project:') && lower.length > 10);
+
+  if (isPaid && isMakeProject) {
+    let projName = 'Autonomous Initiative';
+    const nameMatch = text.match(/(?:project|named|called)\s+["']?([^"',.\n]+)["']?/i);
+    if (nameMatch && nameMatch[1] && !nameMatch[1].toLowerCase().includes('make') && !nameMatch[1].toLowerCase().includes('create')) {
+      projName = nameMatch[1].trim();
+    }
+
+    let budget = 25000;
+    const budgetMatch = text.match(/(?:budget|allocated|cost)\s*(?:of|is|:)?\s*\$?([0-9,]+)/i);
+    if (budgetMatch && budgetMatch[1]) {
+      budget = parseInt(budgetMatch[1].replace(/,/g, ''), 10) || 25000;
+    }
+
+    let deadline = 'In 30 days';
+    const deadlineMatch = text.match(/(?:deadline|due|by)\s*(?:is|:)?\s*([A-Za-z0-9, ]+?)(?:\.|$)/i);
+    if (deadlineMatch && deadlineMatch[1]) {
+      deadline = deadlineMatch[1].trim();
+    }
+
+    const newProj: Project = {
+      id: 'proj_' + Date.now(),
+      name: projName,
+      desc: `Initiative created via Ordis Copilot. [Budget: $${budget.toLocaleString()}]`,
+      progress: 0,
+      status: 'In Progress',
+      deadline,
+      icon: '',
+      color: '#0f4cff',
+      team: employees.slice(0, 3).map((e) => e.id),
+      tasks: 0,
+      completed: 0,
+    };
+
+    return {
+      responseText: `**Project Initialized Successfully**\n\n• **Project Name**: **${newProj.name}**\n• **Budget**: $${budget.toLocaleString()}\n• **Target Deadline**: ${deadline}\n• **Status**: In Progress\n\n*The project has been registered in your workspace and is accessible under Projects.*`,
+      toastMessage: `Project "${newProj.name}" created`,
+      auditEntry: {
+        actor: user.name,
+        action: 'projects.created',
+        target: newProj.name,
+        details: `Created project ${newProj.name} via Ordis AI`,
+      },
+      stateMutations: {
+        createdProject: newProj,
+      },
+      actionCard: {
+        type: 'project',
+        title: newProj.name,
+        subtitle: `Budget: $${budget.toLocaleString()} • Deadline: ${deadline}`,
+        badge: 'NEW PROJECT',
+        badgeColor: '#0f4cff',
+        primaryAction: { label: 'View Projects', actionType: 'navigate', target: 'projects' },
+      },
+    };
+  }
+
+  // 3. CREATING TASK
+  const isCreateTask =
+    lower.includes('create task') ||
+    lower.includes('creating task') ||
+    lower.includes('make task') ||
+    lower.includes('add task') ||
+    lower.includes('new task:') ||
+    (lower.startsWith('task:') && lower.length > 8);
+
+  if (isPaid && isCreateTask && !hasTaskAssignment) {
+    let taskTitle = 'Sprint Deliverable';
+    const taskMatch = text.match(/(?:create task|creating task|make task|add task|new task:|task:)\s+["']?([^"',.\n]+)["']?/i);
+    if (taskMatch && taskMatch[1]) {
+      taskTitle = taskMatch[1].trim();
+    }
+
+    let priority: PriorityLevel = 'high';
+    if (lower.includes('urgent')) priority = 'urgent';
+    else if (lower.includes('medium')) priority = 'medium';
+    else if (lower.includes('low')) priority = 'low';
+
+    const assignedEmp = employees.find((e) => lower.includes(e.name.toLowerCase())) || employees[0] || { id: 'emp_sarah', name: 'Sarah Chen' };
+
+    const newTask: Task = {
+      id: 't_' + Date.now(),
+      name: taskTitle,
+      project: projects[0]?.id || 'p_core',
+      assignee: assignedEmp.id,
+      assignees: [assignedEmp.id],
+      priority,
+      status: 'todo',
+      deadline: 'Tomorrow, 5:00 PM',
+      subtasks: [
+        { id: 'st_1', name: 'Scoping & initial draft', done: false },
+        { id: 'st_2', name: 'Review and validation', done: false },
+      ],
+      tags: ['AI-Dispatched'],
+    };
+
+    return {
+      responseText: `**Task Created & Dispatched**\n\n• **Title**: **${newTask.name}**\n• **Assignee**: **${assignedEmp.name}**\n• **Priority**: ${priority.toUpperCase()}\n• **Status**: To-Do\n\n*Task is now live on your Sprint Kanban board.*`,
+      toastMessage: `Task "${newTask.name}" created`,
+      auditEntry: {
+        actor: user.name,
+        action: 'tasks.created',
+        target: newTask.name,
+        details: `Created task ${newTask.name} assigned to ${assignedEmp.name}`,
+      },
+      stateMutations: {
+        createdTask: newTask,
+      },
+      actionCard: {
+        type: 'task',
+        title: newTask.name,
+        subtitle: `Assigned to ${assignedEmp.name} • Priority: ${priority.toUpperCase()}`,
+        badge: priority.toUpperCase(),
+        badgeColor: priority === 'urgent' ? '#ef4444' : '#0f4cff',
+        primaryAction: { label: 'Open in Kanban', actionType: 'navigate', target: 'tasks' },
+      },
+    };
+  }
+
+  // 4. ADD EVENT ON CALENDAR
+  const isCalendarEvent =
+    lower.includes('add event on calendar') ||
+    lower.includes('add event on clander') ||
+    lower.includes('add event to calendar') ||
+    lower.includes('add calendar event') ||
+    lower.includes('event on calendar') ||
+    lower.includes('event on clander') ||
+    lower.includes('calendar event');
+
+  if (isPaid && isCalendarEvent) {
+    let eventTitle = 'Workspace Calendar Event';
+    const evtMatch = text.match(/(?:calendar event|event on calendar|event on clander|add event)\s*(?:named|titled|:)?\s*["']?([^"',.\n]+)["']?/i);
+    if (evtMatch && evtMatch[1]) {
+      eventTitle = evtMatch[1].trim();
+    }
+
+    const meetMatch = text.match(/https?:\/\/meet\.google\.com\/[a-zA-Z0-9_-]+/i);
+    const meetUrl = meetMatch ? meetMatch[0] : '';
+
+    const newCalMeeting: Meeting = {
+      id: 'm_evt_' + Date.now(),
+      name: eventTitle,
+      title: eventTitle,
+      project: projects[0]?.id || null,
+      date: 'Tomorrow',
+      time: '11:00 AM',
+      duration: 60,
+      platform: meetUrl ? 'google_meet' : 'other',
+      meetingUrl: meetUrl,
+      participants: employees.slice(0, 2).map((e) => e.id),
+      attendees: [user.name],
+      status: 'upcoming',
+      agenda: 'Calendar Event scheduled via Ordis',
+    };
+
+    return {
+      responseText: `**Event Added to Calendar**\n\n• **Title**: **${newCalMeeting.name}**\n• **Date**: ${newCalMeeting.date}\n• **Time**: ${newCalMeeting.time}\n${meetUrl ? `• **Link**: [Google Meet](${meetUrl})\n` : ''}\n*The event is now pinned on your Workspace Calendar.*`,
+      toastMessage: `Event "${newCalMeeting.name}" added to Calendar`,
+      auditEntry: {
+        actor: user.name,
+        action: 'calendar.event_added',
+        target: newCalMeeting.name,
+        details: `Added calendar event ${newCalMeeting.name}`,
+      },
+      stateMutations: {
+        createdMeeting: newCalMeeting,
+      },
+      actionCard: {
+        type: 'meeting',
+        title: newCalMeeting.name,
+        subtitle: `${newCalMeeting.date} at ${newCalMeeting.time}`,
+        badge: 'CALENDAR EVENT',
+        badgeColor: '#6366f1',
+        primaryAction: { label: 'Open Calendar', actionType: 'navigate', target: 'calendar' },
+        ...(meetUrl ? { secondaryAction: { label: 'Join Meet', actionType: 'link', target: meetUrl } } : {}),
+      },
+    };
+  }
+
+  // 5. SCHEDULE MEETING (Preserving Google Meet Link)
+  const isScheduleMeeting =
+    lower.includes('schedule meeting') ||
+    lower.includes('shedule meeting') ||
+    lower.includes('schedule a meeting') ||
+    lower.includes('shedule a meeting') ||
+    lower.includes('book meeting') ||
+    lower.includes('set up meeting') ||
+    lower.includes('meeting with link');
+
+  if (isPaid && isScheduleMeeting) {
+    let meetingTitle = 'Team Alignment Sync';
+    const mtgMatch = text.match(/(?:schedule meeting|shedule meeting|schedule a meeting|shedule a meeting|meeting)\s*(?:named|titled|:)?\s*["']?([^"',.\n]+?)["']?(?:\s+with|\s+link|\s+tomorrow|\s+at|\.|$)/i);
+    if (mtgMatch && mtgMatch[1] && !mtgMatch[1].toLowerCase().includes('meet.google')) {
+      meetingTitle = mtgMatch[1].trim();
+    }
+
+    const meetMatch = text.match(/https?:\/\/meet\.google\.com\/[a-zA-Z0-9_-]+/i);
+    const finalMeetUrl = meetMatch ? meetMatch[0] : 'https://meet.google.com/cursis-ai-sync';
+
+    const newMtg: Meeting = {
+      id: 'm_' + Date.now(),
+      name: meetingTitle,
+      title: meetingTitle,
+      project: projects[0]?.id || null,
+      date: 'Tomorrow',
+      time: '3:00 PM',
+      duration: 45,
+      platform: 'google_meet',
+      meetingUrl: finalMeetUrl,
+      participants: employees.slice(0, 2).map((e) => e.id),
+      attendees: [user.name, 'Sarah Chen'],
+      status: 'upcoming',
+      agenda: 'Context Alignment, Deliverables Review, Next Steps',
+    };
+
+    return {
+      responseText: `**Meeting Scheduled**\n\n• **Title**: **${newMtg.name}**\n• **Schedule**: ${newMtg.date} at ${newMtg.time}\n• **Platform**: Google Meet\n• **Meeting Link**: [${finalMeetUrl}](${finalMeetUrl})\n\n*The meeting has been scheduled and added to your calendar.*`,
+      toastMessage: `Meeting "${newMtg.name}" scheduled`,
+      auditEntry: {
+        actor: user.name,
+        action: 'meetings.scheduled',
+        target: newMtg.name,
+        details: `Scheduled meeting ${newMtg.name} via Ordis AI with link ${finalMeetUrl}`,
+      },
+      stateMutations: {
+        createdMeeting: newMtg,
+      },
+      actionCard: {
+        type: 'meeting',
+        title: newMtg.name,
+        subtitle: `${newMtg.date} at ${newMtg.time} via Google Meet`,
+        badge: 'SCHEDULED',
+        badgeColor: '#10b981',
+        primaryAction: { label: 'Open Calendar', actionType: 'navigate', target: 'calendar' },
+        secondaryAction: { label: 'Join Meet', actionType: 'link', target: finalMeetUrl },
+      },
+    };
+  }
+
  // =========================================================================
  // 0. ORDIS PRO COMPOUND COMMANDS: ADD MEMBER + ASSIGN TASK
  // =========================================================================
- const isAddMember =
-  lower.includes('add a team member') ||
-  lower.includes('add team member') ||
-  lower.includes('add member') ||
-  lower.includes('invite team member') ||
-  lower.includes('invite a team member') ||
-  lower.includes('new member');
-
- const hasTaskAssignment =
-  lower.includes('give him') ||
-  lower.includes('give her') ||
-  lower.includes('give them') ||
-  lower.includes('assign him') ||
-  lower.includes('assign her') ||
-  lower.includes('assign them') ||
-  lower.includes('and give') ||
-  lower.includes('and assign') ||
-  lower.includes('and create task') ||
-  lower.includes('give task') ||
-  lower.includes('assign task') ||
-  (lower.includes('task') && (lower.includes('give') || lower.includes('assign')));
-
  if (isPaid && isAddMember && hasTaskAssignment) {
   let memberName = 'Devon Vance';
   let memberRole = 'Senior Software Engineer';

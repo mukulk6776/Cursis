@@ -36,10 +36,11 @@ export function getAuthorizedTitle(email?: string | null, customFallback: string
 }
 
 /**
- * Returns 'owner' strictly for mukulk3962364@gmail.com, otherwise 'member'.
+ * Returns 'owner' for sovereign founder, or preserves user's workspace/profile role.
  */
-export function getAuthorizedRole(email?: string | null): 'owner' | 'member' {
-  return isFounderEmail(email) ? 'owner' : 'member';
+export function getAuthorizedRole(email?: string | null, fallbackRole: 'owner' | 'admin' | 'manager' | 'member' = 'member'): 'owner' | 'admin' | 'manager' | 'member' {
+  if (isFounderEmail(email)) return 'owner';
+  return fallbackRole;
 }
 
 /**

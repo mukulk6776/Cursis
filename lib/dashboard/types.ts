@@ -44,11 +44,14 @@ export interface WorkspaceSummary {
 
 export interface Department {
   id: string;
+  workspaceId?: string;
   name: string;
   head?: string | null;
   lead?: string | null;
+  createdBy?: string;
   memberCount?: number;
   membersCount?: number;
+  activeTaskCount?: number;
   description?: string;
   color?: string;
   budget?: number | string;
@@ -122,6 +125,8 @@ export interface Project {
 
 export interface Task {
   id: string;
+  workspaceId?: string;
+  departmentId?: string;
   name: string;
   project: string; // project id
   assignee: string; // employee id

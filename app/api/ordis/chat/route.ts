@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 4. Created Meeting
+      // 4. Created Meeting / Calendar Event
       if (m.createdMeeting) {
         try {
           const col = await getCollection<any>('meetings');
@@ -189,18 +189,72 @@ export async function POST(request: NextRequest) {
               date: m.createdMeeting.date,
               time: m.createdMeeting.time,
               platform: m.createdMeeting.platform || 'google_meet',
-              meetingUrl: m.createdMeeting.meetingUrl || 'https://meet.google.com/crs-sync',
+              meetingUrl: m.createdMeeting.meetingUrl || 'https://meet.google.com/cursis-ai-sync',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
             await col.updateOne({ id: mtgDoc.id }, { $set: mtgDoc }, { upsert: true });
+          }
+
+          // Also persist into calendar_events collection
+          const calCol = await getCollection<any>('calendar_events');
+          if (calCol) {
+            const calDoc = {
+              id: `evt_${m.createdMeeting.id}`,
+              workspaceId: targetWsId,
+              title: m.createdMeeting.name || m.createdMeeting.title,
+              description: m.createdMeeting.agenda || '',
+              startTime: new Date().toISOString(),
+              endTime: new Date(Date.now() + 3600000).toISOString(),
+              allDay: false,
+              attendeeIds: [state.user?.id || 'usr_ai'],
+              meetLink: m.createdMeeting.meetingUrl || '',
+              type: 'meeting',
+              createdAt: new Date().toISOString(),
+            };
+            await calCol.updateOne({ id: calDoc.id }, { $set: calDoc }, { upsert: true });
           }
         } catch (e) {
           console.warn('Ordis MongoDB persist meeting notice:', e);
         }
       }
 
-      // 5. Created Document
+      // 5. Created Team Member Invitation & Profile
+      if (m.createdInvitation) {
+        try {
+          const invCol = await getCollection<any>('invitations');
+          if (invCol) {
+            const invDoc = {
+              ...m.createdInvitation,
+              workspaceId: targetWsId,
+              createdAt: m.createdInvitation.sentAt || new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await invCol.updateOne({ id: invDoc.id }, { $set: invDoc }, { upsert: true });
+          }
+        } catch (e) {
+          console.warn('Ordis MongoDB persist invitation notice:', e);
+        }
+      }
+
+      if (m.createdEmployee) {
+        try {
+          const empCol = await getCollection<any>('employees');
+          if (empCol) {
+            const empDoc = {
+              ...m.createdEmployee,
+              workspaceId: targetWsId,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await empCol.updateOne({ id: empDoc.id }, { $set: empDoc }, { upsert: true });
+          }
+        } catch (e) {
+          console.warn('Ordis MongoDB persist employee notice:', e);
+        }
+      }
+
+      // 6. Created Document
       if (m.createdDocument) {
         try {
           const col = await getCollection<any>('documents');
@@ -214,7 +268,7 @@ export async function POST(request: NextRequest) {
         } catch (e) {}
       }
 
-      // 6. Created Automation
+      // 7. Created Automation
       if (m.createdAutomation) {
         try {
           const col = await getCollection<any>('automations');

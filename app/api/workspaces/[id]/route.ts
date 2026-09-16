@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { apiSuccess, apiError } from '@/lib/api/response';
 import { getAuthenticatedUser } from '@/lib/auth/session';
 import { getWorkspace, updateWorkspace } from '@/lib/db/workspaces';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 
 export async function GET(
   request: Request,
@@ -9,18 +10,21 @@ export async function GET(
   try {
     const authUser = await getAuthenticatedUser(request);
     if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiError('Unauthorized: Valid session or token required.', 401);
     }
 
     const { id } = await params;
+    const auth = await authorizeWorkspaceAccess(request, id);
+    if (auth.errorResponse) return auth.errorResponse;
+
     const workspace = await getWorkspace(id);
     if (!workspace) {
-      return NextResponse.json({ error: 'Workspace not found' }, { status: 404 });
+      return apiError('Workspace not found.', 404);
     }
 
-    return NextResponse.json({ workspace });
+    return apiSuccess({ workspace });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }
 
@@ -31,19 +35,23 @@ export async function PATCH(
   try {
     const authUser = await getAuthenticatedUser(request);
     if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiError('Unauthorized: Valid session or token required.', 401);
     }
 
     const { id } = await params;
-    const body = await request.json();
+    // Only owner or admin can update workspace configuration
+    const auth = await authorizeWorkspaceAccess(request, id, ['owner', 'admin']);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const body = await request.json().catch(() => ({}));
     const updated = await updateWorkspace(id, body);
 
     if (!updated) {
-      return NextResponse.json({ error: 'Workspace not found' }, { status: 404 });
+      return apiError('Workspace not found or update failed.', 404);
     }
 
-    return NextResponse.json({ success: true, workspace: updated });
+    return apiSuccess({ workspace: updated, message: 'Workspace updated successfully' });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

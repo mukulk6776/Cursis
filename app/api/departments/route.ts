@@ -1,44 +1,40 @@
-import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
-import { getDepartments, getDepartmentById, createDepartment, updateDepartment, deleteDepartment } from '@/lib/db/departments';
-import { getDb } from '@/lib/mongodb';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import {
+  getDepartments,
+  getDepartmentById,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
+} from '@/lib/db/departments';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { getAuthenticatedUser } from '@/lib/auth/session';
 
 export async function GET(request: Request) {
   try {
-    const auth = await getAuthOrError(request);
-    if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      return apiError('Unauthorized: Session or token required.', 401);
+    }
 
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
-    const query = (searchParams.get('q') || '').toLowerCase().trim();
+    const paramWs = searchParams.get('workspaceId');
+    const workspaceId = (paramWs && paramWs !== 'ws_default' && paramWs !== 'ws_public')
+      ? paramWs.trim()
+      : (authUser.workspaceId || `ws_${authUser.uid}`);
 
+    // Verify workspace membership
+    const auth = await authorizeWorkspaceAccess(request, workspaceId);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const query = (searchParams.get('q') || '').toLowerCase().trim();
     let departments = await getDepartments(workspaceId);
 
-    // Compute live member count dynamically from users collection if available
-    try {
-      const db = await getDb();
-      if (db) {
-        const users = await db.collection('users').find({
-          $or: [{ workspaceIds: workspaceId }, { activeWorkspaceId: workspaceId }],
-        }).toArray();
-
-        departments = departments.map((d) => {
-          const count = users.filter((u: any) => u.department === d.name || u.departmentId === d.id).length;
-          return {
-            ...d,
-            membersCount: count || d.membersCount || 0,
-            memberCount: count || d.memberCount || 0,
-          };
-        });
-      }
-    } catch {}
-
     if (query) {
-      departments = departments.filter((d) =>
-        d.name.toLowerCase().includes(query) ||
-        (d.description && d.description.toLowerCase().includes(query)) ||
-        (d.lead && d.lead.toLowerCase().includes(query)) ||
-        (d.tags && d.tags.some((t) => t.toLowerCase().includes(query)))
+      departments = departments.filter(
+        (d) =>
+          d.name.toLowerCase().includes(query) ||
+          (d.description && d.description.toLowerCase().includes(query)) ||
+          (d.lead && d.lead.toLowerCase().includes(query))
       );
     }
 
@@ -50,41 +46,41 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const auth = await getAuthOrError(request);
-    if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
-
-    // RBAC: Only owner and admin can create departments
-    const allowedRoles = ['owner', 'admin'];
-    if (!allowedRoles.includes(authUser.role)) {
-      return apiError('Forbidden: Only workspace owners and admins can create departments.', 403);
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      return apiError('Unauthorized: Session or token required.', 401);
     }
 
     const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const rawWs = body.workspaceId;
+    const workspaceId = (rawWs && rawWs !== 'ws_default' && rawWs !== 'ws_public')
+      ? String(rawWs).trim()
+      : (authUser.workspaceId || `ws_${authUser.uid}`);
+
+    // RBAC: Only workspace Owner or Admin can create departments
+    const auth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
+    if (auth.errorResponse) return auth.errorResponse;
 
     const name = (body.name || '').trim();
     if (!name) {
-      return apiError('Validation Error: Department name is required.', 400);
+      return apiError('Department name is required.', 400);
     }
 
-    // Check for duplicate department name in this workspace
-    const existing = await getDepartments(workspaceId);
-    if (existing.some((d) => d.name.toLowerCase() === name.toLowerCase())) {
-      return apiError(`Validation Error: A department named "${name}" already exists in this workspace.`, 409);
+    try {
+      const dept = await createDepartment(workspaceId, {
+        name,
+        description: body.description,
+        lead: body.lead || authUser.displayName || 'Lead',
+        head: body.head || body.lead || authUser.displayName || 'Lead',
+        createdBy: authUser.uid,
+        color: body.color || '#0f4cff',
+        tags: Array.isArray(body.tags) ? body.tags : [],
+      });
+
+      return apiSuccess({ department: dept, message: 'Department created successfully' }, 201);
+    } catch (valErr: any) {
+      return apiError(valErr.message || 'Failed to create department.', 400);
     }
-
-    const dept = await createDepartment(workspaceId, {
-      name,
-      description: body.description,
-      lead: body.lead || authUser.displayName,
-      head: body.head || body.lead || authUser.displayName,
-      budget: body.budget,
-      color: body.color || '#0f4cff',
-      tags: Array.isArray(body.tags) ? body.tags : ['Core Team'],
-    });
-
-    return apiSuccess({ department: dept, message: 'Department created successfully' }, 201);
   } catch (error: any) {
     return apiError(error.message || 'Failed to create department', 500);
   }
@@ -92,14 +88,9 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const auth = await getAuthOrError(request);
-    if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
-
-    // RBAC: Only owner and admin can update departments
-    const allowedRoles = ['owner', 'admin'];
-    if (!allowedRoles.includes(authUser.role)) {
-      return apiError('Forbidden: Only workspace owners and admins can edit departments.', 403);
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      return apiError('Unauthorized: Session or token required.', 401);
     }
 
     const body = await request.json().catch(() => ({}));
@@ -108,19 +99,29 @@ export async function PATCH(request: Request) {
       return apiError('Department ID is required for update.', 400);
     }
 
-    const updates: any = {};
-    if (body.name) updates.name = body.name.trim();
-    if (body.description !== undefined) updates.description = body.description;
-    if (body.lead !== undefined) {
-      updates.lead = body.lead;
-      updates.head = body.lead;
+    const existing = await getDepartmentById(id);
+    if (!existing) {
+      return apiError('Department not found.', 404);
     }
-    if (body.budget !== undefined) updates.budget = body.budget;
-    if (body.color !== undefined) updates.color = body.color;
-    if (body.tags !== undefined) updates.tags = Array.isArray(body.tags) ? body.tags : [];
 
-    const updated = await updateDepartment(id, updates);
-    return apiSuccess({ department: updated, message: 'Department updated successfully' });
+    // RBAC: Only workspace Owner or Admin can edit departments
+    const auth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner', 'admin']);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    try {
+      const updated = await updateDepartment(id, existing.workspaceId, {
+        name: body.name,
+        description: body.description,
+        lead: body.lead,
+        head: body.head,
+        color: body.color,
+        tags: body.tags,
+      });
+
+      return apiSuccess({ department: updated, message: 'Department updated successfully' });
+    } catch (valErr: any) {
+      return apiError(valErr.message || 'Department update failed.', 400);
+    }
   } catch (error: any) {
     return apiError(error.message || 'Failed to update department', 500);
   }
@@ -128,38 +129,50 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const auth = await getAuthOrError(request);
-    if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
-
-    // RBAC: Only owner and admin can delete departments
-    const allowedRoles = ['owner', 'admin'];
-    if (!allowedRoles.includes(authUser.role)) {
-      return apiError('Forbidden: Only workspace owners and admins can delete departments.', 403);
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      return apiError('Unauthorized: Session or token required.', 401);
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const taskAction = searchParams.get('taskAction') as 'reassign' | 'unassign' | null;
+    const targetDepartmentId = searchParams.get('targetDepartmentId') || undefined;
+
     if (!id) {
       return apiError('Department ID is required for deletion.', 400);
     }
 
-    // Safety Validation: Check if members are assigned
-    const db = await getDb();
-    if (db) {
-      const assignedCount = await db.collection('users').countDocuments({
-        $or: [{ departmentId: id }, { department: id }],
-      });
-      if (assignedCount > 0) {
-        return apiError(
-          `Cannot delete department: ${assignedCount} workspace member(s) are currently assigned to this department. Please reassign them first.`,
-          400
-        );
-      }
+    const existing = await getDepartmentById(id);
+    if (!existing) {
+      return apiError('Department not found.', 404);
     }
 
-    const deleted = await deleteDepartment(id);
-    return apiSuccess({ message: 'Department deleted successfully', id });
+    // RBAC: Only workspace Owner or Admin can delete departments
+    const auth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner', 'admin']);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    try {
+      const result = await deleteDepartment(id, existing.workspaceId, {
+        taskAction: taskAction || undefined,
+        targetDepartmentId,
+      });
+
+      return apiSuccess({
+        message: 'Department deleted successfully.',
+        id,
+        activeTasksHandled: result.activeTasksHandled,
+      });
+    } catch (safeErr: any) {
+      if (safeErr.code === 'ACTIVE_TASKS_EXIST') {
+        return apiError(safeErr.message, 400, {
+          code: 'ACTIVE_TASKS_EXIST',
+          activeTaskCount: safeErr.activeTaskCount,
+          departmentName: safeErr.departmentName,
+        });
+      }
+      return apiError(safeErr.message || 'Failed to delete department.', 400);
+    }
   } catch (error: any) {
     return apiError(error.message || 'Failed to delete department', 500);
   }

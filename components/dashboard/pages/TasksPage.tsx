@@ -20,10 +20,12 @@ export default function TasksPage() {
     openModal,
     showToast,
     addTask,
+    departments,
   } = useDashboard();
 
   const [currentView, setCurrentView] = useState<ViewMode>('kanban');
   const [activeFilter, setActiveFilter] = useState<FilterMode>('all');
+  const [selectedDeptFilter, setSelectedDeptFilter] = useState('');
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
@@ -66,6 +68,7 @@ export default function TasksPage() {
   // Filter logic
   const getFilteredTasks = () => {
     return tasks.filter((t) => {
+      if (selectedDeptFilter && t.departmentId !== selectedDeptFilter) return false;
       if (activeFilter === 'overdue') return t.status !== 'completed' && isOverdue(t.deadline);
       if (activeFilter === 'high-priority') return t.priority === 'high' || t.priority === 'urgent';
       if (activeFilter === 'assigned-to-me') return t.assignee === user.id || t.assignees?.includes(user.id);
@@ -175,6 +178,22 @@ export default function TasksPage() {
             </span>
           </button>
         ))}
+
+        {departments.length > 0 && (
+          <select
+            className="input select"
+            value={selectedDeptFilter}
+            onChange={(e) => setSelectedDeptFilter(e.target.value)}
+            style={{ fontSize: 'var(--fs-xs)', height: '32px', padding: '0 8px', width: 'auto' }}
+          >
+            <option value="">All Departments</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                Dept: {d.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Bulk Actions Bar */}
@@ -313,6 +332,20 @@ export default function TasksPage() {
                                   {proj.name}
                                 </span>
                               )}
+                              {t.departmentId && (
+                                <span
+                                  className="tag"
+                                  style={{
+                                    background: '#eff6ff',
+                                    color: '#1d4ed8',
+                                    border: '1px solid #bfdbfe',
+                                    fontSize: '9px',
+                                    padding: '1px 5px',
+                                  }}
+                                >
+                                  {departments.find((d) => d.id === t.departmentId)?.name || 'Dept'}
+                                </span>
+                              )}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <span
@@ -416,6 +449,7 @@ export default function TasksPage() {
                     />
                   </th>
                   <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Task Name</th>
+                  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Department</th>
                   <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Project</th>
                   <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Assignee</th>
                   <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Priority</th>
@@ -442,6 +476,9 @@ export default function TasksPage() {
                         />
                       </td>
                       <td style={{ padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)' }}>{t.name}</td>
+                      <td style={{ padding: 'var(--sp-3)', fontSize: '12px' }}>
+                        {departments.find((d) => d.id === t.departmentId)?.name || '—'}
+                      </td>
                       <td style={{ padding: 'var(--sp-3)' }}>{proj?.name || '—'}</td>
                       <td style={{ padding: 'var(--sp-3)' }}>{emp?.name || '—'}</td>
                       <td style={{ padding: 'var(--sp-3)' }}>

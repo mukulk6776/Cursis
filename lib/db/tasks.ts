@@ -1,8 +1,10 @@
 import { inMemoryStore } from './store';
-import { Task, TaskPriority, TaskStatus, UserProfile } from './types';
+import { Task, TaskPriority, TaskStatus } from './types';
 import { findBestMatchingHelpers } from './team';
 import { getCollection } from '@/lib/mongodb';
 import { createNotification } from './notifications';
+import { isWorkspaceMember } from '@/lib/auth/rbac';
+import { getDepartmentById } from './departments';
 
 export function normalizeSafeIsoDate(val?: string | null): string {
   if (!val) return new Date(Date.now() + 3 * 86400000).toISOString();
@@ -15,130 +17,50 @@ export function normalizeSafeIsoDate(val?: string | null): string {
   return new Date(Date.now() + 3 * 86400000).toISOString();
 }
 
+/**
+ * Retrieves tasks strictly for the given workspace.
+ * Prevents cross-workspace task leakage.
+ */
 export async function getTasks(
   workspaceId: string,
   filter?: {
     projectId?: string;
     assigneeId?: string;
+    departmentId?: string;
     status?: TaskStatus;
     priority?: TaskPriority;
     isAtRisk?: boolean;
   }
 ): Promise<Task[]> {
-  const wsAliases = Array.from(
-    new Set([
-      workspaceId,
-      workspaceId?.replace(/^ws_/, ''),
-      'ws_' + workspaceId,
-      'ws_cursis_main',
-      'ws_cursis_user',
-    ].filter(Boolean))
-  );
+  const cleanWsId = (workspaceId || '').trim();
+  if (!cleanWsId) return [];
 
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      const query: any = {
-        $or: [
-          { workspaceId: { $in: wsAliases } },
-          { workspaceId },
-        ],
-      };
+      const query: any = { workspaceId: cleanWsId };
       if (filter?.projectId) query.projectId = filter.projectId;
       if (filter?.assigneeId) query.assigneeId = filter.assigneeId;
+      if (filter?.departmentId) query.departmentId = filter.departmentId;
       if (filter?.status) query.status = filter.status;
       if (filter?.priority) query.priority = filter.priority;
       if (filter?.isAtRisk !== undefined) query.isAtRisk = filter.isAtRisk;
+
       const docs = await col.find(query).sort({ dueDate: 1 }).toArray();
-      if (docs.length > 0) {
-        docs.forEach((t) => inMemoryStore.tasks.set(t.id, t));
-        return docs;
-      }
-
-      // If no tasks exist in MongoDB for this workspace yet, auto-seed starter tasks
-      if (docs.length === 0 && (!filter || Object.keys(filter).length === 0)) {
-        const seedTasks: Task[] = [
-          {
-            id: `tsk_init_1_${Date.now()}`,
-            workspaceId,
-            title: 'Complete workspace onboarding and invite collaborators',
-            description: 'Set up team roles, invite key stakeholders, and configure workspace channels.',
-            status: 'in_progress',
-            priority: 'high',
-            dueDate: new Date(Date.now() + 2 * 86400000).toISOString(),
-            estimatedHours: 4,
-            actualHours: 1,
-            completionPercent: 35,
-            requiredSkills: ['Onboarding', 'Operations'],
-            subtasks: [
-              { id: 'st_1', title: 'Verify workspace settings', completed: true },
-              { id: 'st_2', title: 'Invite team members via email', completed: false },
-            ],
-            tags: ['Operations', 'Onboarding'],
-            isAtRisk: false,
-            creatorId: 'usr_system',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: `tsk_init_2_${Date.now()}`,
-            workspaceId,
-            title: 'Configure Ordis AI Copilot & Gemini API integration',
-            description: 'Connect your Gemini API key to enable live conversational workspace command execution.',
-            status: 'todo',
-            priority: 'urgent',
-            dueDate: new Date(Date.now() + 86400000).toISOString(),
-            estimatedHours: 2,
-            actualHours: 0,
-            completionPercent: 0,
-            requiredSkills: ['AI', 'Engineering'],
-            subtasks: [
-              { id: 'st_3', title: 'Add GEMINI_API_KEY to .env.local', completed: false },
-              { id: 'st_4', title: 'Test natural language task creation in Ordis chat', completed: false },
-            ],
-            tags: ['AI', 'Setup'],
-            isAtRisk: false,
-            creatorId: 'usr_system',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: `tsk_init_3_${Date.now()}`,
-            workspaceId,
-            title: 'Review Q4 deliverables and sprint velocity roadmap',
-            description: 'Align quarterly milestones with engineering and design sprint schedules.',
-            status: 'todo',
-            priority: 'medium',
-            dueDate: new Date(Date.now() + 7 * 86400000).toISOString(),
-            estimatedHours: 6,
-            actualHours: 0,
-            completionPercent: 0,
-            requiredSkills: ['Strategy', 'Roadmap'],
-            subtasks: [],
-            tags: ['Sprint', 'Planning'],
-            isAtRisk: false,
-            creatorId: 'usr_system',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ];
-
-        for (const st of seedTasks) {
-          inMemoryStore.tasks.set(st.id, st);
-          await col.updateOne({ id: st.id }, { $set: st }, { upsert: true }).catch(() => {});
-        }
-        return seedTasks;
-      }
+      docs.forEach((t) => inMemoryStore.tasks.set(t.id, t));
+      return docs;
     }
   } catch (e) {
-    console.warn('MongoDB getTasks notice:', e);
+    console.warn('MongoDB getTasks error:', e);
   }
 
+  // Strictly filter inMemoryStore by workspaceId
   return Array.from(inMemoryStore.tasks.values())
     .filter((t) => {
-      if (t.workspaceId !== workspaceId && !wsAliases.includes(t.workspaceId)) return false;
+      if (t.workspaceId !== cleanWsId) return false;
       if (filter?.projectId && t.projectId !== filter.projectId) return false;
       if (filter?.assigneeId && t.assigneeId !== filter.assigneeId) return false;
+      if (filter?.departmentId && t.departmentId !== filter.departmentId) return false;
       if (filter?.status && t.status !== filter.status) return false;
       if (filter?.priority && t.priority !== filter.priority) return false;
       if (filter?.isAtRisk !== undefined && Boolean(t.isAtRisk) !== filter.isAtRisk) return false;
@@ -147,16 +69,27 @@ export async function getTasks(
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 }
 
-export async function getTaskById(id: string): Promise<Task | null> {
-  const task = inMemoryStore.tasks.get(id);
-  if (task) return task;
+/**
+ * Retrieves a task by ID, optionally verifying workspace ownership.
+ */
+export async function getTaskById(id: string, workspaceId?: string): Promise<Task | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const task = inMemoryStore.tasks.get(cleanId);
+  if (task) {
+    if (workspaceId && task.workspaceId !== workspaceId) return null;
+    return task;
+  }
 
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      const found = await col.findOne({ id });
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const found = await col.findOne(query);
       if (found) {
-        inMemoryStore.tasks.set(id, found);
+        inMemoryStore.tasks.set(cleanId, found);
         return found;
       }
     }
@@ -165,21 +98,46 @@ export async function getTaskById(id: string): Promise<Task | null> {
   return null;
 }
 
-export async function createTask(workspaceId: string, data: Partial<Task> & Record<string, any>): Promise<Task> {
-  const id = data.id || `tsk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+/**
+ * Creates a task strictly bound to the specified workspace.
+ * Validates that assignee and department belong to the target workspace.
+ */
+export async function createTask(
+  workspaceId: string,
+  data: Partial<Task> & Record<string, any>
+): Promise<Task> {
+  const cleanWsId = (workspaceId || '').trim();
+  if (!cleanWsId) {
+    throw new Error('Workspace context is required to create a task.');
+  }
 
-  // Normalize title / name
-  const title = (data.title || data.name || 'New Task').trim();
+  const title = (data.title || data.name || '').trim();
+  if (!title) {
+    throw new Error('Task title is required.');
+  }
 
-  // Normalize project
-  const projectId = data.projectId || data.project || undefined;
-
-  // Find assignee name if assigneeId / assignee is given
+  // 1. Assignee validation: Must belong to workspace
   const assigneeId = data.assigneeId || data.assignee || undefined;
   let assigneeName = data.assigneeName;
-  if (assigneeId && !assigneeName) {
-    const user = inMemoryStore.users.get(assigneeId);
-    if (user) assigneeName = user.displayName;
+
+  if (assigneeId) {
+    const isMember = await isWorkspaceMember(assigneeId, cleanWsId);
+    if (!isMember) {
+      throw new Error('The selected assignee is not an active member of this workspace.');
+    }
+    if (!assigneeName) {
+      const user = inMemoryStore.users.get(assigneeId);
+      if (user) assigneeName = user.displayName;
+    }
+  }
+
+  // 2. Department validation: Must belong to workspace
+  const departmentId = data.departmentId || data.department || undefined;
+  if (departmentId) {
+    const dept = await getDepartmentById(departmentId, cleanWsId);
+    if (!dept) {
+      throw new Error('The selected department does not belong to this workspace.');
+    }
   }
 
   // Normalize status
@@ -201,37 +159,44 @@ export async function createTask(workspaceId: string, data: Partial<Task> & Reco
   let riskReason = data.riskReason;
 
   if (isAtRisk && !suggestedHelperId && data.requiredSkills && data.requiredSkills.length > 0) {
-    const helpers = await findBestMatchingHelpers(workspaceId, data.requiredSkills);
-    const candidate = helpers.find((h) => h.user.id !== assigneeId);
-    if (candidate) {
-      suggestedHelperId = candidate.user.id;
-      riskReason = `Due soon with only ${completionPercent}% done. Suggested helper: ${candidate.user.displayName}`;
-    }
+    try {
+      const helpers = await findBestMatchingHelpers(cleanWsId, data.requiredSkills);
+      const candidate = helpers.find((h) => h.user.id !== assigneeId);
+      if (candidate) {
+        suggestedHelperId = candidate.user.id;
+        riskReason = `Due soon with only ${completionPercent}% done. Suggested helper: ${candidate.user.displayName}`;
+      }
+    } catch {}
   }
+
+  const id = data.id || `tsk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const now = new Date().toISOString();
 
   const task: Task = {
     id,
-    workspaceId,
-    projectId,
+    workspaceId: cleanWsId,
+    projectId: data.projectId || data.project || undefined,
+    departmentId,
     title,
-    description: data.description || '',
+    description: (data.description || '').trim(),
     status,
     priority: data.priority || 'medium',
     assigneeId,
     assigneeName,
-    creatorId: data.creatorId || 'usr_creator',
+    creatorId: data.creatorId || data.createdBy || 'usr_system',
+    createdBy: data.createdBy || data.creatorId || 'usr_system',
     dueDate,
     estimatedHours: data.estimatedHours || 4,
     actualHours: data.actualHours || 0,
     completionPercent,
-    requiredSkills: data.requiredSkills || [],
-    subtasks: data.subtasks || [],
-    tags: data.tags || [],
+    requiredSkills: Array.isArray(data.requiredSkills) ? data.requiredSkills : [],
+    subtasks: Array.isArray(data.subtasks) ? data.subtasks : [],
+    tags: Array.isArray(data.tags) ? data.tags : [],
     isAtRisk,
     riskReason,
     suggestedHelperId,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   };
 
   inMemoryStore.tasks.set(id, task);
@@ -242,110 +207,63 @@ export async function createTask(workspaceId: string, data: Partial<Task> & Reco
       await col.updateOne({ id }, { $set: task }, { upsert: true });
     }
   } catch (e) {
-    console.warn('MongoDB upsert task notice:', e);
+    console.warn('MongoDB upsert task error:', e);
   }
 
-  // Send notification to the assigned team member
+  // Send notification if assignee is set
   if (task.assigneeId) {
     try {
-      // Look up creator name
-      let creatorName = 'Someone';
+      let creatorName = 'Team Lead';
       const creatorUser = inMemoryStore.users.get(task.creatorId);
       if (creatorUser) {
-        creatorName = creatorUser.displayName || creatorUser.email?.split('@')[0] || 'Someone';
-      } else {
-        // Try MongoDB
-        const usersCol = await getCollection<UserProfile>('users');
-        if (usersCol) {
-          const creatorDoc = await usersCol.findOne({ $or: [{ id: task.creatorId }, { uid: task.creatorId }] });
-          if (creatorDoc) {
-            creatorName = creatorDoc.displayName || creatorDoc.email?.split('@')[0] || 'Someone';
-          }
-        }
-      }
-
-      // Look up assignee email for notification targeting
-      let assigneeEmail: string | undefined;
-      const assigneeUser = inMemoryStore.users.get(task.assigneeId);
-      if (assigneeUser) {
-        assigneeEmail = assigneeUser.email;
-      } else {
-        const usersCol = await getCollection<UserProfile>('users');
-        if (usersCol) {
-          const assigneeDoc = await usersCol.findOne({ $or: [{ id: task.assigneeId }, { uid: task.assigneeId }] });
-          if (assigneeDoc) {
-            assigneeEmail = assigneeDoc.email;
-          }
-        }
-      }
-
-      if (!assigneeEmail) {
-        const teamCol = await getCollection<any>('workspace_teams');
-        if (teamCol) {
-          const teamDoc = await teamCol.findOne({
-            workspaceId: task.workspaceId,
-            $or: [{ userId: task.assigneeId }, { id: task.assigneeId }],
-          });
-          if (teamDoc?.email) assigneeEmail = teamDoc.email;
-        }
+        creatorName = creatorUser.displayName || 'Team Lead';
       }
 
       await createNotification({
         userId: task.assigneeId,
-        userEmail: assigneeEmail,
         workspaceId: task.workspaceId,
         type: 'task',
         text: `<strong>${creatorName}</strong> assigned you a task: <strong>${task.title}</strong>`,
         icon: 'clipboard',
       });
-    } catch (e) {
-      console.warn('Task notification creation notice:', e);
-    }
+    } catch {}
   }
 
   return task;
 }
 
-export async function updateTask(id: string, updates: Partial<Task>): Promise<Task | null> {
-  let task = inMemoryStore.tasks.get(id);
-  if (!task) {
-    try {
-      const col = await getCollection<Task>('tasks');
-      if (col) {
-        const found = await col.findOne({ id });
-        if (found) {
-          task = found;
-          inMemoryStore.tasks.set(id, found);
-        }
-      }
-    } catch (e) {
-      console.warn('MongoDB fetch task notice:', e);
+/**
+ * Updates an existing task with workspace isolation.
+ */
+export async function updateTask(
+  id: string,
+  updates: Partial<Task>,
+  workspaceId?: string
+): Promise<Task | null> {
+  const task = await getTaskById(id, workspaceId);
+  if (!task) return null;
+
+  // Validate assignee if updated
+  if (updates.assigneeId && updates.assigneeId !== task.assigneeId) {
+    const isMember = await isWorkspaceMember(updates.assigneeId, task.workspaceId);
+    if (!isMember) {
+      throw new Error('The updated assignee is not an active member of this workspace.');
+    }
+    if (!updates.assigneeName) {
+      const user = inMemoryStore.users.get(updates.assigneeId);
+      if (user) updates.assigneeName = user.displayName;
     }
   }
 
-  if (!task) {
-    // If not in store or DB, create a baseline task document so updates are never lost
-    task = {
-      id,
-      workspaceId: (updates as any).workspaceId || 'ws_cursis_main',
-      title: updates.title || (updates as any).name || 'Task',
-      status: 'todo',
-      priority: updates.priority || 'medium',
-      creatorId: 'usr_system',
-      dueDate: normalizeSafeIsoDate(updates.dueDate || (updates as any).deadline),
-      estimatedHours: 4,
-      actualHours: 0,
-      completionPercent: 0,
-      requiredSkills: [],
-      subtasks: [],
-      tags: [],
-      isAtRisk: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  // Validate department if updated
+  if (updates.departmentId && updates.departmentId !== task.departmentId) {
+    const dept = await getDepartmentById(updates.departmentId, task.workspaceId);
+    if (!dept) {
+      throw new Error('The updated department does not belong to this workspace.');
+    }
   }
 
-  // Normalize status if passed in frontend format
+  // Normalize status
   let nextStatus = updates.status || task.status;
   const rawStatus = String(updates.status || '').toLowerCase();
   if (rawStatus === 'done' || rawStatus === 'completed') nextStatus = 'done';
@@ -354,14 +272,7 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
   else if (rawStatus === 'todo') nextStatus = 'todo';
 
   const title = (updates.title || (updates as any).name || task.title).trim();
-  const dueDate = (updates.dueDate || (updates as any).deadline)
-    ? normalizeSafeIsoDate(updates.dueDate || (updates as any).deadline)
-    : task.dueDate;
-
-  if (updates.assigneeId && !updates.assigneeName) {
-    const user = inMemoryStore.users.get(updates.assigneeId);
-    if (user) updates.assigneeName = user.displayName;
-  }
+  const dueDate = updates.dueDate ? normalizeSafeIsoDate(updates.dueDate) : task.dueDate;
 
   let completionPercent = updates.completionPercent ?? task.completionPercent;
   let isAtRisk = updates.isAtRisk ?? task.isAtRisk;
@@ -382,111 +293,60 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     updatedAt: new Date().toISOString(),
   };
 
-  // Re-evaluate risk
-  const isDueSoon = new Date(updated.dueDate).getTime() - Date.now() < 2 * 86400000;
-  if (isDueSoon && updated.completionPercent < 30 && updated.status !== 'done') {
-    updated.isAtRisk = true;
-    if (!updated.riskReason) {
-      updated.riskReason = `Deadline within 48 hours and completion is at ${updated.completionPercent}%.`;
-    }
-  } else if (updated.status === 'done' || updated.completionPercent >= 80) {
-    updated.isAtRisk = false;
-  }
-
   inMemoryStore.tasks.set(id, updated);
 
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+      await col.updateOne({ id, workspaceId: task.workspaceId }, { $set: updated });
     }
   } catch (e) {
-    console.warn('MongoDB update task notice:', e);
-  }
-
-  // Send notification if assignee changed
-  if (updates.assigneeId && updates.assigneeId !== task.assigneeId) {
-    try {
-      let creatorName = 'Someone';
-      const creatorUser = inMemoryStore.users.get(task.creatorId);
-      if (creatorUser) {
-        creatorName = creatorUser.displayName || creatorUser.email?.split('@')[0] || 'Someone';
-      } else {
-        const usersCol = await getCollection<UserProfile>('users');
-        if (usersCol) {
-          const creatorDoc = await usersCol.findOne({ $or: [{ id: task.creatorId }, { uid: task.creatorId }] });
-          if (creatorDoc) {
-            creatorName = creatorDoc.displayName || creatorDoc.email?.split('@')[0] || 'Someone';
-          }
-        }
-      }
-
-      let assigneeEmail: string | undefined;
-      const assigneeUser = inMemoryStore.users.get(updates.assigneeId);
-      if (assigneeUser) {
-        assigneeEmail = assigneeUser.email;
-      } else {
-        const usersCol = await getCollection<UserProfile>('users');
-        if (usersCol) {
-          const assigneeDoc = await usersCol.findOne({ $or: [{ id: updates.assigneeId }, { uid: updates.assigneeId }] });
-          if (assigneeDoc) {
-            assigneeEmail = assigneeDoc.email;
-          }
-        }
-      }
-
-      if (!assigneeEmail) {
-        const teamCol = await getCollection<any>('workspace_teams');
-        if (teamCol) {
-          const teamDoc = await teamCol.findOne({
-            workspaceId: updated.workspaceId,
-            $or: [{ userId: updates.assigneeId }, { id: updates.assigneeId }],
-          });
-          if (teamDoc?.email) assigneeEmail = teamDoc.email;
-        }
-      }
-
-      await createNotification({
-        userId: updates.assigneeId,
-        userEmail: assigneeEmail,
-        workspaceId: updated.workspaceId,
-        type: 'task',
-        text: `<strong>${creatorName}</strong> assigned you a task: <strong>${updated.title}</strong>`,
-        icon: 'clipboard',
-      });
-    } catch (e) {
-      console.warn('Task reassignment notification notice:', e);
-    }
+    console.warn('MongoDB update task error:', e);
   }
 
   return updated;
 }
 
-export async function deleteTask(id: string): Promise<boolean> {
+/**
+ * Deletes a task with workspace isolation.
+ */
+export async function deleteTask(id: string, workspaceId?: string): Promise<boolean> {
+  const task = await getTaskById(id, workspaceId);
+  if (!task) return false;
+
   const deletedMem = inMemoryStore.tasks.delete(id);
   let deletedMongo = false;
+
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      const res = await col.deleteOne({ id });
+      const res = await col.deleteOne({ id, workspaceId: task.workspaceId });
       deletedMongo = res.deletedCount > 0;
     }
   } catch (e) {
-    console.warn('MongoDB delete task notice:', e);
+    console.warn('MongoDB delete task error:', e);
   }
+
   return deletedMem || deletedMongo;
 }
 
-// Reassign task or pair helper (Real-life example from document)
+/**
+ * Reassigns task or pairs helper with workspace validation.
+ */
 export async function reassignOrPairHelper(
   taskId: string,
   newAssigneeId?: string,
-  helperId?: string
+  helperId?: string,
+  workspaceId?: string
 ): Promise<Task | null> {
-  const task = inMemoryStore.tasks.get(taskId);
+  const task = await getTaskById(taskId, workspaceId);
   if (!task) return null;
 
   if (newAssigneeId) {
+    const isMember = await isWorkspaceMember(newAssigneeId, task.workspaceId);
+    if (!isMember) {
+      throw new Error('The new assignee is not a member of this workspace.');
+    }
     const user = inMemoryStore.users.get(newAssigneeId);
     task.assigneeId = newAssigneeId;
     task.assigneeName = user?.displayName || task.assigneeName;
@@ -495,6 +355,10 @@ export async function reassignOrPairHelper(
   }
 
   if (helperId) {
+    const isMember = await isWorkspaceMember(helperId, task.workspaceId);
+    if (!isMember) {
+      throw new Error('The helper is not a member of this workspace.');
+    }
     task.suggestedHelperId = helperId;
     const helperUser = inMemoryStore.users.get(helperId);
     task.description = `${task.description}\n\n[Ordis Pair]: Assigned helper ${helperUser?.displayName || helperId} to finish before deadline.`;
@@ -507,10 +371,10 @@ export async function reassignOrPairHelper(
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      await col.updateOne({ id: taskId }, { $set: task });
+      await col.updateOne({ id: taskId, workspaceId: task.workspaceId }, { $set: task });
     }
   } catch (e) {
-    console.warn('MongoDB reassign task notice:', e);
+    console.warn('MongoDB reassign task error:', e);
   }
 
   return task;

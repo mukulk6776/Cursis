@@ -121,6 +121,7 @@ export interface Task {
   id: string;
   workspaceId: string;
   projectId?: string;
+  departmentId?: string;
   title: string;
   description?: string;
   status: TaskStatus;
@@ -128,6 +129,7 @@ export interface Task {
   assigneeId?: string;
   assigneeName?: string;
   creatorId: string;
+  createdBy?: string;
   dueDate: string;
   estimatedHours?: number;
   actualHours?: number;
@@ -279,8 +281,10 @@ export interface Department {
   description?: string;
   lead?: string | null;
   head?: string | null;
+  createdBy?: string;
   membersCount?: number;
   memberCount?: number;
+  activeTaskCount?: number;
   budget?: string | number;
   color?: string;
   tags?: string[];
