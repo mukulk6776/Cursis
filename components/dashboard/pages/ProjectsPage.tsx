@@ -4,628 +4,615 @@ import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function ProjectsPage() {
- const {
- projects,
- employees,
- tasks,
- documents,
- meetings,
- openModal,
- showToast,
- } = useDashboard();
+  const {
+    projects,
+    employees,
+    tasks,
+    documents,
+    meetings,
+    openModal,
+    showToast,
+  } = useDashboard();
 
- const [currentView, setCurrentView] = useState<'grid' | 'list' | 'kanban'>('grid');
- const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<'grid' | 'list' | 'kanban'>('grid');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
- const getEmployee = (id: string) => employees.find((e) => e.id === id);
- const getTasksForProject = (projectId: string) => tasks.filter((t) => t.project === projectId);
+  const getEmployee = (id: string) => employees.find((e) => e.id === id);
+  const getTasksForProject = (projectId: string) => tasks.filter((t) => t.project === projectId);
 
- const selectedProject = projects.find((p) => p.id === selectedProjectId);
- const projectTasks = selectedProjectId ? getTasksForProject(selectedProjectId) : [];
- const projectDocs = selectedProjectId ? documents.filter((d) => d.project === selectedProjectId) : [];
- const projectMeetings = selectedProjectId ? meetings.filter((m) => m.project === selectedProjectId) : [];
+  const selectedProject = projects.find((p) => p.id === selectedProjectId);
+  const projectTasks = selectedProjectId ? getTasksForProject(selectedProjectId) : [];
 
- return (
- <div className="page active" id="page-projects" style={{ display: 'block' }}>
- {/* Header */}
- <div className="page-header" style={{ marginBottom: 'var(--sp-4)' }}>
- <div>
- <h1 className="page-title">Projects</h1>
- </div>
- <div className="page-actions" style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
- {/* View Switcher */}
- <div className="view-switcher" style={{ display: 'flex', gap: '4px' }}>
- <button
- className={`view-switcher-btn ${currentView === 'grid' ? 'active' : ''}`}
- onClick={() => setCurrentView('grid')}
- >
- ▦ Grid
- </button>
- <button
- className={`view-switcher-btn ${currentView === 'list' ? 'active' : ''}`}
- onClick={() => setCurrentView('list')}
- >
- List
- </button>
- <button
- className={`view-switcher-btn ${currentView === 'kanban' ? 'active' : ''}`}
- onClick={() => setCurrentView('kanban')}
- >
- Kanban
- </button>
- </div>
+  return (
+    <div className="page active" id="page-projects" style={{ maxWidth: '1080px', margin: '0 auto' }}>
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 'var(--sp-4)',
+          gap: 'var(--sp-3)',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+              Projects
+            </h1>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: 'var(--c-surface)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border-color)',
+                textTransform: 'uppercase',
+              }}
+            >
+              {projects.length} projects
+            </span>
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+            Coordinate project goals, milestones, and deliverable tracking.
+          </p>
+        </div>
 
- <button className="btn btn-primary" onClick={() => openModal('project-modal')}>
- + New Project
- </button>
- </div>
- </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* View Switcher */}
+          <div style={{ display: 'flex', border: '1px solid var(--border-color)', borderRadius: '6px', overflow: 'hidden', background: 'var(--c-surface)' }}>
+            {(['grid', 'list', 'kanban'] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                className={`btn ${currentView === v ? 'btn-primary' : 'btn-ghost'} btn-sm`}
+                style={{
+                  textTransform: 'capitalize',
+                  fontSize: '12px',
+                  padding: '4px 10px',
+                  borderRadius: 0,
+                  height: '30px',
+                  fontWeight: currentView === v ? 700 : 500,
+                }}
+                onClick={() => setCurrentView(v)}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
 
- {projects.length === 0 ? (
- <div className="card" style={{ padding: 'var(--sp-8)', textAlign: 'center', background: 'var(--c-white)', marginTop: 'var(--sp-4)' }}>
- <div style={{ fontSize: '36px', marginBottom: 'var(--sp-2)' }}></div>
- <h3 style={{ fontSize: 'var(--fs-lg)', fontWeight: 'var(--fw-bold)', marginBottom: 'var(--sp-1)' }}>No active projects</h3>
- <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--fs-sm)', maxWidth: '420px', margin: '0 auto var(--sp-4)' }}>
- Organize your deliverables into projects, track milestones, assign team members, and link live communication channels.
- </p>
- <button className="btn btn-primary" onClick={() => openModal('project-modal')}>
- + Create Your First Project
- </button>
- </div>
- ) : (
- <>
- {/* VIEW: GRID */}
- {currentView === 'grid' && (
- <div
- style={{
- display: 'grid',
- gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
- gap: 'var(--sp-4)',
- }}
- >
- {projects.map((p) => {
- const teamMembers = p.team.map((id) => getEmployee(id)).filter(Boolean);
- const pTasks = getTasksForProject(p.id);
- const activeTasks = pTasks.filter((t) => t.status === 'in-progress').length;
- const overdueTasks = pTasks.filter(
- (t) => t.status !== 'completed' && new Date(t.deadline).getTime() < Date.now()
- ).length;
- const nextMilestone = p.milestones ? p.milestones.find((m) => !m.completed) : null;
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => openModal('project-modal')}
+            style={{ fontWeight: 700 }}
+          >
+            + New Project
+          </button>
+        </div>
+      </div>
 
- return (
- <div
- key={p.id}
- className="card"
- style={{
- padding: 'var(--sp-5)',
- cursor: 'pointer',
- transition: 'all var(--dur-fast)',
- }}
- onClick={() => setSelectedProjectId(p.id)}
- >
- <div
- style={{
- display: 'flex',
- alignItems: 'flex-start',
- justifyContent: 'space-between',
- marginBottom: 'var(--sp-3)',
- }}
- >
- <div>
- <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
- <div style={{ width: '8px', height: '8px', background: p.color, flexShrink: 0 }} />
- <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-md)' }}>{p.name}</span>
- </div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px', marginLeft: '16px' }}>
- {p.desc.substring(0, 80)}
- {p.desc.length > 80 ? '...' : ''}
- </div>
- </div>
- <span
- className={`badge badge-${
- p.status === 'In Progress' ? 'brand' : p.status === 'Planning' ? 'neutral' : 'success'
- }`}
- style={{ fontSize: '10px', flexShrink: 0 }}
- >
- {p.status}
- </span>
- </div>
+      {projects.length === 0 ? (
+        <div
+          className="card"
+          style={{
+            padding: '48px 24px',
+            textAlign: 'center',
+            background: 'var(--c-white)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+          }}
+        >
+          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: '#0A0A0A' }}>
+            No active projects
+          </h3>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
+            Organize your deliverables into projects, track milestones, and assign team members.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => openModal('project-modal')}
+            style={{ fontWeight: 700 }}
+          >
+            + Create Your First Project
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* VIEW: GRID */}
+          {currentView === 'grid' && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: '12px',
+              }}
+            >
+              {projects.map((p) => {
+                const teamMembers = p.team.map((id) => getEmployee(id)).filter(Boolean);
+                const pTasks = getTasksForProject(p.id);
+                const activeTasks = pTasks.filter((t) => t.status === 'in-progress').length;
+                const overdueTasks = pTasks.filter(
+                  (t) => t.status !== 'completed' && new Date(t.deadline).getTime() < Date.now()
+                ).length;
+                const nextMilestone = p.milestones ? p.milestones.find((m) => !m.completed) : null;
 
- {/* Progress bar */}
- <div style={{ marginBottom: 'var(--sp-3)' }}>
- <div
- style={{
- display: 'flex',
- justifyContent: 'space-between',
- fontSize: '10px',
- color: 'var(--text-tertiary)',
- marginBottom: '4px',
- }}
- >
- <span>
- {p.completed}/{p.tasks} tasks
- </span>
- <span style={{ fontWeight: 'var(--fw-bold)' }}>{p.progress}%</span>
- </div>
- <div style={{ height: '6px', background: 'var(--c-gray-200)' }}>
- <div style={{ height: '100%', background: p.color, width: `${p.progress}%`, transition: 'width 0.3s ease' }} />
- </div>
- </div>
+                return (
+                  <div
+                    key={p.id}
+                    className="card"
+                    style={{
+                      padding: '16px 18px',
+                      cursor: 'pointer',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      background: 'var(--c-white)',
+                    }}
+                    onClick={() => setSelectedProjectId(p.id)}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'space-between',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff', flexShrink: 0 }} />
+                          <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>{p.name}</span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', marginLeft: '16px' }}>
+                          {p.desc.substring(0, 70)}
+                          {p.desc.length > 70 ? '...' : ''}
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          background: 'var(--c-surface)',
+                          border: '1px solid var(--border-color)',
+                          color: p.status === 'In Progress' ? '#0f4cff' : 'var(--text-secondary)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
 
- {/* Stats Row */}
- <div style={{ display: 'flex', gap: 'var(--sp-3)', marginBottom: 'var(--sp-3)', fontSize: '10px' }}>
- <span style={{ color: 'var(--c-brand)', fontWeight: 'var(--fw-bold)' }}>{activeTasks} active</span>
- {overdueTasks > 0 && (
- <span style={{ color: 'var(--c-error)', fontWeight: 'var(--fw-bold)' }}>{overdueTasks} overdue</span>
- )}
- <span style={{ color: 'var(--text-tertiary)' }}>Due {p.deadline}</span>
- </div>
+                    {/* Progress bar */}
+                    <div style={{ marginBottom: '10px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          fontSize: '11px',
+                          color: 'var(--text-secondary)',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        <span>
+                          {p.completed}/{p.tasks} tasks
+                        </span>
+                        <span style={{ fontWeight: 700, color: '#0A0A0A' }}>{p.progress}%</span>
+                      </div>
+                      <div style={{ height: '6px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%`, transition: 'width 0.3s ease' }} />
+                      </div>
+                    </div>
 
- {/* Next Milestone */}
- {nextMilestone && (
- <div
- style={{
- padding: 'var(--sp-2)',
- background: 'var(--c-surface)',
- border: '1px solid var(--c-gray-200)',
- marginBottom: 'var(--sp-3)',
- fontSize: '10px',
- }}
- >
- <span style={{ fontWeight: 'var(--fw-bold)' }}>Next Milestone:</span> {nextMilestone.name} —{' '}
- {nextMilestone.date}
- </div>
- )}
+                    {/* Stats Row */}
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', fontSize: '11px' }}>
+                      <span style={{ color: '#0f4cff', fontWeight: 600 }}>{activeTasks} active</span>
+                      {overdueTasks > 0 && (
+                        <span style={{ color: '#dc2626', fontWeight: 600 }}>{overdueTasks} overdue</span>
+                      )}
+                      <span style={{ color: 'var(--text-secondary)' }}>Due {p.deadline}</span>
+                    </div>
 
- {/* Team Avatars & Channel */}
- <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
- <div style={{ display: 'flex', gap: '-4px' }}>
- {teamMembers.slice(0, 5).map((m, i) => (
- <div
- key={i}
- className="avatar avatar-xs"
- style={{ background: m?.color, fontSize: '9px', width: '24px', height: '24px' }}
- title={m?.name}
- >
- {m?.initials}
- </div>
- ))}
- {teamMembers.length > 5 && (
- <div
- className="avatar avatar-xs"
- style={{ background: 'var(--c-gray-300)', fontSize: '9px', width: '24px', height: '24px' }}
- >
- +{teamMembers.length - 5}
- </div>
- )}
- </div>
- </div>
- </div>
- );
- })}
- </div>
- )}
+                    {/* Next Milestone */}
+                    {nextMilestone && (
+                      <div
+                        style={{
+                          padding: '6px 10px',
+                          background: 'var(--c-surface)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          marginBottom: '10px',
+                          fontSize: '11px',
+                        }}
+                      >
+                        <span style={{ fontWeight: 700 }}>Next Milestone:</span> {nextMilestone.name} — {nextMilestone.date}
+                      </div>
+                    )}
 
- {/* VIEW: LIST */}
- {currentView === 'list' && (
- <div className="card" style={{ overflow: 'hidden' }}>
- <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-sm)' }}>
- <thead>
- <tr style={{ background: 'var(--c-surface)', borderBottom: 'var(--border-width) solid var(--border-color)' }}>
- <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>PROJECT</th>
- <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>STATUS</th>
- <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>PROGRESS</th>
- <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>TASKS</th>
- <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>DEADLINE</th>
- <th style={{ textAlign: 'left', padding: 'var(--sp-2) var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>TEAM</th>
- </tr>
- </thead>
- <tbody>
- {projects.map((p) => {
- const team = p.team.map((id) => getEmployee(id)).filter(Boolean);
- return (
- <tr
- key={p.id}
- style={{ borderBottom: '1px solid var(--c-gray-200)', cursor: 'pointer' }}
- onClick={() => setSelectedProjectId(p.id)}
- >
- <td style={{ padding: 'var(--sp-3)' }}>
- <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
- <div style={{ width: '8px', height: '8px', background: p.color, flexShrink: 0 }} />
- <div>
- <div style={{ fontWeight: 'var(--fw-bold)' }}>{p.name}</div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
- {p.desc.substring(0, 50)}...
- </div>
- </div>
- </div>
- </td>
- <td style={{ padding: 'var(--sp-3)' }}>
- <span className={`badge badge-${p.status === 'In Progress' ? 'brand' : 'neutral'}`} style={{ fontSize: '10px' }}>
- {p.status}
- </span>
- </td>
- <td style={{ padding: 'var(--sp-3)' }}>
- <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
- <div style={{ width: '80px', height: '4px', background: 'var(--c-gray-200)' }}>
- <div style={{ height: '100%', background: p.color, width: `${p.progress}%` }} />
- </div>
- <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 'var(--fw-bold)' }}>{p.progress}%</span>
- </div>
- </td>
- <td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>
- {p.completed}/{p.tasks}
- </td>
- <td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)' }}>
- {p.deadline}
- </td>
- <td style={{ padding: 'var(--sp-3)' }}>
- <div style={{ display: 'flex', gap: '2px' }}>
- {team.slice(0, 3).map((m, i) => (
- <div
- key={i}
- className="avatar avatar-xs"
- style={{ background: m?.color, fontSize: '9px', width: '20px', height: '20px' }}
- >
- {m?.initials}
- </div>
- ))}
- {team.length > 3 && (
- <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>+{team.length - 3}</span>
- )}
- </div>
- </td>
- </tr>
- );
- })}
- </tbody>
- </table>
- </div>
- )}
+                    {/* Team Avatars */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid var(--border-color)' }}>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        {teamMembers.slice(0, 5).map((m, i) => (
+                          <div
+                            key={i}
+                            className="avatar avatar-xs"
+                            style={{ background: m?.color || '#0f4cff', fontSize: '9px', width: '22px', height: '22px' }}
+                            title={m?.name}
+                          >
+                            {m?.initials}
+                          </div>
+                        ))}
+                        {teamMembers.length > 5 && (
+                          <span style={{ fontSize: '11px', color: 'var(--text-secondary)', alignSelf: 'center' }}>
+                            +{teamMembers.length - 5}
+                          </span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>View Details →</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
- {/* VIEW: KANBAN */}
- {currentView === 'kanban' && (
- <div className="kanban-board" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--sp-4)' }}>
- {['Planning', 'In Progress', 'Completed'].map((s) => {
- const colProjects = projects.filter((p) => p.status === s);
- return (
- <div
- key={s}
- className="kanban-column"
- style={{
- background: 'var(--c-surface)',
- border: 'var(--border-width) solid var(--border-color)',
- padding: 'var(--sp-3)',
- }}
- >
- <div
- className="kanban-column-header"
- style={{
- display: 'flex',
- justifyContent: 'space-between',
- marginBottom: 'var(--sp-3)',
- fontWeight: 'var(--fw-black)',
- fontSize: 'var(--fs-sm)',
- }}
- >
- <span>{s}</span>
- <span className="badge badge-neutral" style={{ fontSize: '10px' }}>
- {colProjects.length}
- </span>
- </div>
- <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
- {colProjects.map((p) => (
- <div
- key={p.id}
- className="card"
- style={{ padding: 'var(--sp-3)', cursor: 'pointer' }}
- onClick={() => setSelectedProjectId(p.id)}
- >
- <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-2)' }}>
- <div style={{ width: '8px', height: '8px', background: p.color }} />
- <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)' }}>{p.name}</span>
- </div>
- <div style={{ height: '4px', background: 'var(--c-gray-200)', marginBottom: 'var(--sp-2)' }}>
- <div style={{ height: '100%', background: p.color, width: `${p.progress}%` }} />
- </div>
- <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
- {p.completed}/{p.tasks} tasks — Due {p.deadline}
- </div>
- </div>
- ))}
- </div>
- </div>
- );
- })}
- </div>
- )}
- </>
- )}
+          {/* VIEW: LIST */}
+          {currentView === 'list' && (
+            <div className="card" style={{ overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)', padding: 0 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
+                    <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 700, fontSize: '12px' }}>Project</th>
+                    <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 700, fontSize: '12px' }}>Status</th>
+                    <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 700, fontSize: '12px' }}>Progress</th>
+                    <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 700, fontSize: '12px' }}>Tasks</th>
+                    <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 700, fontSize: '12px' }}>Deadline</th>
+                    <th style={{ textAlign: 'right', padding: '10px 14px', fontWeight: 700, fontSize: '12px' }}>Team</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projects.map((p) => {
+                    const team = p.team.map((id) => getEmployee(id)).filter(Boolean);
+                    return (
+                      <tr
+                        key={p.id}
+                        style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
+                        onClick={() => setSelectedProjectId(p.id)}
+                      >
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff', flexShrink: 0 }} />
+                            <div>
+                              <div style={{ fontWeight: 700, color: '#0A0A0A' }}>{p.name}</div>
+                              <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                                {p.desc.substring(0, 45)}...
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              background: 'var(--c-surface)',
+                              border: '1px solid var(--border-color)',
+                              color: p.status === 'In Progress' ? '#0f4cff' : 'var(--text-secondary)',
+                            }}
+                          >
+                            {p.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '80px', height: '6px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%` }} />
+                            </div>
+                            <span style={{ fontSize: '11px', fontWeight: 700 }}>{p.progress}%</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                          {p.completed}/{p.tasks}
+                        </td>
+                        <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                          {p.deadline}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                            {team.slice(0, 3).map((m, i) => (
+                              <div
+                                key={i}
+                                className="avatar avatar-xs"
+                                style={{ background: m?.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px' }}
+                              >
+                                {m?.initials}
+                              </div>
+                            ))}
+                            {team.length > 3 && (
+                              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>+{team.length - 3}</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
 
- {/* Project Templates */}
- <div style={{ marginTop: 'var(--sp-6)' }}>
- <h3 style={{ marginBottom: 'var(--sp-3)' }}>Project Templates</h3>
- <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 'var(--sp-3)' }}>
- {[
- { name: 'Product Launch', desc: 'Full lifecycle from ideation to market release', tasks: 28 },
- { name: 'Marketing Campaign', desc: 'Multi-channel campaign planning and execution', tasks: 18 },
- { name: 'Client Onboarding', desc: 'Structured client intake and setup workflow', tasks: 15 },
- { name: 'Software Sprint', desc: '2-week agile sprint with stories and reviews', tasks: 20 },
- ].map((t, idx) => (
- <div
- key={idx}
- className="card"
- style={{ padding: 'var(--sp-3)', cursor: 'pointer', transition: 'all var(--dur-fast)' }}
- onClick={() => showToast(`Template "${t.name}" loaded into project draft *`)}
- >
- <div style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)' }}>{t.name}</div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>{t.desc}</div>
- <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: 'var(--sp-2)' }}>
- {t.tasks} pre-built tasks
- </div>
- </div>
- ))}
- </div>
- </div>
+          {/* VIEW: KANBAN */}
+          {currentView === 'kanban' && (
+            <div className="kanban-board" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+              {['Planning', 'In Progress', 'Completed'].map((s) => {
+                const colProjects = projects.filter((p) => p.status === s);
+                return (
+                  <div
+                    key={s}
+                    className="kanban-column"
+                    style={{
+                      background: 'var(--c-surface)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      padding: '12px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '10px',
+                        paddingBottom: '8px',
+                        borderBottom: '1px solid var(--border-color)',
+                      }}
+                    >
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{s}</span>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          background: 'var(--c-white)',
+                          border: '1px solid var(--border-color)',
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {colProjects.length}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {colProjects.map((p) => (
+                        <div
+                          key={p.id}
+                          className="card"
+                          style={{ padding: '12px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--c-white)' }}
+                          onClick={() => setSelectedProjectId(p.id)}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff' }} />
+                            <span style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{p.name}</span>
+                          </div>
+                          <div style={{ height: '4px', background: 'var(--c-surface)', borderRadius: '2px', overflow: 'hidden', marginBottom: '6px' }}>
+                            <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%` }} />
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                            {p.completed}/{p.tasks} tasks — Due {p.deadline}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
 
- {/* Project Detail Modal */}
- {selectedProject && (
- <div
- className="modal-overlay active"
- id="project-detail-modal"
- onClick={(e) => {
- if (e.target === e.currentTarget) setSelectedProjectId(null);
- }}
- >
- <div className="modal" style={{ maxWidth: '800px', maxHeight: '85vh', overflowY: 'auto' }}>
- <div className="modal-header">
- <div style={{ flex: 1 }}>
- <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: '4px' }}>
- <div style={{ width: '12px', height: '12px', background: selectedProject.color }} />
- <span className="modal-title">{selectedProject.name}</span>
- <span
- className={`badge badge-${selectedProject.status === 'In Progress' ? 'brand' : 'neutral'}`}
- style={{ fontSize: '10px' }}
- >
- {selectedProject.status}
- </span>
- </div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginLeft: '20px' }}>
- {selectedProject.desc}
- </div>
- </div>
- <button className="modal-close" onClick={() => setSelectedProjectId(null)}>
- 
- </button>
- </div>
+      {/* Project Templates */}
+      <div style={{ marginTop: '24px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: '#0A0A0A' }}>Quick Project Templates</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '8px' }}>
+          {[
+            { name: 'Product Launch', desc: 'Lifecycle from ideation to market release', tasks: 28 },
+            { name: 'Marketing Campaign', desc: 'Multi-channel campaign planning', tasks: 18 },
+            { name: 'Client Onboarding', desc: 'Intake and technical setup workflow', tasks: 15 },
+            { name: 'Software Sprint', desc: '2-week sprint with stories and reviews', tasks: 20 },
+          ].map((t, idx) => (
+            <div
+              key={idx}
+              className="card"
+              style={{ padding: '10px 14px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--c-white)' }}
+              onClick={() => showToast(`Template "${t.name}" loaded into project draft`)}
+            >
+              <div style={{ fontWeight: 700, fontSize: '12px', color: '#0A0A0A' }}>+ {t.name}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{t.desc}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '6px' }}>
+                {t.tasks} pre-built tasks
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
- <div className="modal-body">
- {/* Progress & Stats */}
- <div
- style={{
- display: 'grid',
- gridTemplateColumns: 'repeat(4, 1fr)',
- gap: 'var(--sp-3)',
- marginBottom: 'var(--sp-5)',
- }}
- >
- <div
- style={{
- background: 'var(--c-surface)',
- padding: 'var(--sp-3)',
- border: 'var(--border-width) solid var(--border-color)',
- textAlign: 'center',
- }}
- >
- <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 'var(--fw-black)' }}>{selectedProject.progress}%</div>
- <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>Progress</div>
- </div>
- <div
- style={{
- background: 'var(--c-surface)',
- padding: 'var(--sp-3)',
- border: 'var(--border-width) solid var(--border-color)',
- textAlign: 'center',
- }}
- >
- <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 'var(--fw-black)' }}>
- {selectedProject.completed}/{selectedProject.tasks}
- </div>
- <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>Tasks Done</div>
- </div>
- <div
- style={{
- background: 'var(--c-surface)',
- padding: 'var(--sp-3)',
- border: 'var(--border-width) solid var(--border-color)',
- textAlign: 'center',
- }}
- >
- <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 'var(--fw-black)' }}>
- {selectedProject.team.length}
- </div>
- <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>Members</div>
- </div>
- <div
- style={{
- background: 'var(--c-surface)',
- padding: 'var(--sp-3)',
- border: 'var(--border-width) solid var(--border-color)',
- textAlign: 'center',
- }}
- >
- <div style={{ fontSize: 'var(--fs-base)', fontWeight: 'var(--fw-black)', paddingTop: '6px' }}>
- {selectedProject.deadline}
- </div>
- <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>Deadline</div>
- </div>
- </div>
+      {/* Project Detail Modal */}
+      {selectedProject && (
+        <div
+          className="modal-overlay active"
+          id="project-detail-modal"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedProjectId(null);
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '16px',
+          }}
+        >
+          <div className="modal" style={{ maxWidth: '720px', width: '100%', maxHeight: '85vh', overflowY: 'auto', background: 'var(--c-white)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: selectedProject.color || '#0f4cff' }} />
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>{selectedProject.name}</span>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: 'var(--c-surface)',
+                      border: '1px solid var(--border-color)',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    {selectedProject.status}
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '18px' }}>
+                  {selectedProject.desc}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setSelectedProjectId(null)}
+                style={{ fontSize: '16px', padding: '0 4px', color: 'var(--text-secondary)' }}
+              >
+                ✕
+              </button>
+            </div>
 
- {/* Milestones */}
- {selectedProject.milestones && selectedProject.milestones.length > 0 && (
- <div style={{ marginBottom: 'var(--sp-5)' }}>
- <h4 style={{ marginBottom: 'var(--sp-3)' }}>Milestones</h4>
- <div style={{ display: 'flex', gap: 0, position: 'relative' }}>
- <div
- style={{
- position: 'absolute',
- top: '12px',
- left: '12px',
- right: '12px',
- height: '2px',
- background: 'var(--c-gray-200)',
- }}
- />
- {selectedProject.milestones.map((ms, i) => (
- <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative', zIndex: 1 }}>
- <div
- style={{
- width: '24px',
- height: '24px',
- border: `var(--border-width) solid ${ms.completed ? 'var(--c-success)' : 'var(--c-gray-400)'}`,
- background: ms.completed ? 'var(--c-success)' : 'var(--c-white)',
- margin: '0 auto',
- display: 'flex',
- alignItems: 'center',
- justifyContent: 'center',
- }}
- >
- {ms.completed ? (
- <span style={{ color: 'white', fontWeight: 'var(--fw-bold)', fontSize: '10px' }}></span>
- ) : (
- <span style={{ fontSize: '10px' }}>{i + 1}</span>
- )}
- </div>
- <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 'var(--fw-bold)', marginTop: 'var(--sp-2)' }}>
- {ms.name}
- </div>
- <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>{ms.date}</div>
- </div>
- ))}
- </div>
- </div>
- )}
+            <div className="modal-body" style={{ padding: 0 }}>
+              {/* Progress & Stats */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '8px',
+                  marginBottom: '16px',
+                }}
+              >
+                <div style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A' }}>{selectedProject.progress}%</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Progress</div>
+                </div>
+                <div style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A' }}>
+                    {selectedProject.completed}/{selectedProject.tasks}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Tasks Done</div>
+                </div>
+                <div style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A' }}>
+                    {selectedProject.team.length}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Members</div>
+                </div>
+                <div style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, paddingTop: '4px', color: '#0A0A0A' }}>
+                    {selectedProject.deadline}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Deadline</div>
+                </div>
+              </div>
 
- {/* Linked Resources Pills */}
- <div
- style={{
- display: 'flex',
- gap: 'var(--sp-3)',
- borderBottom: 'var(--border-width) solid var(--border-color)',
- marginBottom: 'var(--sp-4)',
- }}
- >
- <span
- style={{
- padding: 'var(--sp-2) 0',
- fontWeight: 'var(--fw-bold)',
- fontSize: 'var(--fs-sm)',
- borderBottom: '2px solid var(--c-near-black)',
- }}
- >
- Tasks ({projectTasks.length})
- </span>
- <span style={{ padding: 'var(--sp-2) 0', fontSize: 'var(--fs-sm)', color: 'var(--text-tertiary)' }}>
- Documents ({projectDocs.length})
- </span>
- <span style={{ padding: 'var(--sp-2) 0', fontSize: 'var(--fs-sm)', color: 'var(--text-tertiary)' }}>
- Meetings ({projectMeetings.length})
- </span>
- </div>
+              {/* Task List */}
+              <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: '#0A0A0A' }}>
+                  Project Tasks ({projectTasks.length})
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {projectTasks.length === 0 ? (
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '12px', padding: '12px 0' }}>No tasks in this project yet.</div>
+                  ) : (
+                    projectTasks.map((t) => {
+                      const assignee = getEmployee(t.assignee);
+                      return (
+                        <div
+                          key={t.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '8px 12px',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '6px',
+                            background: 'var(--c-white)',
+                            fontSize: '12px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: '9px',
+                              textTransform: 'uppercase',
+                              fontWeight: 700,
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                              border: '1px solid var(--border-color)',
+                              background: 'var(--c-surface)',
+                              color: t.priority === 'urgent' || t.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
+                            }}
+                          >
+                            {t.priority}
+                          </span>
+                          <span style={{ flex: 1, fontWeight: 600, color: '#0A0A0A' }}>{t.name}</span>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 600,
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              background: 'var(--c-surface)',
+                              border: '1px solid var(--border-color)',
+                              color: t.status === 'completed' ? '#16a34a' : 'var(--text-secondary)',
+                            }}
+                          >
+                            {t.status}
+                          </span>
+                          {assignee && (
+                            <div
+                              className="avatar avatar-xs"
+                              style={{ background: assignee.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px' }}
+                              title={assignee.name}
+                            >
+                              {assignee.initials}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
 
- {/* Task List */}
- <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)', marginBottom: 'var(--sp-4)' }}>
- {projectTasks.length === 0 ? (
- <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-sm)' }}>No tasks in this project</div>
- ) : (
- projectTasks.map((t) => {
- const assignee = getEmployee(t.assignee);
- return (
- <div
- key={t.id}
- style={{
- display: 'flex',
- alignItems: 'center',
- gap: 'var(--sp-3)',
- padding: 'var(--sp-2) var(--sp-3)',
- border: '1px solid var(--c-gray-200)',
- fontSize: 'var(--fs-sm)',
- }}
- >
- <span
- className={`badge priority-${t.priority}`}
- style={{ fontSize: '9px', width: '60px', textAlign: 'center' }}
- >
- {t.priority}
- </span>
- <span style={{ flex: 1, fontWeight: 'var(--fw-medium)' }}>{t.name}</span>
- <span
- className={`badge badge-${
- t.status === 'completed' ? 'success' : t.status === 'in-progress' ? 'brand' : 'neutral'
- }`}
- style={{ fontSize: '9px' }}
- >
- {t.status}
- </span>
- {assignee && (
- <div
- className="avatar avatar-xs"
- style={{ background: assignee.color, fontSize: '9px', width: '20px', height: '20px' }}
- title={assignee.name}
- >
- {assignee.initials}
- </div>
- )}
- </div>
- );
- })
- )}
- </div>
-
- {/* Team Members List */}
- <div>
- <h4 style={{ marginBottom: 'var(--sp-3)' }}>Team Members Assigned</h4>
- <div style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
- {selectedProject.team.map((id) => {
- const m = getEmployee(id);
- if (!m) return null;
- return (
- <div
- key={id}
- style={{
- display: 'flex',
- alignItems: 'center',
- gap: 'var(--sp-2)',
- padding: 'var(--sp-2) var(--sp-3)',
- background: 'var(--c-surface)',
- border: '1px solid var(--c-gray-200)',
- }}
- >
- <div
- className="avatar avatar-xs"
- style={{ background: m.color, fontSize: '9px', width: '24px', height: '24px' }}
- >
- {m.initials}
- </div>
- <div>
- <div style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>{m.name}</div>
- <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>{m.role}</div>
- </div>
- </div>
- );
- })}
- </div>
- </div>
- </div>
-
- <div className="modal-footer">
- <button className="btn btn-secondary" onClick={() => setSelectedProjectId(null)}>
- Close
- </button>
- </div>
- </div>
- </div>
- )}
- </div>
- );
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setSelectedProjectId(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

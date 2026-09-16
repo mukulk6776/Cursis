@@ -128,20 +128,59 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="page active" id="page-tasks">
+    <div className="page active" id="page-tasks" style={{ maxWidth: '1080px', margin: '0 auto' }}>
       {/* Header */}
-      <div className="page-header">
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 'var(--sp-4)',
+          gap: 'var(--sp-3)',
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
-          <h1 className="page-title">Tasks &amp; Execution</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+              Tasks
+            </h1>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: 'var(--c-surface)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border-color)',
+                textTransform: 'uppercase',
+              }}
+            >
+              {tasks.length} total
+            </span>
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+            Track, assign, and manage deliverables across workspace departments.
+          </p>
         </div>
-        <div className="page-actions" style={{ display: 'flex', gap: 'var(--sp-2)' }}>
+
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {/* View Switcher */}
-          <div style={{ display: 'flex', border: 'var(--border-width) solid var(--border-color)', background: 'var(--c-surface)' }}>
+          <div style={{ display: 'flex', border: '1px solid var(--border-color)', borderRadius: '6px', overflow: 'hidden', background: 'var(--c-surface)' }}>
             {(['kanban', 'list', 'calendar', 'timeline'] as ViewMode[]).map((v) => (
               <button
                 key={v}
+                type="button"
                 className={`btn ${currentView === v ? 'btn-primary' : 'btn-ghost'} btn-sm`}
-                style={{ textTransform: 'capitalize', fontSize: 'var(--fs-xs)', padding: '4px 10px' }}
+                style={{
+                  textTransform: 'capitalize',
+                  fontSize: '12px',
+                  padding: '4px 10px',
+                  borderRadius: 0,
+                  height: '30px',
+                  fontWeight: currentView === v ? 700 : 500,
+                }}
                 onClick={() => setCurrentView(v)}
               >
                 {v}
@@ -149,47 +188,72 @@ export default function TasksPage() {
             ))}
           </div>
 
-          <button className="btn btn-primary btn-sm" onClick={() => openModal('task-modal')}>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => openModal('task-modal')}
+            style={{ fontWeight: 700 }}
+          >
             + New Task
           </button>
         </div>
       </div>
 
-      {/* Smart View Filters */}
-      <div style={{ display: 'flex', gap: 'var(--sp-2)', marginBottom: 'var(--sp-4)', flexWrap: 'wrap' }}>
-        {(
-          [
-            { id: 'all', label: 'All Tasks' },
-            { id: 'overdue', label: 'Overdue' },
-            { id: 'high-priority', label: 'High Priority' },
-            { id: 'assigned-to-me', label: 'Assigned to Me' },
-            { id: 'upcoming', label: 'Upcoming' },
-            { id: 'completed', label: 'Completed' },
-          ] as { id: FilterMode; label: string }[]
-        ).map((f) => (
-          <button
-            key={f.id}
-            className={`btn ${activeFilter === f.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-            onClick={() => setActiveFilter(f.id)}
-          >
-            {f.label}
-            <span style={{ marginLeft: '4px', opacity: 0.75, fontWeight: 'bold' }}>
-              {getFilterCount(f.id)}
-            </span>
-          </button>
-        ))}
+      {/* Control Bar: Filters & Department Selector */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: 'var(--sp-4)',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {(
+            [
+              { id: 'all', label: 'All' },
+              { id: 'overdue', label: 'Overdue' },
+              { id: 'high-priority', label: 'High Priority' },
+              { id: 'assigned-to-me', label: 'Assigned to Me' },
+              { id: 'upcoming', label: 'Upcoming' },
+              { id: 'completed', label: 'Completed' },
+            ] as { id: FilterMode; label: string }[]
+          ).map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className={`btn ${activeFilter === f.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+              style={{ fontSize: '12px', padding: '3px 10px', height: '30px', fontWeight: activeFilter === f.id ? 700 : 500 }}
+              onClick={() => setActiveFilter(f.id)}
+            >
+              {f.label}
+              <span style={{ marginLeft: '6px', opacity: 0.8, fontWeight: 700, fontSize: '11px' }}>
+                {getFilterCount(f.id)}
+              </span>
+            </button>
+          ))}
+        </div>
 
         {departments.length > 0 && (
           <select
             className="input select"
             value={selectedDeptFilter}
             onChange={(e) => setSelectedDeptFilter(e.target.value)}
-            style={{ fontSize: 'var(--fs-xs)', height: '32px', padding: '0 8px', width: 'auto' }}
+            style={{
+              fontSize: '12px',
+              height: '32px',
+              padding: '0 8px',
+              width: 'auto',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+            }}
           >
             <option value="">All Departments</option>
             {departments.map((d) => (
               <option key={d.id} value={d.id}>
-                Dept: {d.name}
+                {d.name}
               </option>
             ))}
           </select>
@@ -203,39 +267,44 @@ export default function TasksPage() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--sp-3)',
-            padding: 'var(--sp-3) var(--sp-4)',
-            background: 'var(--c-near-black)',
-            color: 'var(--c-white)',
+            gap: '8px',
+            padding: '8px 14px',
+            background: 'var(--c-surface)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '6px',
             marginBottom: 'var(--sp-4)',
-            fontSize: 'var(--fs-sm)',
+            fontSize: '12px',
           }}
         >
-          <span style={{ fontWeight: 'var(--fw-bold)' }}>{selectedTaskIds.length} selected</span>
+          <span style={{ fontWeight: 700 }}>{selectedTaskIds.length} selected</span>
           <button
-            className="btn btn-sm"
-            style={{ background: 'var(--c-white)', color: 'var(--c-near-black)', fontSize: 'var(--fs-xs)' }}
+            type="button"
+            className="btn btn-secondary btn-sm"
+            style={{ fontSize: '11px', padding: '2px 8px' }}
             onClick={handleBulkComplete}
           >
             Mark Complete
           </button>
           <button
-            className="btn btn-sm"
-            style={{ background: 'var(--c-white)', color: 'var(--c-near-black)', fontSize: 'var(--fs-xs)' }}
+            type="button"
+            className="btn btn-secondary btn-sm"
+            style={{ fontSize: '11px', padding: '2px 8px' }}
             onClick={handleBulkInProgress}
           >
             Set In Progress
           </button>
           <button
-            className="btn btn-sm"
-            style={{ background: 'var(--c-error)', color: '#ffffff', fontSize: 'var(--fs-xs)', fontWeight: 'bold' }}
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ fontSize: '11px', padding: '2px 8px', color: '#dc2626' }}
             onClick={handleBulkDelete}
           >
             Delete Selected ({selectedTaskIds.length})
           </button>
           <button
-            className="btn btn-sm"
-            style={{ background: 'transparent', color: 'var(--c-white)', fontSize: 'var(--fs-xs)', marginLeft: 'auto' }}
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ fontSize: '11px', padding: '2px 8px', marginLeft: 'auto' }}
             onClick={() => setSelectedTaskIds([])}
           >
             Clear
@@ -245,375 +314,481 @@ export default function TasksPage() {
 
       {/* View Content */}
       <div id="task-view-content">
-        {/* 1. Kanban View */}
-        {currentView === 'kanban' && (
+        {filteredTasks.length === 0 ? (
           <div
-            className="kanban-board"
+            className="card"
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: 'var(--sp-4)',
-              alignItems: 'start',
+              padding: '48px 24px',
+              textAlign: 'center',
+              background: 'var(--c-white)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '8px',
             }}
           >
-            {columns.map((col) => {
-              const colTasks = filteredTasks.filter((t) => t.status === col.id);
-              const isOver = dragOverColumn === col.id;
-              return (
-                <div
-                  key={col.id}
-                  className="kanban-column"
-                  style={{
-                    background: isOver ? 'var(--c-surface-hover)' : 'var(--c-surface)',
-                    border: `var(--border-width) solid ${isOver ? 'var(--c-brand)' : 'var(--border-color)'}`,
-                    padding: 'var(--sp-3)',
-                    minHeight: '480px',
-                  }}
-                  onDragOver={(e) => handleDragOver(e, col.id)}
-                  onDrop={(e) => handleDrop(e, col.id)}
-                >
-                  {/* Column Header */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingBottom: 'var(--sp-2)',
-                      borderBottom: 'var(--border-width) solid var(--border-color)',
-                      marginBottom: 'var(--sp-3)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-                      <span style={{ width: '10px', height: '10px', background: col.color, display: 'inline-block' }} />
-                      <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)' }}>{col.label}</span>
-                    </div>
-                    <span className="badge badge-neutral" style={{ fontSize: '10px' }}>{colTasks.length}</span>
-                  </div>
-
-                  {/* Tasks Container */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
-                    {colTasks.map((t) => {
-                      const proj = getProject(t.project);
-                      const assigneeEmp = getEmployee(t.assignee);
-                      const isOverdueItem = isOverdue(t.deadline) && t.status !== 'completed';
-                      return (
-                        <div
-                          key={t.id}
-                          className="kanban-card"
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, t.id)}
-                          onDragEnd={handleDragEnd}
-                          onClick={() => setSelectedTaskDetail(t)}
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: '#0A0A0A' }}>
+              No tasks found
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
+              {tasks.length === 0
+                ? 'Get started by creating your first task for this workspace.'
+                : 'No tasks match the active filter criteria.'}
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => openModal('task-modal')}
+              style={{ fontWeight: 700 }}
+            >
+              + New Task
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* 1. Kanban View */}
+            {currentView === 'kanban' && (
+              <div
+                className="kanban-board"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: '12px',
+                  alignItems: 'start',
+                }}
+              >
+                {columns.map((col) => {
+                  const colTasks = filteredTasks.filter((t) => t.status === col.id);
+                  const isOver = dragOverColumn === col.id;
+                  return (
+                    <div
+                      key={col.id}
+                      className="kanban-column"
+                      style={{
+                        background: isOver ? 'var(--c-surface-hover)' : 'var(--c-surface)',
+                        border: `1px solid ${isOver ? '#0f4cff' : 'var(--border-color)'}`,
+                        borderRadius: '8px',
+                        padding: '12px',
+                        minHeight: '420px',
+                      }}
+                      onDragOver={(e) => handleDragOver(e, col.id)}
+                      onDrop={(e) => handleDrop(e, col.id)}
+                    >
+                      {/* Column Header */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingBottom: '8px',
+                          borderBottom: '1px solid var(--border-color)',
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: col.color, display: 'inline-block' }} />
+                          <span style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{col.label}</span>
+                        </div>
+                        <span
                           style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '1px 6px',
+                            borderRadius: '4px',
                             background: 'var(--c-white)',
-                            border: 'var(--border-width) solid var(--border-color)',
-                            boxShadow: 'var(--shadow-sm)',
-                            padding: 'var(--sp-3)',
-                            cursor: 'grab',
-                            transition: 'all var(--dur-fast) var(--ease-default)',
+                            border: '1px solid var(--border-color)',
+                            color: 'var(--text-secondary)',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--sp-2)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-                              <input
-                                type="checkbox"
-                                checked={selectedTaskIds.includes(t.id)}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  toggleSelectTask(t.id);
-                                }}
-                                style={{ cursor: 'pointer' }}
-                              />
-                              {proj && (
-                                <span
-                                  className="tag"
-                                  style={{ background: 'var(--c-surface)', fontSize: '10px', padding: '1px 6px' }}
-                                >
-                                  {proj.name}
-                                </span>
+                          {colTasks.length}
+                        </span>
+                      </div>
+
+                      {/* Tasks Container */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {colTasks.map((t) => {
+                          const proj = getProject(t.project);
+                          const assigneeEmp = getEmployee(t.assignee);
+                          const isOverdueItem = isOverdue(t.deadline) && t.status !== 'completed';
+                          const dept = departments.find((d) => d.id === t.departmentId);
+
+                          return (
+                            <div
+                              key={t.id}
+                              className="kanban-card"
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, t.id)}
+                              onDragEnd={handleDragEnd}
+                              onClick={() => setSelectedTaskDetail(t)}
+                              style={{
+                                background: 'var(--c-white)',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: '6px',
+                                padding: '12px',
+                                cursor: 'grab',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedTaskIds.includes(t.id)}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      toggleSelectTask(t.id);
+                                    }}
+                                    style={{ cursor: 'pointer', width: '14px', height: '14px' }}
+                                  />
+                                  {dept && (
+                                    <span
+                                      style={{
+                                        background: 'rgba(15, 76, 255, 0.08)',
+                                        color: '#0f4cff',
+                                        border: '1px solid rgba(15, 76, 255, 0.2)',
+                                        fontSize: '10px',
+                                        fontWeight: 600,
+                                        padding: '1px 6px',
+                                        borderRadius: '4px',
+                                      }}
+                                    >
+                                      {dept.name}
+                                    </span>
+                                  )}
+                                  {proj && (
+                                    <span
+                                      style={{
+                                        background: 'var(--c-surface)',
+                                        fontSize: '10px',
+                                        padding: '1px 6px',
+                                        borderRadius: '4px',
+                                        color: 'var(--text-secondary)',
+                                      }}
+                                    >
+                                      {proj.name}
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span
+                                    style={{
+                                      fontSize: '9px',
+                                      textTransform: 'uppercase',
+                                      fontWeight: 700,
+                                      padding: '1px 5px',
+                                      borderRadius: '4px',
+                                      border: '1px solid var(--border-color)',
+                                      background: 'var(--c-surface)',
+                                      color: t.priority === 'urgent' || t.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
+                                    }}
+                                  >
+                                    {t.priority}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="btn btn-ghost btn-sm"
+                                    style={{
+                                      padding: 0,
+                                      height: '18px',
+                                      width: '18px',
+                                      minWidth: '18px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'var(--text-tertiary)',
+                                    }}
+                                    title="Delete task"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
+                                        deleteTask(t.id);
+                                      }
+                                    }}
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A', marginBottom: '6px' }}>
+                                {t.name}
+                              </div>
+
+                              {t.subtasks && t.subtasks.length > 0 && (
+                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '6px' }}>
+                                  Subtasks: {t.subtasks.filter((s) => s.done).length}/{t.subtasks.length}
+                                </div>
                               )}
-                              {t.departmentId && (
+
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-color)' }}>
+                                {assigneeEmp ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <div
+                                      className="avatar avatar-sm"
+                                      style={{ background: assigneeEmp.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px' }}
+                                    >
+                                      {assigneeEmp.initials}
+                                    </div>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                                      {assigneeEmp.name.split(' ')[0]}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Unassigned</span>
+                                )}
+
                                 <span
-                                  className="tag"
                                   style={{
-                                    background: '#eff6ff',
-                                    color: '#1d4ed8',
-                                    border: '1px solid #bfdbfe',
-                                    fontSize: '9px',
-                                    padding: '1px 5px',
+                                    fontSize: '11px',
+                                    color: isOverdueItem ? '#dc2626' : 'var(--text-secondary)',
+                                    fontWeight: isOverdueItem ? 700 : 500,
                                   }}
                                 >
-                                  {departments.find((d) => d.id === t.departmentId)?.name || 'Dept'}
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <span
-                                className={`badge badge-${
-                                  t.priority === 'urgent' || t.priority === 'high' ? 'error' : 'neutral'
-                                }`}
-                                style={{ fontSize: '9px', padding: '1px 5px' }}
-                              >
-                                {t.priority}
-                              </span>
-                              <button
-                                type="button"
-                                className="btn btn-ghost btn-sm"
-                                style={{
-                                  padding: 0,
-                                  height: '20px',
-                                  width: '20px',
-                                  minWidth: '20px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: 'var(--text-tertiary)',
-                                  borderRadius: '4px',
-                                }}
-                                title="Delete task"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
-                                    deleteTask(t.id);
-                                  }
-                                }}
-                              >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M3 6h18" />
-                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-
-                          <div style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)', marginBottom: 'var(--sp-2)' }}>
-                            {t.name}
-                          </div>
-
-                          {t.subtasks && t.subtasks.length > 0 && (
-                            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--sp-2)' }}>
-                              Subtasks: {t.subtasks.filter((s) => s.done).length}/{t.subtasks.length}
-                            </div>
-                          )}
-
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--sp-2)', paddingTop: 'var(--sp-2)', borderTop: '1px solid var(--c-gray-200)' }}>
-                            {assigneeEmp && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <div
-                                  className="avatar avatar-sm"
-                                  style={{ background: assigneeEmp.color, fontSize: '10px' }}
-                                >
-                                  {assigneeEmp.initials}
-                                </div>
-                                <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
-                                  {assigneeEmp.name.split(' ')[0]}
+                                  {formatDate(t.deadline)}
                                 </span>
                               </div>
-                            )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
+            {/* 2. List View */}
+            {currentView === 'list' && (
+              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+                <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
+                      <th style={{ width: '40px', padding: '10px 14px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedTaskIds.length === filteredTasks.length && filteredTasks.length > 0}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedTaskIds(filteredTasks.map((t) => t.id));
+                            else setSelectedTaskIds([]);
+                          }}
+                        />
+                      </th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Task Title</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Department</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Assignee</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Priority</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Status</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Due Date</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: '12px', fontWeight: 700 }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTasks.map((t) => {
+                      const emp = getEmployee(t.assignee);
+                      const isDone = t.status === 'completed';
+                      const dept = departments.find((d) => d.id === t.departmentId);
+
+                      return (
+                        <tr
+                          key={t.id}
+                          onClick={() => setSelectedTaskDetail(t)}
+                          style={{
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--border-color)',
+                            background: selectedTaskIds.includes(t.id) ? 'var(--c-surface-hover)' : 'transparent',
+                          }}
+                        >
+                          <td style={{ padding: '10px 14px' }} onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={selectedTaskIds.includes(t.id)}
+                              onChange={() => toggleSelectTask(t.id)}
+                            />
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A', textDecoration: isDone ? 'line-through' : 'none' }}>
+                              {t.name}
+                            </div>
+                            {t.description && (
+                              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {t.description}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px 14px', fontSize: '12px' }}>
+                            {dept ? (
+                              <span
+                                style={{
+                                  background: 'rgba(15, 76, 255, 0.08)',
+                                  color: '#0f4cff',
+                                  border: '1px solid rgba(15, 76, 255, 0.2)',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                }}
+                              >
+                                {dept.name}
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>—</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px 14px', fontSize: '12px' }}>
+                            {emp ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <div className="avatar avatar-sm" style={{ background: emp.color || '#0f4cff', width: '20px', height: '20px', fontSize: '9px' }}>
+                                  {emp.initials}
+                                </div>
+                                <span>{emp.name}</span>
+                              </div>
+                            ) : (
+                              <span style={{ color: 'var(--text-tertiary)' }}>Unassigned</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
                             <span
                               style={{
                                 fontSize: '10px',
-                                fontFamily: 'var(--font-mono)',
-                                color: isOverdueItem ? 'var(--c-error)' : 'var(--text-tertiary)',
-                                fontWeight: isOverdueItem ? 'bold' : 'normal',
+                                textTransform: 'uppercase',
+                                fontWeight: 700,
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                border: '1px solid var(--border-color)',
+                                background: 'var(--c-surface)',
+                                color: t.priority === 'urgent' || t.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
                               }}
                             >
-                              {formatDate(t.deadline)}
+                              {t.priority}
                             </span>
-                          </div>
-                        </div>
+                          </td>
+                          <td style={{ padding: '10px 14px' }} onClick={(e) => e.stopPropagation()}>
+                            <select
+                              className="input select"
+                              value={t.status}
+                              onChange={(e) => updateTaskStatus(t.id, e.target.value as TaskStatus)}
+                              style={{ fontSize: '11px', height: '28px', padding: '0 6px', width: 'auto', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                            >
+                              <option value="todo">To Do</option>
+                              <option value="in-progress">In Progress</option>
+                              <option value="review">Review</option>
+                              <option value="completed">Completed</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            {formatDate(t.deadline)}
+                          </td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              style={{ color: '#dc2626', fontSize: '12px', padding: '2px 8px' }}
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
+                                  deleteTask(t.id);
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
                       );
                     })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-        {/* 2. List View */}
-        {currentView === 'list' && (
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: 'var(--c-surface)', borderBottom: 'var(--border-width) solid var(--border-color)' }}>
-                  <th style={{ width: '40px', padding: 'var(--sp-3)' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedTaskIds.length === filteredTasks.length && filteredTasks.length > 0}
-                      onChange={(e) => {
-                        if (e.target.checked) setSelectedTaskIds(filteredTasks.map((t) => t.id));
-                        else setSelectedTaskIds([]);
-                      }}
-                    />
-                  </th>
-                  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Task Name</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Department</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Project</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Assignee</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Priority</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Status</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Deadline</th>
-                  <th style={{ textAlign: 'center', padding: 'var(--sp-3)', width: '80px' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTasks.map((t) => {
-                  const proj = getProject(t.project);
-                  const emp = getEmployee(t.assignee);
-                  return (
-                    <tr
-                      key={t.id}
-                      style={{ borderBottom: '1px solid var(--c-gray-200)', cursor: 'pointer' }}
-                      onClick={() => setSelectedTaskDetail(t)}
-                    >
-                      <td style={{ padding: 'var(--sp-3)' }} onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={selectedTaskIds.includes(t.id)}
-                          onChange={() => toggleSelectTask(t.id)}
-                        />
-                      </td>
-                      <td style={{ padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)' }}>{t.name}</td>
-                      <td style={{ padding: 'var(--sp-3)', fontSize: '12px' }}>
-                        {departments.find((d) => d.id === t.departmentId)?.name || '—'}
-                      </td>
-                      <td style={{ padding: 'var(--sp-3)' }}>{proj?.name || '—'}</td>
-                      <td style={{ padding: 'var(--sp-3)' }}>{emp?.name || '—'}</td>
-                      <td style={{ padding: 'var(--sp-3)' }}>
-                        <span className={`badge badge-${t.priority === 'urgent' || t.priority === 'high' ? 'error' : 'neutral'}`}>
-                          {t.priority}
-                        </span>
-                      </td>
-                      <td style={{ padding: 'var(--sp-3)' }} onClick={(e) => e.stopPropagation()}>
-                        <select
-                          className="input select"
-                          style={{ padding: '2px 6px', fontSize: 'var(--fs-xs)', width: 'auto' }}
-                          value={t.status}
-                          onChange={(e) => updateTaskStatus(t.id, e.target.value as TaskStatus)}
-                        >
-                          <option value="todo">To Do</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="review">Review</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      </td>
-                      <td style={{ padding: 'var(--sp-3)', fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)' }}>
-                        {formatDate(t.deadline)}
-                      </td>
-                      <td style={{ padding: 'var(--sp-3)', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="btn btn-ghost btn-sm"
-                          style={{
-                            padding: '3px 8px',
-                            color: 'var(--c-error)',
-                            fontSize: '11px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                          title={`Delete ${t.name}`}
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
-                              deleteTask(t.id);
-                            }
-                          }}
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 6h18" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* 3. Calendar View */}
-        {currentView === 'calendar' && (
-          <div className="card" style={{ padding: 'var(--sp-4)' }}>
-            <h3 style={{ marginBottom: 'var(--sp-3)' }}>Tasks by Deadline Date</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--sp-3)' }}>
-              {Array.from(new Set(filteredTasks.map((t) => t.deadline))).sort().map((dateStr) => {
-                const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
-                return (
-                  <div key={dateStr} className="card" style={{ background: 'var(--c-surface)', padding: 'var(--sp-3)' }}>
-                    <div style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)', marginBottom: 'var(--sp-2)', color: 'var(--c-brand)' }}>
-                      {formatDate(dateStr)} ({dayTasks.length})
-                    </div>
-                    {dayTasks.map((t) => (
-                      <div
-                        key={t.id}
-                        style={{ padding: '6px', background: 'white', border: 'var(--border-width) solid var(--border-color)', marginBottom: '4px', fontSize: 'var(--fs-xs)', cursor: 'pointer' }}
-                        onClick={() => setSelectedTaskDetail(t)}
-                      >
-                        <div style={{ fontWeight: 'bold' }}>{t.name}</div>
-                        <div style={{ color: 'var(--text-tertiary)' }}>{t.status} · {t.priority}</div>
+            {/* 3. Calendar View */}
+            {currentView === 'calendar' && (
+              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: '#0A0A0A' }}>
+                  Tasks by Due Date
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                  {Array.from(new Set(filteredTasks.map((t) => t.deadline))).sort().map((dateStr) => {
+                    const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
+                    return (
+                      <div key={dateStr} className="card" style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: '#0f4cff' }}>
+                          {formatDate(dateStr)} ({dayTasks.length})
+                        </div>
+                        {dayTasks.map((t) => (
+                          <div
+                            key={t.id}
+                            style={{ padding: '6px 8px', background: 'white', border: '1px solid var(--border-color)', borderRadius: '4px', marginBottom: '4px', fontSize: '12px', cursor: 'pointer' }}
+                            onClick={() => setSelectedTaskDetail(t)}
+                          >
+                            <div style={{ fontWeight: 600, color: '#0A0A0A' }}>{t.name}</div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{t.status} · {t.priority}</div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* 4. Timeline / Gantt View */}
-        {currentView === 'timeline' && (
-          <div className="card" style={{ padding: 'var(--sp-4)' }}>
-            <h3 style={{ marginBottom: 'var(--sp-3)' }}>Sprint Timeline &amp; Task Progress</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
-              {filteredTasks.map((t) => (
-                <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', padding: 'var(--sp-2) 0', borderBottom: '1px solid var(--c-gray-200)' }}>
-                  <div style={{ width: '220px', fontWeight: 'bold', fontSize: 'var(--fs-xs)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                    {t.name}
-                  </div>
-                  <div style={{ flex: 1, background: 'var(--c-surface)', height: '24px', border: 'var(--border-width) solid var(--border-color)', position: 'relative' }}>
-                    <div
-                      style={{
-                        height: '100%',
-                        width: t.status === 'completed' ? '100%' : t.status === 'in-progress' ? '50%' : t.status === 'review' ? '80%' : '15%',
-                        background: t.status === 'completed' ? 'var(--c-success)' : 'var(--c-brand)',
-                      }}
-                    />
-                  </div>
-                  <span style={{ fontSize: '10px', width: '80px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    {formatDate(t.deadline)}
-                  </span>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )}
+
+            {/* 4. Timeline / Progress View */}
+            {currentView === 'timeline' && (
+              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: '#0A0A0A' }}>
+                  Sprint Progress
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {filteredTasks.map((t) => (
+                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 0', borderBottom: '1px solid var(--border-color)' }}>
+                      <div style={{ width: '220px', fontWeight: 600, fontSize: '12px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: '#0A0A0A' }}>
+                        {t.name}
+                      </div>
+                      <div style={{ flex: 1, background: 'var(--c-surface)', height: '16px', borderRadius: '4px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            height: '100%',
+                            width: t.status === 'completed' ? '100%' : t.status === 'in-progress' ? '50%' : t.status === 'review' ? '80%' : '15%',
+                            background: t.status === 'completed' ? '#16a34a' : '#0f4cff',
+                          }}
+                        />
+                      </div>
+                      <span style={{ fontSize: '11px', width: '80px', textAlign: 'right', color: 'var(--text-secondary)' }}>
+                        {formatDate(t.deadline)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Task Templates Section */}
-      <div style={{ marginTop: 'var(--sp-6)' }}>
-        <h3 style={{ marginBottom: 'var(--sp-3)' }}>Task Templates</h3>
-        <div style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+      <div style={{ marginTop: '24px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: '#0A0A0A' }}>
+          Quick Task Templates
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
           {[
-            { name: 'Bug Report', fields: 'Title, Steps to Reproduce, Expected, Actual, Severity' },
-            { name: 'Feature Request', fields: 'Title, User Story, Acceptance Criteria, Priority' },
-            { name: 'Onboarding Checklist', fields: 'New Hire Tasks, Documents, Meetings, Training' },
-            { name: 'Sprint Task', fields: 'Story Points, Sprint, Assignee, Definition of Done' },
+            { name: 'Bug Report', fields: 'Steps to Reproduce, Severity' },
+            { name: 'Feature Request', fields: 'User Story, Acceptance Criteria' },
+            { name: 'Onboarding Item', fields: 'New Hire Checklist, Training' },
+            { name: 'Sprint Deliverable', fields: 'Deliverable, Definition of Done' },
           ].map((tmpl) => (
             <div
               key={tmpl.name}
               className="card"
-              style={{ padding: 'var(--sp-3)', flex: 1, minWidth: '200px', cursor: 'pointer' }}
+              style={{
+                padding: '10px 14px',
+                cursor: 'pointer',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
+                background: 'var(--c-white)',
+              }}
               onClick={() => loadTemplate(tmpl.name)}
             >
-              <div style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)', marginBottom: '4px' }}>
-                {tmpl.name}
+              <div style={{ fontWeight: 700, fontSize: '12px', color: '#0A0A0A', marginBottom: '2px' }}>
+                + {tmpl.name}
               </div>
-              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>{tmpl.fields}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{tmpl.fields}</div>
             </div>
           ))}
         </div>
@@ -624,29 +799,69 @@ export default function TasksPage() {
         <div
           className="modal-overlay active"
           onClick={() => setSelectedTaskDetail(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '16px',
+          }}
         >
           <div
             className="modal"
-            style={{ maxWidth: '560px' }}
+            style={{
+              maxWidth: '520px',
+              width: '100%',
+              background: 'var(--c-white)',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              padding: '20px',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div>
-                <span className={`badge badge-${selectedTaskDetail.priority === 'urgent' ? 'error' : 'brand'}`}>
-                  {selectedTaskDetail.priority.toUpperCase()}
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    background: 'var(--c-surface)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-color)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {selectedTaskDetail.priority}
                 </span>
-                <h3 style={{ margin: '4px 0 0 0', fontSize: 'var(--fs-lg)' }}>{selectedTaskDetail.name}</h3>
+                <h3 style={{ margin: '6px 0 0 0', fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>
+                  {selectedTaskDetail.name}
+                </h3>
               </div>
-              <button className="modal-close" onClick={() => setSelectedTaskDetail(null)}></button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setSelectedTaskDetail(null)}
+                style={{ fontSize: '16px', padding: '0 4px', color: 'var(--text-secondary)' }}
+              >
+                ✕
+              </button>
             </div>
-            <div className="modal-body">
-              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--fs-sm)' }}>
+
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
                 {selectedTaskDetail.description || 'No detailed description provided.'}
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-3)', margin: 'var(--sp-4) 0' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', margin: '14px 0' }}>
                 <div>
-                  <label className="input-label">Status</label>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                    Status
+                  </label>
                   <select
                     className="input select"
                     value={selectedTaskDetail.status}
@@ -654,6 +869,7 @@ export default function TasksPage() {
                       updateTaskStatus(selectedTaskDetail.id, e.target.value as TaskStatus);
                       setSelectedTaskDetail({ ...selectedTaskDetail, status: e.target.value as TaskStatus });
                     }}
+                    style={{ width: '100%', height: '32px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '4px' }}
                   >
                     <option value="todo">To Do</option>
                     <option value="in-progress">In Progress</option>
@@ -662,42 +878,21 @@ export default function TasksPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="input-label">Deadline</label>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', padding: 'var(--sp-2)' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                    Deadline
+                  </label>
+                  <div style={{ fontSize: '12px', padding: '6px 0', color: '#0A0A0A', fontWeight: 500 }}>
                     {formatDate(selectedTaskDetail.deadline)}
                   </div>
                 </div>
               </div>
-
-              {selectedTaskDetail.subtasks && selectedTaskDetail.subtasks.length > 0 && (
-                <div>
-                  <label className="input-label">Subtasks</label>
-                  {selectedTaskDetail.subtasks.map((st) => (
-                    <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', padding: '4px 0' }}>
-                      <input type="checkbox" checked={st.done} readOnly />
-                      <span style={{ textDecoration: st.done ? 'line-through' : 'none', fontSize: 'var(--fs-sm)' }}>
-                        {st.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
-                style={{
-                  color: 'var(--c-error)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontWeight: 600,
-                  fontSize: 'var(--fs-xs)',
-                  padding: '6px 12px',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  background: 'rgba(239, 68, 68, 0.05)',
-                }}
+                style={{ color: '#dc2626', fontSize: '12px' }}
                 onClick={() => {
                   if (window.confirm(`Are you sure you want to delete task "${selectedTaskDetail.name}"?`)) {
                     deleteTask(selectedTaskDetail.id);
@@ -705,24 +900,26 @@ export default function TasksPage() {
                   }
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 6h18" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
                 Delete Task
               </button>
-              <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
-                <button className="btn btn-secondary" onClick={() => setSelectedTaskDetail(null)}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setSelectedTaskDetail(null)}
+                >
                   Close
                 </button>
                 <button
-                  className="btn btn-primary"
+                  type="button"
+                  className="btn btn-primary btn-sm"
                   onClick={() => {
                     toggleTaskComplete(selectedTaskDetail.id);
                     setSelectedTaskDetail(null);
                   }}
+                  style={{ fontWeight: 700 }}
                 >
-                  {selectedTaskDetail.status === 'completed' ? 'Reopen Task' : 'Complete Task'}
+                  {selectedTaskDetail.status === 'completed' ? 'Reopen' : 'Mark Completed'}
                 </button>
               </div>
             </div>

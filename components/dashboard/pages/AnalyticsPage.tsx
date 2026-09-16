@@ -32,149 +32,259 @@ export default function AnalyticsPage() {
   const maxTasks = Math.max(...workload.map((w) => w.tasks), 1);
 
   return (
-    <div className="page active" id="page-analytics" style={{ display: 'block' }}>
+    <div className="page active" id="page-analytics" style={{ maxWidth: '1080px', margin: '0 auto' }}>
       {/* Header */}
-      <div className="page-header" style={{ marginBottom: 'var(--sp-4)' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 'var(--sp-4)',
+          gap: 'var(--sp-3)',
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
-          <h1 className="page-title">Analytics &amp; Reporting Engine</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+              Analytics
+            </h1>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: 'var(--c-surface)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border-color)',
+                textTransform: 'uppercase',
+              }}
+            >
+              Live Telemetry
+            </span>
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+            Sprint velocity, workload capacity, and project progress metrics.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => showToast('Exporting PDF report...')}
+            style={{ fontWeight: 600 }}
+          >
+            Export PDF
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => showToast('Exporting CSV telemetry data...')}
+            style={{ fontWeight: 600 }}
+          >
+            Export CSV
+          </button>
         </div>
       </div>
 
       {/* Top 4 Stat Cards */}
       <div
-        className="stats-grid"
-        id="analytics-stats"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 'var(--sp-4)',
-          marginBottom: 'var(--sp-5)',
+          gap: '12px',
+          marginBottom: '20px',
         }}
       >
-        <div className="stat-card">
-          <div className="stat-card-value">
+        <div
+          className="card"
+          style={{
+            padding: '16px 18px',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            background: 'var(--c-white)',
+          }}
+        >
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+            Completion Rate
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
             {tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0}%
           </div>
-          <div className="stat-card-label">Sprint Velocity / Adherence</div>
-          <div className="stat-card-meta">
-            <span style={{ color: 'var(--c-success)', fontWeight: 'var(--fw-bold)' }}>
-              {completed} tasks delivered
-            </span>
+          <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>
+            {completed} tasks completed
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card-value" style={{ color: overdue > 0 ? 'var(--c-error)' : 'inherit' }}>
+        <div
+          className="card"
+          style={{
+            padding: '16px 18px',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            background: 'var(--c-white)',
+          }}
+        >
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+            Overdue Tasks
+          </div>
+          <div
+            style={{
+              fontSize: '24px',
+              fontWeight: 800,
+              margin: '4px 0',
+              color: overdue > 0 ? '#dc2626' : '#0A0A0A',
+              letterSpacing: '-0.02em',
+            }}
+          >
             {overdue}
           </div>
-          <div className="stat-card-label">Deadline Slippage</div>
-          <div className="stat-card-meta">
-            <span style={{ color: overdue > 0 ? 'var(--c-error)' : 'var(--c-success)', fontWeight: 'var(--fw-bold)' }}>
-              {overdue > 0 ? 'Action required' : 'Zero overdue items'}
-            </span>
+          <div
+            style={{
+              fontSize: '12px',
+              color: overdue > 0 ? '#dc2626' : 'var(--text-secondary)',
+              fontWeight: 600,
+            }}
+          >
+            {overdue > 0 ? 'Requires attention' : 'Zero overdue items'}
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card-value">{avgProgress}%</div>
-          <div className="stat-card-label">Average Project Progress</div>
-          <div className="stat-card-meta">
-            <span>{projects.filter((p) => p.status === 'In Progress').length} projects active</span>
+        <div
+          className="card"
+          style={{
+            padding: '16px 18px',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            background: 'var(--c-white)',
+          }}
+        >
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+            Project Progress
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
+            {avgProgress}%
+          </div>
+          <div style={{ fontSize: '12px', color: '#0f4cff', fontWeight: 600 }}>
+            {projects.filter((p) => p.status === 'In Progress').length} active projects
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card-value" style={{ color: 'var(--c-brand)' }}>
+        <div
+          className="card"
+          style={{
+            padding: '16px 18px',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            background: 'var(--c-white)',
+          }}
+        >
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+            Pipeline Volume
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
             ${(pipelineValue / 1000).toFixed(0)}k
           </div>
-          <div className="stat-card-label">Client Pipeline Volume</div>
-          <div className="stat-card-meta">
-            <span>{deals.length} active opportunities</span>
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            {deals.length} active opportunities
           </div>
         </div>
       </div>
 
       {/* Charts & Reports Grid */}
       <div
-        id="analytics-charts"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: 'var(--sp-4)',
+          gap: '16px',
         }}
       >
-        {/* AI Executive Brief Card */}
+        {/* Executive Brief Card */}
         <div
           className="card"
           style={{
             gridColumn: '1 / -1',
-            padding: 'var(--sp-4)',
-            background: 'var(--c-surface)',
-            border: 'var(--border-width) solid var(--c-brand)',
+            padding: '16px 20px',
+            background: 'var(--c-white)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 'var(--sp-4)',
+            gap: '16px',
             flexWrap: 'wrap',
           }}
         >
           <div style={{ flex: 1, minWidth: '280px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: '2px' }}>
-              <span className="badge badge-brand" style={{ fontSize: '9px' }}>
-                ORDIS EXECUTIVE REPORT
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  background: 'rgba(15, 76, 255, 0.08)',
+                  color: '#0f4cff',
+                  border: '1px solid rgba(15, 76, 255, 0.2)',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Performance Synthesis
               </span>
-              <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)' }}>
-                Weekly Performance Synthesis
+              <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>
+                Operational Summary
               </span>
             </div>
-            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', lineHeight: 'var(--lh-normal)' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
               {projects.length > 0
-                ? `${tasks.length} sprint items tracked across ${projects.length} active initiative${projects.length > 1 ? 's' : ''}. ${completed} delivered (${tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0}% velocity). Top initiative: "${projects[0].name}" is at ${projects[0].progress}% completion.`
-                : 'Workspace telemetry is live. Create projects and sprint deliverables to track live velocity, completion ratios, and team workload in real time.'}
+                ? `${tasks.length} sprint items tracked across ${projects.length} active project${projects.length > 1 ? 's' : ''}. ${completed} completed (${tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0}% delivery rate).`
+                : 'Workspace telemetry is active. Add tasks and projects to track real-time delivery and team workload.'}
             </div>
-          </div>
-          <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => showToast('Exporting PDF report *')}>
-              Export PDF
-            </button>
-            <button className="btn btn-secondary btn-sm" onClick={() => showToast('Exporting CSV telemetry data *')}>
-              Export CSV
-            </button>
           </div>
         </div>
 
         {/* Chart 1: Team Workload */}
-        <div className="chart-card card" style={{ padding: 'var(--sp-4)' }}>
+        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
           <div
-            className="chart-card-header"
-            style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--sp-4)' }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}
           >
-            <span className="chart-title" style={{ fontWeight: 'var(--fw-black)', fontSize: 'var(--fs-sm)' }}>
-              Team Workload Distribution
+            <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>
+              Team Task Allocation
             </span>
-            <span className="badge badge-neutral" style={{ fontSize: '10px' }}>
-              Active tasks per member
+            <span
+              style={{
+                fontSize: '10px',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                background: 'var(--c-surface)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              Active tasks
             </span>
           </div>
           <div
-            className="chart-container"
             style={{
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'space-between',
               paddingBottom: '24px',
-              minHeight: '180px',
+              minHeight: '160px',
               position: 'relative',
+              gap: '8px',
             }}
           >
             {workload.map((w, idx) => (
               <div
                 key={idx}
-                className="chart-bar"
                 style={{
                   height: `${Math.max((w.tasks / maxTasks) * 100, 15)}%`,
-                  background: w.color,
-                  width: '28px',
+                  background: w.color || '#0f4cff',
+                  borderRadius: '4px 4px 0 0',
+                  flex: 1,
                   position: 'relative',
                   display: 'flex',
                   justifyContent: 'center',
@@ -183,22 +293,21 @@ export default function AnalyticsPage() {
                 <div
                   style={{
                     position: 'absolute',
-                    top: '-20px',
-                    fontSize: '10px',
-                    fontWeight: 'var(--fw-bold)',
-                    fontFamily: 'var(--font-mono)',
+                    top: '-18px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#0A0A0A',
                   }}
                 >
                   {w.tasks}
                 </div>
                 <div
-                  className="chart-bar-label"
                   style={{
                     position: 'absolute',
-                    bottom: '-22px',
-                    fontSize: '10px',
+                    bottom: '-20px',
+                    fontSize: '11px',
                     whiteSpace: 'nowrap',
-                    color: 'var(--text-tertiary)',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   {w.name}
@@ -208,90 +317,103 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Chart 2: Project Milestones & Progress */}
-        <div className="chart-card card" style={{ padding: 'var(--sp-4)' }}>
+        {/* Chart 2: Project Delivery */}
+        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
           <div
-            className="chart-card-header"
-            style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--sp-4)' }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}
           >
-            <span className="chart-title" style={{ fontWeight: 'var(--fw-black)', fontSize: 'var(--fs-sm)' }}>
-              Project Milestones &amp; Delivery
+            <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>
+              Project Completion
             </span>
-            <span className="badge badge-neutral" style={{ fontSize: '10px' }}>
-              % Completion
+            <span
+              style={{
+                fontSize: '10px',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                background: 'var(--c-surface)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              % Progress
             </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', paddingTop: 'var(--sp-2)' }}>
-            {projects.map((p) => (
-              <div key={p.id}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontSize: 'var(--fs-xs)',
-                    marginBottom: '3px',
-                  }}
-                >
-                  <span style={{ fontWeight: 'var(--fw-bold)' }}>{p.name}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)' }}>{p.progress}%</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {projects.length === 0 ? (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '12px', padding: '16px 0', textAlign: 'center' }}>No projects currently active.</div>
+            ) : (
+              projects.map((p) => (
+                <div key={p.id}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '12px',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: '#0A0A0A' }}>{p.name}</span>
+                    <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{p.progress}%</span>
+                  </div>
+                  <div style={{ height: '6px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%` }} />
+                  </div>
                 </div>
-                <div style={{ height: '6px', background: 'var(--c-gray-200)' }}>
-                  <div style={{ height: '100%', background: p.color, width: `${p.progress}%` }} />
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
-        {/* Report Builder Panel */}
-        <div className="card" style={{ gridColumn: '1 / -1', padding: 'var(--sp-5)' }}>
-          <h3 style={{ marginBottom: 'var(--sp-2)' }}>Custom Metric &amp; Telemetry Builder</h3>
-          <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--sp-4)' }}>
-            Build custom analytical views across departments, task categories, and client accounts.
+        {/* Custom Report Builder Panel */}
+        <div className="card" style={{ gridColumn: '1 / -1', padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+          <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#0A0A0A' }}>Custom Report Builder</h3>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
+            Configure analytical views across departments, categories, and timelines.
           </p>
 
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: 'var(--sp-3)',
+              gap: '12px',
             }}
           >
-            <div className="input-group">
-              <label className="input-label">Metric Group</label>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Metric Focus</label>
               <select
                 className="input select"
                 value={metricGroup}
                 onChange={(e) => setMetricGroup(e.target.value)}
+                style={{ width: '100%', height: '32px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '6px' }}
               >
                 <option>Task Completion Rate</option>
-                <option>Meeting Hours &amp; Frequency</option>
-                <option>CRM Deal Progression</option>
-                <option>Paperwork Extraction Accuracy</option>
+                <option>Meeting Frequency &amp; Hours</option>
+                <option>Client Pipeline Volume</option>
               </select>
             </div>
 
-            <div className="input-group">
-              <label className="input-label">Time Horizon</label>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Time Horizon</label>
               <select
                 className="input select"
                 value={timeHorizon}
                 onChange={(e) => setTimeHorizon(e.target.value)}
+                style={{ width: '100%', height: '32px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '6px' }}
               >
                 <option>Last 30 Days (Sprint Cycle)</option>
                 <option>Last 7 Days</option>
-                <option>Quarter to Date (Q3)</option>
-                <option>Year to Date (2026)</option>
+                <option>Quarter to Date</option>
               </select>
             </div>
 
-            <div className="input-group">
-              <label className="input-label">Department Scope</label>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Department Scope</label>
               <select
                 className="input select"
                 value={deptScope}
                 onChange={(e) => setDeptScope(e.target.value)}
+                style={{ width: '100%', height: '32px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '6px' }}
               >
                 <option>All Organization</option>
                 <option>Engineering</option>
@@ -302,18 +424,21 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-2)', marginTop: 'var(--sp-4)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
             <button
+              type="button"
               className="btn btn-secondary btn-sm"
-              onClick={() => showToast('Report configuration saved as preset *')}
+              onClick={() => showToast('Report preset saved')}
             >
               Save Preset
             </button>
             <button
+              type="button"
               className="btn btn-primary btn-sm"
-              onClick={() => showToast(`Generated custom telemetry report for ${metricGroup} *`)}
+              onClick={() => showToast(`Generated report for ${metricGroup}`)}
+              style={{ fontWeight: 700 }}
             >
-              Generate Custom Report
+              Generate Report
             </button>
           </div>
         </div>
