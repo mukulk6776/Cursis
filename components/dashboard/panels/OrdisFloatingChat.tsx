@@ -15,6 +15,10 @@ function stripHtml(html: string): string {
 }
 
 export default function OrdisFloatingChat() {
+  return null;
+}
+
+function _DisabledOrdisFloatingChat() {
  const {
  ordisFloatingOpen,
  setOrdisFloatingOpen,

@@ -64,29 +64,13 @@ export async function POST(request: NextRequest) {
         engineSource = 'groq';
       } catch (err: any) {
         const errMsg = err?.message || String(err);
-        console.error('Groq chat execution error:', errMsg);
-        return NextResponse.json({
-          success: true,
-          data: {
-            responseText: `**⚠️ Groq API Error**\n\n${errMsg}\n\nPlease check your Groq API key and quota at [console.groq.com](https://console.groq.com).`,
-            suggestedFollowUps: ['Try again', 'Check Groq API key'],
-          },
-          source: 'error',
-          model: model,
-          error: errMsg,
-        });
+        console.warn('Groq chat execution notice, using workspace engine fallback:', errMsg);
+        result = executeOrdisCommand(message, state);
+        engineSource = 'local_fallback';
       }
     } else {
-      return NextResponse.json({
-        success: true,
-        data: {
-          responseText: '**⚠️ No Groq API Key Configured**\n\nPlease add your `GROQ_API_KEY` to `.env.local` or enter your Groq API key in the Ordis configuration panel.\n\nYou can get a free API key at [console.groq.com/keys](https://console.groq.com/keys).',
-          suggestedFollowUps: ['How do I set up my Groq API key?'],
-        },
-        source: 'error',
-        model: model,
-        error: 'No Groq API key configured',
-      });
+      result = executeOrdisCommand(message, state);
+      engineSource = 'local_fallback';
     }
 
     const targetWsId = state.activeWorkspace?.id && state.activeWorkspace.id !== 'ws_default' && state.activeWorkspace.id !== 'ws_public'

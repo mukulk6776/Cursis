@@ -824,7 +824,7 @@ export async function executeGroqOrdisChat(
         responseText = `**⚠️ incorrect user**\n\nThe provided email address is invalid or not a recognized user. A valid email address is required to add or invite a team member.`;
       } else if (!responseText.trim()) {
         const actionNames = formattedCalls.map((c: any) => c.name.replace(/_/g, ' ')).join(', ');
-        responseText = `Done! I've executed **${actionNames}** for your workspace via Groq.`;
+        responseText = `Done! I've executed **${actionNames}** for your workspace.`;
       }
 
       return {

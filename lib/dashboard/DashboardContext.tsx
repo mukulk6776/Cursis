@@ -2285,7 +2285,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         ...prev,
         {
           role: 'ai',
-          text: `**⚠️ Groq Connection Notice**\n\n${errText}\n\nPlease check your Groq API key in settings or add \`GROQ_API_KEY\` to \`.env.local\`.`,
+          text: `**⚠️ Notice**\n\n${errText}\n\nPlease try again or check your workspace connection.`,
           time: errTimeStr,
         },
       ]);

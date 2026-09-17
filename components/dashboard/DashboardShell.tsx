@@ -10,7 +10,6 @@ import CommandPalette from './CommandPalette';
 import NotificationPanel from './NotificationPanel';
 import ProfilePanel from './ProfilePanel';
 import ToastContainer from './ToastContainer';
-import OrdisFloatingChat from './panels/OrdisFloatingChat';
 
 import TaskModal from './modals/TaskModal';
 import ProjectModal from './modals/ProjectModal';
@@ -91,9 +90,6 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <GenericModal />
       <RedeemCodeModal />
       <WorkspaceSetupModal />
-
-      {/* Global Floating Ordis AI Chatbot */}
-      <OrdisFloatingChat />
 
       {/* Toast Notifications */}
       <ToastContainer />

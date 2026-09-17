@@ -21,8 +21,6 @@ export default function OrdisPage() {
     clearChatHistory,
     user,
     showToast,
-    aiEngineStatus,
-    ordisModel,
   } = useDashboard();
 
   const [inputVal, setInputVal] = useState('');
@@ -82,16 +80,6 @@ export default function OrdisPage() {
     }
   };
 
-  const modelDisplayName =
-    ordisModel === 'openai/gpt-oss-20b'
-      ? 'Groq GPT-OSS 20B'
-      : ordisModel === 'llama-3.3-70b-versatile'
-      ? 'Groq Llama 3.3 70B'
-      : ordisModel === 'openai/gpt-oss-120b'
-      ? 'Groq GPT-OSS 120B'
-      : ordisModel;
-  const isOnlineAI = aiEngineStatus === 'groq';
-  const statusColor = aiEngineStatus === 'groq' ? '#f97316' : '#9ca3af';
   const hasMessages = chatHistory.length > 0;
 
   return (
@@ -147,27 +135,6 @@ export default function OrdisPage() {
               }}
             >
               Ordis
-            </div>
-            <div
-              style={{
-                fontSize: '12px',
-                color: '#999',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginTop: '1px',
-              }}
-            >
-              <span
-                style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: statusColor,
-                  display: 'inline-block',
-                }}
-              />
-              {isOnlineAI ? modelDisplayName : 'Local Engine'}
             </div>
           </div>
         </div>
