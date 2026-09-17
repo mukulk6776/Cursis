@@ -159,7 +159,12 @@ export default function OrdisSection() {
         {/* Topbar */}
         <div className="lp-ordis-console-topbar">
           <div className="lp-console-left">
-            <span className="lp-console-logo">O</span>
+            <span className="lp-console-logo" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', background: '#0A0A0A', borderRadius: '6px', padding: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 1024 1024" fill="none">
+                <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#ffffff" strokeWidth="142" strokeLinecap="round" fill="none" />
+                <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" />
+              </svg>
+            </span>
             <span className="lp-console-title">
               {activeMode === 'conversational' ? 'Ordis Conversational Intelligence Copilot' : 'Ordis Autonomous Orchestration Engine'}
             </span>

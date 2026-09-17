@@ -233,16 +233,12 @@ interface DashboardContextType {
   dynamicFeatures: DynamicFeature[];
   setDynamicFeatures: React.Dispatch<React.SetStateAction<DynamicFeature[]>>;
 
-  // Ordis AI Engine State & Settings
-  aiProvider: 'groq' | 'gemini';
-  setAiProvider: (provider: 'groq' | 'gemini') => void;
+  // Ordis AI Engine State & Settings (Groq Cloud)
   groqApiKey: string;
   setGroqApiKey: (key: string) => void;
-  geminiApiKey: string;
-  setGeminiApiKey: (key: string) => void;
   ordisModel: string;
   setOrdisModel: (model: string) => void;
-  aiEngineStatus: 'groq' | 'gemini' | 'local_fallback';
+  aiEngineStatus: 'groq' | 'local_fallback';
 
   // Enterprise Directory & Vouchers
   seedEnterpriseDirectory: (targetCount?: number) => void;
@@ -323,23 +319,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
 
 
-  // Ordis AI Engine State & Persistent Settings
-  const [aiProvider, setAiProviderState] = useState<'groq' | 'gemini'>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('cursis_ai_provider');
-      if (saved === 'gemini') return 'gemini';
-      return 'groq';
-    }
-    return 'groq';
-  });
-
-  const setAiProvider = (p: 'groq' | 'gemini') => {
-    setAiProviderState(p);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('cursis_ai_provider', p);
-    }
-  };
-
+  // Ordis AI Engine State & Persistent Settings (Groq Cloud)
   const [groqApiKey, setGroqApiKeyState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('cursis_groq_api_key') || '';
@@ -354,20 +334,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('cursis_gemini_api_key') || '';
-    }
-    return '';
-  });
-
-  const setGeminiApiKey = (key: string) => {
-    setGeminiApiKeyState(key);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('cursis_gemini_api_key', key);
-    }
-  };
-
   const [ordisModel, setOrdisModelState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('cursis_ordis_model');
@@ -375,9 +341,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         saved &&
         (saved === 'openai/gpt-oss-20b' ||
           saved === 'llama-3.3-70b-versatile' ||
-          saved === 'openai/gpt-oss-120b' ||
-          saved === 'gemini-3.6-flash' ||
-          saved === 'gemini-3.8-flash')
+          saved === 'openai/gpt-oss-120b')
       ) {
         return saved;
       }
@@ -393,7 +357,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const [aiEngineStatus, setAiEngineStatus] = useState<'groq' | 'gemini' | 'local_fallback'>('local_fallback');
+  const [aiEngineStatus, setAiEngineStatus] = useState<'groq' | 'local_fallback'>('local_fallback');
 
  const [selectedMeetingNotes, setSelectedMeetingNotes] = useState<Meeting | null>(null);
  const [genericModal, setGenericModal] = useState<GenericModalState | null>(null);
@@ -2174,7 +2138,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  ordisSettings,
  };
 
- const applyResult = (result: any, source: 'groq' | 'gemini' | 'local_fallback') => {
+ const applyResult = (result: any, source: 'groq' | 'local_fallback') => {
  setChatHistory((prev) => prev.filter((m) => !m.typing));
  setAiEngineStatus(source);
 
@@ -2287,49 +2251,45 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  try {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
-  const activeKey = aiProvider === 'groq' ? (groqApiKey || geminiApiKey) : (geminiApiKey || groqApiKey);
-  const response = await fetch('/api/ordis/chat', {
-  method: 'POST',
-  credentials: 'include',
-  headers: {
-  'Content-Type': 'application/json',
-  ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  },
-  body: JSON.stringify({
-  message: text,
-  history: chatHistory.slice(-6).map((m) => ({ role: m.role, text: m.text })),
-  state: ordisState,
-  apiKey: activeKey,
-  provider: aiProvider,
-  model: ordisModel,
-  }),
-  });
+      const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+      const response = await fetch('/api/ordis/chat', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          message: text,
+          history: chatHistory.slice(-6).map((m) => ({ role: m.role, text: m.text })),
+          state: ordisState,
+          apiKey: groqApiKey,
+          model: ordisModel,
+        }),
+      });
 
-  if (response.ok) {
-  const payload = await response.json();
-  if (payload.success && payload.data) {
-  const detectedSource =
-  payload.source === 'groq' ? 'groq' : payload.source === 'gemini' ? 'gemini' : 'local_fallback';
-  applyResult(payload.data, detectedSource);
-  return;
-  }
-  }
+      if (response.ok) {
+        const payload = await response.json();
+        if (payload.success && payload.data) {
+          applyResult(payload.data, payload.source === 'groq' ? 'groq' : 'local_fallback');
+          return;
+        }
+      }
 
-  // If API route returned a non-ok response, show the error
-  const errPayload = await response.json().catch(() => null);
-  const errText = errPayload?.error || `Server returned ${response.status}`;
-  setChatHistory((prev) => prev.filter((m) => !m.typing));
-  const errTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  setChatHistory((prev) => [
-  ...prev,
-  {
-  role: 'ai',
-  text: `**⚠️ Connection Error**\n\n${errText}\n\nPlease check your Gemini API key and billing.`,
-  time: errTimeStr,
-  },
-  ]);
-  setAiEngineStatus('local_fallback');
+      // If API route returned a non-ok response, show the error
+      const errPayload = await response.json().catch(() => null);
+      const errText = errPayload?.error || `Server returned ${response.status}`;
+      setChatHistory((prev) => prev.filter((m) => !m.typing));
+      const errTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          role: 'ai',
+          text: `**⚠️ Groq Connection Notice**\n\n${errText}\n\nPlease check your Groq API key in settings or add \`GROQ_API_KEY\` to \`.env.local\`.`,
+          time: errTimeStr,
+        },
+      ]);
+      setAiEngineStatus('local_fallback');
   } catch (err: any) {
   const errMsg = err?.message || 'Network error';
   console.error('Ordis chat fetch failed:', errMsg);
@@ -2846,12 +2806,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  declineInvitation,
  sendOrdisMessage,
  markNotificationsRead,
- aiProvider,
- setAiProvider,
  groqApiKey,
  setGroqApiKey,
- geminiApiKey,
- setGeminiApiKey,
  ordisModel,
  setOrdisModel,
  aiEngineStatus,

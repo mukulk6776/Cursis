@@ -89,18 +89,9 @@ export default function OrdisPage() {
       ? 'Groq Llama 3.3 70B'
       : ordisModel === 'openai/gpt-oss-120b'
       ? 'Groq GPT-OSS 120B'
-      : ordisModel === 'gemini-3.8-flash'
-      ? 'Gemini 3.8 Flash'
-      : ordisModel === 'gemini-3.6-flash'
-      ? 'Gemini 3.6 Flash'
       : ordisModel;
-  const isOnlineAI = aiEngineStatus === 'groq' || aiEngineStatus === 'gemini';
-  const statusColor =
-    aiEngineStatus === 'groq'
-      ? '#f97316'
-      : aiEngineStatus === 'gemini'
-      ? '#10b981'
-      : '#f59e0b';
+  const isOnlineAI = aiEngineStatus === 'groq';
+  const statusColor = aiEngineStatus === 'groq' ? '#f97316' : '#9ca3af';
   const hasMessages = chatHistory.length > 0;
 
   return (
@@ -348,11 +339,9 @@ export default function OrdisPage() {
                         marginTop: '2px',
                       }}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M12 3L14.5 9.5L21 12L14.5 14.5L12 21L9.5 14.5L3 12L9.5 9.5L12 3Z"
-                          fill="#ffffff"
-                        />
+                      <svg width="14" height="14" viewBox="0 0 1024 1024" fill="none">
+                        <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#ffffff" strokeWidth="142" strokeLinecap="round" fill="none" />
+                        <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" />
                       </svg>
                     </div>
                     <div
@@ -410,11 +399,9 @@ export default function OrdisPage() {
                         marginTop: '2px',
                       }}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M12 3L14.5 9.5L21 12L14.5 14.5L12 21L9.5 14.5L3 12L9.5 9.5L12 3Z"
-                          fill="#ffffff"
-                        />
+                      <svg width="14" height="14" viewBox="0 0 1024 1024" fill="none">
+                        <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#ffffff" strokeWidth="142" strokeLinecap="round" fill="none" />
+                        <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" />
                       </svg>
                     </div>
                   ) : (

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeGeminiOrdisChat, resolveGeminiApiKey } from '@/lib/ordis/gemini';
 import { executeGroqOrdisChat, resolveGroqApiKey } from '@/lib/ordis/groq';
 import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
 import { getCollection } from '@/lib/mongodb';
@@ -51,100 +50,43 @@ export async function POST(request: NextRequest) {
     };
 
     const rawApiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
-    const isExplicitGroq =
-      body.provider === 'groq' ||
-      (typeof body.model === 'string' && (body.model.startsWith('openai/') || body.model.includes('llama'))) ||
-      rawApiKey.startsWith('gsk_');
-
     const groqKey = resolveGroqApiKey(rawApiKey) || resolveGroqApiKey();
-    const geminiKey = resolveGeminiApiKey(rawApiKey) || resolveGeminiApiKey();
-
-    let provider: 'groq' | 'gemini' = isExplicitGroq ? 'groq' : (groqKey ? 'groq' : 'gemini');
-    if (
-      body.provider === 'gemini' ||
-      (typeof body.model === 'string' && body.model.startsWith('gemini-')) ||
-      rawApiKey.startsWith('AIza')
-    ) {
-      provider = 'gemini';
-    }
-
-    let model = typeof body.model === 'string' ? body.model : '';
-    if (provider === 'groq') {
-      if (!model || model.startsWith('gemini-')) {
-        model = 'openai/gpt-oss-20b';
-      }
-    } else {
-      if (!model || model.startsWith('openai/') || model.includes('llama')) {
-        model = 'gemini-3.6-flash';
-      }
-    }
+    const model = typeof body.model === 'string' && body.model && !body.model.startsWith('gemini')
+      ? body.model
+      : 'openai/gpt-oss-20b';
 
     let result;
-    let engineSource: 'groq' | 'gemini' | 'local_fallback' = 'local_fallback';
+    let engineSource: 'groq' | 'local_fallback' = 'local_fallback';
 
-    if (provider === 'groq') {
-      if (groqKey) {
-        try {
-          result = await executeGroqOrdisChat(message, history, state, { apiKey: groqKey, model });
-          engineSource = 'groq';
-        } catch (err: any) {
-          const errMsg = err?.message || String(err);
-          console.error('Groq chat execution error:', errMsg);
-          return NextResponse.json({
-            success: true,
-            data: {
-              responseText: `**⚠️ Groq API Error**\n\n${errMsg}\n\nPlease check your Groq API key and quota at [console.groq.com](https://console.groq.com).`,
-              suggestedFollowUps: ['Try again', 'Check Groq API key'],
-            },
-            source: 'error',
-            model: model,
-            error: errMsg,
-          });
-        }
-      } else {
+    if (groqKey) {
+      try {
+        result = await executeGroqOrdisChat(message, history, state, { apiKey: groqKey, model });
+        engineSource = 'groq';
+      } catch (err: any) {
+        const errMsg = err?.message || String(err);
+        console.error('Groq chat execution error:', errMsg);
         return NextResponse.json({
           success: true,
           data: {
-            responseText: '**⚠️ No Groq API Key Found**\n\nTo use Groq with `openai/gpt-oss-20b`, please add your `GROQ_API_KEY` to `.env.local` or enter it in the Ordis configuration panel.\n\nYou can get a free API key at [console.groq.com/keys](https://console.groq.com/keys).',
-            suggestedFollowUps: ['How do I set up my Groq API key?'],
+            responseText: `**⚠️ Groq API Error**\n\n${errMsg}\n\nPlease check your Groq API key and quota at [console.groq.com](https://console.groq.com).`,
+            suggestedFollowUps: ['Try again', 'Check Groq API key'],
           },
           source: 'error',
-          model: model || 'openai/gpt-oss-20b',
-          error: 'No Groq API key configured',
+          model: model,
+          error: errMsg,
         });
       }
     } else {
-      // Gemini provider
-      if (geminiKey) {
-        try {
-          result = await executeGeminiOrdisChat(message, history, state, { apiKey: geminiKey, model });
-          engineSource = 'gemini';
-        } catch (err: any) {
-          const errMsg = err?.message || String(err);
-          console.error('Gemini chat execution error:', errMsg);
-          return NextResponse.json({
-            success: true,
-            data: {
-              responseText: `**⚠️ Gemini API Error**\n\n${errMsg}\n\nPlease check your API key and billing at [ai.google.dev](https://ai.google.dev).`,
-              suggestedFollowUps: ['Try again', 'Check API key status'],
-            },
-            source: 'error',
-            model: model,
-            error: errMsg,
-          });
-        }
-      } else {
-        return NextResponse.json({
-          success: true,
-          data: {
-            responseText: '**⚠️ No Gemini API Key Found**\n\nNo Gemini API key is configured. Please add your `GEMINI_API_KEY` to `.env.local` or switch to Groq with `GROQ_API_KEY`.',
-            suggestedFollowUps: ['How do I set up my API key?'],
-          },
-          source: 'error',
-          model: 'none',
-          error: 'No API key configured',
-        });
-      }
+      return NextResponse.json({
+        success: true,
+        data: {
+          responseText: '**⚠️ No Groq API Key Configured**\n\nPlease add your `GROQ_API_KEY` to `.env.local` or enter your Groq API key in the Ordis configuration panel.\n\nYou can get a free API key at [console.groq.com/keys](https://console.groq.com/keys).',
+          suggestedFollowUps: ['How do I set up my Groq API key?'],
+        },
+        source: 'error',
+        model: model,
+        error: 'No Groq API key configured',
+      });
     }
 
     const targetWsId = state.activeWorkspace?.id && state.activeWorkspace.id !== 'ws_default' && state.activeWorkspace.id !== 'ws_public'
@@ -359,7 +301,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: result,
       source: engineSource,
-      model: engineSource === 'groq' || engineSource === 'gemini' ? model : 'ordis-deterministic-v2',
+      model: engineSource === 'groq' ? model : 'ordis-deterministic-v2',
     });
   } catch (error: any) {
     return NextResponse.json(

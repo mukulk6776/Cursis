@@ -129,10 +129,21 @@ export default function Sidebar() {
                 flexShrink: 0,
               }}
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+              <svg width="15" height="15" viewBox="0 0 1024 1024" fill="none">
                 <path
-                  d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+                  d="M 545 240 A 282 282 0 1 0 782 566"
+                  stroke="#FFFFFF"
+                  strokeWidth="142"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <rect
+                  x="625"
+                  y="196"
+                  width="156"
+                  height="156"
+                  rx="42"
+                  transform="rotate(-10 703 274)"
                   fill="#FF5500"
                 />
               </svg>

@@ -59,14 +59,13 @@ export default function HeroSection() {
         </div>
 
         <h1 className="lp-hero-title">
-          Enterprise Operations.<br />
-          <span className="tano-hero-marker">Unified by Intelligence.</span><br />
-          Engineered for Scale.
+          Autonomous Workspaces.<br />
+          <span className="tano-hero-marker">Parse. Rebalance. Execute.</span><br />
+          Not Just Chat. Real Actions.
         </h1>
 
         <p className="lp-hero-text">
-          Cursis consolidates mission-critical initiatives, cross-functional execution, 
-          and team telemetry into a singular high-performance environment — orchestrated by <strong>Ordis</strong> autonomous workspace intelligence.
+          While ordinary copilots only generate text, <strong>Ordis</strong> actively parses enterprise requests, identifies sprint bottlenecks, and autonomously rebalances workload across your team in real time.
         </p>
 
         <div className="lp-hero-ctas">
@@ -254,6 +253,18 @@ export default function HeroSection() {
                     <div className="lp-prompt-reply">
                       <span className="lp-prompt-ordis-tag">Ordis Intelligence:</span>
                       <p>{prompts[activePromptIndex].result}</p>
+                      {activePromptIndex === 0 && (
+                        <div style={{ marginTop: '10px' }}>
+                          <button
+                            type="button"
+                            onClick={handleExecuteAction}
+                            className="btn btn-sm btn-primary"
+                            style={{ fontSize: '0.78rem', padding: '5px 12px', borderRadius: '6px' }}
+                          >
+                            {ordisActionExecuted ? '✓ Task Rebalanced to Mukul K.' : '⚡ Execute Ordis Rebalance'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

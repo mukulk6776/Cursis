@@ -28,12 +28,8 @@ export default function OrdisFloatingChat() {
  employees,
  meetings,
  activeWorkspace,
- aiProvider,
- setAiProvider,
  groqApiKey,
  setGroqApiKey,
- geminiApiKey,
- setGeminiApiKey,
  ordisModel,
  setOrdisModel,
  aiEngineStatus,
@@ -44,7 +40,7 @@ export default function OrdisFloatingChat() {
  const [isExpanded, setIsExpanded] = useState(false);
  const [isListening, setIsListening] = useState(false);
  const [settingsOpen, setSettingsOpen] = useState(false);
- const [apiKeyInput, setApiKeyInput] = useState(aiProvider === 'groq' ? (groqApiKey || '') : (geminiApiKey || ''));
+ const [apiKeyInput, setApiKeyInput] = useState(groqApiKey || '');
  const [showApiKey, setShowApiKey] = useState(false);
  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
@@ -53,10 +49,10 @@ export default function OrdisFloatingChat() {
  const inputRef = useRef<HTMLInputElement>(null);
  const speechRecognitionRef = useRef<any>(null);
 
- // Sync draft API key if context updates or provider changes
+ // Sync draft API key if context updates
  useEffect(() => {
- setApiKeyInput(aiProvider === 'groq' ? (groqApiKey || '') : (geminiApiKey || ''));
- }, [aiProvider, groqApiKey, geminiApiKey]);
+ setApiKeyInput(groqApiKey || '');
+ }, [groqApiKey]);
 
  // Auto scroll to bottom when chat history changes or opens
  useEffect(() => {
@@ -150,13 +146,8 @@ export default function OrdisFloatingChat() {
 
   const handleSaveApiKey = () => {
     const clean = apiKeyInput.trim();
-    if (aiProvider === 'groq') {
-      setGroqApiKey(clean);
-      showToast(clean ? 'Groq API Key saved (openai/gpt-oss-20b active) ⚡' : 'Switched to Local Engine mode');
-    } else {
-      setGeminiApiKey(clean);
-      showToast(clean ? 'Gemini AI API Key saved successfully ✨' : 'Switched to Local Engine mode');
-    }
+    setGroqApiKey(clean);
+    showToast(clean ? 'Groq API Key saved (openai/gpt-oss-20b active) ⚡' : 'Switched to Local Engine mode');
     setSettingsOpen(false);
   };
 
@@ -212,10 +203,6 @@ export default function OrdisFloatingChat() {
       ? 'Groq Llama 3.3 70B'
       : ordisModel === 'openai/gpt-oss-120b'
       ? 'Groq GPT-OSS 120B'
-      : ordisModel === 'gemini-3.8-flash'
-      ? 'Gemini 3.8 Flash'
-      : ordisModel === 'gemini-3.6-flash'
-      ? 'Gemini 3.6 Flash'
       : ordisModel;
 
  return (
@@ -268,10 +255,21 @@ export default function OrdisFloatingChat() {
               boxShadow: '0 0 14px rgba(255, 85, 0, 0.35)',
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="2.2" />
+            <svg width="18" height="18" viewBox="0 0 1024 1024" fill="none">
               <path
-                d="M12 6.5L13.6 10.4L17.5 12L13.6 13.6L12 17.5L10.4 13.6L6.5 12L10.4 10.4L12 6.5Z"
+                d="M 545 240 A 282 282 0 1 0 782 566"
+                stroke="#FFFFFF"
+                strokeWidth="142"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <rect
+                x="625"
+                y="196"
+                width="156"
+                height="156"
+                rx="42"
+                transform="rotate(-10 703 274)"
                 fill="#FF5500"
               />
             </svg>
@@ -291,22 +289,13 @@ export default function OrdisFloatingChat() {
                   background:
                     aiEngineStatus === 'groq'
                       ? 'rgba(249, 115, 22, 0.15)'
-                      : aiEngineStatus === 'gemini'
-                      ? 'rgba(16, 185, 129, 0.15)'
                       : 'rgba(56, 189, 248, 0.12)',
                   border: `1px solid ${
                     aiEngineStatus === 'groq'
                       ? 'rgba(249, 115, 22, 0.4)'
-                      : aiEngineStatus === 'gemini'
-                      ? 'rgba(16, 185, 129, 0.4)'
                       : 'rgba(56, 189, 248, 0.3)'
                   }`,
-                  color:
-                    aiEngineStatus === 'groq'
-                      ? '#fb923c'
-                      : aiEngineStatus === 'gemini'
-                      ? '#34d399'
-                      : '#38bdf8',
+                  color: aiEngineStatus === 'groq' ? '#fb923c' : '#38bdf8',
                   fontWeight: 700,
                 }}
               >
@@ -315,25 +304,12 @@ export default function OrdisFloatingChat() {
                     width: '5px',
                     height: '5px',
                     borderRadius: '50%',
-                    background:
-                      aiEngineStatus === 'groq'
-                        ? '#f97316'
-                        : aiEngineStatus === 'gemini'
-                        ? '#10b981'
-                        : '#38bdf8',
-                    boxShadow: `0 0 6px ${
-                      aiEngineStatus === 'groq'
-                        ? '#f97316'
-                        : aiEngineStatus === 'gemini'
-                        ? '#10b981'
-                        : '#38bdf8'
-                    }`,
+                    background: aiEngineStatus === 'groq' ? '#f97316' : '#38bdf8',
+                    boxShadow: `0 0 6px ${aiEngineStatus === 'groq' ? '#f97316' : '#38bdf8'}`,
                   }}
                 />
                 {aiEngineStatus === 'groq'
                   ? `Groq • ${modelDisplayName}`
-                  : aiEngineStatus === 'gemini'
-                  ? `Gemini • ${modelDisplayName}`
                   : 'Local Engine'}
               </span>
             </div>
@@ -471,144 +447,86 @@ export default function OrdisFloatingChat() {
  </div>
  </div>
 
-  {/* AI Settings Drawer (Dropdown) */}
-  {settingsOpen && (
-    <div
-      style={{
-        padding: '14px 18px',
-        background: 'rgba(15, 23, 42, 0.95)',
-        borderBottom: '1px solid rgba(56, 189, 248, 0.3)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        animation: 'fadeIn 0.15s ease',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: '12px', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase' }}>
-          AI Copilot Engine Configuration
-        </span>
-        <span style={{ fontSize: '11px', color: '#9ca3af' }}>
-          {(aiProvider === 'groq' ? groqApiKey : geminiApiKey) ? 'Custom Key Active ' : 'Using Local/Server Key'}
-        </span>
-      </div>
-
-      {/* Provider Selector Tabs */}
-      <div style={{ display: 'flex', gap: '6px' }}>
-        <button
-          type="button"
-          onClick={() => {
-            setAiProvider('groq');
-            if (ordisModel.startsWith('gemini-')) {
-              setOrdisModel('openai/gpt-oss-20b');
-            }
-          }}
+      {/* AI Settings Drawer (Dropdown) */}
+      {settingsOpen && (
+        <div
           style={{
-            flex: 1,
-            padding: '7px 10px',
-            borderRadius: '6px',
-            border: aiProvider === 'groq' ? '1px solid #f97316' : '1px solid rgba(255, 255, 255, 0.15)',
-            background: aiProvider === 'groq' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-            color: aiProvider === 'groq' ? '#fb923c' : '#9ca3af',
-            fontWeight: 700,
-            fontSize: '11.5px',
-            cursor: 'pointer',
+            padding: '14px 18px',
+            background: 'rgba(15, 23, 42, 0.95)',
+            borderBottom: '1px solid rgba(249, 115, 22, 0.3)',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
+            flexDirection: 'column',
+            gap: '12px',
+            animation: 'fadeIn 0.15s ease',
           }}
         >
-          <span>⚡</span> Groq Cloud (GPT-OSS 20B)
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setAiProvider('gemini');
-            if (ordisModel.startsWith('openai/') || ordisModel.includes('llama')) {
-              setOrdisModel('gemini-3.6-flash');
-            }
-          }}
-          style={{
-            flex: 1,
-            padding: '7px 10px',
-            borderRadius: '6px',
-            border: aiProvider === 'gemini' ? '1px solid #10b981' : '1px solid rgba(255, 255, 255, 0.15)',
-            background: aiProvider === 'gemini' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-            color: aiProvider === 'gemini' ? '#34d399' : '#9ca3af',
-            fontWeight: 700,
-            fontSize: '11.5px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-          }}
-        >
-          <span>✨</span> Google Gemini
-        </button>
-      </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#fb923c', textTransform: 'uppercase' }}>
+              Groq Cloud Engine Configuration
+            </span>
+            <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+              {groqApiKey ? 'Custom Groq Key Active' : 'Using Local/Server Key'}
+            </span>
+          </div>
 
-      {/* API Key Input */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <label style={{ fontSize: '11px', fontWeight: 600, color: '#d1d5db' }}>
-          {aiProvider === 'groq' ? 'Groq API Key (for openai/gpt-oss-20b):' : 'Gemini API Key:'}
-        </label>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <input
-            type={showApiKey ? 'text' : 'password'}
-            placeholder={aiProvider === 'groq' ? 'gsk_... (Groq API Key)' : 'AIzaSy... (Gemini API Key)'}
-            value={apiKeyInput}
-            onChange={(e) => setApiKeyInput(e.target.value)}
-            style={{
-              flex: 1,
-              padding: '7px 10px',
-              fontSize: '11.5px',
-              background: 'rgba(0, 0, 0, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '6px',
-              color: '#fff',
-              outline: 'none',
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setShowApiKey((prev) => !prev)}
-            title={showApiKey ? 'Hide Key' : 'Show Key'}
-            style={{
-              padding: '6px 10px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: '6px',
-              color: '#d1d5db',
-              cursor: 'pointer',
-              fontSize: '11px',
-            }}
-          >
-            {showApiKey ? '🙈' : '👁️'}
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveApiKey}
-            style={{
-              padding: '6px 14px',
-              background: aiProvider === 'groq' ? '#f97316' : '#0f4cff',
-              border: 'none',
-              borderRadius: '6px',
-              color: '#fff',
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontSize: '11px',
-            }}
-          >
-            Save
-          </button>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
-          <span style={{ fontSize: '10px', color: '#9ca3af' }}>
-            {aiProvider === 'groq' ? (
-              <>
-                Get a free ultra-fast key at{' '}
+          {/* API Key Input */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#d1d5db' }}>
+              Groq API Key (for openai/gpt-oss-20b):
+            </label>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input
+                type={showApiKey ? 'text' : 'password'}
+                placeholder="gsk_... (Groq API Key)"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: '7px 10px',
+                  fontSize: '11.5px',
+                  background: 'rgba(0, 0, 0, 0.6)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  outline: 'none',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey((prev) => !prev)}
+                title={showApiKey ? 'Hide Key' : 'Show Key'}
+                style={{
+                  padding: '6px 10px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '6px',
+                  color: '#d1d5db',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                }}
+              >
+                {showApiKey ? '🙈' : '👁️'}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveApiKey}
+                style={{
+                  padding: '6px 14px',
+                  background: '#f97316',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                }}
+              >
+                Save
+              </button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+              <span style={{ fontSize: '10px', color: '#9ca3af' }}>
+                Get a free key at{' '}
                 <a
                   href="https://console.groq.com/keys"
                   target="_blank"
@@ -617,83 +535,56 @@ export default function OrdisFloatingChat() {
                 >
                   console.groq.com/keys
                 </a>
-              </>
-            ) : (
-              <>
-                Get a free key at{' '}
-                <a
-                  href="https://aistudio.google.com/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#38bdf8', textDecoration: 'underline' }}
+              </span>
+              {groqApiKey && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGroqApiKey('');
+                    setApiKeyInput('');
+                    showToast('Reset to default offline engine');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#f87171',
+                    fontSize: '10px',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
                 >
-                  aistudio.google.com
-                </a>
-              </>
-            )}
-          </span>
-          {(aiProvider === 'groq' ? groqApiKey : geminiApiKey) && (
-            <button
-              type="button"
-              onClick={() => {
-                if (aiProvider === 'groq') {
-                  setGroqApiKey('');
-                } else {
-                  setGeminiApiKey('');
-                }
-                setApiKeyInput('');
-                showToast('Reset to default offline engine');
-              }}
+                  Clear Key
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Model Picker */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#d1d5db', whiteSpace: 'nowrap' }}>
+              Groq Model:
+            </label>
+            <select
+              value={ordisModel}
+              onChange={(e) => setOrdisModel(e.target.value)}
               style={{
-                background: 'none',
-                border: 'none',
-                color: '#f87171',
-                fontSize: '10px',
-                cursor: 'pointer',
-                textDecoration: 'underline',
+                flex: 1,
+                padding: '6px 10px',
+                fontSize: '11.5px',
+                background: 'rgba(0, 0, 0, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '6px',
+                color: '#fff',
+                outline: 'none',
               }}
             >
-              Clear Key
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Model Picker */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <label style={{ fontSize: '11px', fontWeight: 600, color: '#d1d5db', whiteSpace: 'nowrap' }}>
-          {aiProvider === 'groq' ? 'Groq Model:' : 'Gemini Model:'}
-        </label>
-        <select
-          value={ordisModel}
-          onChange={(e) => setOrdisModel(e.target.value)}
-          style={{
-            flex: 1,
-            padding: '6px 10px',
-            fontSize: '11.5px',
-            background: 'rgba(0, 0, 0, 0.6)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: '6px',
-            color: '#fff',
-            outline: 'none',
-          }}
-        >
-          {aiProvider === 'groq' ? (
-            <>
               <option value="openai/gpt-oss-20b">OpenAI GPT-OSS 20B (Groq MoE Reasoning - Recommended)</option>
               <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Ultra Fast)</option>
               <option value="openai/gpt-oss-120b">OpenAI GPT-OSS 120B (Deep Reasoning)</option>
-            </>
-          ) : (
-            <>
-              <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fast & Agentic Copilot - Recommended)</option>
-              <option value="gemini-3.8-flash">Gemini 3.8 Flash (Flagship Reasoning & Vision)</option>
-            </>
-          )}
-        </select>
-      </div>
-    </div>
-  )}
+            </select>
+          </div>
+        </div>
+      )}
 
  {/* Workspace Realtime Snapshot Bar */}
  <div
@@ -713,7 +604,7 @@ export default function OrdisFloatingChat() {
  <span> Tasks: <strong style={{ color: '#fff' }}>{activeTaskCount}</strong></span>
  <span> Team: <strong style={{ color: '#fff' }}>{onlineMemberCount} online</strong></span>
  <span> Syncs: <strong style={{ color: '#fff' }}>{meetings.length}</strong></span>
- <span>Mode: <strong style={{ color: aiEngineStatus === 'groq' ? '#fb923c' : aiEngineStatus === 'gemini' ? '#34d399' : '#38bdf8' }}>{aiEngineStatus === 'groq' ? 'Groq AI ⚡' : aiEngineStatus === 'gemini' ? 'Gemini AI ✨' : 'Local Engine'}</strong></span>
+ <span>Mode: <strong style={{ color: aiEngineStatus === 'groq' ? '#fb923c' : '#38bdf8' }}>{aiEngineStatus === 'groq' ? 'Groq AI ⚡' : 'Local Engine'}</strong></span>
  </div>
 
  {/* Voice Mode Banner (if active) */}
@@ -789,7 +680,7 @@ export default function OrdisFloatingChat() {
  }}
  >
  <span style={{ fontSize: '12px', color: '#93c5fd', fontStyle: 'italic' }}>
- {aiEngineStatus === 'groq' ? 'Ordis (Groq GPT-OSS 20B) is thinking & operating workspace...' : aiEngineStatus === 'gemini' ? 'Ordis (Gemini) is thinking & operating workspace...' : 'Ordis is operating workspace...'}
+ {aiEngineStatus === 'groq' ? 'Ordis (Groq GPT-OSS 20B) is thinking & operating workspace...' : 'Ordis is operating workspace...'}
  </span>
  </div>
  );
@@ -835,7 +726,7 @@ export default function OrdisFloatingChat() {
  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
  <span style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8' }}>Ordis Copilot</span>
  <span style={{ fontSize: '9.5px', color: aiEngineStatus === 'groq' ? '#fb923c' : '#9ca3af', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)' }}>
- {aiEngineStatus === 'groq' ? 'Groq • GPT-OSS 20B' : aiEngineStatus === 'gemini' ? 'Gemini AI' : 'Local'}
+ {aiEngineStatus === 'groq' ? 'Groq • GPT-OSS 20B' : 'Local'}
  </span>
  </div>
  
@@ -1049,6 +940,72 @@ export default function OrdisFloatingChat() {
  </div>
  </div>
  )}
+
+    {/* Floating Launcher Trigger (when closed) */}
+    {!ordisFloatingOpen && (
+      <button
+        type="button"
+        onClick={() => setOrdisFloatingOpen(true)}
+        title="Open Ordis AI Copilot (Ctrl+K or click)"
+        aria-label="Open Ordis AI Copilot"
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          width: '52px',
+          height: '52px',
+          borderRadius: '16px',
+          background: '#0A0A0A',
+          border: '1.5px solid rgba(255, 255, 255, 0.18)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(255, 85, 0, 0.45)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 9998,
+          transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.08)';
+          e.currentTarget.style.boxShadow = '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 28px rgba(255, 85, 0, 0.7)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(255, 85, 0, 0.45)';
+        }}
+      >
+        <svg width="26" height="26" viewBox="0 0 1024 1024" fill="none">
+          <path
+            d="M 545 240 A 282 282 0 1 0 782 566"
+            stroke="#FFFFFF"
+            strokeWidth="142"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <rect
+            x="625"
+            y="196"
+            width="156"
+            height="156"
+            rx="42"
+            transform="rotate(-10 703 274)"
+            fill="#FF5500"
+          />
+        </svg>
+        <span
+          style={{
+            position: 'absolute',
+            top: '3px',
+            right: '3px',
+            width: '9px',
+            height: '9px',
+            borderRadius: '50%',
+            background: '#FF5500',
+            border: '2px solid #0A0A0A',
+          }}
+        />
+      </button>
+    )}
  </>
  );
 }

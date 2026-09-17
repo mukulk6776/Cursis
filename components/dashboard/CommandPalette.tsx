@@ -6,7 +6,7 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 interface CommandAction {
  id: string;
  group: 'Quick Actions' | 'Navigate';
- icon: string;
+ icon: React.ReactNode;
  text: string;
  shortcut?: string;
  action: () => void;
@@ -40,7 +40,12 @@ export default function CommandPalette() {
  {
  id: 'ordis-exec',
  group: 'Quick Actions',
- icon: '',
+ icon: (
+ <svg width="14" height="14" viewBox="0 0 1024 1024" fill="none">
+ <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#ffffff" strokeWidth="142" strokeLinecap="round" fill="none" />
+ <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" />
+ </svg>
+ ),
  text: query ? `Ask Ordis: "${query}"` : 'Ask Ordis Autonomous Copilot',
  shortcut: '/ordis',
  action: () => {
@@ -110,7 +115,12 @@ export default function CommandPalette() {
  {
  id: 'go-ordis',
  group: 'Navigate',
- icon: 'AI',
+ icon: (
+ <svg width="14" height="14" viewBox="0 0 1024 1024" fill="none">
+ <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#ffffff" strokeWidth="142" strokeLinecap="round" fill="none" />
+ <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" />
+ </svg>
+ ),
  text: 'Ask Ordis Operational Copilot',
  action: () => setCurrentPage('ordis'),
  },
