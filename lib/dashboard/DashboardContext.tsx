@@ -234,11 +234,15 @@ interface DashboardContextType {
   setDynamicFeatures: React.Dispatch<React.SetStateAction<DynamicFeature[]>>;
 
   // Ordis AI Engine State & Settings
+  aiProvider: 'groq' | 'gemini';
+  setAiProvider: (provider: 'groq' | 'gemini') => void;
+  groqApiKey: string;
+  setGroqApiKey: (key: string) => void;
   geminiApiKey: string;
   setGeminiApiKey: (key: string) => void;
   ordisModel: string;
   setOrdisModel: (model: string) => void;
-  aiEngineStatus: 'gemini' | 'local_fallback';
+  aiEngineStatus: 'groq' | 'gemini' | 'local_fallback';
 
   // Enterprise Directory & Vouchers
   seedEnterpriseDirectory: (targetCount?: number) => void;
@@ -319,43 +323,77 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
 
 
- // Ordis AI Engine State & Persistent Settings
- const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => {
- if (typeof window !== 'undefined') {
- return localStorage.getItem('cursis_gemini_api_key') || '';
- }
- return '';
- });
+  // Ordis AI Engine State & Persistent Settings
+  const [aiProvider, setAiProviderState] = useState<'groq' | 'gemini'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cursis_ai_provider');
+      if (saved === 'gemini') return 'gemini';
+      return 'groq';
+    }
+    return 'groq';
+  });
 
- const setGeminiApiKey = (key: string) => {
- setGeminiApiKeyState(key);
- if (typeof window !== 'undefined') {
- localStorage.setItem('cursis_gemini_api_key', key);
- }
- };
+  const setAiProvider = (p: 'groq' | 'gemini') => {
+    setAiProviderState(p);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cursis_ai_provider', p);
+    }
+  };
+
+  const [groqApiKey, setGroqApiKeyState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cursis_groq_api_key') || '';
+    }
+    return '';
+  });
+
+  const setGroqApiKey = (key: string) => {
+    setGroqApiKeyState(key);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cursis_groq_api_key', key);
+    }
+  };
+
+  const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cursis_gemini_api_key') || '';
+    }
+    return '';
+  });
+
+  const setGeminiApiKey = (key: string) => {
+    setGeminiApiKeyState(key);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cursis_gemini_api_key', key);
+    }
+  };
 
   const [ordisModel, setOrdisModelState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('cursis_ordis_model');
-      if (saved === 'gemini-3.6-flash' || saved === 'gemini-3.8-flash') {
+      if (
+        saved &&
+        (saved === 'openai/gpt-oss-20b' ||
+          saved === 'llama-3.3-70b-versatile' ||
+          saved === 'openai/gpt-oss-120b' ||
+          saved === 'gemini-3.6-flash' ||
+          saved === 'gemini-3.8-flash')
+      ) {
         return saved;
       }
-      // Migrate deprecated models
-      localStorage.setItem('cursis_ordis_model', 'gemini-3.6-flash');
-      return 'gemini-3.6-flash';
+      return 'openai/gpt-oss-20b';
     }
-    return 'gemini-3.6-flash';
+    return 'openai/gpt-oss-20b';
   });
 
   const setOrdisModel = (m: string) => {
-    const validModel = m === 'gemini-3.8-flash' ? 'gemini-3.8-flash' : 'gemini-3.6-flash';
-    setOrdisModelState(validModel);
+    setOrdisModelState(m);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('cursis_ordis_model', validModel);
+      localStorage.setItem('cursis_ordis_model', m);
     }
   };
 
- const [aiEngineStatus, setAiEngineStatus] = useState<'gemini' | 'local_fallback'>('local_fallback');
+  const [aiEngineStatus, setAiEngineStatus] = useState<'groq' | 'gemini' | 'local_fallback'>('local_fallback');
 
  const [selectedMeetingNotes, setSelectedMeetingNotes] = useState<Meeting | null>(null);
  const [genericModal, setGenericModal] = useState<GenericModalState | null>(null);
@@ -2136,7 +2174,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  ordisSettings,
  };
 
- const applyResult = (result: any, source: 'gemini' | 'local_fallback') => {
+ const applyResult = (result: any, source: 'groq' | 'gemini' | 'local_fallback') => {
  setChatHistory((prev) => prev.filter((m) => !m.typing));
  setAiEngineStatus(source);
 
@@ -2250,6 +2288,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  try {
   const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+  const activeKey = aiProvider === 'groq' ? (groqApiKey || geminiApiKey) : (geminiApiKey || groqApiKey);
   const response = await fetch('/api/ordis/chat', {
   method: 'POST',
   credentials: 'include',
@@ -2261,7 +2300,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   message: text,
   history: chatHistory.slice(-6).map((m) => ({ role: m.role, text: m.text })),
   state: ordisState,
-  apiKey: geminiApiKey,
+  apiKey: activeKey,
+  provider: aiProvider,
   model: ordisModel,
   }),
   });
@@ -2269,7 +2309,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   if (response.ok) {
   const payload = await response.json();
   if (payload.success && payload.data) {
-  applyResult(payload.data, payload.source === 'gemini' ? 'gemini' : 'local_fallback');
+  const detectedSource =
+  payload.source === 'groq' ? 'groq' : payload.source === 'gemini' ? 'gemini' : 'local_fallback';
+  applyResult(payload.data, detectedSource);
   return;
   }
   }
@@ -2804,6 +2846,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  declineInvitation,
  sendOrdisMessage,
  markNotificationsRead,
+ aiProvider,
+ setAiProvider,
+ groqApiKey,
+ setGroqApiKey,
  geminiApiKey,
  setGeminiApiKey,
  ordisModel,

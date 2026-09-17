@@ -82,8 +82,25 @@ export default function OrdisPage() {
     }
   };
 
-  const modelDisplayName = ordisModel === 'gemini-3.8-flash' ? 'Gemini 3.8 Flash' : 'Gemini 3.6 Flash';
-  const isGemini = aiEngineStatus === 'gemini';
+  const modelDisplayName =
+    ordisModel === 'openai/gpt-oss-20b'
+      ? 'Groq GPT-OSS 20B'
+      : ordisModel === 'llama-3.3-70b-versatile'
+      ? 'Groq Llama 3.3 70B'
+      : ordisModel === 'openai/gpt-oss-120b'
+      ? 'Groq GPT-OSS 120B'
+      : ordisModel === 'gemini-3.8-flash'
+      ? 'Gemini 3.8 Flash'
+      : ordisModel === 'gemini-3.6-flash'
+      ? 'Gemini 3.6 Flash'
+      : ordisModel;
+  const isOnlineAI = aiEngineStatus === 'groq' || aiEngineStatus === 'gemini';
+  const statusColor =
+    aiEngineStatus === 'groq'
+      ? '#f97316'
+      : aiEngineStatus === 'gemini'
+      ? '#10b981'
+      : '#f59e0b';
   const hasMessages = chatHistory.length > 0;
 
   return (
@@ -155,11 +172,11 @@ export default function OrdisPage() {
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: isGemini ? '#10b981' : '#f59e0b',
+                  background: statusColor,
                   display: 'inline-block',
                 }}
               />
-              {isGemini ? modelDisplayName : 'Local Engine'}
+              {isOnlineAI ? modelDisplayName : 'Local Engine'}
             </div>
           </div>
         </div>
