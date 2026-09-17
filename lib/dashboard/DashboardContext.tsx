@@ -129,6 +129,7 @@ interface DashboardContextType {
  // Toasts
  toasts: ToastItem[];
  showToast: (message: string) => void;
+ removeToast: (id: string) => void;
 
  // Entities & Data
  user: User;
@@ -960,6 +961,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }, 3200);
  };
 
+ const removeToast = (id: string) => {
+ setToasts((prev) => prev.filter((t) => t.id !== id));
+ };
+
  const openModal = (modalId: string) => setActiveModal(modalId);
  const closeModal = () => setActiveModal(null);
  const openCommandPalette = () => setCommandPaletteOpen(true);
@@ -1611,10 +1616,21 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }).catch((err) => console.warn('Meeting API persist notice:', err));
  };
 
- const updateMeeting = (id: string, updates: Partial<Meeting>) => {
- setMeetings((prev) => prev.map((m) => (m.id === id ? { ...m, ...updates } : m)));
- showToast('Meeting updated ');
- };
+  const updateMeeting = (id: string, updates: Partial<Meeting>) => {
+    setMeetings((prev) => prev.map((m) => (m.id === id ? { ...m, ...updates } : m)));
+    showToast(updates.status === 'completed' ? 'Meeting marked as completed' : 'Meeting updated');
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+    fetch('/api/meetings', {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ id, ...updates }),
+    }).catch((err) => console.warn('Meeting patch persist notice:', err));
+  };
 
  const deleteMeeting = (id: string) => {
  setMeetings((prev) => prev.filter((m) => m.id !== id));
@@ -2707,6 +2723,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  closeGenericModal,
  toasts,
  showToast,
+ removeToast,
  user,
  employees,
  departments,

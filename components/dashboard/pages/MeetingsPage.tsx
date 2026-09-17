@@ -143,11 +143,11 @@ export default function MeetingsPage() {
           background: 'var(--c-white)',
         }}
       >
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           <button
             type="button"
             className={`btn ${currentTab === 'upcoming' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-            style={{ fontSize: '12px', padding: '3px 10px', height: '30px', fontWeight: currentTab === 'upcoming' ? 700 : 500 }}
+            style={{ fontSize: '12px', padding: '4px 12px', height: '30px', fontWeight: currentTab === 'upcoming' ? 600 : 500 }}
             onClick={() => setCurrentTab('upcoming')}
           >
             Upcoming ({meetings.filter((m) => m.status !== 'completed').length})
@@ -155,15 +155,15 @@ export default function MeetingsPage() {
           <button
             type="button"
             className={`btn ${currentTab === 'completed' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-            style={{ fontSize: '12px', padding: '3px 10px', height: '30px', fontWeight: currentTab === 'completed' ? 700 : 500 }}
+            style={{ fontSize: '12px', padding: '4px 12px', height: '30px', fontWeight: currentTab === 'completed' ? 600 : 500 }}
             onClick={() => setCurrentTab('completed')}
           >
-            Past ({meetings.filter((m) => m.status === 'completed').length})
+            Completed ({meetings.filter((m) => m.status === 'completed').length})
           </button>
           <button
             type="button"
             className={`btn ${currentTab === 'all' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-            style={{ fontSize: '12px', padding: '3px 10px', height: '30px', fontWeight: currentTab === 'all' ? 700 : 500 }}
+            style={{ fontSize: '12px', padding: '4px 12px', height: '30px', fontWeight: currentTab === 'all' ? 600 : 500 }}
             onClick={() => setCurrentTab('all')}
           >
             All ({meetings.length})
@@ -384,16 +384,23 @@ export default function MeetingsPage() {
                       <button
                         type="button"
                         style={{
-                          background: 'none',
-                          border: 'none',
-                          color: isCompleted ? '#0f4cff' : '#16a34a',
-                          cursor: 'pointer',
+                          height: '26px',
+                          padding: '2px 10px',
+                          fontSize: '11px',
                           fontWeight: 600,
-                          padding: 0,
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          background: isCompleted ? '#F3F4F6' : 'rgba(22, 163, 74, 0.08)',
+                          color: isCompleted ? '#4B5563' : '#16A34A',
+                          border: `1px solid ${isCompleted ? '#E5E7EB' : 'rgba(22, 163, 74, 0.25)'}`,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          transition: 'all 0.15s ease',
                         }}
                         onClick={() => toggleComplete(m)}
                       >
-                        {isCompleted ? 'Reopen' : 'Done'}
+                        {isCompleted ? '↺ Reopen' : '✓ Mark Completed'}
                       </button>
                       <button
                         type="button"

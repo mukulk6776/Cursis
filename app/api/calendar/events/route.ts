@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/session';
-import { getCalendarEvents, createCalendarEvent } from '@/lib/db/calendar';
+import { getCalendarEvents, createCalendarEvent, deleteCalendarEvent } from '@/lib/db/calendar';
 
 export async function GET(request: Request) {
   try {
@@ -31,8 +31,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const workspaceId = body.workspaceId || authUser.workspaceId;
 
-    if (!body.title || !body.startTime || !body.endTime) {
-      return NextResponse.json({ error: 'Title, startTime, and endTime are required' }, { status: 400 });
+    if (!body.title) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
     const event = await createCalendarEvent(workspaceId, {
@@ -41,6 +41,26 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, event }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
+    }
+
+    const success = await deleteCalendarEvent(id);
+    return NextResponse.json({ success });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }

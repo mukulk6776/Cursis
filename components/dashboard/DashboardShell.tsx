@@ -15,6 +15,7 @@ import OrdisFloatingChat from './panels/OrdisFloatingChat';
 import TaskModal from './modals/TaskModal';
 import ProjectModal from './modals/ProjectModal';
 import MeetingModal from './modals/MeetingModal';
+import EventModal from './modals/EventModal';
 import MemberModal from './modals/MemberModal';
 import MeetingNotesModal from './modals/MeetingNotesModal';
 import AgencyModal from './modals/AgencyModal';
@@ -82,6 +83,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <TaskModal />
       <ProjectModal />
       <MeetingModal />
+      <EventModal />
       <MemberModal />
       <MeetingNotesModal />
       <AgencyModal />

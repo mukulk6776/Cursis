@@ -1,28 +1,51 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { Meeting } from '@/lib/dashboard/types';
 
 export default function CalendarPage() {
- const {
- meetings,
- addMeeting,
- tasks,
- projects,
- employees,
- orgSettings,
- openModal,
- showToast,
- addAuditEntry,
- } = useDashboard();
+  const {
+    meetings,
+    addMeeting,
+    tasks,
+    projects,
+    employees,
+    orgSettings,
+    openModal,
+    activeModal,
+    activeWorkspaceId,
+    showToast,
+    addAuditEntry,
+  } = useDashboard();
 
- const [currentView, setCurrentView] = useState<'month' | 'week' | 'day'>('month');
- const [currentDate, setCurrentDate] = useState<Date>(new Date());
- const [filterType, setFilterType] = useState<'all' | 'meetings' | 'tasks' | 'milestones'>('all');
- const [showSmartScheduler, setShowSmartScheduler] = useState(false);
- const [schedTopic, setSchedTopic] = useState('Technical Architecture Sync');
- const [selectedMeetingDetail, setSelectedMeetingDetail] = useState<Meeting | null>(null);
+  const [currentView, setCurrentView] = useState<'month' | 'week' | 'day'>('month');
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [filterType, setFilterType] = useState<'all' | 'events' | 'meetings' | 'tasks' | 'milestones'>('all');
+  const [showSmartScheduler, setShowSmartScheduler] = useState(false);
+  const [schedTopic, setSchedTopic] = useState('Technical Architecture Sync');
+  const [selectedMeetingDetail, setSelectedMeetingDetail] = useState<Meeting | null>(null);
+  const [savedEvents, setSavedEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const wsId = activeWorkspaceId || '';
+        const res = await fetch(`/api/calendar/events?workspaceId=${encodeURIComponent(wsId)}`, {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.events)) {
+            setSavedEvents(data.events);
+          }
+        }
+      } catch (err) {
+        console.warn('Calendar events load error:', err);
+      }
+    };
+    fetchEvents();
+  }, [activeWorkspaceId, activeModal]);
 
  const months = [
  'January', 'February', 'March', 'April', 'May', 'June',
@@ -60,32 +83,46 @@ export default function CalendarPage() {
  }
  };
 
- // Compile Unified Events
- interface CalendarEvent {
- id: string;
- name: string;
- date: string;
- time?: string;
- type: 'meeting' | 'task' | 'milestone';
- color: string;
- raw?: any;
- }
+  // Compile Unified Events
+  interface CalendarEvent {
+    id: string;
+    name: string;
+    date: string;
+    time?: string;
+    type: 'meeting' | 'task' | 'milestone' | 'event';
+    color: string;
+    raw?: any;
+  }
 
- const allEvents: CalendarEvent[] = [];
+  const allEvents: CalendarEvent[] = [];
 
- if (filterType === 'all' || filterType === 'meetings') {
- meetings.forEach((m) => {
- allEvents.push({
- id: m.id,
- name: m.name,
- date: m.date,
- time: m.time,
- type: 'meeting',
- color: 'var(--c-brand)',
- raw: m,
- });
- });
- }
+  if (filterType === 'all' || filterType === 'events') {
+    savedEvents.forEach((ev) => {
+      allEvents.push({
+        id: ev.id,
+        name: ev.title || 'Event',
+        date: ev.startTime ? ev.startTime.split('T')[0] : (ev.date || ''),
+        time: ev.startTime && ev.startTime.includes('T') ? ev.startTime.split('T')[1].substring(0, 5) : (ev.time || '10:00'),
+        type: 'event',
+        color: '#0f4cff',
+        raw: ev,
+      });
+    });
+  }
+
+  if (filterType === 'all' || filterType === 'meetings') {
+    meetings.forEach((m) => {
+      allEvents.push({
+        id: m.id,
+        name: m.name,
+        date: m.date,
+        time: m.time,
+        type: 'meeting',
+        color: 'var(--c-brand, #FF5500)',
+        raw: m,
+      });
+    });
+  }
 
  if (filterType === 'all' || filterType === 'tasks') {
  tasks.forEach((t) => {
@@ -193,58 +230,61 @@ export default function CalendarPage() {
  <div>
  <h1 className="page-title">Calendar &amp; Scheduling</h1>
  </div>
- <div className="page-actions" style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
- <button className="btn btn-secondary btn-sm" onClick={() => setShowSmartScheduler(true)}>
- AI Smart Schedule
- </button>
- <button className="btn btn-primary btn-sm" onClick={() => openModal('meeting-modal')}>
- + New Event
- </button>
- </div>
- </div>
+        <div className="page-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowSmartScheduler(true)}>
+            AI Smart Schedule
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => openModal('meeting-modal')}>
+            + Schedule Meeting
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => openModal('event-modal')}>
+            + New Event
+          </button>
+        </div>
+      </div>
 
- {/* Calendar Controls Bar */}
- <div
- className="card"
- style={{
- padding: 'var(--sp-3) var(--sp-4)',
- marginBottom: 'var(--sp-4)',
- display: 'flex',
- justifyContent: 'space-between',
- alignItems: 'center',
- flexWrap: 'wrap',
- gap: 'var(--sp-3)',
- }}
- >
- <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
- <button className="btn btn-secondary btn-sm" onClick={() => navigateDate(-1)}>
- ‹
- </button>
- <button className="btn btn-secondary btn-sm" onClick={goToToday}>
- Today
- </button>
- <button className="btn btn-secondary btn-sm" onClick={() => navigateDate(1)}>
- ›
- </button>
- <span style={{ fontSize: 'var(--fs-md)', fontWeight: 'var(--fw-bold)', marginLeft: 'var(--sp-2)' }}>
- {getHeadingTitle()}
- </span>
- </div>
+      {/* Calendar Controls Bar */}
+      <div
+        className="card"
+        style={{
+          padding: 'var(--sp-3) var(--sp-4)',
+          marginBottom: 'var(--sp-4)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 'var(--sp-3)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => navigateDate(-1)}>
+            ‹
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={goToToday}>
+            Today
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => navigateDate(1)}>
+            ›
+          </button>
+          <span style={{ fontSize: 'var(--fs-md)', fontWeight: 'var(--fw-bold)', marginLeft: 'var(--sp-2)' }}>
+            {getHeadingTitle()}
+          </span>
+        </div>
 
- <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
- {/* Filter by Type */}
- <div style={{ display: 'flex', gap: 'var(--sp-1)' }}>
- {(['all', 'meetings', 'tasks', 'milestones'] as const).map((f) => (
- <button
- key={f}
- className={`btn ${filterType === f ? 'btn-primary' : 'btn-ghost'} btn-sm`}
- style={{ fontSize: 'var(--fs-xs)', padding: '3px 8px', textTransform: 'capitalize' }}
- onClick={() => setFilterType(f)}
- >
- {f}
- </button>
- ))}
- </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+          {/* Filter by Type */}
+          <div style={{ display: 'flex', gap: 'var(--sp-1)' }}>
+            {(['all', 'events', 'meetings', 'tasks', 'milestones'] as const).map((f) => (
+              <button
+                key={f}
+                className={`btn ${filterType === f ? 'btn-primary' : 'btn-ghost'} btn-sm`}
+                style={{ fontSize: 'var(--fs-xs)', padding: '3px 8px', textTransform: 'capitalize' }}
+                onClick={() => setFilterType(f)}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
 
  {/* View Switcher */}
  <div style={{ display: 'flex', gap: 'var(--sp-1)', borderLeft: '1px solid var(--c-gray-300)', paddingLeft: 'var(--sp-3)' }}>

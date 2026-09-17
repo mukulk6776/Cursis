@@ -198,7 +198,7 @@ export interface CalendarEvent {
   attendeeEmails?: string[];
   location?: string;
   meetLink?: string;
-  type: 'meeting' | 'task_deadline' | 'milestone' | 'call' | 'reminder';
+  type: 'meeting' | 'task_deadline' | 'milestone' | 'call' | 'reminder' | 'event' | 'sync' | 'workshop' | 'deadline';
   linkedTaskId?: string;
   linkedProjectId?: string;
   createdAt: string;

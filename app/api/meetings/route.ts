@@ -1,5 +1,5 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
-import { getMeetings, createMeeting, deleteMeeting } from '@/lib/db/meetings';
+import { getMeetings, createMeeting, deleteMeeting, updateMeeting } from '@/lib/db/meetings';
 
 export async function GET(request: Request) {
   try {
@@ -41,6 +41,29 @@ export async function POST(request: Request) {
     return apiSuccess({ meeting }, 201);
   } catch (error: any) {
     return apiError(error.message || 'Failed to create meeting', 500);
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const auth = await getAuthOrError(request);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const body = await request.json().catch(() => ({}));
+    const { id, ...updates } = body;
+
+    if (!id || typeof id !== 'string') {
+      return apiError('Meeting ID is required for update', 400);
+    }
+
+    const meeting = await updateMeeting(id, updates);
+    if (!meeting) {
+      return apiError('Meeting not found', 404);
+    }
+
+    return apiSuccess({ meeting, message: 'Meeting updated successfully' });
+  } catch (error: any) {
+    return apiError(error.message || 'Failed to update meeting', 500);
   }
 }
 

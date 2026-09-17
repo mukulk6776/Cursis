@@ -1,10 +1,23 @@
 import { inMemoryStore } from './store';
 import { CalendarEvent } from './types';
+import { getCollection } from '@/lib/mongodb';
 
 export async function getCalendarEvents(
   workspaceId: string,
   filter?: { startDate?: string; endDate?: string; attendeeId?: string }
 ): Promise<CalendarEvent[]> {
+  try {
+    const col = await getCollection<CalendarEvent>('calendar_events');
+    if (col) {
+      const docs = await col.find({ workspaceId }).toArray();
+      if (docs && docs.length > 0) {
+        docs.forEach((e) => inMemoryStore.calendarEvents.set(e.id, e));
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getCalendarEvents notice:', e);
+  }
+
   return Array.from(inMemoryStore.calendarEvents.values())
     .filter((evt) => {
       if (evt.workspaceId !== workspaceId) return false;
@@ -17,7 +30,7 @@ export async function getCalendarEvents(
 }
 
 export async function createCalendarEvent(workspaceId: string, data: Partial<CalendarEvent>): Promise<CalendarEvent> {
-  const id = `evt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const id = data.id || `evt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const event: CalendarEvent = {
     id,
     workspaceId,
@@ -28,16 +41,41 @@ export async function createCalendarEvent(workspaceId: string, data: Partial<Cal
     allDay: data.allDay || false,
     attendeeIds: data.attendeeIds || ['usr_owner_default'],
     attendeeEmails: data.attendeeEmails || [],
-    location: data.location || 'Cursis Video Room',
-    meetLink: data.meetLink || `https://meet.cursis.ai/room/${id}`,
-    type: data.type || 'meeting',
+    location: data.location || 'General Event',
+    meetLink: data.meetLink || '',
+    type: data.type || 'event',
     linkedTaskId: data.linkedTaskId,
     linkedProjectId: data.linkedProjectId,
     createdAt: new Date().toISOString(),
   };
 
   inMemoryStore.calendarEvents.set(id, event);
+
+  try {
+    const col = await getCollection<CalendarEvent>('calendar_events');
+    if (col) {
+      await col.updateOne({ id }, { $set: event }, { upsert: true });
+    }
+  } catch (e) {
+    console.warn('MongoDB insert calendar event notice:', e);
+  }
+
   return event;
+}
+
+export async function deleteCalendarEvent(id: string): Promise<boolean> {
+  const memDeleted = inMemoryStore.calendarEvents.delete(id);
+  let mongoDeleted = false;
+  try {
+    const col = await getCollection<CalendarEvent>('calendar_events');
+    if (col) {
+      const res = await col.deleteOne({ id });
+      mongoDeleted = res.deletedCount > 0;
+    }
+  } catch (e) {
+    console.warn('MongoDB delete calendar event notice:', e);
+  }
+  return memDeleted || mongoDeleted;
 }
 
 // Ordis Smart Slot Finder Algorithm

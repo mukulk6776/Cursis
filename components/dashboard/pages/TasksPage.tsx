@@ -167,19 +167,24 @@ export default function TasksPage() {
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {/* View Switcher */}
-          <div style={{ display: 'flex', border: '1px solid var(--border-color)', borderRadius: '6px', overflow: 'hidden', background: 'var(--c-surface)' }}>
+          <div style={{ display: 'flex', background: '#F3F4F6', padding: '3px', borderRadius: '8px', border: '1px solid #E5E7EB', gap: '2px' }}>
             {(['kanban', 'list', 'calendar', 'timeline'] as ViewMode[]).map((v) => (
               <button
                 key={v}
                 type="button"
-                className={`btn ${currentView === v ? 'btn-primary' : 'btn-ghost'} btn-sm`}
                 style={{
                   textTransform: 'capitalize',
                   fontSize: '12px',
-                  padding: '4px 10px',
-                  borderRadius: 0,
-                  height: '30px',
-                  fontWeight: currentView === v ? 700 : 500,
+                  padding: '4px 12px',
+                  borderRadius: '6px',
+                  height: '28px',
+                  fontWeight: currentView === v ? 600 : 500,
+                  background: currentView === v ? '#FFFFFF' : 'transparent',
+                  color: currentView === v ? '#111827' : '#6B7280',
+                  border: currentView === v ? '1px solid #E5E7EB' : '1px solid transparent',
+                  boxShadow: currentView === v ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
                 onClick={() => setCurrentView(v)}
               >
@@ -192,7 +197,7 @@ export default function TasksPage() {
             type="button"
             className="btn btn-primary btn-sm"
             onClick={() => openModal('task-modal')}
-            style={{ fontWeight: 700 }}
+            style={{ fontWeight: 600 }}
           >
             + New Task
           </button>
@@ -220,20 +225,47 @@ export default function TasksPage() {
               { id: 'upcoming', label: 'Upcoming' },
               { id: 'completed', label: 'Completed' },
             ] as { id: FilterMode; label: string }[]
-          ).map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className={`btn ${activeFilter === f.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-              style={{ fontSize: '12px', padding: '3px 10px', height: '30px', fontWeight: activeFilter === f.id ? 700 : 500 }}
-              onClick={() => setActiveFilter(f.id)}
-            >
-              {f.label}
-              <span style={{ marginLeft: '6px', opacity: 0.8, fontWeight: 700, fontSize: '11px' }}>
-                {getFilterCount(f.id)}
-              </span>
-            </button>
-          ))}
+          ).map((f) => {
+            const isActive = activeFilter === f.id;
+            const count = getFilterCount(f.id);
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setActiveFilter(f.id)}
+                style={{
+                  fontSize: '12px',
+                  padding: '4px 12px',
+                  height: '30px',
+                  fontWeight: isActive ? 600 : 500,
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: isActive ? '#FF5500' : '#FFFFFF',
+                  color: isActive ? '#FFFFFF' : '#374151',
+                  border: `1px solid ${isActive ? '#FF5500' : '#E5E7EB'}`,
+                  boxShadow: isActive ? '0 2px 4px rgba(255, 85, 0, 0.2)' : '0 1px 2px rgba(0, 0, 0, 0.03)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>{f.label}</span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    background: isActive ? 'rgba(255, 255, 255, 0.25)' : '#F3F4F6',
+                    color: isActive ? '#FFFFFF' : '#6B7280',
+                  }}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {departments.length > 0 && (
@@ -346,211 +378,198 @@ export default function TasksPage() {
           <>
             {/* 1. Kanban View */}
             {currentView === 'kanban' && (
-              <div
-                className="kanban-board"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: '12px',
-                  alignItems: 'start',
-                }}
-              >
-                {columns.map((col) => {
-                  const colTasks = filteredTasks.filter((t) => t.status === col.id);
-                  const isOver = dragOverColumn === col.id;
-                  return (
-                    <div
-                      key={col.id}
-                      className="kanban-column"
-                      style={{
-                        background: isOver ? 'var(--c-surface-hover)' : 'var(--c-surface)',
-                        border: `1px solid ${isOver ? '#0f4cff' : 'var(--border-color)'}`,
-                        borderRadius: '8px',
-                        padding: '12px',
-                        minHeight: '420px',
-                      }}
-                      onDragOver={(e) => handleDragOver(e, col.id)}
-                      onDrop={(e) => handleDrop(e, col.id)}
-                    >
-                      {/* Column Header */}
+              <div className="kanban-board-wrapper">
+                <div className="kanban-board">
+                  {columns.map((col) => {
+                    const colTasks = filteredTasks.filter((t) => t.status === col.id);
+                    const isOver = dragOverColumn === col.id;
+                    return (
                       <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          paddingBottom: '8px',
-                          borderBottom: '1px solid var(--border-color)',
-                          marginBottom: '10px',
-                        }}
+                        key={col.id}
+                        className={`kanban-column ${isOver ? 'drag-over' : ''}`}
+                        onDragOver={(e) => handleDragOver(e, col.id)}
+                        onDrop={(e) => handleDrop(e, col.id)}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: col.color, display: 'inline-block' }} />
-                          <span style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{col.label}</span>
+                        {/* Column Header */}
+                        <div className="kanban-column-header">
+                          <div className="kanban-column-title">
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: col.color, display: 'inline-block' }} />
+                            <span>{col.label}</span>
+                          </div>
+                          <span className="kanban-column-count">
+                            {colTasks.length}
+                          </span>
                         </div>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                            background: 'var(--c-white)',
-                            border: '1px solid var(--border-color)',
-                            color: 'var(--text-secondary)',
-                          }}
-                        >
-                          {colTasks.length}
-                        </span>
-                      </div>
 
-                      {/* Tasks Container */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {colTasks.map((t) => {
-                          const proj = getProject(t.project);
-                          const assigneeEmp = getEmployee(t.assignee);
-                          const isOverdueItem = isOverdue(t.deadline) && t.status !== 'completed';
-                          const dept = departments.find((d) => d.id === t.departmentId);
-
-                          return (
+                        {/* Tasks Container */}
+                        <div className="kanban-column-body">
+                          {colTasks.length === 0 ? (
                             <div
-                              key={t.id}
-                              className="kanban-card"
-                              draggable
-                              onDragStart={(e) => handleDragStart(e, t.id)}
-                              onDragEnd={handleDragEnd}
-                              onClick={() => setSelectedTaskDetail(t)}
                               style={{
-                                background: 'var(--c-white)',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: '6px',
-                                padding: '12px',
-                                cursor: 'grab',
+                                border: '1.5px dashed #E5E7EB',
+                                borderRadius: '8px',
+                                padding: '32px 14px',
+                                textAlign: 'center',
+                                color: '#9CA3AF',
+                                fontSize: '12px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                minHeight: '140px',
+                                background: '#FAFAFA',
                               }}
                             >
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedTaskIds.includes(t.id)}
-                                    onChange={(e) => {
-                                      e.stopPropagation();
-                                      toggleSelectTask(t.id);
-                                    }}
-                                    style={{ cursor: 'pointer', width: '14px', height: '14px' }}
-                                  />
-                                  {dept && (
-                                    <span
-                                      style={{
-                                        background: 'rgba(15, 76, 255, 0.08)',
-                                        color: '#0f4cff',
-                                        border: '1px solid rgba(15, 76, 255, 0.2)',
-                                        fontSize: '10px',
-                                        fontWeight: 600,
-                                        padding: '1px 6px',
-                                        borderRadius: '4px',
-                                      }}
-                                    >
-                                      {dept.name}
-                                    </span>
-                                  )}
-                                  {proj && (
-                                    <span
-                                      style={{
-                                        background: 'var(--c-surface)',
-                                        fontSize: '10px',
-                                        padding: '1px 6px',
-                                        borderRadius: '4px',
-                                        color: 'var(--text-secondary)',
-                                      }}
-                                    >
-                                      {proj.name}
-                                    </span>
-                                  )}
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <span
-                                    style={{
-                                      fontSize: '9px',
-                                      textTransform: 'uppercase',
-                                      fontWeight: 700,
-                                      padding: '1px 5px',
-                                      borderRadius: '4px',
-                                      border: '1px solid var(--border-color)',
-                                      background: 'var(--c-surface)',
-                                      color: t.priority === 'urgent' || t.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
-                                    }}
-                                  >
-                                    {t.priority}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    className="btn btn-ghost btn-sm"
-                                    style={{
-                                      padding: 0,
-                                      height: '18px',
-                                      width: '18px',
-                                      minWidth: '18px',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      color: 'var(--text-tertiary)',
-                                    }}
-                                    title="Delete task"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
-                                        deleteTask(t.id);
-                                      }
-                                    }}
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              </div>
+                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="1.5">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 8v8M8 12h8" />
+                              </svg>
+                              <span>No tasks in {col.label.toLowerCase()}</span>
+                            </div>
+                          ) : (
+                            colTasks.map((t) => {
+                              const proj = getProject(t.project);
+                              const assigneeEmp = getEmployee(t.assignee);
+                              const isOverdueItem = isOverdue(t.deadline) && t.status !== 'completed';
+                              const dept = departments.find((d) => d.id === t.departmentId);
 
-                              <div style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A', marginBottom: '6px' }}>
-                                {t.name}
-                              </div>
-
-                              {t.subtasks && t.subtasks.length > 0 && (
-                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '6px' }}>
-                                  Subtasks: {t.subtasks.filter((s) => s.done).length}/{t.subtasks.length}
-                                </div>
-                              )}
-
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-color)' }}>
-                                {assigneeEmp ? (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <div
-                                      className="avatar avatar-sm"
-                                      style={{ background: assigneeEmp.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px' }}
-                                    >
-                                      {assigneeEmp.initials}
+                              return (
+                                <div
+                                  key={t.id}
+                                  className="kanban-card"
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, t.id)}
+                                  onDragEnd={handleDragEnd}
+                                  onClick={() => setSelectedTaskDetail(t)}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedTaskIds.includes(t.id)}
+                                        onChange={(e) => {
+                                          e.stopPropagation();
+                                          toggleSelectTask(t.id);
+                                        }}
+                                        style={{ cursor: 'pointer', width: '14px', height: '14px', accentColor: '#FF5500' }}
+                                      />
+                                      {dept && (
+                                        <span
+                                          style={{
+                                            background: 'rgba(15, 76, 255, 0.08)',
+                                            color: '#0f4cff',
+                                            border: '1px solid rgba(15, 76, 255, 0.2)',
+                                            fontSize: '10px',
+                                            fontWeight: 600,
+                                            padding: '1px 6px',
+                                            borderRadius: '4px',
+                                          }}
+                                        >
+                                          {dept.name}
+                                        </span>
+                                      )}
+                                      {proj && (
+                                        <span
+                                          style={{
+                                            background: 'var(--c-surface)',
+                                            fontSize: '10px',
+                                            padding: '1px 6px',
+                                            borderRadius: '4px',
+                                            color: 'var(--text-secondary)',
+                                          }}
+                                        >
+                                          {proj.name}
+                                        </span>
+                                      )}
                                     </div>
-                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                                      {assigneeEmp.name.split(' ')[0]}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <span
+                                        style={{
+                                          fontSize: '9px',
+                                          textTransform: 'uppercase',
+                                          fontWeight: 700,
+                                          padding: '1px 6px',
+                                          borderRadius: '4px',
+                                          border: '1px solid var(--border-color)',
+                                          background: t.priority === 'urgent' || t.priority === 'high' ? 'rgba(239, 68, 68, 0.08)' : 'var(--c-surface)',
+                                          color: t.priority === 'urgent' || t.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
+                                        }}
+                                      >
+                                        {t.priority}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        className="btn btn-ghost btn-sm"
+                                        style={{
+                                          padding: 0,
+                                          height: '18px',
+                                          width: '18px',
+                                          minWidth: '18px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          color: 'var(--text-tertiary)',
+                                        }}
+                                        title="Delete task"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
+                                            deleteTask(t.id);
+                                          }
+                                        }}
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <div style={{ fontWeight: 600, fontSize: '13px', color: '#111827', marginBottom: '6px', lineHeight: 1.4 }}>
+                                    {t.name}
+                                  </div>
+
+                                  {t.subtasks && t.subtasks.length > 0 && (
+                                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '6px' }}>
+                                      Subtasks: {t.subtasks.filter((s) => s.done).length}/{t.subtasks.length}
+                                    </div>
+                                  )}
+
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-color)' }}>
+                                    {assigneeEmp ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <div
+                                          className="avatar avatar-sm"
+                                          style={{ background: assigneeEmp.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px', color: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        >
+                                          {assigneeEmp.initials}
+                                        </div>
+                                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                                          {assigneeEmp.name.split(' ')[0]}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Unassigned</span>
+                                    )}
+
+                                    <span
+                                      style={{
+                                        fontSize: '11px',
+                                        color: isOverdueItem ? '#dc2626' : 'var(--text-secondary)',
+                                        fontWeight: isOverdueItem ? 700 : 500,
+                                      }}
+                                    >
+                                      {formatDate(t.deadline)}
                                     </span>
                                   </div>
-                                ) : (
-                                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Unassigned</span>
-                                )}
-
-                                <span
-                                  style={{
-                                    fontSize: '11px',
-                                    color: isOverdueItem ? '#dc2626' : 'var(--text-secondary)',
-                                    fontWeight: isOverdueItem ? 700 : 500,
-                                  }}
-                                >
-                                  {formatDate(t.deadline)}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             )}
 

@@ -135,6 +135,16 @@ export async function updateMeeting(id: string, updates: Partial<Meeting>): Prom
   };
 
   inMemoryStore.meetings.set(id, updated);
+
+  try {
+    const col = await getCollection<Meeting>('meetings');
+    if (col) {
+      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+    }
+  } catch (e) {
+    console.warn('MongoDB update meeting notice:', e);
+  }
+
   return updated;
 }
 
