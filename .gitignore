@@ -47,3 +47,12 @@ scripts/
 *.tsbuildinfo
 next-env.d.ts
 scratch.html
+
+# scratch & test scripts
+scratch_*.mjs
+test_*.mjs
+
+# extra documentation & media files
+*.pdf
+cursis_explanation.html
+Screenshot*.png
