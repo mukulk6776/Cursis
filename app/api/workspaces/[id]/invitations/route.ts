@@ -58,6 +58,18 @@ export async function POST(
         ? rawWorkspaceId
         : authUser.workspaceId || ('ws_' + authUser.uid);
 
+    // Authorization check: Only Owner or Admin can send invitations
+    const isAuth = await isWorkspaceAdminOrOwner(workspaceId, {
+      uid: authUser.uid,
+      email: authUser.email,
+      displayName: authUser.displayName,
+      role: authUser.role,
+    });
+
+    if (!isAuth) {
+      return apiError('Forbidden: Only Workspace Owners or Admins can send invitations.', 403);
+    }
+
     const body = await request.json().catch(() => ({}));
     const email = body.email?.trim()?.toLowerCase();
 

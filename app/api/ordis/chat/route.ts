@@ -3,9 +3,16 @@ import { executeGroqOrdisChat, resolveGroqApiKey } from '@/lib/ordis/groq';
 import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
 import { getCollection } from '@/lib/mongodb';
 import { AuditLogEntry } from '@/lib/db/types';
+import { getAuthenticatedUser } from '@/lib/auth/session';
 
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication — prevents unauthenticated LLM calls and identity spoofing
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const message = body.message || body.prompt || body.command || body.text;
 
@@ -17,27 +24,31 @@ export async function POST(request: NextRequest) {
     }
 
     const history = Array.isArray(body.history) ? body.history : [];
-    const state: OrdisContextState = body.state || {
-      user: { id: 'u_commander', name: 'Commander', email: 'commander@cursis.io', role: 'Owner' },
-      workspace: { name: 'Cursis Workspace', plan: 'Cursis Standard' },
-      activeWorkspace: { id: 'ws_cursis_main', name: 'Cursis Workspace', role: 'owner' } as any,
-      employees: [],
-      projects: [],
-      tasks: [],
-      meetings: [],
-      notifications: [],
-      activity: [],
-      automations: [],
-      documents: [],
-      crm: { deals: [], contacts: [] } as any,
-      integrations: [],
-      webhooks: [],
-      apiKeys: [],
-      workspaceSettings: {} as any,
-      teamSettings: {} as any,
-      notificationSettings: {} as any,
-      meetingCalendarSettings: {} as any,
-      ordisSettings: {
+
+    // Build state from the authenticated user — never trust client-supplied identity
+    const state: OrdisContextState = {
+      ...(body.state || {}),
+      user: {
+        id: authUser.uid,
+        name: authUser.displayName,
+        email: authUser.email,
+        role: authUser.role,
+      },
+    };
+
+    // Fill in workspace defaults if not provided by client
+    if (!state.workspace) {
+      state.workspace = { name: 'Cursis Workspace', plan: 'Cursis Standard' };
+    }
+    if (!state.activeWorkspace) {
+      state.activeWorkspace = {
+        id: authUser.workspaceId || `ws_${authUser.uid}`,
+        name: state.workspace.name,
+        role: authUser.role,
+      } as any;
+    }
+    if (!state.ordisSettings) {
+      state.ordisSettings = {
         mode: 'proactive',
         tone: 'friendly',
         briefingTime: '09:00',
@@ -46,11 +57,11 @@ export async function POST(request: NextRequest) {
         allowTaskCreation: true,
         allowMeetingScheduling: true,
         allowWorkloadRebalancing: true,
-      },
-    };
+      };
+    }
 
-    const rawApiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
-    const groqKey = resolveGroqApiKey(rawApiKey) || resolveGroqApiKey();
+    // Use server-side API key only — never accept key from client body
+    const groqKey = resolveGroqApiKey();
     const model = typeof body.model === 'string' && body.model && !body.model.startsWith('gemini')
       ? body.model
       : 'openai/gpt-oss-20b';
@@ -75,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     const targetWsId = state.activeWorkspace?.id && state.activeWorkspace.id !== 'ws_default' && state.activeWorkspace.id !== 'ws_public'
       ? state.activeWorkspace.id
-      : 'ws_cursis_main';
+      : authUser.workspaceId || 'ws_cursis_main';
 
     // Persist any created or updated entities directly to MongoDB collections
     if (result?.stateMutations) {
@@ -98,7 +109,7 @@ export async function POST(request: NextRequest) {
               dueDate: m.createdTask.deadline ? new Date(m.createdTask.deadline).toISOString() : new Date(Date.now() + 3 * 86400000).toISOString(),
               tags: m.createdTask.tags || ['AI-Dispatched'],
               subtasks: m.createdTask.subtasks || [],
-              creatorId: state.user?.id || 'usr_ai',
+              creatorId: authUser.uid,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
@@ -117,7 +128,7 @@ export async function POST(request: NextRequest) {
             for (const ut of m.updatedTasks) {
               const mappedStatus = ut.status === 'completed' ? 'done' : ut.status;
               await col.updateOne(
-                { id: ut.id },
+                { id: ut.id, workspaceId: targetWsId },
                 { $set: { status: mappedStatus, updatedAt: new Date().toISOString() } }
               );
             }
@@ -142,7 +153,7 @@ export async function POST(request: NextRequest) {
               deadline: m.createdProject.deadline || new Date(Date.now() + 30 * 86400000).toISOString(),
               health: 'on_track',
               progressPercent: 0,
-              ownerId: state.user?.id || 'usr_ai',
+              ownerId: authUser.uid,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
@@ -183,7 +194,7 @@ export async function POST(request: NextRequest) {
               startTime: new Date().toISOString(),
               endTime: new Date(Date.now() + 3600000).toISOString(),
               allDay: false,
-              attendeeIds: [state.user?.id || 'usr_ai'],
+              attendeeIds: [authUser.uid],
               meetLink: m.createdMeeting.meetingUrl || '',
               type: 'meeting',
               createdAt: new Date().toISOString(),
@@ -259,16 +270,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Record audit trail if possible
+    // Record audit trail
     try {
       const auditCol = await getCollection<AuditLogEntry>('audit_logs');
       if (auditCol) {
         await auditCol.insertOne({
-          id: 'aud_chat_' + Date.now(),
+          id: `aud_chat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           workspaceId: targetWsId,
           actorType: 'ordis_assisted',
-          actorId: state.user?.id || 'usr_ai',
-          actorName: state.user?.name || 'User',
+          actorId: authUser.uid,
+          actorName: authUser.displayName,
           action: 'ordis.chat.message',
           targetType: 'ordis_copilot',
           targetId: message.substring(0, 40),

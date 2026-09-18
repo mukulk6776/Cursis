@@ -66,7 +66,9 @@ export async function findUserByEmail(email: string): Promise<UserProfile | null
   try {
     const col = await getCollection<UserProfile>('users');
     if (col) {
-      const doc = await col.findOne({ email: { $regex: new RegExp(`^${normalized}$`, 'i') } });
+      // Escape special regex characters in user input to prevent ReDoS
+      const escapedEmail = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const doc = await col.findOne({ email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') } });
       if (doc) {
         const sanitized = sanitizeFounderIntegrity(doc);
         inMemoryStore.users.set(sanitized.uid || sanitized.id, sanitized);

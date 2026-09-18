@@ -1,26 +1,37 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
-import { reassignOrPairHelper } from '@/lib/db/tasks';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { reassignOrPairHelper, getTaskById } from '@/lib/db/tasks';
+import { apiSuccess, apiError } from '@/lib/api/response';
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const body = await request.json().catch(() => ({}));
+
+    if (!body.taskId) {
+      return apiError('taskId is required', 400);
     }
 
-    const body = await request.json();
-    if (!body.taskId) {
-      return NextResponse.json({ error: 'taskId is required' }, { status: 400 });
+    // Look up the task first to get its workspaceId for auth
+    const task = await getTaskById(body.taskId);
+    if (!task) {
+      return apiError('Task not found', 404);
+    }
+
+    // Enforce workspace membership — only managers/admins/owners can reassign
+    const auth = await authorizeWorkspaceAccess(request, task.workspaceId, ['owner', 'admin', 'manager']);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    if (!body.newAssigneeId) {
+      return apiError('newAssigneeId is required', 400);
     }
 
     const updatedTask = await reassignOrPairHelper(body.taskId, body.newAssigneeId, body.helperId);
     if (!updatedTask) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      return apiError('Task not found', 404);
     }
 
-    return NextResponse.json({ success: true, task: updatedTask });
+    return apiSuccess({ task: updatedTask });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

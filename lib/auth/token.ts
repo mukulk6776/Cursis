@@ -1,7 +1,13 @@
 import crypto from 'crypto';
 import { UserRole } from '@/lib/db/types';
 
-export const SESSION_SECRET = process.env.AUTH_SESSION_SECRET || 'cursis_production_session_secret_secure_key_2026';
+if (!process.env.AUTH_SESSION_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('FATAL: AUTH_SESSION_SECRET environment variable is required in production. Set a strong random secret.');
+  }
+  console.warn('[auth/token] WARNING: AUTH_SESSION_SECRET is not set. Using insecure default — set this env var before deploying.');
+}
+export const SESSION_SECRET = process.env.AUTH_SESSION_SECRET || 'cursis_dev_only_secret_do_not_use_in_production';
 
 export interface SessionPayload {
   uid: string;

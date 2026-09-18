@@ -63,6 +63,26 @@ export async function createCalendarEvent(workspaceId: string, data: Partial<Cal
   return event;
 }
 
+export async function getCalendarEventById(id: string): Promise<CalendarEvent | null> {
+  const mem = inMemoryStore.calendarEvents.get(id);
+  if (mem) return mem;
+
+  try {
+    const col = await getCollection<CalendarEvent>('calendar_events');
+    if (col) {
+      const found = await col.findOne({ id });
+      if (found) {
+        inMemoryStore.calendarEvents.set(id, found);
+        return found;
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getCalendarEventById notice:', e);
+  }
+
+  return null;
+}
+
 export async function deleteCalendarEvent(id: string): Promise<boolean> {
   const memDeleted = inMemoryStore.calendarEvents.delete(id);
   let mongoDeleted = false;

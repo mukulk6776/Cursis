@@ -85,7 +85,18 @@ export async function createProject(workspaceId: string, data: Partial<Project>)
 }
 
 export async function updateProject(id: string, updates: Partial<Project>): Promise<Project | null> {
-  const project = inMemoryStore.projects.get(id);
+  let project = inMemoryStore.projects.get(id);
+
+  if (!project) {
+    try {
+      const col = await getCollection<Project>('projects');
+      if (col) {
+        const found = await col.findOne({ id });
+        if (found) project = found;
+      }
+    } catch {}
+  }
+
   if (!project) return null;
 
   const updated: Project = {

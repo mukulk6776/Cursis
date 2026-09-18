@@ -30,23 +30,22 @@ export async function POST(request: Request) {
       return apiError('Please enter your password', 400);
     }
 
-    let user = await findUserByEmail(email);
+    const user = await findUserByEmail(email);
 
-    if (user && user.passwordHash && user.salt) {
-      // Verify stored password hash
-      const isValid = verifyPassword(password, user.salt, user.passwordHash);
-      if (!isValid) {
-        return apiError('Incorrect email or password. Please verify your credentials.', 401);
-      }
-    } else if (!user) {
-      // Auto-provision new account if not already in system
-      const isFounder = isFounderEmail(email);
-      user = await registerUser({
-        displayName: email.split('@')[0],
-        email,
-        password,
-        role: isFounder ? 'owner' : 'member',
-      });
+    if (!user) {
+      // Do not auto-create accounts on login — direct to signup
+      return apiError('No account found with this email. Please sign up first.', 401);
+    }
+
+    // Block password login for OAuth-only accounts (no password hash set)
+    if (!user.passwordHash || !user.salt) {
+      return apiError('This account was created with Google sign-in. Please use the Google button to sign in.', 401);
+    }
+
+    // Verify stored password hash
+    const isValid = verifyPassword(password, user.salt, user.passwordHash);
+    if (!isValid) {
+      return apiError('Incorrect email or password. Please verify your credentials.', 401);
     }
 
     const sessionPayload = {

@@ -42,6 +42,15 @@ function isValidCodeFormat(code: string): boolean {
 }
 
 export async function GET(request: Request) {
+  // Only authenticated owners/admins can view redeemed codes
+  const authUser = await getAuthenticatedUser(request);
+  if (!authUser) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+  if (authUser.role !== 'owner' && authUser.role !== 'admin') {
+    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const db = await getDb();
     let codes: string[] = Array.from(inMemoryRedeemedCodes);
@@ -127,13 +136,14 @@ export async function POST(request: Request) {
       'Unlimited Multi-Agent Execution',
     ];
 
-    // 4. Mark code as redeemed permanently
-    inMemoryRedeemedCodes.add(code);
-
+    // 4. Authenticate BEFORE consuming the code — prevents burning codes for anonymous users
     const authUser = await getAuthenticatedUser(request);
-    const userId = authUser?.uid || body.userId || 'anonymous';
-    const email = authUser?.email || body.email || 'user';
-    const workspaceId = authUser?.workspaceId || body.workspaceId || 'default';
+    const userId = authUser?.uid || 'anonymous';
+    const email = authUser?.email || 'user';
+    const workspaceId = authUser?.workspaceId || 'default';
+
+    // 5. Mark code as redeemed permanently (after auth check)
+    inMemoryRedeemedCodes.add(code);
 
     if (db) {
       try {

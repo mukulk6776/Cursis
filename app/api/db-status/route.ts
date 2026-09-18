@@ -1,16 +1,28 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
+import { getAuthenticatedUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Require authentication — this endpoint exposes internal infrastructure details
+  const authUser = await getAuthenticatedUser(request);
+  if (!authUser) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Only owners can view DB status
+  if (authUser.role !== 'owner' && authUser.role !== 'admin') {
+    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+  }
+
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    return NextResponse.json({
-      success: false,
-      error: 'MONGODB_URI environment variable is not defined',
-    });
+    return NextResponse.json(
+      { success: false, error: 'MONGODB_URI environment variable is not defined' },
+      { status: 500 }
+    );
   }
 
   let client: MongoClient | null = null;
@@ -28,19 +40,21 @@ export async function GET() {
       success: true,
       mongoConnected: true,
       collections: cols.map((c) => c.name),
-      cluster: uri.split('@')[1]?.split('/')[0],
+      // Redact credentials from cluster hostname
+      cluster: uri.split('@')[1]?.split('/')[0] || 'configured',
       dbName: db.databaseName,
     });
   } catch (err: any) {
-    return NextResponse.json({
-      success: false,
-      mongoConnected: false,
-      errorName: err.name,
-      errorMessage: err.message,
-      errorCode: err.code,
-      errorCause: err.cause ? (err.cause.message || String(err.cause)) : null,
-      cluster: uri.split('@')[1]?.split('/')[0],
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        mongoConnected: false,
+        errorName: err.name,
+        errorMessage: err.message,
+        errorCode: err.code,
+      },
+      { status: 503 }
+    );
   } finally {
     if (client) {
       await client.close().catch(() => {});

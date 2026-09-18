@@ -1,4 +1,5 @@
-import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { apiSuccess, apiError } from '@/lib/api/response';
 import { getDocuments, getDocumentById, createDocument, updateDocument, deleteDocument } from '@/lib/db/documents';
 
 // Allowed document file extensions
@@ -12,7 +13,6 @@ function validateFileMetadata(fileType?: string, fileSize?: number | string): st
       return `Unsupported file format ".${ext}". Allowed types: ${Array.from(ALLOWED_EXTENSIONS).join(', ')}`;
     }
   }
-
   if (fileSize !== undefined && fileSize !== null) {
     let sizeBytes = 0;
     if (typeof fileSize === 'number') {
@@ -32,24 +32,24 @@ function validateFileMetadata(fileType?: string, fileSize?: number | string): st
       return `File size exceeds the 25MB maximum limit (${(sizeBytes / (1024 * 1024)).toFixed(1)}MB provided).`;
     }
   }
-
   return null;
 }
 
 export async function GET(request: Request) {
   try {
-    const auth = await getAuthOrError(request);
-    if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
-
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
+    const workspaceId = searchParams.get('workspaceId') || '';
+
+    const auth = await authorizeWorkspaceAccess(request, workspaceId);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const resolvedWsId = workspaceId || auth.user.workspaceId;
     const category = searchParams.get('category') || undefined;
     const projectId = searchParams.get('projectId') || undefined;
     const query = (searchParams.get('q') || '').toLowerCase().trim();
     const isCompanyBrain = searchParams.get('isCompanyBrain') !== null ? searchParams.get('isCompanyBrain') === 'true' : undefined;
 
-    let documents = await getDocuments(workspaceId, { category, projectId, isCompanyBrain });
+    let documents = await getDocuments(resolvedWsId, { category, projectId, isCompanyBrain });
 
     if (query) {
       documents = documents.filter((d) =>
@@ -68,31 +68,22 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const auth = await getAuthOrError(request);
+    const body = await request.json().catch(() => ({}));
+    const workspaceId = body.workspaceId || '';
+
+    // Only owner, admin, manager can create documents
+    const auth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin', 'manager']);
     if (auth.errorResponse) return auth.errorResponse;
     const authUser = auth.user;
 
-    // RBAC: Only owner, admin, manager can create documents
-    const allowedRoles = ['owner', 'admin', 'manager'];
-    if (!allowedRoles.includes(authUser.role)) {
-      return apiError('Forbidden: Only workspace owners, admins, or managers can create documents.', 403);
-    }
-
-    const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId;
-
+    const resolvedWsId = workspaceId || authUser.workspaceId;
     const title = (body.title || body.name || '').trim();
-    if (!title) {
-      return apiError('Validation Error: Document title is required.', 400);
-    }
+    if (!title) return apiError('Validation Error: Document title is required.', 400);
 
-    // File validation
     const fileError = validateFileMetadata(body.fileType, body.fileSize);
-    if (fileError) {
-      return apiError(`Validation Error: ${fileError}`, 400);
-    }
+    if (fileError) return apiError(`Validation Error: ${fileError}`, 400);
 
-    const doc = await createDocument(workspaceId, {
+    const doc = await createDocument(resolvedWsId, {
       title,
       content: body.content || '',
       category: body.category || 'general',
@@ -115,33 +106,20 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const auth = await getAuthOrError(request);
-    if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
-
-    // RBAC: Only owner, admin, manager can update documents
-    const allowedRoles = ['owner', 'admin', 'manager'];
-    if (!allowedRoles.includes(authUser.role)) {
-      return apiError('Forbidden: Only workspace owners, admins, or managers can update documents.', 403);
-    }
-
     const body = await request.json().catch(() => ({}));
     const id = body.id || body.documentId;
-    if (!id) {
-      return apiError('Document ID is required for update.', 400);
-    }
+    if (!id) return apiError('Document ID is required for update.', 400);
 
     const existing = await getDocumentById(id);
-    if (!existing) {
-      return apiError(`Document with ID "${id}" not found.`, 404);
-    }
+    if (!existing) return apiError(`Document with ID "${id}" not found.`, 404);
 
-    // File validation if updated
+    // Only owner, admin, manager can update — verified against document's actual workspace
+    const auth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner', 'admin', 'manager']);
+    if (auth.errorResponse) return auth.errorResponse;
+
     if (body.fileType || body.fileSize) {
       const fileError = validateFileMetadata(body.fileType, body.fileSize);
-      if (fileError) {
-        return apiError(`Validation Error: ${fileError}`, 400);
-      }
+      if (fileError) return apiError(`Validation Error: ${fileError}`, 400);
     }
 
     const updates: any = {};
@@ -164,27 +142,18 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const auth = await getAuthOrError(request);
-    if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
-
-    // RBAC: Only owner and admin can delete documents
-    const allowedRoles = ['owner', 'admin'];
-    if (!allowedRoles.includes(authUser.role)) {
-      return apiError('Forbidden: Only workspace owners or admins can delete documents.', 403);
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    if (!id) {
-      return apiError('Document ID parameter "id" is required for deletion.', 400);
-    }
+    if (!id) return apiError('Document ID parameter "id" is required for deletion.', 400);
 
-    const deleted = await deleteDocument(id);
-    if (!deleted) {
-      return apiError(`Document with ID "${id}" not found.`, 404);
-    }
+    const existing = await getDocumentById(id);
+    if (!existing) return apiError(`Document with ID "${id}" not found.`, 404);
 
+    // Only owner/admin can delete — verified against document's actual workspace
+    const auth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner', 'admin']);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    await deleteDocument(id);
     return apiSuccess({ message: 'Document deleted successfully', id });
   } catch (error: any) {
     return apiError(error.message || 'Failed to delete document', 500);
