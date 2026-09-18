@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'motion/react';
 import { signOutUser } from '@/lib/auth/firebase';
 
 export default function LandingNav() {
@@ -82,85 +83,105 @@ export default function LandingNav() {
   };
 
   return (
-    <nav ref={navRef} className={`lp-nav ${scrolled ? 'lp-nav-scrolled' : ''}`} id="lp-nav">
+    <motion.nav
+      ref={navRef as React.RefObject<HTMLElement>}
+      className={`lp-nav ${scrolled ? 'lp-nav-scrolled' : ''}`}
+      id="lp-nav"
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+    >
       <div className="lp-nav-container">
-        <Link href="/" className="lp-nav-logo" onClick={() => setMobileOpen(false)}>
-          <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32">
-            <path
-              d="M 545 240 A 282 282 0 1 0 782 566"
-              stroke="#1A1612"
-              strokeWidth="142"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <rect
-              x="625"
-              y="196"
-              width="156"
-              height="156"
-              rx="42"
-              transform="rotate(-10 703 274)"
-              fill="#FF5500"
-            />
-          </svg>
-          <span className="lp-nav-logo-text">Cursis</span>
-        </Link>
+        <motion.div
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1, duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <Link href="/" className="lp-nav-logo" onClick={() => setMobileOpen(false)}>
+            <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32">
+              <path
+                d="M 545 240 A 282 282 0 1 0 782 566"
+                stroke="#1A1612"
+                strokeWidth="142"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <rect
+                x="625"
+                y="196"
+                width="156"
+                height="156"
+                rx="42"
+                transform="rotate(-10 703 274)"
+                fill="#FF5500"
+              />
+            </svg>
+            <span className="lp-nav-logo-text">Cursis</span>
+          </Link>
+        </motion.div>
 
-        {/* Links drawer: on desktop it stays in the horizontal capsule; on mobile it opens as a popup */}
+        {/* Links drawer */}
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
-          <a href="#features" onClick={(e) => handleAnchorClick(e, '#features')} className="lp-nav-link">
-            Platform
-          </a>
-          <a href="#ordis" onClick={(e) => handleAnchorClick(e, '#ordis')} className="lp-nav-link">
-            Ordis Intelligence
-          </a>
-          <a href="#team" onClick={(e) => handleAnchorClick(e, '#team')} className="lp-nav-link">
-            Teams
-          </a>
-          <a href="#creators" onClick={(e) => handleAnchorClick(e, '#creators')} className="lp-nav-link">
-            Creators
-          </a>
-          <a href="#modules" onClick={(e) => handleAnchorClick(e, '#modules')} className="lp-nav-link">
-            Modules
-          </a>
-          <a href="#agency" onClick={(e) => handleAnchorClick(e, '#agency')} className="lp-nav-link">
-            Enterprise
-          </a>
+          {['#features', '#ordis', '#team', '#creators', '#modules', '#agency'].map((href, i) => (
+            <motion.a
+              key={href}
+              href={href}
+              onClick={(e) => handleAnchorClick(e, href)}
+              className="lp-nav-link"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 + i * 0.05, duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              {['Platform', 'Ordis Intelligence', 'Teams', 'Creators', 'Modules', 'Enterprise'][i]}
+            </motion.a>
+          ))}
 
-          {/* Mobile drawer actions: strictly hidden on desktop via CSS */}
-          <div className="lp-nav-mobile-actions">
-            {isAuthenticated ? (
-              <>
-                <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
-                  Open Dashboard →
-                </Link>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  style={{ color: 'var(--c-error)', fontWeight: 700 }}
-                  onClick={() => {
-                    setMobileOpen(false);
-                    handleSignOut();
-                  }}
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="btn btn-secondary btn-sm" onClick={() => setMobileOpen(false)}>
-                  Sign In
-                </Link>
-                <Link href="/signup" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
-                  Deploy Workspace
-                </Link>
-              </>
+          {/* Mobile drawer actions */}
+          <AnimatePresence>
+            {mobileOpen && (
+              <motion.div
+                className="lp-nav-mobile-actions"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.22 }}
+              >
+                {isAuthenticated ? (
+                  <>
+                    <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
+                      Open Dashboard →
+                    </Link>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      style={{ color: 'var(--c-error)', fontWeight: 700 }}
+                      onClick={() => { setMobileOpen(false); handleSignOut(); }}
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" className="btn btn-secondary btn-sm" onClick={() => setMobileOpen(false)}>
+                      Sign In
+                    </Link>
+                    <Link href="/signup" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
+                      Deploy Workspace
+                    </Link>
+                  </>
+                )}
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
 
-        {/* Desktop actions: always visible on desktop, hidden on mobile */}
-        <div className="lp-nav-actions">
+        {/* Desktop actions */}
+        <motion.div
+          className="lp-nav-actions"
+          initial={{ opacity: 0, x: 12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.18, duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+        >
           {isAuthenticated ? (
             <>
               <Link
@@ -191,7 +212,6 @@ export default function LandingNav() {
             </>
           )}
 
-          {/* Hamburger toggle button: strictly hidden on desktop, visible on mobile */}
           <button
             className="lp-nav-mobile-toggle"
             id="lp-mobile-toggle"
@@ -199,20 +219,32 @@ export default function LandingNav() {
             aria-label="Toggle navigation"
             type="button"
           >
-            {mobileOpen ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="4" y1="8" x2="20" y2="8" />
-                <line x1="4" y1="16" x2="20" y2="16" />
-              </svg>
-            )}
+            <AnimatePresence mode="wait" initial={false}>
+              {mobileOpen ? (
+                <motion.svg
+                  key="close"
+                  width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                  initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </motion.svg>
+              ) : (
+                <motion.svg
+                  key="open"
+                  width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                  initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <line x1="4" y1="8" x2="20" y2="8" />
+                  <line x1="4" y1="16" x2="20" y2="16" />
+                </motion.svg>
+              )}
+            </AnimatePresence>
           </button>
-        </div>
+        </motion.div>
       </div>
-    </nav>
+    </motion.nav>
   );
 }

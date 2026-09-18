@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import { motion, AnimatePresence } from 'motion/react';
 
 // Core layout components
 import Sidebar from './Sidebar';
@@ -58,18 +59,32 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         <Sidebar />
 
         {/* Mobile Sidebar Backdrop Overlay */}
-        {mobileSidebarOpen && (
-          <div
-            className="sidebar-backdrop"
-            onClick={() => setMobileSidebarOpen(false)}
-            aria-label="Close sidebar"
-          />
-        )}
+        <AnimatePresence>
+          {mobileSidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="sidebar-backdrop"
+              onClick={() => setMobileSidebarOpen(false)}
+              aria-label="Close sidebar"
+            />
+          )}
+        </AnimatePresence>
 
         {/* Main Section */}
         <div className="main-wrapper">
           <Topbar />
-          <main className="main-content">{children}</main>
+          <motion.main
+            key={typeof window !== 'undefined' ? window.location.pathname : 'main'}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+            className="main-content"
+          >
+            {children}
+          </motion.main>
         </div>
       </div>
 

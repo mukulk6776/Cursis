@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'motion/react';
+import { animeStaggerIn } from '@/lib/animations';
 
 type TabKey = 'agent' | 'sprint' | 'team' | 'pipeline';
 
@@ -40,6 +42,15 @@ export default function HeroSection() {
     );
   };
 
+  // Anime.js stagger for task rows in the mockup after mount
+  const mockupRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      animeStaggerIn('.lp-mockup-task-row');
+    }, 700);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleScrollToOrdis = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const el = document.querySelector('#ordis');
@@ -48,27 +59,41 @@ export default function HeroSection() {
     }
   };
 
+  // Stagger variants for hero text lines
+  const container = {
+    animate: { transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
+  };
+  const line = {
+    initial: { opacity: 0, y: 22 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.25, 0.1, 0.25, 1] } },
+  };
+
   return (
     <section className="lp-section lp-hero" id="hero">
       {/* Hero Header */}
-      <div className="lp-hero-header">
-        <div className="tano-hero-badge">
+      <motion.div
+        className="lp-hero-header"
+        variants={container}
+        initial="initial"
+        animate="animate"
+      >
+        <motion.div className="tano-hero-badge" variants={line}>
           <span className="tano-hero-badge-pill">NEW</span>
           <span className="tano-hero-badge-text">Ordis Autonomous Intelligence</span>
           <span className="tano-hero-badge-arrow">→</span>
-        </div>
+        </motion.div>
 
-        <h1 className="lp-hero-title">
+        <motion.h1 className="lp-hero-title" variants={line}>
           Autonomous Workspaces.<br />
           <span className="tano-hero-marker">Parse. Rebalance. Execute.</span><br />
           Not Just Chat. Real Actions.
-        </h1>
+        </motion.h1>
 
-        <p className="lp-hero-text">
+        <motion.p className="lp-hero-text" variants={line}>
           While ordinary copilots only generate text, <strong>Ordis</strong> actively parses enterprise requests, identifies sprint bottlenecks, and autonomously rebalances workload across your team in real time.
-        </p>
+        </motion.p>
 
-        <div className="lp-hero-ctas">
+        <motion.div className="lp-hero-ctas" variants={line}>
           <Link href="/signup" className="btn btn-primary btn-lg">
             Deploy Workspace
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -79,19 +104,25 @@ export default function HeroSection() {
           <a href="#ordis" onClick={handleScrollToOrdis} className="btn btn-secondary btn-lg">
             Explore Ordis Engine
           </a>
-        </div>
+        </motion.div>
 
-        <div className="lp-hero-benefits">
+        <motion.div className="lp-hero-benefits" variants={line}>
           <span className="lp-benefit-item">SOC-2 Type II Certified</span>
           <span className="lp-benefit-sep">•</span>
           <span className="lp-benefit-item">99.99% Guaranteed SLA Uptime</span>
           <span className="lp-benefit-sep">•</span>
           <span className="lp-benefit-item">Deterministic Zero-Bypass Security</span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Interactive Centerpiece Agent Console */}
-      <div className="lp-hero-mockup">
+      <motion.div
+        className="lp-hero-mockup"
+        ref={mockupRef}
+        initial={{ opacity: 0, y: 40, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.35, duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         {/* Tano Signature Rotated Washi Tape */}
         <div className="tano-washi-tape" style={{ top: -12, right: 38, transform: 'rotate(2.5deg)' }} aria-hidden="true" />
 
@@ -508,7 +539,7 @@ export default function HeroSection() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }
