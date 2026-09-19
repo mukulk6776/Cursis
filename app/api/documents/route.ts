@@ -149,8 +149,8 @@ export async function DELETE(request: Request) {
     const existing = await getDocumentById(id);
     if (!existing) return apiError(`Document with ID "${id}" not found.`, 404);
 
-    // Only owner/admin can delete — verified against document's actual workspace
-    const auth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner', 'admin']);
+    // Owner/admin/manager can delete — verified against document's actual workspace
+    const auth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner', 'admin', 'manager']);
     if (auth.errorResponse) return auth.errorResponse;
 
     await deleteDocument(id);

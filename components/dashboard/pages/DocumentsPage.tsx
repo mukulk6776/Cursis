@@ -42,7 +42,7 @@ export default function DocumentsPage() {
 
   // Create Form State
   const [createTitle, setCreateTitle] = useState('');
-  const [createCategory, setCreateCategory] = useState<DocumentItem['type']>('contract');
+  const [createCategory, setCreateCategory] = useState('contract');
   const [createDescription, setCreateDescription] = useState('');
   const [createTags, setCreateTags] = useState('');
   const [createContent, setCreateContent] = useState('');
@@ -53,7 +53,7 @@ export default function DocumentsPage() {
 
   // Edit Form State
   const [editTitle, setEditTitle] = useState('');
-  const [editCategory, setEditCategory] = useState<DocumentItem['type']>('contract');
+  const [editCategory, setEditCategory] = useState('contract');
   const [editDescription, setEditDescription] = useState('');
   const [editTags, setEditTags] = useState('');
   const [editContent, setEditContent] = useState('');
@@ -61,7 +61,7 @@ export default function DocumentsPage() {
   // Role-Based Access Control (RBAC)
   const role = user.workspaceRole || 'member';
   const canManage = ['owner', 'admin', 'manager'].includes(role);
-  const canDelete = ['owner', 'admin'].includes(role);
+  const canDelete = ['owner', 'admin', 'manager'].includes(role);
 
   // File Upload Handler with Validation Rules
   const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +128,10 @@ export default function DocumentsPage() {
       fileSize: createFileSize || '840 KB',
       category: createCategory,
       content: createContent,
+      updated: new Date().toLocaleDateString(),
+      version: 1,
+      versions: [],
+      sharedWith: [],
     });
 
     showToast(`Document "${createTitle.trim()}" published successfully`);
@@ -149,7 +153,7 @@ export default function DocumentsPage() {
     }
     setEditingDoc(doc);
     setEditTitle(doc.name);
-    setEditCategory(doc.type);
+    setEditCategory(doc.category || doc.type || 'contract');
     setEditDescription(doc.aiSummary || '');
     setEditTags(doc.tags?.join(', ') || '');
     setEditContent(doc.content || doc.keyClauses?.join('\n') || '');
@@ -180,7 +184,7 @@ export default function DocumentsPage() {
   const handleDeleteConfirm = () => {
     if (!deletingDoc) return;
     if (!canDelete) {
-      showToast('Permission Denied: Only Workspace Owners and Admins can delete documents.');
+      showToast('Permission Denied: Only Workspace Owners, Admins, and Managers can delete documents.');
       return;
     }
     deleteDocument(deletingDoc.id);
@@ -194,7 +198,11 @@ export default function DocumentsPage() {
   const filteredAndSortedDocs = useMemo(() => {
     return documents
       .filter((doc) => {
-        const matchCategory = activeCategory === 'all' || doc.type === activeCategory || (doc.category && doc.category.toLowerCase() === activeCategory.toLowerCase());
+        const docCategory = doc.category || doc.type || '';
+        const matchCategory = activeCategory === 'all' ||
+          doc.type === activeCategory ||
+          docCategory === activeCategory ||
+          docCategory.toLowerCase() === activeCategory.toLowerCase();
         const matchSearch =
           !searchQuery.trim() ||
           doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -204,26 +212,37 @@ export default function DocumentsPage() {
         return matchCategory && matchSearch;
       })
       .sort((a, b) => {
-        if (sortBy === 'updated_desc') return new Date(b.updated).getTime() - new Date(a.updated).getTime();
-        if (sortBy === 'updated_asc') return new Date(a.updated).getTime() - new Date(b.updated).getTime();
+        if (sortBy === 'updated_desc') {
+          const dateA = new Date(a.updated || 0).getTime();
+          const dateB = new Date(b.updated || 0).getTime();
+          return dateB - dateA;
+        }
+        if (sortBy === 'updated_asc') {
+          const dateA = new Date(a.updated || 0).getTime();
+          const dateB = new Date(b.updated || 0).getTime();
+          return dateA - dateB;
+        }
         if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
-        if (sortBy === 'size_desc') return (parseFloat(b.size) || 0) - (parseFloat(a.size) || 0);
+        if (sortBy === 'size_desc') return (parseFloat(b.size || '0') || 0) - (parseFloat(a.size || '0') || 0);
         return 0;
       });
   }, [documents, activeCategory, searchQuery, sortBy]);
 
   const getDocBadgeClass = (type: string) => {
-    switch (type) {
+    switch (type?.toLowerCase()) {
       case 'contract':
         return 'badge-brand';
       case 'proposal':
+      case 'sow':
         return 'badge-info';
       case 'technical':
       case 'spec':
+      case 'kickoff':
         return 'badge-warning';
       case 'hr':
         return 'badge-success';
       case 'design':
+      case 'knowledge':
         return 'badge-accent';
       default:
         return 'badge-neutral';
@@ -305,7 +324,10 @@ export default function DocumentsPage() {
           {DOCUMENT_CATEGORIES.map((cat) => {
             const count = cat.id === 'all'
               ? documents.length
-              : documents.filter((d) => d.type === cat.id || (d.category && d.category.toLowerCase() === cat.id)).length;
+              : documents.filter((d) => {
+                  const docCat = (d.category || d.type || '').toLowerCase();
+                  return docCat === cat.id.toLowerCase();
+                }).length;
             const isActive = activeCategory === cat.id;
 
             return (
@@ -472,8 +494,8 @@ export default function DocumentsPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-2)' }}>
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <span className={`badge ${getDocBadgeClass(doc.type)}`}>
-                      {doc.type.toUpperCase()}
+                    <span className={`badge ${getDocBadgeClass(doc.category || doc.type)}`}>
+                      {(doc.category || doc.type || 'general').toUpperCase()}
                     </span>
                     <span className="badge badge-neutral" style={{ fontSize: '9px', fontWeight: 800 }}>
                       v{doc.version || 1}
@@ -626,8 +648,8 @@ export default function DocumentsPage() {
                     )}
                   </td>
                   <td style={{ padding: '10px 14px' }}>
-                    <span className={`badge ${getDocBadgeClass(doc.type)}`}>
-                      {doc.type.toUpperCase()}
+                    <span className={`badge ${getDocBadgeClass(doc.category || doc.type)}`}>
+                      {(doc.category || doc.type || 'general').toUpperCase()}
                     </span>
                   </td>
                   <td style={{ padding: '10px 14px' }}>
@@ -700,8 +722,8 @@ export default function DocumentsPage() {
             >
               <div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px' }}>
-                  <span className={`badge ${getDocBadgeClass(previewDoc.type)}`}>
-                    {previewDoc.type.toUpperCase()}
+                  <span className={`badge ${getDocBadgeClass(previewDoc.category || previewDoc.type)}`}>
+                    {(previewDoc.category || previewDoc.type || 'general').toUpperCase()}
                   </span>
                   <span className="badge badge-neutral" style={{ fontSize: '10px' }}>
                     v{previewDoc.version || 1}
