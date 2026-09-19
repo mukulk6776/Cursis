@@ -59,23 +59,44 @@ export default function Footer() {
           </div>
 
           <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Security & Trust</div>
-            <Link href="/privacy" className="lp-footer-link">Privacy Policy</Link>
+            <div className="lp-footer-col-title">Legal & Compliance</div>
+            <Link href="/privacy-policy" className="lp-footer-link">Privacy Policy</Link>
             <Link href="/terms" className="lp-footer-link">Terms of Service</Link>
-            <a href="mailto:security@cursis.app" className="lp-footer-link">Security Center</a>
-            <span className="lp-footer-link" style={{ color: 'var(--c-gray-500)', cursor: 'default' }}>SOC-2 & GDPR Certified</span>
+            <Link href="/refund-policy" className="lp-footer-link">Refund Policy</Link>
+            <Link href="/cookie-policy" className="lp-footer-link">Cookie Policy</Link>
+            <Link href="/data-deletion" className="lp-footer-link">Data Deletion</Link>
+          </div>
+
+          <div className="lp-footer-col">
+            <div className="lp-footer-col-title">Contact & Support</div>
+            <a href="mailto:hello@cursis.app" className="lp-footer-link">hello@cursis.app</a>
+            <a href="mailto:support@cursis.app" className="lp-footer-link">Support Team</a>
+            <a href="mailto:privacy@cursis.app" className="lp-footer-link">Data Protection</a>
+            <a href="mailto:security@cursis.app" className="lp-footer-link">Security Team</a>
           </div>
         </div>
       </div>
 
       <div className="lp-footer-bottom">
-        <span>© 2026 Cursis Inc. All rights reserved.</span>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Link href="/privacy" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Privacy Policy</Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <span>© 2026 Cursis Inc. All rights reserved.</span>
+          <div style={{ fontSize: '11px', color: 'var(--c-gray-500)' }}>
+            <strong>Cursis Inc.</strong> • Registered Business Entity<br />
+            Address: Bengaluru, Karnataka, India<br />
+            CIN: [Company Registration Number] • GST: [GST Number]<br />
+            Email: <a href="mailto:legal@cursis.app" style={{ color: 'var(--c-gray-400)', textDecoration: 'underline' }}>legal@cursis.app</a>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', fontSize: '12px' }}>
+          <Link href="/privacy-policy" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Privacy</Link>
           <span style={{ color: 'var(--c-gray-500)' }}>•</span>
-          <Link href="/terms" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Terms of Service</Link>
+          <Link href="/terms" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Terms</Link>
           <span style={{ color: 'var(--c-gray-500)' }}>•</span>
-          <span>Engineered for mission-critical enterprise operations.</span>
+          <Link href="/cookie-policy" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Cookies</Link>
+          <span style={{ color: 'var(--c-gray-500)' }}>•</span>
+          <Link href="/refund-policy" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Refunds</Link>
+          <span style={{ color: 'var(--c-gray-500)' }}>•</span>
+          <Link href="/data-deletion" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Data Rights</Link>
         </div>
       </div>
     </footer>
