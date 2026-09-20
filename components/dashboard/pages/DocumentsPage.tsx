@@ -111,9 +111,13 @@ export default function DocumentsPage() {
       .map((t) => t.trim())
       .filter(Boolean);
 
+    const validType = ['proposal', 'knowledge', 'contract', 'design', 'hr', 'technical', 'generated'].includes(createCategory)
+      ? createCategory as 'proposal' | 'knowledge' | 'contract' | 'design' | 'hr' | 'technical' | 'generated'
+      : 'knowledge';
+
     addDocument({
       name: createTitle.trim(),
-      type: createCategory,
+      type: validType,
       size: createFileSize || '840 KB',
       author: user.name,
       project: 'p1',
@@ -123,7 +127,7 @@ export default function DocumentsPage() {
         'Governance & compliance verified',
         'Standard operational clauses active',
       ],
-      esignStatus: createCategory === 'contract' ? 'pending' : null,
+      esignStatus: validType === 'contract' ? 'pending' : null,
       fileType: createFileType || 'pdf',
       fileSize: createFileSize || '840 KB',
       category: createCategory,
@@ -168,9 +172,13 @@ export default function DocumentsPage() {
       .map((t) => t.trim())
       .filter(Boolean);
 
+    const validType = ['proposal', 'knowledge', 'contract', 'design', 'hr', 'technical', 'generated'].includes(editCategory)
+      ? editCategory as 'proposal' | 'knowledge' | 'contract' | 'design' | 'hr' | 'technical' | 'generated'
+      : editingDoc.type;
+
     updateDocument(editingDoc.id, {
       name: editTitle.trim() || editingDoc.name,
-      type: editCategory,
+      type: validType,
       aiSummary: editDescription.trim() || editingDoc.aiSummary,
       tags: parsedTags,
       keyClauses: editContent.trim() ? editContent.split('\n').filter(Boolean) : editingDoc.keyClauses,
