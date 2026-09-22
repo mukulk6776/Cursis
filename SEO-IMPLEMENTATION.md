@@ -242,7 +242,7 @@ Complete SEO optimization implementation to improve search rankings and organic 
    - Add page-specific OG images for resources & compare pages
 
 3. **Submit Sitemap**
-   - Submit to Google Search Console: `https://www.cursis.in/sitemap.xml`
+   - Submit to Google Search Console: `https://cursis.in/sitemap.xml`
    - Submit to Bing Webmaster Tools
 
 4. **Create Google Business Profile**

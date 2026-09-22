@@ -38,7 +38,7 @@ export default function PrivacyPolicyPage() {
         {/* Overview Box */}
         <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', padding: '24px 28px', marginBottom: '48px', backdropFilter: 'blur(12px)' }}>
           <p style={{ margin: 0, fontSize: '15px', lineHeight: 1.7, color: '#cbd5e1' }}>
-            At <strong>Cursis</strong> (operated by Cursis Inc., &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;), we are committed to safeguarding the privacy, integrity, and confidentiality of your personal and enterprise information. This Privacy Policy delineates how we collect, process, store, and protect information when you access <Link href="/" style={{ color: '#FF5500', textDecoration: 'underline' }}>www.cursis.in</Link> and our integrated business workspace applications.
+            At <strong>Cursis</strong> (operated by Cursis Inc., &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;), we are committed to safeguarding the privacy, integrity, and confidentiality of your personal and enterprise information. This Privacy Policy delineates how we collect, process, store, and protect information when you access <Link href="/" style={{ color: '#FF5500', textDecoration: 'underline' }}>cursis.in</Link> and our integrated business workspace applications.
           </p>
         </div>
 
@@ -152,7 +152,7 @@ export default function PrivacyPolicyPage() {
             <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '16px 20px', marginTop: '12px' }}>
               <p style={{ margin: '0 0 6px', color: '#ffffff', fontWeight: 600 }}>Cursis Security & Privacy Office</p>
               <p style={{ margin: '0 0 4px' }}>Email: <a href="mailto:privacy@cursis.app" style={{ color: '#FF5500' }}>privacy@cursis.app</a> / <a href="mailto:security@cursis.app" style={{ color: '#FF5500' }}>security@cursis.app</a></p>
-              <p style={{ margin: 0 }}>Website: <Link href="/" style={{ color: '#cbd5e1', textDecoration: 'underline' }}>https://www.cursis.in</Link></p>
+              <p style={{ margin: 0 }}>Website: <Link href="/" style={{ color: '#cbd5e1', textDecoration: 'underline' }}>https://cursis.in</Link></p>
             </div>
           </section>
         </div>

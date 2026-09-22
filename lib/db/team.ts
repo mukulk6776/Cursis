@@ -1,5 +1,6 @@
 import { inMemoryStore } from './store';
-import { UserProfile, UserRole, Workspace, WorkspaceMembership, WorkspaceTeamMember } from './types';
+import { UserProfile, UserRole, Workspace, WorkspaceMembership, WorkspaceTeamMember, MAX_TEAM_MEMBERS } from './types';
+export { MAX_TEAM_MEMBERS };
 import { getCollection } from '@/lib/mongodb';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
 
@@ -238,6 +239,22 @@ export async function addTeamMember(
     existingMem = Array.from(inMemoryStore.users.values()).find(
       (u) => u.email.toLowerCase() === cleanEmail
     ) || null;
+  }
+
+  const isAlreadyInWs = Boolean(
+    existingMem && (
+      (existingMem.workspaceIds && existingMem.workspaceIds.includes(workspaceId)) ||
+      existingMem.activeWorkspaceId === workspaceId
+    )
+  );
+
+  if (!isAlreadyInWs) {
+    const currentTeam = await getWorkspaceTeam(workspaceId);
+    if (currentTeam.length >= MAX_TEAM_MEMBERS) {
+      const err: any = new Error(`Workspace has reached the maximum team limit of ${MAX_TEAM_MEMBERS} members.`);
+      err.statusCode = 400;
+      throw err;
+    }
   }
 
   if (existingMem) {

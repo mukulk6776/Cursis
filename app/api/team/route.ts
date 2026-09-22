@@ -4,6 +4,7 @@ import {
   getWorkspaceTeam,
   removeTeamMember,
   updateTeamMember,
+  MAX_TEAM_MEMBERS,
 } from '@/lib/db/team';
 import {
   createTeamInvitation,
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
       getWorkspaceInvitations(workspaceId),
     ]);
 
-    return apiSuccess({ team, invitations });
+    return apiSuccess({ team, invitations, memberLimit: MAX_TEAM_MEMBERS });
   } catch (error: any) {
     return apiError(error.message || 'Failed to retrieve team members', 500);
   }

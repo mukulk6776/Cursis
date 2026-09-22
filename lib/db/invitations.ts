@@ -8,9 +8,11 @@ import {
   DbNotification,
   UserRole,
   Workspace,
+  MAX_TEAM_MEMBERS,
 } from './types';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { ensureWorkspaceExists } from './workspaces';
+import { getWorkspaceTeam } from './team';
 import { Resend } from 'resend';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -101,6 +103,25 @@ export async function createTeamInvitation(params: {
   if (!isAuthorized) {
     const err: any = new Error('Forbidden: Only Workspace Owners or Admins can send invitations.');
     err.statusCode = 403;
+    throw err;
+  }
+
+  // 1b. Check team capacity limit (max 10 members)
+  const currentTeam = await getWorkspaceTeam(workspaceId);
+  if (currentTeam.length >= MAX_TEAM_MEMBERS) {
+    const err: any = new Error(
+      `Workspace has reached the maximum team limit of ${MAX_TEAM_MEMBERS} members. You cannot send more invitations.`
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const pendingInvitations = await getWorkspaceInvitations(workspaceId);
+  if (currentTeam.length + pendingInvitations.length >= MAX_TEAM_MEMBERS) {
+    const err: any = new Error(
+      `Workspace team capacity limit reached (max ${MAX_TEAM_MEMBERS} members). Currently there are ${currentTeam.length} active member${currentTeam.length === 1 ? '' : 's'} and ${pendingInvitations.length} pending invitation${pendingInvitations.length === 1 ? '' : 's'}. Revoke a pending invitation or remove a member to invite more.`
+    );
+    err.statusCode = 400;
     throw err;
   }
 
@@ -436,6 +457,20 @@ export async function acceptWorkspaceInvitation(
   }
 
   const workspaceId = invitation.workspaceId;
+
+  // Check team member limit before accepting
+  const currentTeam = await getWorkspaceTeam(workspaceId);
+  const isAlreadyMember = currentTeam.some(
+    (m) => m.id === actingUser.uid || m.uid === actingUser.uid || (m.email && m.email.toLowerCase() === actingUser.email.toLowerCase())
+  );
+  if (!isAlreadyMember && currentTeam.length >= MAX_TEAM_MEMBERS) {
+    const err: any = new Error(
+      `This workspace has reached its maximum capacity of ${MAX_TEAM_MEMBERS} members. Please contact the workspace owner.`
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+
   const role: UserRole = (invitation.workspaceRole as UserRole) || 'member';
   const now = new Date().toISOString();
   const membershipId = `mem_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;

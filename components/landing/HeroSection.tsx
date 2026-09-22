@@ -84,7 +84,7 @@ export default function HeroSection() {
         </motion.div>
 
         <motion.h1 className="lp-hero-title" variants={line}>
-          Autonomous Workspaces.<br />
+          Cursis — Autonomous AI Workplace &amp; Agency OS.<br />
           <span className="tano-hero-marker">Parse. Rebalance. Execute.</span><br />
           Not Just Chat. Real Actions.
         </motion.h1>

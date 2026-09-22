@@ -76,14 +76,14 @@ export const INITIAL_WORKSPACE_SUMMARY: WorkspaceSummary = {
 
 // ---- Current User (Placeholder for Unauthenticated / SSR Fallback) ----
 export const INITIAL_USER: User = {
- id: 'u_member',
- name: 'Workspace Member',
- initials: 'WM',
- email: 'user@cursis.io',
- role: 'User',
- avatar: null,
- color: '#0f4cff',
- workspaceRole: 'member',
+  id: 'u_owner',
+  name: 'Workspace Owner',
+  initials: 'WO',
+  email: 'owner@cursis.io',
+  role: 'Workspace Owner',
+  avatar: null,
+  color: '#0f4cff',
+  workspaceRole: 'owner',
 };
 
 // ---- Functional Settings Defaults ----

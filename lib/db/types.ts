@@ -5,6 +5,8 @@ export type WorkspaceTier = 'free' | 'paid';
 export type OrdisMode = 'chill' | 'full_power'; // Chill Mode = Free (Cards/Approval), Full Power = Paid (Autonomous)
 export type UserRole = 'owner' | 'admin' | 'manager' | 'member' | 'guest' | 'client';
 
+export const MAX_TEAM_MEMBERS = 10;
+
 // ==========================================
 // 1. WORKSPACE CORE MODULE
 // ==========================================

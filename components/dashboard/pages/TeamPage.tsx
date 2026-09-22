@@ -80,13 +80,13 @@ export default function TeamPage() {
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: '4px',
-                background: 'var(--c-surface)',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border-color)',
+                background: employees.length >= 10 ? 'rgba(239, 68, 68, 0.1)' : 'var(--c-surface)',
+                color: employees.length >= 10 ? 'var(--c-error)' : 'var(--text-secondary)',
+                border: `1px solid ${employees.length >= 10 ? 'var(--c-error)' : 'var(--border-color)'}`,
                 textTransform: 'uppercase',
               }}
             >
-              {employees.length} members
+              {employees.length} / 10 members {employees.length >= 10 ? '• Limit Reached' : ''}
             </span>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
@@ -97,14 +97,43 @@ export default function TeamPage() {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
             type="button"
-            className="btn btn-primary btn-sm"
+            className={`btn ${employees.length >= 10 ? 'btn-secondary' : 'btn-primary'} btn-sm`}
             onClick={() => openModal('invite-modal')}
             style={{ fontWeight: 700 }}
+            title={employees.length >= 10 ? 'Team limit reached (max 10 members)' : undefined}
           >
-            + Invite Member
+            + Invite Member {employees.length >= 10 ? '(Max 10)' : ''}
           </button>
         </div>
       </div>
+
+      {employees.length >= 10 && (
+        <div
+          style={{
+            padding: '10px 16px',
+            marginBottom: 'var(--sp-4)',
+            borderRadius: '8px',
+            background: 'rgba(239, 68, 68, 0.08)',
+            border: '1px solid var(--c-error)',
+            color: 'var(--c-error)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>⚠️</span>
+            <span>
+              <strong>Team limit reached (10 / 10 members):</strong> This workspace is at maximum member capacity. Remove a member before inviting someone new.
+            </span>
+          </div>
+          <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '4px', background: 'var(--c-error)', color: '#fff' }}>
+            Max Limit
+          </span>
+        </div>
+      )}
 
       {/* Navigation Controls & Filters */}
       <div

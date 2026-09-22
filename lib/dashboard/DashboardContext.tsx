@@ -815,8 +815,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  .substring(0, 2) || 'CU';
 
         const isFounder = isFounderEmail(sessUser.email);
-        const userRoleTitle = isFounder ? 'Founder & CEO' : (sessUser.title || 'User');
-        const userWorkspaceRole = isFounder ? 'owner' : (sessUser.role === 'owner' ? 'member' : (sessUser.role || 'member'));
+        const isOwner = isFounder || sessUser.role === 'owner' || sessUser.workspaceRole === 'owner';
+        const userRoleTitle = isFounder ? 'Founder & CEO' : (sessUser.title || (isOwner ? 'Workspace Owner' : 'Team Member'));
+        const userWorkspaceRole = isOwner ? 'owner' : (sessUser.workspaceRole || sessUser.role || 'owner');
         const userDept = isFounder ? 'Leadership' : (sessUser.department || 'Engineering');
         const userDeptId = isFounder ? 'dept_leadership' : ('dept_' + userDept.toLowerCase().replace(/\s+/g, '_'));
         const userSkills = isFounder ? ['Strategy', 'Leadership', 'Architecture'] : (sessUser.skills || ['General']);
@@ -832,6 +833,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           color: isFounder ? '#0f4cff' : '#f59e0b',
           photoURL: sessUser.photoURL,
           planTier: userPlanTier,
+          workspaceRole: userWorkspaceRole,
         };
 
         setUser(activeUser);
@@ -1647,9 +1649,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }).catch((err) => console.warn('Meeting delete persist notice:', err));
  };
 
- // ---- Employee & Team Mutations ----
- const addEmployee = (empData: Partial<Employee> & { name: string; role: string; department: string }) => {
- const initials = empData.name
+  // ---- Employee & Team Mutations ----
+  const addEmployee = (empData: Partial<Employee> & { name: string; role: string; department: string }) => {
+    if (employees.length >= 10) {
+      showToast('Workspace team member limit reached (max 10 members)');
+      return;
+    }
+
+    const initials = empData.name
  .split(' ')
  .filter(Boolean)
  .map((n) => n[0])
@@ -1998,6 +2005,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   };
 
   const sendInvitation = async (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard'; note?: string }) => {
+    const pendingCount = invitations.filter((i) => i.status === 'pending').length;
+    if (employees.length >= 10) {
+      showToast('Workspace team member limit reached (max 10 members)');
+      return;
+    }
+    if (employees.length + pendingCount >= 10) {
+      showToast(`Cannot send invite: workspace is at capacity (${employees.length} members + ${pendingCount} pending invites = 10 max)`);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/workspaces/${activeWorkspaceId}/invitations`, {
         method: 'POST',
@@ -2458,6 +2475,29 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setDocuments((prev) => [newDoc, ...prev]);
     addAuditEntry(user.name, 'document.generated', newDoc.name, 'Generated document via paperwork engine');
     showToast(`Document "${newDoc.name}" added `);
+
+    const effectiveWsId = (activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public')
+      ? activeWorkspaceId
+      : (workspaces?.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || 'ws_' + user.id);
+
+    try {
+      fetch('/api/documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspaceId: effectiveWsId,
+          title: newDoc.name,
+          category: newDoc.category || newDoc.type,
+          tags: newDoc.tags,
+          projectId: newDoc.project,
+          fileType: newDoc.fileType,
+          fileSize: newDoc.fileSize || newDoc.size,
+          fileUrl: newDoc.fileUrl,
+          content: docData.content || '',
+          summary: newDoc.aiSummary,
+        }),
+      }).catch((e) => console.warn('Document POST notice:', e));
+    } catch {}
   };
 
   const updateDocument = (id: string, updates: Partial<DocumentItem>) => {

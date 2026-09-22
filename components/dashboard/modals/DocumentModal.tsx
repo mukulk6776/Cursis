@@ -17,6 +17,11 @@ export default function DocumentModal() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('File size exceeds the 5MB maximum limit.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
       setSelectedFile(file);
       if (!title) {
         setTitle(file.name);
@@ -140,7 +145,7 @@ export default function DocumentModal() {
                       Click to select file from your device
                     </div>
                     <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: 'var(--sp-1)' }}>
-                      Supports PDF, DOCX, XLSX, CSV, and images
+                      Supports PDF, DOCX, XLSX, CSV, and images (Max 5MB)
                     </div>
                   </div>
                 )}

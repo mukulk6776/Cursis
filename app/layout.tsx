@@ -16,17 +16,21 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.cursis.in'),
+  metadataBase: new URL('https://cursis.in'),
   title: {
-    default: 'Cursis — Autonomous Workspace Platform with AI-Powered Ordis Intelligence',
+    default: 'Cursis — Autonomous AI Workplace & Agency OS',
     template: '%s | Cursis',
   },
   description:
-    'Cursis is an autonomous workspace platform powered by Ordis AI. Manage teams, projects, tasks, documents, and workflows with proactive AI that takes real actions. SOC 2 certified, 99.99% SLA uptime. Join 1,250+ teams.',
+    'Cursis is an autonomous AI workplace and agency operating system powered by Ordis AI. Manage teams, projects, tasks, documents, and workflows with proactive AI that takes real actions. SOC 2 certified, 99.99% SLA uptime.',
   keywords: [
+    'Cursis',
+    'Ordis AI',
+    'Autonomous Workplace',
+    'Agency Operating System',
+    'Somba Neo-Brutalist UI',
     'autonomous workspace',
     'AI workspace management',
-    'Ordis AI',
     'project management software',
     'team collaboration platform',
     'workflow automation',
@@ -38,9 +42,9 @@ export const metadata: Metadata = {
     'sprint management',
     'document management system',
   ],
-  authors: [{ name: 'Cursis Team', url: 'https://www.cursis.in' }],
-  creator: 'Cursis',
-  publisher: 'Cursis',
+  authors: [{ name: 'Cursis Inc.', url: 'https://cursis.in' }],
+  creator: 'Cursis Inc.',
+  publisher: 'Cursis Inc.',
   formatDetection: {
     email: false,
     address: false,
@@ -54,23 +58,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://www.cursis.in',
+    url: 'https://cursis.in',
     siteName: 'Cursis',
-    title: 'Cursis — Autonomous Workspace Platform with AI-Powered Ordis Intelligence',
+    title: 'Cursis — Autonomous AI Workplace & Agency OS',
     description:
-      'Autonomous workspace management with Ordis AI. Proactive workload balancing, risk detection, and autonomous actions. SOC 2 certified. 99.99% SLA uptime.',
+      'Cursis is an autonomous AI workplace and agency operating system powered by Ordis AI. Manage teams, projects, tasks, documents, and workflows with proactive AI that takes real actions. SOC 2 certified. 99.99% SLA uptime.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Cursis Autonomous Workspace Platform',
+        alt: 'Cursis — Autonomous AI Workplace & Agency OS',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Cursis — Autonomous Workspace Platform',
+    title: 'Cursis — Autonomous AI Workplace & Agency OS',
     description: 'AI-powered workspace with Ordis autonomous intelligence. Real actions, not just chat.',
     images: ['/og-image.png'],
     creator: '@cursis',
@@ -87,12 +91,29 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://www.cursis.in',
+    canonical: 'https://cursis.in',
   },
   verification: {
     google: 'your-google-verification-code',
-    // yandex: 'your-yandex-verification-code',
-    // bing: 'your-bing-verification-code',
+  },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Cursis',
+  operatingSystem: 'Web',
+  applicationCategory: 'BusinessApplication',
+  url: 'https://cursis.in',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  author: {
+    '@type': 'Organization',
+    name: 'Cursis Inc.',
+    location: 'Bengaluru, Karnataka, India',
   },
 };
 
@@ -103,6 +124,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.className} antialiased min-h-screen`}>
         {children}
         <CookieConsent />

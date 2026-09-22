@@ -3,9 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { DocumentItem } from '@/lib/dashboard/types';
+import { isFounderEmail } from '@/lib/auth/founder';
 
 const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'txt', 'md', 'csv', 'json', 'xlsx', 'pptx', 'png', 'jpg', 'jpeg'];
-const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 const DOCUMENT_CATEGORIES = [
   { id: 'all', label: 'All Documents' },
@@ -59,9 +60,17 @@ export default function DocumentsPage() {
   const [editContent, setEditContent] = useState('');
 
   // Role-Based Access Control (RBAC)
-  const role = user.workspaceRole || 'member';
-  const canManage = ['owner', 'admin', 'manager'].includes(role);
-  const canDelete = ['owner', 'admin', 'manager'].includes(role);
+  const isOwner =
+    isFounderEmail(user.email) ||
+    user.workspaceRole === 'owner' ||
+    user.role?.toLowerCase().includes('owner') ||
+    user.role?.toLowerCase().includes('founder') ||
+    user.role?.toLowerCase().includes('ceo') ||
+    user.id === 'u_owner';
+
+  const role = isOwner ? 'owner' : (user.workspaceRole || 'member');
+  const canManage = isOwner || ['owner', 'admin', 'manager'].includes(role) || ['owner', 'admin', 'manager'].includes(user.workspaceRole || '');
+  const canDelete = isOwner || ['owner', 'admin', 'manager'].includes(role) || ['owner', 'admin', 'manager'].includes(user.workspaceRole || '');
 
   // File Upload Handler with Validation Rules
   const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,9 +78,9 @@ export default function DocumentsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 1. File Size Validation (<= 25MB)
+    // 1. File Size Validation (<= 5MB)
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setCreateFileError(`File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum limit of 25MB.`);
+      setCreateFileError(`File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum limit of 5MB.`);
       return;
     }
 
@@ -895,7 +904,7 @@ export default function DocumentsPage() {
               <div>
                 <span className="modal-title">Upload &amp; Register Document</span>
                 <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                  Authorized formats: PDF, DOCX, TXT, MD, CSV, JSON, XLSX, PPTX, PNG (Max 25MB)
+                  Authorized formats: PDF, DOCX, TXT, MD, CSV, JSON, XLSX, PPTX, PNG (Max 5MB)
                 </div>
               </div>
               <button className="modal-close" onClick={() => setShowCreateModal(false)}>

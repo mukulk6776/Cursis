@@ -1,7 +1,8 @@
 import { getCollection } from '@/lib/mongodb';
 import { inMemoryStore } from '@/lib/db/store';
-import { UserRole, Workspace, WorkspaceMembership, WorkspaceTeamMember } from '@/lib/db/types';
+import { UserRole, Workspace, WorkspaceMembership, WorkspaceTeamMember, UserProfile } from '@/lib/db/types';
 import { getAuthenticatedUser, AuthenticatedUser } from '@/lib/auth/session';
+import { isFounderEmail } from '@/lib/auth/founder';
 import { apiError } from '@/lib/api/response';
 import { NextResponse } from 'next/server';
 
@@ -9,24 +10,30 @@ import { NextResponse } from 'next/server';
  * Resolves the effective workspace-specific role for a user.
  * Returns 'owner' | 'admin' | 'manager' | 'member' | 'guest' | 'client' | null (if not a member).
  */
-export async function getUserWorkspaceRole(userId: string, workspaceId: string): Promise<UserRole | null> {
+export async function getUserWorkspaceRole(userId: string, workspaceId: string, email?: string): Promise<UserRole | null> {
   const cleanUid = (userId || '').trim();
   const cleanWsId = (workspaceId || '').trim();
+  const cleanEmail = (email || '').trim().toLowerCase();
 
-  if (!cleanUid || !cleanWsId) return null;
+  if (!cleanUid) return null;
 
-  // 1. Direct personal workspace matching (ws_<uid>)
-  if (cleanWsId === `ws_${cleanUid}`) {
+  // Sovereign Founder is ALWAYS Owner
+  if (cleanEmail && isFounderEmail(cleanEmail)) {
     return 'owner';
   }
 
-  // 2. Check MongoDB workspaces collection
+  // 1. Direct personal or default workspace matching
+  if (cleanWsId === `ws_${cleanUid}` || !cleanWsId || cleanWsId === 'ws_default' || cleanWsId === 'ws_public') {
+    return 'owner';
+  }
+
+  // 2. Check MongoDB workspaces collection for ownership
   try {
     const wsCol = await getCollection<Workspace>('workspaces');
     if (wsCol) {
       const wsDoc = await wsCol.findOne({ id: cleanWsId });
       if (wsDoc) {
-        if (wsDoc.ownerId === cleanUid) {
+        if (wsDoc.ownerId === cleanUid || (cleanEmail && (wsDoc as any).ownerEmail?.toLowerCase() === cleanEmail)) {
           return 'owner';
         }
       }
@@ -66,14 +73,33 @@ export async function getUserWorkspaceRole(userId: string, workspaceId: string):
 
   // 5. In-Memory Store checks
   const memWs = inMemoryStore.workspaces.get(cleanWsId);
-  if (memWs && memWs.ownerId === cleanUid) {
+  if (memWs && (memWs.ownerId === cleanUid || (cleanEmail && (memWs as any).ownerEmail?.toLowerCase() === cleanEmail))) {
     return 'owner';
   }
 
   const memUser = inMemoryStore.users.get(cleanUid);
-  if (memUser && Array.isArray(memUser.workspaceIds) && memUser.workspaceIds.includes(cleanWsId)) {
-    return (memUser.role as UserRole) || 'member';
+  if (memUser) {
+    if (isFounderEmail(memUser.email)) return 'owner';
+    if (memUser.role === 'owner') return 'owner';
+    if (Array.isArray(memUser.workspaceIds) && memUser.workspaceIds.includes(cleanWsId)) {
+      return (memUser.role as UserRole) || 'member';
+    }
   }
+
+  // 6. Check MongoDB users collection
+  try {
+    const userCol = await getCollection<UserProfile>('users');
+    if (userCol) {
+      const uDoc = await userCol.findOne({ $or: [{ id: cleanUid }, { uid: cleanUid }] });
+      if (uDoc) {
+        if (isFounderEmail(uDoc.email)) return 'owner';
+        if (uDoc.role === 'owner') return 'owner';
+        if (Array.isArray(uDoc.workspaceIds) && uDoc.workspaceIds.includes(cleanWsId)) {
+          return (uDoc.role as UserRole) || 'member';
+        }
+      }
+    }
+  } catch {}
 
   return null;
 }
@@ -81,8 +107,8 @@ export async function getUserWorkspaceRole(userId: string, workspaceId: string):
 /**
  * Checks whether a user is an active member of the specified workspace.
  */
-export async function isWorkspaceMember(userId: string, workspaceId: string): Promise<boolean> {
-  const role = await getUserWorkspaceRole(userId, workspaceId);
+export async function isWorkspaceMember(userId: string, workspaceId: string, email?: string): Promise<boolean> {
+  const role = await getUserWorkspaceRole(userId, workspaceId, email);
   return role !== null;
 }
 
@@ -115,16 +141,26 @@ export async function authorizeWorkspaceAccess(
     };
   }
 
-  const cleanWsId = (workspaceId || '').trim();
-  if (!cleanWsId) {
+  // Sovereign Founder is ALWAYS Owner with full access
+  if (isFounderEmail(authUser.email)) {
     return {
-      user: null,
-      role: null,
-      errorResponse: apiError('Bad Request: Workspace context is required.', 400),
+      user: authUser,
+      role: 'owner',
+      errorResponse: null,
     };
   }
 
-  const role = await getUserWorkspaceRole(authUser.uid, cleanWsId);
+  const cleanWsId = (workspaceId || '').trim();
+  const effectiveWsId =
+    cleanWsId && cleanWsId !== 'ws_default' && cleanWsId !== 'ws_public'
+      ? cleanWsId
+      : authUser.workspaceId || `ws_${authUser.uid}`;
+
+  let role = await getUserWorkspaceRole(authUser.uid, effectiveWsId, authUser.email);
+  if (!role && authUser.role === 'owner') {
+    role = 'owner';
+  }
+
   if (!role) {
     return {
       user: null,

@@ -48,8 +48,8 @@ export function generateOrganizationSchema() {
       worstRating: '1',
     },
     description: 'Autonomous workspace platform with AI-powered Ordis intelligence for enterprise teams',
-    url: 'https://www.cursis.in',
-    logo: 'https://www.cursis.in/icon.png',
+    url: 'https://cursis.in',
+    logo: 'https://cursis.in/icon.png',
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Support',
@@ -121,20 +121,20 @@ export function generateArticleSchema(
     '@type': 'Article',
     headline: title,
     description,
-    image: image || 'https://www.cursis.in/og-image.png',
+    image: image || 'https://cursis.in/og-image.png',
     datePublished,
     dateModified,
     author: {
       '@type': 'Organization',
       name: authorName,
-      url: 'https://www.cursis.in',
+      url: 'https://cursis.in',
     },
     publisher: {
       '@type': 'Organization',
       name: 'Cursis',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.cursis.in/icon.png',
+        url: 'https://cursis.in/icon.png',
       },
     },
   };

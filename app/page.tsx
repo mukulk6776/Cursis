@@ -1,16 +1,19 @@
 import React from 'react';
 import LandingPage from '@/components/landing/LandingPage';
-import { generateOrganizationSchema } from '@/lib/seo/schema';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Cursis — Autonomous Workspace Platform with AI-Powered Ordis Intelligence',
+  title: 'Cursis — Autonomous AI Workplace & Agency OS',
   description:
-    'Transform your team productivity with Cursis autonomous workspace. Ordis AI proactively detects bottlenecks, rebalances workloads, and takes real actions. SOC 2 certified. 99.99% SLA uptime. Join 1,250+ teams.',
+    'Transform your team productivity with Cursis autonomous AI workplace and agency operating system. Ordis AI proactively detects bottlenecks, rebalances workloads, and takes real actions. SOC 2 certified. 99.99% SLA uptime. Join 1,250+ teams.',
   keywords: [
+    'Cursis',
+    'Ordis AI',
+    'Autonomous Workplace',
+    'Agency Operating System',
+    'Somba Neo-Brutalist UI',
     'autonomous workspace',
     'AI workspace management',
-    'Ordis AI',
     'project management software',
     'team collaboration platform',
     'workflow automation',
@@ -20,27 +23,43 @@ export const metadata: Metadata = {
     'sprint management tool',
   ],
   openGraph: {
-    title: 'Cursis — Autonomous Workspace Platform',
-    description: 'AI-powered workspace with Ordis autonomous intelligence. Real actions, not just chat.',
+    title: 'Cursis — Autonomous AI Workplace & Agency OS',
+    description: 'Cursis — Autonomous AI Workplace & Agency OS powered by Ordis AI.',
     type: 'website',
-    url: 'https://www.cursis.in',
+    url: 'https://cursis.in',
   },
   alternates: {
-    canonical: 'https://www.cursis.in',
+    canonical: 'https://cursis.in',
+  },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Cursis',
+  operatingSystem: 'Web',
+  applicationCategory: 'BusinessApplication',
+  url: 'https://cursis.in',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  author: {
+    '@type': 'Organization',
+    name: 'Cursis Inc.',
+    location: 'Bengaluru, Karnataka, India',
   },
 };
 
 export default function MainPage() {
-  const organizationSchema = generateOrganizationSchema();
-
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <LandingPage />
     </>
   );
 }
-

@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     title: 'Resources & Learning Center — Cursis',
     description: 'Case studies, guides, and expert insights for autonomous workspace management',
     type: 'website',
-    url: 'https://www.cursis.in/resources',
+    url: 'https://cursis.in/resources',
   },
   alternates: {
-    canonical: 'https://www.cursis.in/resources',
+    canonical: 'https://cursis.in/resources',
   },
 };
 

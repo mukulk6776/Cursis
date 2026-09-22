@@ -4,7 +4,7 @@ import { getDocuments, getDocumentById, createDocument, updateDocument, deleteDo
 
 // Allowed document file extensions
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'doc', 'txt', 'md', 'csv', 'json', 'xlsx', 'pptx', 'png', 'jpg', 'jpeg']);
-const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 function validateFileMetadata(fileType?: string, fileSize?: number | string): string | null {
   if (fileType) {
@@ -29,7 +29,7 @@ function validateFileMetadata(fileType?: string, fileSize?: number | string): st
       }
     }
     if (sizeBytes > MAX_FILE_SIZE_BYTES) {
-      return `File size exceeds the 25MB maximum limit (${(sizeBytes / (1024 * 1024)).toFixed(1)}MB provided).`;
+      return `File size exceeds the 5MB maximum limit (${(sizeBytes / (1024 * 1024)).toFixed(1)}MB provided).`;
     }
   }
   return null;
@@ -38,12 +38,14 @@ function validateFileMetadata(fileType?: string, fileSize?: number | string): st
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || '';
+    const rawWsId = searchParams.get('workspaceId') || '';
 
-    const auth = await authorizeWorkspaceAccess(request, workspaceId);
+    const auth = await authorizeWorkspaceAccess(request, rawWsId);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const resolvedWsId = workspaceId || auth.user.workspaceId;
+    const resolvedWsId = rawWsId && rawWsId !== 'ws_default' && rawWsId !== 'ws_public'
+      ? rawWsId
+      : auth.user.workspaceId || `ws_${auth.user.uid}`;
     const category = searchParams.get('category') || undefined;
     const projectId = searchParams.get('projectId') || undefined;
     const query = (searchParams.get('q') || '').toLowerCase().trim();
@@ -69,14 +71,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || '';
+    const rawWsId = body.workspaceId || '';
 
     // Only owner, admin, manager can create documents
-    const auth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin', 'manager']);
+    const auth = await authorizeWorkspaceAccess(request, rawWsId, ['owner', 'admin', 'manager']);
     if (auth.errorResponse) return auth.errorResponse;
     const authUser = auth.user;
 
-    const resolvedWsId = workspaceId || authUser.workspaceId;
+    const resolvedWsId = rawWsId && rawWsId !== 'ws_default' && rawWsId !== 'ws_public'
+      ? rawWsId
+      : authUser.workspaceId || `ws_${authUser.uid}`;
     const title = (body.title || body.name || '').trim();
     if (!title) return apiError('Validation Error: Document title is required.', 400);
 

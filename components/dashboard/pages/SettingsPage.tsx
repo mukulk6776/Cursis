@@ -455,17 +455,30 @@ export default function SettingsPage() {
  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
  {/* Member List */}
  <div className="card" style={{ padding: 'var(--sp-5)' }}>
- <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
- <div>
- <h3 style={{ fontSize: 'var(--fs-base)', fontWeight: 'var(--fw-bold)' }}>Active Team Members ({employees.length})</h3>
- <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
- Manage access, adjust permission roles, or inspect workloads.
- </p>
- </div>
- <button type="button" className="btn btn-primary btn-sm" onClick={() => openModal('invite-modal')}>
- + Invite New Member
- </button>
- </div>
+ <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: 'var(--fs-base)', fontWeight: 'var(--fw-bold)', margin: 0 }}>
+                Active Team Members ({employees.length} / 10)
+              </h3>
+              {employees.length >= 10 && (
+                <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--c-error)', border: '1px solid var(--c-error)', textTransform: 'uppercase' }}>
+                  Limit Reached
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+              Manage access, adjust permission roles, or inspect workloads. Max 10 team members per workspace.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={`btn ${employees.length >= 10 ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+            onClick={() => openModal('invite-modal')}
+            title={employees.length >= 10 ? 'Team limit reached (max 10 members)' : undefined}
+          >
+            + Invite New Member {employees.length >= 10 ? '(Max 10)' : ''}
+          </button>
+        </div>
 
  <div style={{ overflowX: 'auto' }}>
  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-sm)' }}>

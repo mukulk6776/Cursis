@@ -21,10 +21,10 @@ export const metadata: Metadata = {
     title: 'Cursis vs Competitors — Complete Feature Comparison',
     description: 'See why teams choose Cursis over Asana, Monday.com, and ClickUp',
     type: 'article',
-    url: 'https://www.cursis.in/compare',
+    url: 'https://cursis.in/compare',
   },
   alternates: {
-    canonical: 'https://www.cursis.in/compare',
+    canonical: 'https://cursis.in/compare',
   },
 };
 

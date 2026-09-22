@@ -38,7 +38,7 @@ export default function TermsPage() {
         {/* Overview Box */}
         <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', padding: '24px 28px', marginBottom: '48px', backdropFilter: 'blur(12px)' }}>
           <p style={{ margin: 0, fontSize: '15px', lineHeight: 1.7, color: '#cbd5e1' }}>
-            These Terms of Service (&quot;Terms&quot;) govern your access to and utilization of Cursis (&quot;Platform&quot;), including website services available at <Link href="/" style={{ color: '#FF5500', textDecoration: 'underline' }}>www.cursis.in</Link>. By registering, creating a workspace, or accessing our software, you agree to be bound by these Terms and our <Link href="/privacy" style={{ color: '#FF5500', textDecoration: 'underline' }}>Privacy Policy</Link>.
+            These Terms of Service (&quot;Terms&quot;) govern your access to and utilization of Cursis (&quot;Platform&quot;), including website services available at <Link href="/" style={{ color: '#FF5500', textDecoration: 'underline' }}>cursis.in</Link>. By registering, creating a workspace, or accessing our software, you agree to be bound by these Terms and our <Link href="/privacy" style={{ color: '#FF5500', textDecoration: 'underline' }}>Privacy Policy</Link>.
           </p>
         </div>
 
