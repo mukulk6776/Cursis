@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: ['/', '/login', '/signup'],
       disallow: ['/api/', '/dashboard/'],
     },
-    sitemap: 'https://cursis.in',
+    sitemap: 'https://cursis.in/sitemap.xml',
   };
 }

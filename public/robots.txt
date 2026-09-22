@@ -5,4 +5,4 @@ Allow: /signup
 Disallow: /api/
 Disallow: /dashboard/
 
-Sitemap: https://cursis.in
+Sitemap: https://cursis.in/sitemap.xml
