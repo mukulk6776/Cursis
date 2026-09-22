@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="lp-footer-inner">
         <div className="lp-footer-brand">
           <div className="lp-footer-logo">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="28" height="28">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="28" height="28" role="img" aria-label="Cursis Logo">
               <path
                 d="M 545 240 A 282 282 0 1 0 782 566"
                 stroke="#ffffff"
@@ -49,6 +49,8 @@ export default function Footer() {
             <a href="#features" className="lp-footer-link">Core Architecture</a>
             <a href="#ordis" className="lp-footer-link">Ordis Intelligence</a>
             <a href="#problem" className="lp-footer-link">Stack Comparison</a>
+            <Link href="/resources" className="lp-footer-link">Resources &amp; Guides</Link>
+            <Link href="/compare" className="lp-footer-link">Cursis vs Competitors</Link>
           </div>
 
           <div className="lp-footer-col">
@@ -59,8 +61,8 @@ export default function Footer() {
           </div>
 
           <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Legal & Compliance</div>
-            <Link href="/privacy-policy" className="lp-footer-link">Privacy Policy</Link>
+            <div className="lp-footer-col-title">Legal &amp; Compliance</div>
+            <Link href="/privacy" className="lp-footer-link">Privacy Policy</Link>
             <Link href="/terms" className="lp-footer-link">Terms of Service</Link>
             <Link href="/refund-policy" className="lp-footer-link">Refund Policy</Link>
             <Link href="/cookie-policy" className="lp-footer-link">Cookie Policy</Link>
@@ -88,7 +90,7 @@ export default function Footer() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', fontSize: '12px' }}>
-          <Link href="/privacy-policy" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Privacy</Link>
+          <Link href="/privacy" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Privacy</Link>
           <span style={{ color: 'var(--c-gray-500)' }}>•</span>
           <Link href="/terms" className="lp-footer-link" style={{ textDecoration: 'underline' }}>Terms</Link>
           <span style={{ color: 'var(--c-gray-500)' }}>•</span>

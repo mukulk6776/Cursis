@@ -98,7 +98,7 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
+const softwareSchema = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
   name: 'Cursis',
@@ -117,6 +117,31 @@ const jsonLd = {
   },
 };
 
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Cursis',
+  alternateName: ['Cursis AI', 'Cursis Workplace', 'Cursis Agency OS'],
+  url: 'https://cursis.in',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://cursis.in/resources?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Cursis Inc.',
+  url: 'https://cursis.in',
+  logo: 'https://cursis.in/icon.png',
+  sameAs: [
+    'https://twitter.com/cursis',
+    'https://github.com/mukulk6776/Cursis',
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -127,7 +152,15 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
       <body className={`${inter.className} antialiased min-h-screen`}>
