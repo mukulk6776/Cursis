@@ -77,6 +77,9 @@ import { isFounderEmail } from '@/lib/auth/founder';
 interface ToastItem {
  id: string;
  message: string;
+ type?: 'success' | 'error' | 'warning' | 'info';
+ action?: { label: string; onClick: () => void };
+ duration?: number; // ms, defaults to 4000
 }
 
 interface GenericModalState {
@@ -753,7 +756,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         if (mtgRes.ok) {
           const mtgData = await mtgRes.json();
           const serverMtgs = mtgData.data?.meetings || mtgData.meetings;
-          if (Array.isArray(serverMtgs) && serverMtgs.length > 0) {
+          if (Array.isArray(serverMtgs)) {
             const mappedMtgs: Meeting[] = serverMtgs.map((m: any) => ({
               id: m.id,
               name: m.title || m.name || 'Meeting',
@@ -2138,13 +2141,50 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  ordisSettings,
  };
 
- const applyResult = (result: any, source: 'groq' | 'local_fallback') => {
+ const applyResult = async (result: any, source: 'groq' | 'local_fallback') => {
  setChatHistory((prev) => prev.filter((m) => !m.typing));
  setAiEngineStatus(source);
 
  // In-app navigation if requested
  if (result.navigateToPage) {
  setCurrentPage(result.navigateToPage);
+ }
+
+ // Reload authoritative records after all actions, including partial successes.
+ if (result.refreshWorkspace) {
+   await syncTeamAndNotifications(activeWorkspaceId);
+   const token = localStorage.getItem('cursis_token');
+   const read = async (resource: string) => {
+     const response = await fetch(`/api/${resource}?workspaceId=${encodeURIComponent(activeWorkspaceId)}`, {
+       credentials: 'include', headers: token ? { Authorization: `Bearer ${token}` } : {},
+     });
+     if (!response.ok) throw new Error(`Could not refresh ${resource}`);
+     return (await response.json()).data;
+   };
+   const refreshed = await Promise.allSettled([read('projects'), read('documents'), read('automations'), read('crm/deals')]);
+   const projectData = refreshed[0].status === 'fulfilled' ? refreshed[0].value : null;
+   if (Array.isArray(projectData?.projects)) setProjects(projectData.projects.map((p: any) => ({
+     id: p.id, name: p.name, icon: 'folder', color: '#0f4cff', desc: p.description || '',
+     progress: p.progressPercent || 0, status: p.status || 'Planning', deadline: p.deadline || '',
+     team: p.teamMemberIds || [], tasks: p.taskCount || 0, completed: p.completedTaskCount || 0,
+   })));
+   const documentData = refreshed[1].status === 'fulfilled' ? refreshed[1].value : null;
+   if (Array.isArray(documentData?.documents)) setDocuments(documentData.documents.map((d: any) => ({
+     ...d, name: d.title || d.name, type: 'generated', size: d.fileSize || '', updated: d.updatedAt || d.createdAt,
+     author: d.authorName || '', project: d.projectId || '', tags: d.tags || [], version: d.version || 1,
+     versions: d.versions || [], aiSummary: d.summary || '', keyClauses: [], sharedWith: [], esignStatus: null,
+   })));
+   const automationData = refreshed[2].status === 'fulfilled' ? refreshed[2].value : null;
+   if (Array.isArray(automationData?.automations)) setAutomations(automationData.automations.map((a: any) => ({
+     ...a, active: a.isActive ?? a.enabled ?? a.active ?? true, when: typeof a.trigger === 'string' ? a.trigger : JSON.stringify(a.trigger),
+     condition: a.conditions ? JSON.stringify(a.conditions) : null, then: JSON.stringify(a.actions || []), icon: 'zap', color: '#0f4cff',
+   })));
+   const dealData = refreshed[3].status === 'fulfilled' ? refreshed[3].value : null;
+   if (Array.isArray(dealData?.deals)) setCrm(prev => ({ ...prev, deals: dealData.deals.map((d: any) => ({
+     ...d, client: d.company || d.client || '', value: String(d.value ?? 0), owner: d.ownerId || '',
+     lastActivity: d.updatedAt || d.createdAt || '', notes: d.notes || '', contactEmail: d.contactEmail || '', probability: d.probability || 0,
+   })) }));
+   if (refreshed.some(item => item.status === 'rejected')) showToast('Action completed; some panels could not refresh. Reopen the page to reload.');
  }
 
  // Apply any state mutations returned by Ordis
@@ -2271,7 +2311,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const payload = await response.json();
         if (payload.success && payload.data) {
-          applyResult(payload.data, payload.source === 'groq' ? 'groq' : 'local_fallback');
+          await applyResult(payload.data, payload.source === 'groq' ? 'groq' : 'local_fallback');
           return;
         }
       }

@@ -1,3 +1,4 @@
+import { distressResponse } from './safety';
 import {
  User,
  Workspace,
@@ -265,6 +266,8 @@ export function executeOrdisCommand(
  text: string,
  state: OrdisContextState
 ): OrdisExecutionResult {
+ const safety = distressResponse(text);
+ if (safety) return { responseText: safety };
  const lower = text.toLowerCase().trim();
   const isPaid = state.plan === 'paid' || !state.plan;
   const user = state.user || { id: 'usr_me', name: 'Commander', email: 'user@cursis.io', role: 'Owner' };
@@ -315,15 +318,15 @@ export function executeOrdisCommand(
     const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     if (!emailMatch) {
       return {
-        responseText: '**⚠️ incorrect user**\n\nPlease provide a valid registered user email address (e.g. `name@example.com`).',
-        toastMessage: 'incorrect user',
+        responseText: '**⚠️ Email Required**\n\nPlease provide a valid email address to invite a team member (e.g. `name@example.com`).',
+        toastMessage: 'Email address required',
         suggestedFollowUps: ['Add team member alex@example.com', 'View Team Directory'],
         actionCard: {
           type: 'team',
-          title: 'incorrect user',
-          subtitle: 'A valid user email address is required to add or invite a team member.',
-          badge: 'INCORRECT USER',
-          badgeColor: '#ef4444',
+          title: 'Email Required',
+          subtitle: 'A valid email address is required to send a team invitation.',
+          badge: 'EMAIL REQUIRED',
+          badgeColor: '#f59e0b',
           primaryAction: { label: 'View Team', actionType: 'navigate', target: 'team' },
         },
       };

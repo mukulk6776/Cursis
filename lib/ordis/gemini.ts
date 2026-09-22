@@ -1,3 +1,4 @@
+import { distressResponse } from './safety';
 import { GoogleGenAI, FunctionDeclaration, Type } from '@google/genai';
 import { OrdisContextState, OrdisExecutionResult, executeOrdisCommand } from './engine';
 import { normalizeSafeIsoDate } from '@/lib/db/tasks';
@@ -338,7 +339,12 @@ Special Instructions for Core Workspace Operations:
 - **Creating Tasks**: When the user requests to create or add a task, call create_task with title, priority (urgent, high, medium, low), assigneeName, dueDate, and tags.
 - **Adding Calendar Events**: When the user requests to add an event or milestone on the calendar, call add_calendar_event with title, date, time, and details.
 - **Scheduling Meetings**: When the user requests to schedule a meeting, call schedule_meeting. If the user provides a Google Meet link (e.g. https://meet.google.com/xxx-yyyy-zzz), ALWAYS extract it and pass it to meetingUrl. Never replace the user's provided link with a placeholder.
-- **Adding Team Members**: When the user asks to add or invite a team member, the user will provide an email. You MUST check the email. If the email format is invalid, missing, malformed, or not an email (e.g. "notanemail", "user@", "abc"), DO NOT call the tool or if calling pass it, and explicitly return: "incorrect user".`;
+- **Adding Team Members**: When the user asks to add or invite a team member, the user will provide an email. You MUST check the email. If the email format is invalid, missing, malformed, or not an email (e.g. "notanemail", "user@", "abc"), DO NOT call the tool or if calling pass it, and explicitly return: "incorrect user".
+
+CRITICAL SAFETY RULES:
+- If a user mentions self-harm, suicide, or crisis situations, DO NOT create any documents, tasks, or take any workspace actions. Instead, respond with compassion and direct them to appropriate resources like 988 Suicide & Crisis Lifeline (US) or emergency services.
+- DO NOT automatically create documents unless the user explicitly requests to "create document", "draft document", or "write document".
+- Only call tools when the user makes a clear, direct request for workspace action.`;
 }
 
 export function processGeminiToolCalls(
@@ -688,6 +694,8 @@ export async function executeGeminiOrdisChat(
   state: OrdisContextState,
   options?: { apiKey?: string; model?: string }
 ): Promise<OrdisExecutionResult> {
+  const safety = distressResponse(message);
+  if (safety) return { responseText: safety };
   const candidateKey = options?.apiKey?.trim();
   const serverFallbackKey = resolveGeminiApiKey(); // resolves from process.env / .env.local
   const keysToTry: string[] = [];

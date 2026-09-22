@@ -42,62 +42,96 @@ body.lp-body,
 }
 
 /* ---- Scroll Reveal Animations ---- */
+
+/* No-JS / slow-hydration fallback: auto-reveal after 2s so content is never permanently hidden */
+@keyframes lpAutoReveal {
+  0%   { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes lpAutoRevealScale {
+  0%   { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .lp-reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
+  /* Fallback: auto-reveal after 2s if JS observer hasn't kicked in */
+  animation: lpAutoReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) 2s both;
 }
 .lp-reveal.lp-visible {
   opacity: 1;
   transform: translateY(0);
+  animation: none; /* Cancel fallback when JS observer fires */
 }
 
 .lp-reveal-left {
   opacity: 0;
   transform: translateX(-28px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: lpAutoReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) 2s both;
 }
 .lp-reveal-left.lp-visible {
   opacity: 1;
   transform: translateX(0);
+  animation: none;
 }
 
 .lp-reveal-right {
   opacity: 0;
   transform: translateX(28px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: lpAutoReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) 2s both;
 }
 .lp-reveal-right.lp-visible {
   opacity: 1;
   transform: translateX(0);
+  animation: none;
 }
 
 .lp-reveal-scale {
   opacity: 0;
   transform: scale(0.96);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: lpAutoRevealScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) 2s both;
 }
 .lp-reveal-scale.lp-visible {
   opacity: 1;
   transform: scale(1);
+  animation: none;
 }
 
 .lp-stagger > * {
   opacity: 0;
   transform: translateY(16px);
-  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .lp-stagger.lp-visible > *:nth-child(1)  { transition-delay: 0ms; opacity: 1; transform: translateY(0); }
-.lp-stagger.lp-visible > *:nth-child(2)  { transition-delay: 50ms; opacity: 1; transform: translateY(0); }
-.lp-stagger.lp-visible > *:nth-child(3)  { transition-delay: 100ms; opacity: 1; transform: translateY(0); }
-.lp-stagger.lp-visible > *:nth-child(4)  { transition-delay: 150ms; opacity: 1; transform: translateY(0); }
-.lp-stagger.lp-visible > *:nth-child(5)  { transition-delay: 200ms; opacity: 1; transform: translateY(0); }
+.lp-stagger.lp-visible > *:nth-child(2)  { transition-delay: 60ms; opacity: 1; transform: translateY(0); }
+.lp-stagger.lp-visible > *:nth-child(3)  { transition-delay: 120ms; opacity: 1; transform: translateY(0); }
+.lp-stagger.lp-visible > *:nth-child(4)  { transition-delay: 180ms; opacity: 1; transform: translateY(0); }
+.lp-stagger.lp-visible > *:nth-child(5)  { transition-delay: 240ms; opacity: 1; transform: translateY(0); }
+
+/* Accessibility: respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .lp-reveal,
+  .lp-reveal-left,
+  .lp-reveal-right,
+  .lp-reveal-scale,
+  .lp-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
 .lp-stagger.lp-visible > *:nth-child(6)  { transition-delay: 250ms; opacity: 1; transform: translateY(0); }
 .lp-stagger.lp-visible > *:nth-child(7)  { transition-delay: 300ms; opacity: 1; transform: translateY(0); }
 .lp-stagger.lp-visible > *:nth-child(8)  { transition-delay: 350ms; opacity: 1; transform: translateY(0); }
