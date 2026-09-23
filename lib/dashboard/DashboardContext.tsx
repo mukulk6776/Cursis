@@ -73,6 +73,8 @@ import {
 } from './data';
 import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { useOrdisConversations, type ChatHistoryStatus } from '@/lib/ordis/use-ordis-conversations';
+import type { OrdisConversation } from '@/lib/ordis/conversation-types';
 
 interface ToastItem {
  id: string;
@@ -146,6 +148,14 @@ interface DashboardContextType {
  notifications: NotificationItem[];
  activity: ActivityItem[];
  chatHistory: ChatMessage[];
+ chatConversations: OrdisConversation[];
+ activeChatId: string | null;
+ chatHistoryReady: boolean;
+ chatHistoryStatus: ChatHistoryStatus;
+ newOrdisChat: () => void;
+ selectOrdisChat: (id: string) => void;
+ renameOrdisChat: (id: string, title: string) => void;
+ deleteOrdisChat: (id: string) => void;
  clearChatHistory: () => void;
 
  // Connected Settings State
@@ -471,12 +481,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       .catch(() => {});
   }, []);
 
- const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
- {
- role: 'ai',
- text: "**Ordis Workspace Copilot Online**\n\nI am connected to your live workspace. You can instruct me to:\n• *\"Create a task: Complete sprint review due Friday\"*\n• *\"What is my team working on?\"*\n• *\"Show upcoming deadlines\"*\n• *\"Schedule a team sync for tomorrow\"*\n• *\"Summarize project progress\"*\n\nHow can I help you operate your workspace today?",
- },
- ]);
+ const {
+   chatHistory, chatConversations, activeChatId, chatHistoryReady, chatHistoryStatus,
+   newOrdisChat, selectOrdisChat, renameOrdisChat, deleteOrdisChat, beginOrdisChat,
+ } = useOrdisConversations(user.id, activeWorkspaceId);
 
   // Dynamically keep default workspace name in sync with user's name
   useEffect(() => {
@@ -983,7 +991,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const openMeetingNotes = (m: Meeting) => setSelectedMeetingNotes(m);
  const openGenericModal = (title: string, body: ReactNode) => setGenericModal({ title, body });
  const closeGenericModal = () => setGenericModal(null);
- const clearChatHistory = () => setChatHistory([]);
+ const clearChatHistory = newOrdisChat;
 
  // Helper to play notification chime
  const playNotificationChime = () => {
@@ -2129,6 +2137,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  // ---- Ordis Natural Language Commander & Conversational AI Chatbot ----
  const sendOrdisMessage = async (text: string) => {
  if (!text.trim()) return;
+ const chatSession = beginOrdisChat();
+ if (!chatSession) return;
+ const setChatHistory = chatSession.setMessages;
  const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
  const userMsg: ChatMessage = { role: 'user', text, time: nowStr };
  const typingMsg: ChatMessage = { role: 'ai', text: null, typing: true };
@@ -2159,7 +2170,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  const applyResult = async (result: any, source: 'groq' | 'local_fallback') => {
- setChatHistory((prev) => prev.filter((m) => !m.typing));
+
  setAiEngineStatus(source);
 
  // In-app navigation if requested
@@ -2296,7 +2307,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  // Add AI response to chat history
  const aiTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
  setChatHistory((prev) => [
- ...prev,
+ ...prev.filter((m) => !m.typing),
  {
  role: 'ai',
  text: result.responseText,
@@ -2318,7 +2329,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({
           message: text,
-          history: chatHistory.slice(-6).map((m) => ({ role: m.role, text: m.text })),
+          history: chatSession.history.slice(-40).map((m) => ({ role: m.role, text: m.text })),
           state: ordisState,
           apiKey: groqApiKey,
           model: ordisModel,
@@ -2844,6 +2855,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  addApiKey,
  revokeApiKey,
  chatHistory,
+ chatConversations, activeChatId, chatHistoryReady, chatHistoryStatus,
+ newOrdisChat, selectOrdisChat, renameOrdisChat, deleteOrdisChat,
  clearChatHistory,
  workspaceSettings,
  updateWorkspaceSettings,

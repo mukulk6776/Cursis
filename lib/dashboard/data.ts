@@ -76,14 +76,14 @@ export const INITIAL_WORKSPACE_SUMMARY: WorkspaceSummary = {
 
 // ---- Current User (Placeholder for Unauthenticated / SSR Fallback) ----
 export const INITIAL_USER: User = {
-  id: 'u_owner',
-  name: 'Workspace Owner',
-  initials: 'WO',
-  email: 'owner@cursis.io',
-  role: 'Workspace Owner',
-  avatar: null,
-  color: '#0f4cff',
-  workspaceRole: 'owner',
+ id: 'u_member',
+ name: 'Workspace Member',
+ initials: 'WM',
+ email: 'user@cursis.io',
+ role: 'User',
+ avatar: null,
+ color: '#0f4cff',
+ workspaceRole: 'member',
 };
 
 // ---- Functional Settings Defaults ----
@@ -317,89 +317,100 @@ export function formatCurrency(amount: number | string): string {
 
 export function formatChatMarkdown(raw?: string | null): string {
  if (!raw) return '';
-
- let html = raw;
-
- // 1. Escape HTML entities
- html = html
- .replace(/&/g, '&amp;')
- .replace(/</g, '&lt;')
- .replace(/>/g, '&gt;');
-
- // 2. Multi-line code blocks
- html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_match, _lang, code) => {
- return `<pre style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.15);padding:10px 12px;border-radius:8px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11.5px;color:#38bdf8;overflow-x:auto;margin:8px 0;line-height:1.45;"><code>${code.trim()}</code></pre>`;
- });
-
- // 3. Inline code
- html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.12);padding:2px 5px;border-radius:4px;font-size:11.5px;color:#38bdf8;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">$1</code>');
-
- // 4. Blockquotes (> text)
- html = html.replace(/^&gt;\s?(.*)$/gm, '<blockquote style="border-left:3px solid #38bdf8;margin:6px 0;padding-left:10px;color:#d1d5db;font-style:italic;">$1</blockquote>');
-
- // 5. Headers (###, ##, #)
- html = html.replace(/^### (.*$)/gm, '<div style="font-size:13px;font-weight:700;color:#f3f4f6;margin-top:10px;margin-bottom:4px;">$1</div>');
- html = html.replace(/^## (.*$)/gm, '<div style="font-size:14px;font-weight:700;color:#ffffff;margin-top:12px;margin-bottom:6px;">$1</div>');
- html = html.replace(/^# (.*$)/gm, '<div style="font-size:15px;font-weight:800;color:#ffffff;margin-top:14px;margin-bottom:8px;">$1</div>');
-
- // 6. Checklists (- [x], - [ ])
- html = html.replace(/^- \[x\] (.*$)/gim, '<div style="display:flex;align-items:center;gap:6px;margin:3px 0;"><span style="color:#10b981;font-weight:bold;"></span> <span>$1</span></div>');
- html = html.replace(/^- \[ \] (.*$)/gim, '<div style="display:flex;align-items:center;gap:6px;margin:3px 0;"><span style="color:#9ca3af;"></span> <span>$1</span></div>');
-
- // 7. Bold & Italic
- html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
- html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
- // 8. Markdown Links [text](url)
- html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#38bdf8;text-decoration:underline;font-weight:500;">$1</a>');
-
- // 9. Tables (| col | col |)
- if (html.includes('|')) {
- const lines = html.split('\n');
- let inTable = false;
- let tableHtml = '';
- const newLines: string[] = [];
+ // Escape text at each rendering boundary, including quotes in link attributes.
+ // Inherit the chat's text color so both the light page and dark floating chat remain readable.
+ const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+ const inline = (text: string, depth = 0): string => {
+  if (depth > 2) return escape(text);
+  const tokens = /`([^`\n]+)`|\[([^\]\n]+)\]\((https?:\/\/[^\s)<>"']+)\)|\*\*([^*\n]+)\*\*|\*([^*\n]+)\*/g;
+  let html = '';
+  let cursor = 0;
+  for (const match of text.matchAll(tokens)) {
+   const index = match.index ?? 0;
+   html += escape(text.slice(cursor, index));
+   if (match[1] !== undefined) {
+    html += `<code style="background:rgba(127,127,127,0.12);padding:2px 5px;border-radius:4px;font-size:0.92em;color:inherit;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${escape(match[1])}</code>`;
+   } else if (match[2] !== undefined) {
+    html += `<a href="${escape(match[3])}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-underline-offset:3px;font-weight:500;">${escape(match[2])}</a>`;
+   } else {
+    const tag = match[4] !== undefined ? 'strong' : 'em';
+    html += `<${tag}>${inline(match[4] ?? match[5], depth + 1)}</${tag}>`;
+   }
+   cursor = index + match[0].length;
+  }
+  return html + escape(text.slice(cursor));
+ };
+ const lines = raw.replace(/\r\n?/g, '\n').split('\n');
+ const blocks: string[] = [];
+ const paragraph: string[] = [];
+ const flushParagraph = () => {
+  if (paragraph.length) blocks.push(`<p style="margin:0 0 12px;">${paragraph.map(line => inline(line)).join('<br />')}</p>`);
+  paragraph.length = 0;
+ };
+ const cells = (line: string) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split(/(?<!\\)\|/).map(cell => cell.trim().replace(/\\\|/g, '|'));
+ const isDivider = (line: string) => line.includes('|') && cells(line).every(cell => /^:?-{3,}:?$/.test(cell));
+ const listItem = (line: string) => line.match(/^\s*(?:(\d+)\.\s+|[-*+]\s+)(.*)$/);
 
  for (let i = 0; i < lines.length; i++) {
- const line = lines[i].trim();
- if (line.startsWith('|') && line.endsWith('|')) {
- if (!inTable) {
- inTable = true;
- tableHtml = '<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:11.5px;border:1px solid rgba(255,255,255,0.1);">';
- }
- if (line.includes('---')) {
- continue; // divider
- }
- const cells = line.split('|').filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
- tableHtml += '<tr>';
- cells.forEach((cell) => {
- tableHtml += `<td style="border:1px solid rgba(255,255,255,0.08);padding:5px 8px;color:#e5e7eb;">${cell.trim()}</td>`;
- });
- tableHtml += '</tr>';
- } else {
- if (inTable) {
- tableHtml += '</table>';
- newLines.push(tableHtml);
- inTable = false;
- tableHtml = '';
- }
- newLines.push(lines[i]);
- }
- }
- if (inTable) {
- tableHtml += '</table>';
- newLines.push(tableHtml);
- }
- html = newLines.join('\n');
- }
+  const line = lines[i];
+  if (!line.trim()) { flushParagraph(); continue; }
 
- // 10. Newlines to <br /> (preserving block elements)
- html = html.replace(/\n/g, '<br />');
- html = html.replace(/<\/pre><br \/>/g, '</pre>');
- html = html.replace(/<\/div><br \/>/g, '</div>');
- html = html.replace(/<\/table><br \/>/g, '</table>');
- html = html.replace(/<\/blockquote><br \/>/g, '</blockquote>');
+  if (/^\s*```[\w-]*\s*$/.test(line)) {
+   flushParagraph();
+   const code: string[] = [];
+   while (++i < lines.length && !/^\s*```\s*$/.test(lines[i])) code.push(lines[i]);
+   blocks.push(`<pre style="background:rgba(127,127,127,0.10);border:1px solid rgba(127,127,127,0.3);padding:12px 14px;border-radius:8px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.92em;color:inherit;overflow-x:auto;white-space:pre;margin:8px 0 12px;line-height:1.5;"><code>${escape(code.join('\n'))}</code></pre>`);
+   continue;
+  }
 
- return html;
+  if (line.includes('|') && i + 1 < lines.length && isDivider(lines[i + 1])) {
+   flushParagraph();
+   const header = cells(line);
+   const cellStyle = 'border:1px solid rgba(127,127,127,0.3);padding:8px 10px;color:inherit;text-align:left;vertical-align:top;';
+   let table = `<div style="max-width:100%;overflow-x:auto;margin:8px 0 12px;"><table style="width:100%;border-collapse:collapse;font-size:inherit;color:inherit;"><thead><tr>${header.map(cell => `<th scope="col" style="${cellStyle}background:rgba(127,127,127,0.08);font-weight:600;">${inline(cell)}</th>`).join('')}</tr></thead><tbody>`;
+   i++;
+   while (i + 1 < lines.length && lines[i + 1].trim() && lines[i + 1].includes('|')) {
+    const row = cells(lines[++i]);
+    table += `<tr>${header.map((_, index) => `<td style="${cellStyle}">${inline(row[index] || '')}</td>`).join('')}</tr>`;
+   }
+   blocks.push(`${table}</tbody></table></div>`);
+   continue;
+  }
+
+  const heading = line.match(/^(#{1,3})\s+(.+)$/);
+  if (heading) {
+   flushParagraph();
+   const tag = `h${heading[1].length + 2}`;
+   blocks.push(`<${tag} style="font-size:1.05em;font-weight:650;color:inherit;margin:14px 0 6px;line-height:1.5;">${inline(heading[2])}</${tag}>`);
+   continue;
+  }
+  if (/^>\s?/.test(line)) {
+   flushParagraph();
+   const quote = [line.replace(/^>\s?/, '')];
+   while (i + 1 < lines.length && /^>\s?/.test(lines[i + 1])) quote.push(lines[++i].replace(/^>\s?/, ''));
+   blocks.push(`<blockquote style="border-left:3px solid currentColor;margin:8px 0 12px;padding-left:12px;color:inherit;">${quote.map(value => inline(value)).join('<br />')}</blockquote>`);
+   continue;
+  }
+  const item = listItem(line);
+  if (item) {
+   flushParagraph();
+   const ordered = item[1] !== undefined;
+   const tag = ordered ? 'ol' : 'ul';
+   const items: string[] = [];
+   let current: RegExpMatchArray | null = item;
+   while (current && (current[1] !== undefined) === ordered) {
+    const check = current[2].match(/^\[([ xX])\]\s+(.*)$/);
+    const content = check ? `<span role="img" aria-label="${check[1] === ' ' ? 'Not completed' : 'Completed'}">${check[1] === ' ' ? '&#9744;' : '&#9745;'}</span> ${inline(check[2])}` : inline(current[2]);
+    items.push(`<li style="margin:4px 0;${check ? 'list-style:none;' : ''}">${content}</li>`);
+    current = i + 1 < lines.length ? listItem(lines[i + 1]) : null;
+    if (!current || (current[1] !== undefined) !== ordered) break;
+    i++;
+   }
+   blocks.push(`<${tag}${ordered ? ` start="${Number(item[1]) || 1}"` : ''} style="margin:6px 0 12px;padding-left:22px;list-style-type:${ordered ? 'decimal' : 'disc'};">${items.join('')}</${tag}>`);
+   continue;
+  }
+  paragraph.push(line);
+ }
+ flushParagraph();
+ return blocks.join('');
 }
-
