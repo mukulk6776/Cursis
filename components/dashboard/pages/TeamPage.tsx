@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate } from '@/lib/dashboard/data';
+import { AlertTriangle } from 'lucide-react';
 
 type TeamTab = 'directory' | 'invites' | 'org-chart' | 'workload' | 'onboarding';
 
@@ -124,7 +125,7 @@ export default function TeamPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '16px' }}>⚠️</span>
+            <AlertTriangle size={16} color="var(--c-error)" />
             <span>
               <strong>Team limit reached (10 / 10 members):</strong> This workspace is at maximum member capacity. Remove a member before inviting someone new.
             </span>

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { DocumentItem } from '@/lib/dashboard/types';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { FileText, Lock, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'txt', 'md', 'csv', 'json', 'xlsx', 'pptx', 'png', 'jpg', 'jpeg'];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -59,7 +60,7 @@ export default function DocumentsPage() {
   const [editTags, setEditTags] = useState('');
   const [editContent, setEditContent] = useState('');
 
-  // Role-Based Access Control (RBAC)
+  // Role-Based Access Control (RBAC): Only Workspace Owners can add and remove documents
   const isOwner =
     isFounderEmail(user.email) ||
     user.workspaceRole === 'owner' ||
@@ -69,8 +70,9 @@ export default function DocumentsPage() {
     user.id === 'u_owner';
 
   const role = isOwner ? 'owner' : (user.workspaceRole || 'member');
-  const canManage = isOwner || ['owner', 'admin', 'manager'].includes(role) || ['owner', 'admin', 'manager'].includes(user.workspaceRole || '');
-  const canDelete = isOwner || ['owner', 'admin', 'manager'].includes(role) || ['owner', 'admin', 'manager'].includes(user.workspaceRole || '');
+  const canManage = isOwner;
+  const canAdd = isOwner;
+  const canDelete = isOwner;
 
   // File Upload Handler with Validation Rules
   const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,8 +107,8 @@ export default function DocumentsPage() {
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canManage) {
-      showToast('Permission Denied: Only Admins and Managers can upload documents.');
+    if (!canAdd) {
+      showToast('Permission Denied: Only Workspace Owners have permission to add documents.');
       return;
     }
 
@@ -201,7 +203,7 @@ export default function DocumentsPage() {
   const handleDeleteConfirm = () => {
     if (!deletingDoc) return;
     if (!canDelete) {
-      showToast('Permission Denied: Only Workspace Owners, Admins, and Managers can delete documents.');
+      showToast('Permission Denied: Only Workspace Owners have permission to delete documents.');
       return;
     }
     deleteDocument(deletingDoc.id);
@@ -290,14 +292,14 @@ export default function DocumentsPage() {
                 fontWeight: 800,
                 padding: '3px 8px',
                 borderRadius: '6px',
-                background: canManage ? '#0f4cff' : 'var(--c-surface)',
-                color: canManage ? '#ffffff' : 'var(--text-secondary)',
+                background: isOwner ? '#0f4cff' : 'var(--c-surface)',
+                color: isOwner ? '#ffffff' : 'var(--text-secondary)',
                 border: '1px solid var(--border-color)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
               }}
             >
-              {canManage ? `Admin Mode · ${role}` : `Read-Only Mode · ${role}`}
+              {isOwner ? `Owner Mode · ${role}` : `Read-Only Mode · ${role}`}
             </span>
           </div>
           <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: '6px 0 0 0' }}>
@@ -306,17 +308,18 @@ export default function DocumentsPage() {
         </div>
 
         <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
-          {canManage ? (
+          {canAdd ? (
             <button
+              type="button"
               className="btn btn-primary btn-sm"
               onClick={() => setShowCreateModal(true)}
-              style={{ fontWeight: 700, boxShadow: '2px 2px 0 0 var(--border-color)' }}
+              style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '2px 2px 0 0 var(--border-color)' }}
             >
-              + Create / Upload Document
+              <span style={{ fontSize: '15px', lineHeight: 1 }}>+</span> Add New Document
             </button>
           ) : (
-            <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', border: '1px dashed var(--border-color)', padding: '6px 12px', borderRadius: '6px' }}>
-              🔒 Document creation requires Manager or Admin permissions
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-tertiary)', border: '1px dashed var(--border-color)', padding: '6px 12px', borderRadius: '6px', background: 'var(--c-surface)' }}>
+              <Lock size={12} strokeWidth={2.2} /> Document creation requires Workspace Owner permissions
             </div>
           )}
         </div>
@@ -465,25 +468,39 @@ export default function DocumentsPage() {
             background: 'var(--c-white)',
           }}
         >
-          <div style={{ fontSize: '40px', marginBottom: 'var(--sp-2)' }}>📄</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--sp-2)' }}>
+            <FileText size={38} strokeWidth={1.5} color="var(--text-tertiary)" />
+          </div>
           <h3 style={{ fontSize: 'var(--fs-md)', fontWeight: 800, margin: '0 0 4px 0' }}>No documents found</h3>
           <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', maxWidth: '440px', margin: '0 auto var(--sp-4)' }}>
             {searchQuery || activeCategory !== 'all'
               ? `No document records match "${searchQuery || activeCategory}". Try clearing your search filters.`
               : 'No documents have been uploaded to this workspace yet. Create your first document specification or contract.'}
           </p>
-          {(searchQuery || activeCategory !== 'all') && (
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => {
-                setSearchQuery('');
-                setActiveCategory('all');
-              }}
-            >
-              Clear Filters
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {(searchQuery || activeCategory !== 'all') && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  setSearchQuery('');
+                  setActiveCategory('all');
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
+            {canAdd && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => setShowCreateModal(true)}
+                style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <span style={{ fontSize: '15px', lineHeight: 1 }}>+</span> Add New Document
+              </button>
+            )}
+          </div>
         </div>
       ) : viewMode === 'grid' ? (
         /* GRID VIEW */
@@ -915,8 +932,9 @@ export default function DocumentsPage() {
             <form onSubmit={handleCreateSubmit}>
               <div className="modal-body">
                 {createFileError && (
-                  <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', borderRadius: '6px', fontSize: '12px', marginBottom: 'var(--sp-3)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                    ⚠️ {createFileError}
+                  <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', borderRadius: '6px', fontSize: '12px', marginBottom: 'var(--sp-3)', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertCircle size={14} />
+                    <span>{createFileError}</span>
                   </div>
                 )}
 
@@ -933,8 +951,8 @@ export default function DocumentsPage() {
                     style={{ padding: '6px' }}
                   />
                   {createFileName && (
-                    <div style={{ fontSize: '11px', color: '#0f4cff', marginTop: '4px', fontWeight: 700 }}>
-                      ✓ Attached: {createFileName} ({createFileSize})
+                    <div style={{ fontSize: '11px', color: '#0f4cff', marginTop: '4px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <CheckCircle2 size={13} /> Attached: {createFileName} ({createFileSize})
                     </div>
                   )}
                 </div>
@@ -1146,7 +1164,9 @@ export default function DocumentsPage() {
         >
           <div className="modal" style={{ maxWidth: '440px', textAlign: 'center' }}>
             <div style={{ padding: 'var(--sp-5)' }}>
-              <div style={{ fontSize: '36px', marginBottom: 'var(--sp-2)' }}>🗑️</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--sp-2)' }}>
+                <Trash2 size={36} color="#dc2626" />
+              </div>
               <h3 style={{ margin: '0 0 8px 0', fontSize: 'var(--fs-md)', fontWeight: 800 }}>
                 Delete Document?
               </h3>

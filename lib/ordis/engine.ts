@@ -5,6 +5,7 @@ import {
  WorkspaceSummary,
  Employee,
  Project,
+  Department,
  Task,
  Meeting,
  NotificationItem,
@@ -70,6 +71,7 @@ export interface OrdisExecutionResult {
  createdTask?: Task;
  updatedTasks?: Task[];
  createdProject?: Project;
+    createdDepartment?: Department;
  updatedProjects?: Project[];
  createdMeeting?: Meeting;
  createdDocument?: DocumentItem;
@@ -318,7 +320,7 @@ export function executeOrdisCommand(
     const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     if (!emailMatch) {
       return {
-        responseText: '**⚠️ Email Required**\n\nPlease provide a valid email address to invite a team member (e.g. `name@example.com`).',
+        responseText: '**Email Required**\n\nPlease provide a valid email address to invite a team member (e.g. `name@example.com`).',
         toastMessage: 'Email address required',
         suggestedFollowUps: ['Add team member alex@example.com', 'View Team Directory'],
         actionCard: {
@@ -406,6 +408,122 @@ export function executeOrdisCommand(
   }
 
   // 2. MAKING PROJECT
+  // 1.5. CREATE DEPARTMENT
+  const isCreateDepartment =
+    lower.includes('create department') ||
+    lower.includes('add department') ||
+    lower.includes('make department') ||
+    lower.includes('new department') ||
+    (lower.startsWith('department:') && lower.length > 12);
+
+  if (isPaid && isCreateDepartment) {
+    let deptName = 'Innovation Unit';
+    const deptMatch = text.match(/(?:department|named|called)\s+["']?([^"',.\n]+)["']?/i);
+    if (deptMatch && deptMatch[1] && !deptMatch[1].toLowerCase().includes('create') && !deptMatch[1].toLowerCase().includes('add') && !deptMatch[1].toLowerCase().includes('make')) {
+      deptName = deptMatch[1].trim();
+    }
+
+    const deptId = 'dept_' + deptName.toLowerCase().replace(/\s+/g, '_') + '_' + Math.random().toString(36).substring(2, 6);
+    const newDept: Department = {
+      id: deptId,
+      name: deptName,
+      description: `${deptName} strategic operational department created via Ordis AI.`,
+      lead: user.name || 'Lead Officer',
+      membersCount: 0,
+      budget: '$150,000 / yr',
+      color: '#0f4cff',
+      tags: ['Core Team', deptName],
+    };
+
+    return {
+      responseText: `**Department Initialized Successfully**\n\n• **Department**: **${newDept.name}**\n• **Lead**: ${newDept.lead}\n• **Budget Allocation**: ${newDept.budget}\n• **Status**: Active\n\n*The department has been registered and is now available in your workspace structure.* `,
+      toastMessage: `Department "${newDept.name}" created`,
+      auditEntry: {
+        actor: user.name,
+        action: 'department.created',
+        target: newDept.name,
+        details: `Created department ${newDept.name} via Ordis AI`,
+      },
+      stateMutations: {
+        createdDepartment: newDept,
+      },
+      actionCard: {
+        type: 'feature',
+        title: newDept.name,
+        subtitle: `${newDept.description} • Lead: ${newDept.lead}`,
+        badge: 'NEW DEPARTMENT',
+        badgeColor: '#0f4cff',
+        primaryAction: { label: 'View Departments', actionType: 'navigate', target: 'departments' },
+      },
+    };
+  }
+
+  // 1.6. CREATE DOCUMENT
+  const isCreateDoc =
+    lower.includes('create document') ||
+    lower.includes('make document') ||
+    lower.includes('draft document') ||
+    lower.includes('write document') ||
+    lower.includes('new document') ||
+    lower.includes('create doc') ||
+    lower.includes('make doc') ||
+    lower.includes('draft doc') ||
+    (lower.startsWith('doc:') && lower.length > 6) ||
+    (lower.startsWith('document:') && lower.length > 10);
+
+  if (isPaid && isCreateDoc) {
+    let docTitle = 'Product & Engineering Design Document';
+    const docMatch = text.match(/(?:document|doc|titled|named|called)\s+["']?([^"',.\n]+)["']?/i);
+    if (docMatch && docMatch[1] && !docMatch[1].toLowerCase().includes('create') && !docMatch[1].toLowerCase().includes('draft') && !docMatch[1].toLowerCase().includes('write')) {
+      docTitle = docMatch[1].trim();
+    }
+
+    let docCategory = 'technical';
+    if (lower.includes('proposal') || lower.includes('pitch')) docCategory = 'proposal';
+    else if (lower.includes('contract') || lower.includes('agreement') || lower.includes('legal')) docCategory = 'contract';
+    else if (lower.includes('design') || lower.includes('spec') || lower.includes('prd')) docCategory = 'design';
+    else if (lower.includes('hr') || lower.includes('policy') || lower.includes('onboarding')) docCategory = 'hr';
+
+    const newDoc: DocumentItem = {
+      id: 'doc_' + Date.now(),
+      name: docTitle,
+      type: docCategory as any,
+      size: '2.4 KB',
+      updated: 'Just now',
+      author: user.name || 'Ordis Copilot',
+      project: projects[0]?.name || 'General',
+      tags: ['AI-Draft', docCategory],
+      version: 1,
+      versions: [{ v: 1, date: 'Just now', author: user.name || 'Ordis Copilot' }],
+      aiSummary: `Comprehensive operational draft and architecture outline for "${docTitle}". Prepared autonomously by Ordis AI Copilot.`,
+      keyClauses: ['Standard Cursis Operational Terms', 'AI Generated Review Pending'],
+      sharedWith: ['All Workspace Members'],
+      esignStatus: 'pending',
+    };
+
+    return {
+      responseText: `**Document Drafted & Registered**\n\n• **Title**: **${newDoc.name}**\n• **Category**: ${docCategory.toUpperCase()}\n• **Author**: ${newDoc.author}\n• **Version**: v1.0 (Draft)\n\n*The document has been created and saved to your workspace Docs repository.* `,
+      toastMessage: `Document "${newDoc.name}" drafted`,
+      auditEntry: {
+        actor: user.name,
+        action: 'documents.created',
+        target: newDoc.name,
+        details: `Drafted document "${newDoc.name}" via Ordis AI`,
+      },
+      stateMutations: {
+        createdDocument: newDoc,
+      },
+      actionCard: {
+        type: 'doc',
+        title: newDoc.name,
+        subtitle: `${docCategory.toUpperCase()} • ${newDoc.aiSummary}`,
+        badge: 'NEW DOCUMENT',
+        badgeColor: '#0f4cff',
+        primaryAction: { label: 'Open in Docs', actionType: 'navigate', target: 'documents' },
+      },
+    };
+  }
+
   const isMakeProject =
     lower.includes('make project') ||
     lower.includes('makeing project') ||

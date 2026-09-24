@@ -349,7 +349,21 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
 }
 
 export async function updateWorkspace(id: string, updates: Partial<Workspace>): Promise<Workspace | null> {
-  const ws = inMemoryStore.workspaces.get(id);
+  let ws: Workspace | null | undefined = inMemoryStore.workspaces.get(id);
+
+  if (!ws) {
+    ws = await getWorkspace(id);
+  }
+
+  if (!ws) {
+    try {
+      const col = await getCollection<Workspace>('workspaces');
+      if (col) {
+        ws = (await col.findOne({ id })) as Workspace | null;
+      }
+    } catch {}
+  }
+
   if (!ws) return null;
 
   const updated: Workspace = {
@@ -378,6 +392,17 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
     const col = await getCollection<Workspace>('workspaces');
     if (col) {
       await col.updateOne({ id }, { $set: updated }, { upsert: true });
+    }
+
+    // If workspace name changed, also update workspace_teams collection
+    if (updates.name) {
+      const teamCol = await getCollection<any>('workspace_teams');
+      if (teamCol) {
+        await teamCol.updateMany(
+          { workspaceId: id },
+          { $set: { workspaceName: updates.name.trim() } }
+        );
+      }
     }
   } catch (e) {
     console.warn('MongoDB update workspace notice:', e);

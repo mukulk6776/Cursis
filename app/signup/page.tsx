@@ -193,7 +193,7 @@ export default function SignupPage() {
 
       <div style={{ marginBottom: '28px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="38" height="38">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="38" height="38" style={{ borderRadius: '10px', overflow: 'hidden' }}>
             <path
               d="M 545 240 A 282 282 0 1 0 782 566"
               stroke="#1A1612"

@@ -98,24 +98,26 @@ export default function LandingNav() {
           transition={{ delay: 0.1, duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
         >
           <Link href="/" className="lp-nav-logo" onClick={() => setMobileOpen(false)}>
-            <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32" role="img" aria-label="Cursis — Autonomous AI Workplace Logo">
-              <path
-                d="M 545 240 A 282 282 0 1 0 782 566"
-                stroke="#1A1612"
-                strokeWidth="142"
-                strokeLinecap="round"
-                fill="none"
-              />
-              <rect
-                x="625"
-                y="196"
-                width="156"
-                height="156"
-                rx="42"
-                transform="rotate(-10 703 274)"
-                fill="#FF5500"
-              />
-            </svg>
+            <div style={{ width: '32px', height: '32px', borderRadius: '9px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+              <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32" role="img" aria-label="Cursis — Autonomous AI Workplace Logo" style={{ borderRadius: '9px' }}>
+                <path
+                  d="M 545 240 A 282 282 0 1 0 782 566"
+                  stroke="#1A1612"
+                  strokeWidth="142"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <rect
+                  x="625"
+                  y="196"
+                  width="156"
+                  height="156"
+                  rx="42"
+                  transform="rotate(-10 703 274)"
+                  fill="#FF5500"
+                />
+              </svg>
+            </div>
             <span className="lp-nav-logo-text">Cursis</span>
           </Link>
         </motion.div>
@@ -135,12 +137,6 @@ export default function LandingNav() {
               {['Platform', 'Ordis Intelligence', 'Teams', 'Creators', 'Modules', 'Enterprise'][i]}
             </motion.a>
           ))}
-          <Link href="/resources" className="lp-nav-link" onClick={() => setMobileOpen(false)}>
-            Resources
-          </Link>
-          <Link href="/compare" className="lp-nav-link" onClick={() => setMobileOpen(false)}>
-            Compare
-          </Link>
 
           {/* Mobile drawer actions */}
           <AnimatePresence>

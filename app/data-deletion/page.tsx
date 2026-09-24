@@ -1,9 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import LandingNav from '@/components/landing/LandingNav';
-import Footer from '@/components/landing/Footer';
-import '@/styles/landing.css';
+import PolicyLayout from '@/components/landing/PolicyLayout';
 
 export const metadata: Metadata = {
   title: 'Data Deletion Request — Cursis',
@@ -16,175 +14,94 @@ export const metadata: Metadata = {
 
 export default function DataDeletionPage() {
   return (
-    <div className="lp-body" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <LandingNav />
-      <main style={{ flex: '1 0 auto', maxWidth: '880px', margin: '0 auto', padding: '120px 24px 80px', color: '#f1f5f9' }}>
-        <div style={{ marginBottom: '40px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '9999px', padding: '6px 14px', marginBottom: '16px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              GDPR & Data Protection Rights
-            </span>
+    <PolicyLayout
+      title="Data Deletion Request"
+      badge="GDPR & Data Protection Rights"
+      badgeColor="#DC2626"
+      lastUpdated="Last Updated: September 24, 2026 • Version 2.0"
+      activeSlug="data-deletion"
+      contactEmail="privacy@cursis.in"
+      dpoEmail="dpo@cursis.in"
+      summary={
+        <p style={{ margin: 0 }}>
+          You have the statutory right to request permanent deletion of your personal data under GDPR, CCPA, and global privacy standards. We process deletion requests within 30 days of verified identity confirmation.
+        </p>
+      }
+    >
+      {/* Section 1 */}
+      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+          1. Your Statutory Data Protection Rights
+        </h2>
+        <p style={{ margin: '0 0 12px 0' }}>
+          Under GDPR, CCPA, and comparable international data privacy frameworks, you maintain:
+        </p>
+        <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <li><strong style={{ color: '#0A0A0A' }}>Right to Erasure (&quot;Right to be Forgotten&quot;):</strong> Request permanent purging of personal profile information and authentication credentials.</li>
+          <li><strong style={{ color: '#0A0A0A' }}>Right to Data Portability:</strong> Obtain a complete snapshot export of your documents and workspace activity before deletion.</li>
+          <li><strong style={{ color: '#0A0A0A' }}>Right to Revoke Consent:</strong> Terminate any optional processing permissions previously granted.</li>
+        </ul>
+      </section>
+
+      {/* Section 2 */}
+      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+          2. Scope of Deletion
+        </h2>
+        <p style={{ margin: '0 0 12px 0' }}>
+          When a data deletion request is processed:
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ padding: '16px', background: '#F5F5F0', borderRadius: '8px', border: '1px solid #E5E0D8' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 6px 0' }}>
+              Permanently Purged
+            </h3>
+            <ul style={{ fontSize: '13px', color: '#262626', paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <li>User account identifiers, email records, and hashed authentication tokens</li>
+              <li>Personal profile details, avatars, and linked identity provider tokens</li>
+              <li>Personal notification histories and private chat threads</li>
+              <li>Workspace task assignments created exclusively by you in deactivated workspaces</li>
+            </ul>
           </div>
-          <h1 style={{ fontSize: '38px', fontWeight: 800, lineHeight: 1.2, letterSpacing: '-0.03em', margin: '0 0 12px', color: '#ffffff' }}>
-            Data Deletion Request
-          </h1>
-          <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
-            Exercise your right to be forgotten under GDPR, CCPA, and other data protection laws
-          </p>
+
+          <div style={{ padding: '16px', background: '#FFFBEB', borderRadius: '8px', border: '1px solid #FDE68A' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#92400E', margin: '0 0 6px 0' }}>
+              Legally Mandated Retention Exceptions
+            </h3>
+            <p style={{ fontSize: '13px', color: '#78350F', margin: 0 }}>
+              Transaction receipts and billing invoices are retained for up to 7 years in compliance with tax and financial accounting statutes. Security audit logs are retained in anonymized format for SOC-2 compliance for 90 days.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 3 */}
+      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+          3. How to Submit a Deletion Request
+        </h2>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginTop: '12px' }}>
+          <div style={{ padding: '18px', background: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '10px', boxShadow: '2px 2px 0 0 #0A0A0A' }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0A0A0A', marginBottom: '6px' }}>Option A: In-App Self-Service</div>
+            <p style={{ fontSize: '13px', color: '#525252', margin: 0, lineHeight: 1.6 }}>
+              Log into your Cursis dashboard, navigate to <strong>Settings &gt; Organization &gt; Security &amp; Data Deletion</strong>, and click <em>Request Data Purge</em>.
+            </p>
+          </div>
+
+          <div style={{ padding: '18px', background: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '10px', boxShadow: '2px 2px 0 0 #0A0A0A' }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0A0A0A', marginBottom: '6px' }}>Option B: Direct Email Submission</div>
+            <p style={{ fontSize: '13px', color: '#525252', margin: 0, lineHeight: 1.6 }}>
+              Send an email from your registered account to <a href="mailto:privacy@cursis.in" style={{ color: '#0F4CFF', fontWeight: 700, textDecoration: 'none' }}>privacy@cursis.in</a> with the subject line: <em>Data Deletion Request</em>.
+            </p>
+          </div>
         </div>
 
-        <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', padding: '24px 28px', marginBottom: '48px', backdropFilter: 'blur(12px)' }}>
-          <p style={{ margin: 0, fontSize: '15px', lineHeight: 1.7, color: '#cbd5e1' }}>
-            You have the right to request deletion of your personal data. We take data privacy seriously and will process your request within 30 days as required by law.
-          </p>
+        <div style={{ marginTop: '16px', padding: '14px', background: '#F5F5F0', border: '1px solid #E5E0D8', borderRadius: '8px', fontSize: '13px', color: '#525252', lineHeight: 1.6 }}>
+          <strong>Important:</strong> Data deletion is permanent and cannot be undone. Make sure to export any workspace records you wish to preserve prior to initiating your deletion request.
         </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', fontSize: '15px', lineHeight: 1.75, color: '#94a3b8' }}>
-          <section>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-              Your Data Protection Rights
-            </h2>
-            <p>
-              Under GDPR, CCPA, and similar regulations, you have the following rights:
-            </p>
-            <ul style={{ paddingLeft: '20px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <li><strong style={{ color: '#ffffff' }}>Right to Access:</strong> Request a copy of all personal data we hold about you</li>
-              <li><strong style={{ color: '#ffffff' }}>Right to Rectification:</strong> Request correction of inaccurate data</li>
-              <li><strong style={{ color: '#ffffff' }}>Right to Erasure:</strong> Request deletion of your personal data</li>
-              <li><strong style={{ color: '#ffffff' }}>Right to Data Portability:</strong> Receive your data in a machine-readable format</li>
-              <li><strong style={{ color: '#ffffff' }}>Right to Object:</strong> Object to processing of your data for certain purposes</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-              What Data Will Be Deleted?
-            </h2>
-            <p>
-              When you submit a deletion request, we will permanently remove:
-            </p>
-            <ul style={{ paddingLeft: '20px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <li>Your account information (name, email, profile details)</li>
-              <li>Workspace data you created or own</li>
-              <li>Tasks, projects, and documents you authored</li>
-              <li>Messages and collaboration history</li>
-              <li>Usage analytics and logs containing your personal identifiers</li>
-            </ul>
-            <p style={{ marginTop: '16px', padding: '12px 16px', background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.3)', borderRadius: '8px', color: '#fbbf24' }}>
-              ⚠️ <strong>Note:</strong> Data deletion is permanent and cannot be undone. Make sure to export any data you want to keep before submitting this request.
-            </p>
-          </section>
-
-          <section>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-              Data Retention Requirements
-            </h2>
-            <p>
-              Some data may be retained for legal compliance:
-            </p>
-            <ul style={{ paddingLeft: '20px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <li><strong style={{ color: '#ffffff' }}>Financial Records:</strong> Billing and transaction data (retained for 7 years for tax compliance)</li>
-              <li><strong style={{ color: '#ffffff' }}>Legal Obligations:</strong> Data required for pending legal proceedings</li>
-              <li><strong style={{ color: '#ffffff' }}>Security Logs:</strong> Anonymized security incident logs (retained for 90 days)</li>
-              <li><strong style={{ color: '#ffffff' }}>Shared Workspace Data:</strong> Content in workspaces owned by others may remain visible to those workspace owners</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-              How to Submit a Deletion Request
-            </h2>
-            <p>
-              To delete your data, please follow these steps:
-            </p>
-            <ol style={{ paddingLeft: '20px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <li>
-                <strong style={{ color: '#ffffff' }}>In-App Deletion (Fastest):</strong>
-                <ul style={{ paddingLeft: '20px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <li>Log in to your Cursis account</li>
-                  <li>Go to Settings → Account → Delete Account</li>
-                  <li>Confirm your identity and submit the request</li>
-                  <li>Your account will be deleted within 24-48 hours</li>
-                </ul>
-              </li>
-              <li>
-                <strong style={{ color: '#ffffff' }}>Email Request:</strong>
-                <ul style={{ paddingLeft: '20px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <li>Send an email to <a href="mailto:privacy@cursis.app" style={{ color: '#ef4444' }}>privacy@cursis.app</a></li>
-                  <li>Subject: "Data Deletion Request - [Your Email]"</li>
-                  <li>Include: Full name, email address, and workspace ID (if known)</li>
-                  <li>We will respond within 3 business days to confirm your identity</li>
-                  <li>Data will be deleted within 30 days of verification</li>
-                </ul>
-              </li>
-            </ol>
-          </section>
-
-          <section>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-              Identity Verification
-            </h2>
-            <p>
-              To protect your data from unauthorized deletion requests, we must verify your identity:
-            </p>
-            <ul style={{ paddingLeft: '20px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <li>For in-app requests: You must be logged in with your credentials</li>
-              <li>For email requests: We will send a verification link to your registered email</li>
-              <li>For phone requests: We will send an OTP to your registered phone number</li>
-            </ul>
-            <p style={{ marginTop: '16px' }}>
-              This verification step ensures that only you can request deletion of your data.
-            </p>
-          </section>
-
-          <section>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-              Export Your Data First
-            </h2>
-            <p>
-              Before deleting your account, we recommend exporting your data:
-            </p>
-            <ul style={{ paddingLeft: '20px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <li>Go to Settings → Data & Privacy → Export Data</li>
-              <li>Select what you want to export (projects, tasks, documents, messages)</li>
-              <li>Download the ZIP file containing all your data in JSON format</li>
-              <li>This export is available for 30 days after account deletion</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-              Contact Data Protection Officer
-            </h2>
-            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '16px 20px', marginTop: '12px' }}>
-              <p style={{ margin: '0 0 6px', color: '#ffffff', fontWeight: 600 }}>Cursis Data Protection Team</p>
-              <p style={{ margin: '0 0 4px' }}>Email: <a href="mailto:privacy@cursis.app" style={{ color: '#ef4444' }}>privacy@cursis.app</a></p>
-              <p style={{ margin: '0 0 4px' }}>DPO: <a href="mailto:dpo@cursis.app" style={{ color: '#ef4444' }}>dpo@cursis.app</a></p>
-              <p style={{ margin: '0 0 4px' }}>Response Time: Within 30 days (as required by GDPR)</p>
-              <p style={{ margin: 0 }}>
-                Privacy Policy: <Link href="/privacy-policy" style={{ color: '#ef4444' }}>View Full Policy</Link>
-              </p>
-            </div>
-          </section>
-
-          <section>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-              Complaints and Supervisory Authority
-            </h2>
-            <p>
-              If you are not satisfied with how we handle your data deletion request, you have the right to lodge a complaint with your local data protection authority:
-            </p>
-            <ul style={{ paddingLeft: '20px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <li><strong>EU Users:</strong> Contact your national Data Protection Authority</li>
-              <li><strong>UK Users:</strong> Information Commissioner's Office (ICO)</li>
-              <li><strong>California Users:</strong> California Attorney General's Office</li>
-              <li><strong>India Users:</strong> Ministry of Electronics and IT (MeitY)</li>
-            </ul>
-          </section>
-        </div>
-      </main>
-      <Footer />
-    </div>
+      </section>
+    </PolicyLayout>
   );
 }

@@ -160,7 +160,7 @@ interface DashboardContextType {
 
  // Connected Settings State
  workspaceSettings: WorkspaceSettings;
- updateWorkspaceSettings: (updates: Partial<WorkspaceSettings>) => void;
+ updateWorkspaceSettings: (updates: Partial<WorkspaceSettings> & Record<string, any>) => void | Promise<void>;
  teamSettings: TeamSettings;
  updateTeamSettings: (updates: Partial<TeamSettings>) => void;
  notificationSettings: NotificationSettings;
@@ -495,7 +495,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (customWsName) {
       setWorkspaces((prev) =>
         prev.map((w) => {
-          if (w.id === 'ws_default' || w.id === 'ws_public' || !w.isCustomClient) {
+          if (w.id === 'ws_default' || w.id === 'ws_public') {
             return {
               ...w,
               name: customWsName,
@@ -515,7 +515,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     setWorkspaces((prev) =>
       prev.map((w) => {
-        if (w.id === 'ws_default' || w.id === 'ws_public' || !w.isCustomClient) {
+        if (w.id === 'ws_default' || w.id === 'ws_public') {
           if (
             w.name === 'Cursis Workspace' ||
             w.name === 'Cursis HQ' ||
@@ -566,126 +566,153 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   // Persistent Team & Notifications Synchronization with MongoDB
   const syncTeamAndNotifications = async (wsId?: string) => {
     const targetWsId = wsId || (activeWorkspaceId && activeWorkspaceId !== 'ws_public' && activeWorkspaceId !== 'ws_default' ? activeWorkspaceId : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || ''));
-    try {
-      // 1. Fetch live team members and invitations from MongoDB
-      const url = targetWsId ? `/api/team?workspaceId=${encodeURIComponent(targetWsId)}` : '/api/team';
-      const teamRes = await fetch(url, {
-        credentials: 'include',
-      });
-      if (teamRes.ok) {
-        const teamData = await teamRes.json();
-        const serverTeam = teamData.data?.team || teamData.team;
-        const serverInvs = teamData.data?.invitations || teamData.invitations;
-
-        if (Array.isArray(serverTeam) && serverTeam.length > 0) {
-          setEmployees((prev) => {
-            const mappedServer = serverTeam
-              .filter((u: any) => {
-                const uId = u.id || u.uid;
-                const cleanEmail = (u.email || '').trim().toLowerCase();
-                if (uId && removedMemberIdsRef.current.has(uId)) return false;
-                if (cleanEmail && removedMemberIdsRef.current.has(cleanEmail)) return false;
-                return true;
-              })
-              .map((u: any): Employee => {
-                const cleanEmail = (u.email || '').trim().toLowerCase();
-                const isMemFounder = isFounderEmail(cleanEmail);
-                const displayName = u.displayName || u.name || (cleanEmail ? cleanEmail.split('@')[0] : 'Team Member');
-                const initials = displayName
-                  .split(' ')
-                  .filter(Boolean)
-                  .map((n: string) => n[0])
-                  .join('')
-                  .toUpperCase()
-                  .substring(0, 2) || 'CU';
-
-                const roleTitle = isMemFounder ? 'Founder & CEO' : (u.title || u.role || 'Team Member');
-                const deptName = isMemFounder ? 'Leadership' : (u.department || 'Engineering');
-                const deptId = isMemFounder ? 'dept_leadership' : ('dept_' + deptName.toLowerCase().replace(/\s+/g, '_'));
-                const wsRole = isMemFounder ? 'owner' : (u.role === 'owner' ? 'member' : (u.role || 'member'));
-                const tier = (u.planTier as 'standard') || 'standard';
-
-                return {
-                  id: u.id || u.uid || 'u_' + Math.random().toString(36).substring(2, 8),
-                  name: displayName,
-                  initials,
-                  role: roleTitle,
-                  department: deptName,
-                  departmentId: deptId,
-                  teamIds: u.teamIds || ['team_core'],
-                  workspaceRole: wsRole,
-                  status: u.presence || 'online',
-                  color: u.color || (isMemFounder ? '#0f4cff' : '#f59e0b'),
-                  tasks: typeof u.tasks === 'number' ? u.tasks : 0,
-                  projects: typeof u.projects === 'number' ? u.projects : 0,
-                  email: cleanEmail,
-                  skills: u.skills && u.skills.length > 0 ? u.skills : (isMemFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General']),
-                  joinedAt: u.createdAt ? u.createdAt.split('T')[0] : (u.joinedAt || new Date().toISOString().split('T')[0]),
-                  invitedBy: u.invitedBy || null,
-                  planTier: tier,
-                };
-              });
-
-            return mappedServer;
-          });
-        } else if (Array.isArray(serverTeam)) {
-          setEmployees([]);
-        }
-
-        if (Array.isArray(serverInvs)) {
-          setInvitations(serverInvs);
-        }
-      }
-
-      // 2. Fetch user's persistent notifications from MongoDB
-      const notifRes = await fetch(`/api/notifications?workspaceId=${encodeURIComponent(targetWsId)}`, {
-        credentials: 'include',
-      });
-      if (notifRes.ok) {
-        const notifData = await notifRes.json();
-        const serverNotifs = notifData.data?.notifications || notifData.notifications;
-        if (Array.isArray(serverNotifs)) {
-          setNotifications(
-            serverNotifs.map((n: any): NotificationItem => {
-              let timeStr = 'Just now';
-              if (n.createdAt) {
-                const diffMs = Date.now() - new Date(n.createdAt).getTime();
-                const diffMin = Math.floor(diffMs / 60000);
-                if (diffMin < 1) timeStr = 'Just now';
-                else if (diffMin < 60) timeStr = `${diffMin}m ago`;
-                else {
-                  const diffHr = Math.floor(diffMin / 60);
-                  if (diffHr < 24) timeStr = `${diffHr}h ago`;
-                  else timeStr = `${Math.floor(diffHr / 24)}d ago`;
-                }
-              }
-              return {
-                id: n.id || 'notif_' + Math.random().toString(36).substring(2, 8),
-                type: n.type || 'team',
-                text: n.text || n.message || 'Notification',
-                time: timeStr,
-                read: Boolean(n.read),
-                icon: n.icon || 'bell',
-                referenceId: n.referenceId,
-                invitationData: n.invitationData,
-              };
-            })
-          );
-        }
-      }
-
-      // 3. Fetch workspace tasks from MongoDB
+    if (typeof window !== 'undefined') {
       try {
-        const authToken = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
-        const taskRes = await fetch(`/api/tasks?workspaceId=${encodeURIComponent(targetWsId)}`, {
+        const stored = JSON.parse(localStorage.getItem(`cursis_removed_members_${targetWsId}`) || '[]');
+        if (Array.isArray(stored)) {
+          stored.forEach((item: string) => removedMemberIdsRef.current.add(item));
+        }
+      } catch {}
+    }
+    try {
+      const url = targetWsId ? `/api/team?workspaceId=${encodeURIComponent(targetWsId)}` : '/api/team';
+      const authToken = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+
+      // Parallelize all 5 live MongoDB queries concurrently for fast dashboard response
+      const [teamRes, notifRes, taskRes, deptRes, mtgRes] = await Promise.all([
+        fetch(url, { credentials: 'include' }).catch(() => null),
+        fetch(`/api/notifications?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
+        fetch(`/api/tasks?workspaceId=${encodeURIComponent(targetWsId)}`, {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
           },
-        });
-        if (taskRes.ok) {
-          const taskData = await taskRes.json();
+        }).catch(() => null),
+        fetch(`/api/departments?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
+        fetch(`/api/meetings?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
+      ]);
+
+      // 1. Live team members and invitations
+      if (teamRes && teamRes.ok) {
+        const teamData = await teamRes.json().catch(() => null);
+        if (teamData) {
+          const serverTeam = teamData.data?.team || teamData.team;
+          const serverInvs = teamData.data?.invitations || teamData.invitations;
+
+          if (Array.isArray(serverTeam) && serverTeam.length > 0) {
+            setEmployees((prev) => {
+              const mappedServer = serverTeam
+                .filter((u: any) => {
+                  const uId = u.id || u.uid;
+                  const cleanEmail = (u.email || '').trim().toLowerCase();
+                  if (uId && removedMemberIdsRef.current.has(uId)) return false;
+                  if (cleanEmail && removedMemberIdsRef.current.has(cleanEmail)) return false;
+                  return true;
+                })
+                .map((u: any): Employee => {
+                  const cleanEmail = (u.email || '').trim().toLowerCase();
+                  const isMemFounder = isFounderEmail(cleanEmail);
+                  const displayName = u.displayName || u.name || (cleanEmail ? cleanEmail.split('@')[0] : 'Team Member');
+                  const initials = displayName
+                    .split(' ')
+                    .filter(Boolean)
+                    .map((n: string) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2) || 'CU';
+
+                  const roleTitle = isMemFounder ? 'Founder & CEO' : (u.title || u.role || 'Team Member');
+                  const deptName = isMemFounder ? 'Leadership' : (u.department || 'Engineering');
+                  const deptId = isMemFounder ? 'dept_leadership' : ('dept_' + deptName.toLowerCase().replace(/\s+/g, '_'));
+                  const wsRole = isMemFounder ? 'owner' : (u.role === 'owner' ? 'member' : (u.role || 'member'));
+                  const tier = (u.planTier as 'standard') || 'standard';
+
+                  return {
+                    id: u.id || u.uid || 'u_' + Math.random().toString(36).substring(2, 8),
+                    name: displayName,
+                    initials,
+                    role: roleTitle,
+                    department: deptName,
+                    departmentId: deptId,
+                    teamIds: u.teamIds || ['team_core'],
+                    workspaceRole: wsRole,
+                    // Real-time calculated presence
+                    status: (() => {
+                      const isSelf = (u.id === user.id || u.uid === user.id || (user.email && cleanEmail === user.email.toLowerCase()));
+                      if (isSelf) {
+                        return (typeof navigator !== 'undefined' && !navigator.onLine) ? 'offline' : 'online';
+                      }
+                      if (u.presence === 'offline') return 'offline';
+                      if (u.lastActiveAt) {
+                        const diffMs = Date.now() - new Date(u.lastActiveAt).getTime();
+                        return diffMs < 120000 ? (u.presence || 'online') : 'offline';
+                      }
+                      return (u.presence === 'online' || u.presence === 'away' || u.presence === 'busy') ? u.presence : 'offline';
+                    })(),
+                    color: u.color || (isMemFounder ? '#0f4cff' : '#f59e0b'),
+                    tasks: typeof u.tasks === 'number' ? u.tasks : 0,
+                    projects: typeof u.projects === 'number' ? u.projects : 0,
+                    email: cleanEmail,
+                    skills: u.skills && u.skills.length > 0 ? u.skills : (isMemFounder ? ['Strategy', 'Leadership', 'Architecture'] : ['General']),
+                    joinedAt: u.createdAt ? u.createdAt.split('T')[0] : (u.joinedAt || new Date().toISOString().split('T')[0]),
+                    invitedBy: u.invitedBy || null,
+                    planTier: tier,
+                  };
+                });
+
+              return mappedServer;
+            });
+          } else if (Array.isArray(serverTeam)) {
+            setEmployees([]);
+          }
+
+          if (Array.isArray(serverInvs)) {
+            setInvitations(serverInvs);
+          }
+        }
+      }
+
+      // 2. User's persistent notifications
+      if (notifRes && notifRes.ok) {
+        const notifData = await notifRes.json().catch(() => null);
+        if (notifData) {
+          const serverNotifs = notifData.data?.notifications || notifData.notifications;
+          if (Array.isArray(serverNotifs)) {
+            setNotifications(
+              serverNotifs.map((n: any): NotificationItem => {
+                let timeStr = 'Just now';
+                if (n.createdAt) {
+                  const diffMs = Date.now() - new Date(n.createdAt).getTime();
+                  const diffMin = Math.floor(diffMs / 60000);
+                  if (diffMin < 1) timeStr = 'Just now';
+                  else if (diffMin < 60) timeStr = `${diffMin}m ago`;
+                  else {
+                    const diffHr = Math.floor(diffMin / 60);
+                    if (diffHr < 24) timeStr = `${diffHr}h ago`;
+                    else timeStr = `${Math.floor(diffHr / 24)}d ago`;
+                  }
+                }
+                return {
+                  id: n.id || 'notif_' + Math.random().toString(36).substring(2, 8),
+                  type: n.type || 'team',
+                  text: n.text || n.message || 'Notification',
+                  time: timeStr,
+                  read: Boolean(n.read),
+                  icon: n.icon || 'bell',
+                  referenceId: n.referenceId,
+                  invitationData: n.invitationData,
+                };
+              })
+            );
+          }
+        }
+      }
+
+      // 3. Workspace tasks
+      if (taskRes && taskRes.ok) {
+        const taskData = await taskRes.json().catch(() => null);
+        if (taskData) {
           const serverTasks = taskData.data?.tasks || taskData.tasks;
           if (Array.isArray(serverTasks)) {
             const reverseStatusMap: Record<string, TaskStatus> = {
@@ -720,17 +747,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             setTasks(mappedServerTasks);
           }
         }
-      } catch (e) {
-        console.warn('Notice: Background task sync error:', e);
       }
 
-      // 3B. Fetch workspace departments from MongoDB
-      try {
-        const deptRes = await fetch(`/api/departments?workspaceId=${encodeURIComponent(targetWsId)}`, {
-          credentials: 'include',
-        });
-        if (deptRes.ok) {
-          const deptData = await deptRes.json();
+      // 3B. Workspace departments
+      if (deptRes && deptRes.ok) {
+        const deptData = await deptRes.json().catch(() => null);
+        if (deptData) {
           const serverDepts = deptData.data?.departments || deptData.departments;
           if (Array.isArray(serverDepts)) {
             setDepartments(serverDepts.map((d: any): Department => ({
@@ -752,17 +774,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             })));
           }
         }
-      } catch (e) {
-        console.warn('Notice: Background department sync error:', e);
       }
 
-      // 4. Fetch workspace meetings from MongoDB
-      try {
-        const mtgRes = await fetch(`/api/meetings?workspaceId=${encodeURIComponent(targetWsId)}`, {
-          credentials: 'include',
-        });
-        if (mtgRes.ok) {
-          const mtgData = await mtgRes.json();
+      // 4. Workspace meetings
+      if (mtgRes && mtgRes.ok) {
+        const mtgData = await mtgRes.json().catch(() => null);
+        if (mtgData) {
           const serverMtgs = mtgData.data?.meetings || mtgData.meetings;
           if (Array.isArray(serverMtgs)) {
             const mappedMtgs: Meeting[] = serverMtgs.map((m: any) => ({
@@ -795,8 +812,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             });
           }
         }
-      } catch (e) {
-        console.warn('Notice: Background meeting sync error:', e);
       }
     } catch (e) {
       console.warn('Notice: Background sync error:', e);
@@ -853,7 +868,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
         setWorkspaces((prev) =>
           prev.map((w) => {
-            if (w.id === 'ws_default' || w.id === 'ws_public' || !w.isCustomClient) {
+            if (w.id === 'ws_default' || w.id === 'ws_public') {
               return {
                 ...w,
                 name: userWsName,
@@ -1058,7 +1073,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }
  }, []);
 
- // Dynamically apply workspace accent color & layout density to DOM
+ // Dynamically apply workspace accent color, theme mode (dark/light), & layout density to DOM
  useEffect(() => {
  if (typeof document === 'undefined') return;
  const root = document.documentElement;
@@ -1070,7 +1085,118 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  if (workspaceSettings.density) {
  root.setAttribute('data-density', workspaceSettings.density);
  }
- }, [workspaceSettings.accentColor, workspaceSettings.density]);
+ const themeMode = (workspaceSettings as any).theme || (typeof window !== 'undefined' ? localStorage.getItem('cursis_theme') : null) || 'light';
+ if (themeMode === 'dark') {
+ root.setAttribute('data-theme', 'dark');
+ root.classList.add('dark');
+ } else if (themeMode === 'system') {
+ const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+ root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+ if (prefersDark) root.classList.add('dark'); else root.classList.remove('dark');
+ } else {
+ root.setAttribute('data-theme', 'light');
+ root.classList.remove('dark');
+ }
+ }, [workspaceSettings.accentColor, workspaceSettings.density, (workspaceSettings as any).theme]);
+
+ // Real-time online/offline presence tracking and 45s heartbeat
+ useEffect(() => {
+ if (typeof window === 'undefined') return;
+
+ const sendHeartbeat = (statusPresence: 'online' | 'offline' | 'away' = 'online') => {
+ const token = localStorage.getItem('cursis_token');
+ const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+ ? activeWorkspaceId
+ : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+
+ fetch('/api/team', {
+ method: 'PATCH',
+ credentials: 'include',
+ headers: {
+ 'Content-Type': 'application/json',
+ ...(token ? { Authorization: `Bearer ${token}` } : {}),
+ },
+ body: JSON.stringify({
+ userId: user.id,
+ workspaceId: wsId,
+ updates: {
+ presence: navigator.onLine ? statusPresence : 'offline',
+ lastActiveAt: new Date().toISOString(),
+ },
+ }),
+ }).catch(() => {});
+ };
+
+ const handleOnline = () => {
+ showToast('You are back online');
+ sendHeartbeat('online');
+ setEmployees((prev) =>
+ prev.map((e) =>
+ e.id === user.id || (user.email && e.email && e.email.toLowerCase() === user.email.toLowerCase())
+ ? { ...e, status: 'online' }
+ : e
+ )
+ );
+ };
+
+ const handleOffline = () => {
+ showToast('You are currently offline');
+ setEmployees((prev) =>
+ prev.map((e) =>
+ e.id === user.id || (user.email && e.email && e.email.toLowerCase() === user.email.toLowerCase())
+ ? { ...e, status: 'offline' }
+ : e
+ )
+ );
+ };
+
+ const handleVisibility = () => {
+ if (document.visibilityState === 'hidden') {
+ sendHeartbeat('away');
+ } else {
+ sendHeartbeat('online');
+ }
+ };
+
+ const handleUnload = () => {
+ const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+ ? activeWorkspaceId
+ : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+ const payload = JSON.stringify({
+ userId: user.id,
+ workspaceId: wsId,
+ updates: {
+ presence: 'offline',
+ lastActiveAt: new Date().toISOString(),
+ },
+ });
+ if (navigator.sendBeacon) {
+ navigator.sendBeacon('/api/team', new Blob([payload], { type: 'application/json' }));
+ }
+ };
+
+ window.addEventListener('online', handleOnline);
+ window.addEventListener('offline', handleOffline);
+ document.addEventListener('visibilitychange', handleVisibility);
+ window.addEventListener('beforeunload', handleUnload);
+
+ // Initial online ping
+ sendHeartbeat('online');
+
+ const interval = setInterval(() => {
+ if (navigator.onLine && document.visibilityState === 'visible') {
+ sendHeartbeat('online');
+ }
+ }, 45000);
+
+ return () => {
+ window.removeEventListener('online', handleOnline);
+ window.removeEventListener('offline', handleOffline);
+ document.removeEventListener('visibilitychange', handleVisibility);
+ window.removeEventListener('beforeunload', handleUnload);
+ clearInterval(interval);
+ };
+ }, [user.id, user.email, activeWorkspaceId, workspaces]);
 
  // Fetch audit logs from backend on mount
  useEffect(() => {
@@ -1098,7 +1224,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }, []);
 
  // ---- Settings Mutation Handlers with Persistence ----
- const updateWorkspaceSettings = (updates: Partial<WorkspaceSettings>) => {
+ const updateWorkspaceSettings = async (updates: Partial<WorkspaceSettings> & Record<string, any>) => {
  setWorkspaceSettings((prev) => {
  const next = { ...prev, ...updates };
  try {
@@ -1111,7 +1237,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  if (w.id === activeWorkspaceId) {
  return {
  ...w,
- ...(updates.name ? { name: updates.name, shortName: updates.name } : {}),
+ ...(updates.name ? { name: updates.name, shortName: updates.name.slice(0, 3).toUpperCase() } : {}),
  ...(updates.tagline ? { tagline: updates.tagline } : {}),
  ...(updates.accentColor ? { color: updates.accentColor } : {}),
  };
@@ -1119,6 +1245,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  return w;
  })
  );
+
+ if (updates.name) {
+ try {
+ localStorage.setItem('cursis_custom_workspace_name', updates.name);
+ } catch {}
+ }
 
  if (updates.name || updates.industry || updates.timezone || updates.language || updates.dateFormat) {
  setOrgSettings((org) => {
@@ -1140,7 +1272,51 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  return next;
  });
  addAuditEntry(user.name, 'workspace.settings.updated', 'Workspace Settings', 'Updated workspace customization, identity, and theme');
- showToast('Workspace settings saved ');
+ showToast('Workspace settings saved');
+
+ // Persist to MongoDB through /api/workspaces/[id]/settings
+ try {
+ const targetWsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+ ? activeWorkspaceId
+ : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || 'ws_default');
+
+ const res = await fetch(`/api/workspaces/${encodeURIComponent(targetWsId)}/settings`, {
+ method: 'PATCH',
+ credentials: 'include',
+ headers: {
+ 'Content-Type': 'application/json',
+ },
+ body: JSON.stringify({
+ name: updates.name,
+ tagline: updates.tagline,
+ industry: updates.industry,
+ teamSize: updates.teamSize,
+ settings: {
+ theme: updates.accentColor,
+ timezone: updates.timezone,
+ language: updates.language,
+ dateFormat: updates.dateFormat,
+ companyTone: updates.companyTone,
+ ambientMonitoring: updates.ambientMonitoring,
+ approvalRequiredForActions: updates.approvalRequiredForActions,
+ simulationMode: updates.simulationMode,
+ riskTolerance: updates.riskTolerance,
+ },
+ }),
+ });
+
+ if (res.ok) {
+ const data = await res.json().catch(() => null);
+ if (data?.data?.workspace?.name) {
+ const savedName = data.data.workspace.name;
+ setWorkspaces((prev) =>
+ prev.map((w) => (w.id === targetWsId ? { ...w, name: savedName, shortName: savedName.slice(0, 3).toUpperCase() } : w))
+ );
+ }
+ }
+ } catch (err) {
+ console.warn('Workspace settings DB persist warning:', err);
+ }
  };
 
  const updateTeamSettings = (updates: Partial<TeamSettings>) => {
@@ -1555,21 +1731,48 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   // ---- Project Mutations ----
  const addProject = (projData: Partial<Project> & { name: string }) => {
  const newProj: Project = {
- id: 'p_' + Date.now(),
+ id: projData.id || ('p_' + Date.now()),
  name: projData.name,
  icon: projData.icon || '',
  color: projData.color || '#0f4cff',
  desc: projData.desc || 'New workspace initiative',
- progress: 0,
- status: 'Planning',
+ progress: projData.progress ?? 0,
+ status: projData.status || 'Planning',
  deadline: projData.deadline || '2026-10-01',
  team: projData.team || [user.id],
- tasks: 0,
- completed: 0,
+ tasks: projData.tasks ?? 0,
+ completed: projData.completed ?? 0,
  milestones: projData.milestones || [],
  };
  setProjects((prev) => [newProj, ...prev]);
- showToast(`Project "${newProj.name}" created `);
+ showToast(`Project "${newProj.name}" created`);
+
+ const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+ const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+ ? activeWorkspaceId
+ : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+ fetch('/api/projects', {
+ method: 'POST',
+ credentials: 'include',
+ headers: {
+ 'Content-Type': 'application/json',
+ ...(token ? { Authorization: `Bearer ${token}` } : {}),
+ },
+ body: JSON.stringify({
+ workspaceId: wsId,
+ name: newProj.name,
+ description: newProj.desc,
+ deadline: newProj.deadline,
+ budget: (projData as any).budget,
+ }),
+ })
+ .then((res) => res.json())
+ .then((data) => {
+ if (data.project?.id) {
+ setProjects((prev) => prev.map((p) => (p.id === newProj.id ? { ...p, id: data.project.id } : p)));
+ }
+ })
+ .catch((err) => console.warn('Project persist notice:', err));
  };
 
  const updateProject = (id: string, updates: Partial<Project>) => {
@@ -1800,6 +2003,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       if (empEmail) {
         removedMemberIdsRef.current.add(empEmail);
       }
+      if (typeof window !== 'undefined') {
+        try {
+          const key = `cursis_removed_members_${activeWorkspaceId}`;
+          const stored = JSON.parse(localStorage.getItem(key) || '[]');
+          if (!stored.includes(id)) stored.push(id);
+          if (empEmail && !stored.includes(empEmail)) stored.push(empEmail);
+          localStorage.setItem(key, JSON.stringify(stored));
+        } catch {}
+      }
 
       setEmployees((prev) =>
         prev.filter((e) => e.id !== id && (!empEmail || (e.email || '').trim().toLowerCase() !== empEmail))
@@ -1811,7 +2023,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       showToast(`Removed ${emp?.name || 'member'} from workspace`);
       
       // Re-sync authoritative list from server
-      syncTeamAndNotifications();
+      await syncTeamAndNotifications(activeWorkspaceId);
     } catch (err) {
       console.warn('Notice: Error removing member:', err);
       showToast('Error: Network error while removing member.');
@@ -1893,40 +2105,40 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (code === 'CURSIS-PRO-2026') {
       perks = [
         'Executive Autonomous Copilot Unlocked',
-        '⚡ Real-Time Bottleneck Detection',
-        '🚀 Unlimited Multi-Agent Execution',
+        'Real-Time Bottleneck Detection',
+        'Unlimited Multi-Agent Execution',
       ];
     } else if (code === 'ENTERPRISE-SCALE-4') {
       perks = [
-        '🏢 Enterprise Feature Pack Granted',
-        '🤖 Ordis Autonomous Copilot & Ambient Scanner Active',
-        '🌐 Full 2,000-User Enterprise Scale Support',
-        '📊 Instant Enterprise Telemetry Synthesis',
+        'Enterprise Feature Pack Granted',
+        'Ordis Autonomous Copilot & Ambient Scanner Active',
+        'Full 2,000-User Enterprise Scale Support',
+        'Instant Enterprise Telemetry Synthesis',
       ];
     } else if (code === 'ORDIS-VIP-ACCESS') {
       perks = [
-        '👑 Executive VIP Access Activated',
-        '🤖 Ordis Autonomous Agents Active (Bottleneck Scanner & Copilot)',
-        '🔒 SOC-2 Audit Telemetry Access',
+        'Executive VIP Access Activated',
+        'Ordis Autonomous Agents Active (Bottleneck Scanner & Copilot)',
+        'SOC-2 Audit Telemetry Access',
       ];
     } else if (code === 'FEATURE-STUDIO-PRO') {
       perks = [
-        '✨ Dynamic Feature Builder Studio Unlocked',
-        '📈 Executive KPI Telemetry Synthesized',
-        '🛡️ AI Code Review & Deployment Gatekeeper Active',
+        'Dynamic Feature Builder Studio Unlocked',
+        'Executive KPI Telemetry Synthesized',
+        'AI Code Review & Deployment Gatekeeper Active',
       ];
       isSpecialFeatureUnlock = true;
     } else if (code === 'SPECIAL-FOUNDER') {
       perks = [
-        '👑 Sovereign Founder Tier Activated',
-        '🌟 VIP Founder Badge Unlocked',
-        '⚡ Unlimited Ambient Copilot Cycles',
-        '🚀 Zero Rate-Limit Autonomy',
+        'Sovereign Founder Tier Activated',
+        'VIP Founder Badge Unlocked',
+        'Unlimited Ambient Copilot Cycles',
+        'Zero Rate-Limit Autonomy',
       ];
     } else if (code.startsWith('CURSIS-') || code.startsWith('VIP-') || code.startsWith('PRO-')) {
       perks = [
         'Executive Autonomous Copilot Active',
-        '🏢 Enterprise Feature Entitlement',
+        'Enterprise Feature Entitlement',
       ];
     } else {
       return {
@@ -2227,7 +2439,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  setTimeout(() => syncTeamAndNotifications(), 1000);
  }
  if (m.createdProject) {
- setProjects((prev) => [m.createdProject!, ...prev]);
+ addProject(m.createdProject);
+ }
+ if (m.createdDepartment) {
+ addDepartment(m.createdDepartment);
  }
  if (m.updatedProjects) {
  setProjects(m.updatedProjects);
@@ -2236,7 +2451,27 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  setMeetings((prev) => [m.createdMeeting!, ...prev]);
  }
  if (m.createdDocument) {
- setDocuments((prev) => [m.createdDocument!, ...prev]);
+ const newDoc = m.createdDocument;
+ setDocuments((prev) => [newDoc, ...prev]);
+ const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+ const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+ ? activeWorkspaceId
+ : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+ fetch('/api/documents', {
+ method: 'POST',
+ credentials: 'include',
+ headers: {
+ 'Content-Type': 'application/json',
+ ...(token ? { Authorization: `Bearer ${token}` } : {}),
+ },
+ body: JSON.stringify({
+ workspaceId: wsId,
+ title: newDoc.name,
+ content: newDoc.aiSummary || '',
+ category: newDoc.type || 'general',
+ tags: newDoc.tags || ['AI-Draft'],
+ }),
+ }).catch((err) => console.warn('Document persist notice:', err));
  }
  if (m.createdAutomation) {
  setAutomations((prev) => [m.createdAutomation!, ...prev]);
@@ -2353,7 +2588,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         ...prev,
         {
           role: 'ai',
-          text: `**⚠️ Notice**\n\n${errText}\n\nPlease try again or check your workspace connection.`,
+          text: `**Notice**\n\n${errText}\n\nPlease try again or check your workspace connection.`,
           time: errTimeStr,
         },
       ]);
@@ -2367,7 +2602,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   ...prev,
   {
   role: 'ai',
-  text: `**⚠️ Connection Failed**\n\nCould not reach the Ordis API: ${errMsg}\n\nMake sure the dev server is running.`,
+  text: `**Connection Notice**\n\nCould not reach the Ordis API: ${errMsg}\n\nMake sure the dev server is running.`,
   time: errTimeStr,
   },
   ]);
@@ -2494,6 +2729,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     try {
       fetch('/api/documents', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           workspaceId: effectiveWsId,
@@ -2540,6 +2776,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     try {
       fetch('/api/documents', {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, ...updates }),
       }).catch(() => {});
@@ -2555,6 +2792,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     try {
       fetch(`/api/documents?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
+        credentials: 'include',
       }).catch(() => {});
     } catch {}
   };

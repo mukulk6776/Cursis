@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Cookie } from 'lucide-react';
 
 export default function CookieConsent() {
   const [showBanner, setShowBanner] = useState(false);
@@ -70,7 +71,9 @@ export default function CookieConsent() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
             {/* Cookie Icon */}
-            <div style={{ fontSize: '32px', flexShrink: 0 }}>🍪</div>
+            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.08)' }}>
+              <Cookie size={20} color="#ffffff" />
+            </div>
 
             {/* Content */}
             <div style={{ flex: '1 1 400px', minWidth: '280px' }}>

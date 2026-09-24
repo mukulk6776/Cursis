@@ -112,7 +112,7 @@ export default function Topbar() {
  }}
  style={{ position: 'relative', cursor: 'pointer' }}
  >
- <svg width="18" height="18" viewBox="0 0 1024 1024" fill="none">
+ <svg width="18" height="18" viewBox="0 0 1024 1024" fill="none" style={{ borderRadius: '6px', overflow: 'hidden' }}>
  <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#18181b" strokeWidth="142" strokeLinecap="round" fill="none" />
  <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#ff5710" />
  </svg>

@@ -73,8 +73,8 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const rawWsId = body.workspaceId || '';
 
-    // Only owner, admin, manager can create documents
-    const auth = await authorizeWorkspaceAccess(request, rawWsId, ['owner', 'admin', 'manager']);
+    // Only workspace owners have permission to create documents
+    const auth = await authorizeWorkspaceAccess(request, rawWsId, ['owner']);
     if (auth.errorResponse) return auth.errorResponse;
     const authUser = auth.user;
 
@@ -153,8 +153,8 @@ export async function DELETE(request: Request) {
     const existing = await getDocumentById(id);
     if (!existing) return apiError(`Document with ID "${id}" not found.`, 404);
 
-    // Owner/admin/manager can delete — verified against document's actual workspace
-    const auth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner', 'admin', 'manager']);
+    // Only workspace owners have permission to delete documents — verified against document's actual workspace
+    const auth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner']);
     if (auth.errorResponse) return auth.errorResponse;
 
     await deleteDocument(id);

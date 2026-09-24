@@ -54,7 +54,7 @@ export default function Sidebar() {
       {/* Sidebar Header */}
       <div className="sidebar-header">
         <div className="sidebar-logo" onClick={() => handleNav('home')} style={{ cursor: 'pointer' }}>
-          <svg className="sidebar-logo-icon" viewBox="0 0 1024 1024" fill="none" width="28" height="28">
+          <svg className="sidebar-logo-icon" viewBox="0 0 1024 1024" fill="none" width="28" height="28" style={{ borderRadius: '8px', overflow: 'hidden' }}>
             <path
               d="M 545 240 A 282 282 0 1 0 782 566"
               stroke="#000000"

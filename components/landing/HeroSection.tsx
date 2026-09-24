@@ -292,7 +292,7 @@ export default function HeroSection() {
                             className="btn btn-sm btn-primary"
                             style={{ fontSize: '0.78rem', padding: '5px 12px', borderRadius: '6px' }}
                           >
-                            {ordisActionExecuted ? '✓ Task Rebalanced to Mukul K.' : '⚡ Execute Ordis Rebalance'}
+                            {ordisActionExecuted ? 'Task Rebalanced to Mukul K.' : 'Execute Ordis Rebalance'}
                           </button>
                         </div>
                       )}

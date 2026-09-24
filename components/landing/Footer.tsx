@@ -7,24 +7,26 @@ export default function Footer() {
       <div className="lp-footer-inner">
         <div className="lp-footer-brand">
           <div className="lp-footer-logo">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="28" height="28" role="img" aria-label="Cursis Logo">
-              <path
-                d="M 545 240 A 282 282 0 1 0 782 566"
-                stroke="#ffffff"
-                strokeWidth="142"
-                strokeLinecap="round"
-                fill="none"
-              />
-              <rect
-                x="625"
-                y="196"
-                width="156"
-                height="156"
-                rx="42"
-                transform="rotate(-10 703 274)"
-                fill="#FF5500"
-              />
-            </svg>
+            <div style={{ width: '28px', height: '28px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="28" height="28" role="img" aria-label="Cursis Logo" style={{ borderRadius: '8px' }}>
+                <path
+                  d="M 545 240 A 282 282 0 1 0 782 566"
+                  stroke="#ffffff"
+                  strokeWidth="142"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <rect
+                  x="625"
+                  y="196"
+                  width="156"
+                  height="156"
+                  rx="42"
+                  transform="rotate(-10 703 274)"
+                  fill="#FF5500"
+                />
+              </svg>
+            </div>
             <span className="lp-footer-logo-text">Cursis</span>
           </div>
           <p className="lp-footer-tagline">
@@ -49,8 +51,6 @@ export default function Footer() {
             <a href="#features" className="lp-footer-link">Core Architecture</a>
             <a href="#ordis" className="lp-footer-link">Ordis Intelligence</a>
             <a href="#problem" className="lp-footer-link">Stack Comparison</a>
-            <Link href="/resources" className="lp-footer-link">Resources &amp; Guides</Link>
-            <Link href="/compare" className="lp-footer-link">Cursis vs Competitors</Link>
           </div>
 
           <div className="lp-footer-col">

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { OrgSettings } from '@/lib/dashboard/types';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { Sun, Moon, Monitor, Pipette } from 'lucide-react';
 
 type SettingsTab = 'workspace' | 'team' | 'notifications' | 'ordis' | 'security';
 
@@ -256,20 +257,7 @@ export default function SettingsPage() {
  />
  </div>
 
- <div className="input-group">
- <label className="input-label">Language</label>
- <select
- className="input select"
- value={wsForm.language}
- onChange={(e) => setWsForm({ ...wsForm, language: e.target.value })}
- >
- <option value="English">English</option>
- <option value="Spanish">Spanish (Español)</option>
- <option value="French">French (Français)</option>
- <option value="German">German (Deutsch)</option>
- <option value="Japanese">Japanese (日本語)</option>
- </select>
- </div>
+ 
  </div>
 
  <div style={{ marginTop: 'var(--sp-4)', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -293,6 +281,51 @@ export default function SettingsPage() {
  </p>
 
  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--sp-4)' }}>
+ <div className="input-group">
+ <label className="input-label">Website Theme (Dark Mode)</label>
+ <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
+ {[
+ { id: 'light', label: 'Light', icon: Sun },
+ { id: 'dark', label: 'Dark', icon: Moon },
+ { id: 'system', label: 'System', icon: Monitor },
+ ].map(({ id, label, icon: Icon }) => {
+ const currentTheme = (wsForm as any).theme || (typeof window !== 'undefined' ? localStorage.getItem('cursis_theme') : null) || 'light';
+ const isActive = currentTheme === id;
+ return (
+ <button
+ key={id}
+ type="button"
+ id={`theme-btn-${id}`}
+ className={`btn btn-sm ${isActive ? 'btn-primary' : 'btn-secondary'}`}
+ onClick={() => {
+ const mode = id as 'light' | 'dark' | 'system';
+ setWsForm((prev) => ({ ...prev, theme: mode }));
+ if (typeof window !== 'undefined') {
+ localStorage.setItem('cursis_theme', mode);
+ const root = document.documentElement;
+ if (mode === 'dark') {
+ root.setAttribute('data-theme', 'dark');
+ root.classList.add('dark');
+ } else if (mode === 'system') {
+ const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+ root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+ if (prefersDark) root.classList.add('dark'); else root.classList.remove('dark');
+ } else {
+ root.setAttribute('data-theme', 'light');
+ root.classList.remove('dark');
+ }
+ }
+ updateWorkspaceSettings({ theme: mode });
+ }}
+ style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flex: 1, fontWeight: isActive ? 700 : 500 }}
+ >
+ <Icon size={14} />
+ <span>{label}</span>
+ </button>
+ );
+ })}
+ </div>
+ </div>
  <div className="input-group">
  <label className="input-label">Brand Accent Color</label>
  <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -322,24 +355,57 @@ export default function SettingsPage() {
  }}
  />
  ))}
+ <div
+ style={{
+ position: 'relative',
+ width: '32px',
+ height: '32px',
+ borderRadius: 'var(--border-radius-md)',
+ background: wsForm.accentColor || '#0f4cff',
+ border: '2px solid var(--border-color)',
+ display: 'flex',
+ alignItems: 'center',
+ justifyContent: 'center',
+ cursor: 'pointer',
+ overflow: 'hidden',
+ boxShadow: 'var(--shadow-xs)',
+ }}
+ title="Pick Custom Accent Color"
+ >
+ <Pipette size={14} color="#ffffff" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', pointerEvents: 'none' }} />
  <input
  type="color"
  value={wsForm.accentColor || '#0f4cff'}
  onChange={(e) => setWsForm({ ...wsForm, accentColor: e.target.value })}
  style={{
- width: '32px',
- height: '32px',
- padding: 0,
- border: '1px solid var(--border-color)',
- borderRadius: 'var(--border-radius-md)',
+ position: 'absolute',
+ inset: 0,
+ width: '100%',
+ height: '100%',
+ opacity: 0,
  cursor: 'pointer',
- background: 'none',
+ border: 'none',
+ padding: 0,
  }}
- title="Custom Color"
+ title="Pick Custom Accent Color"
  />
- <span style={{ fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)', marginLeft: 'var(--sp-2)' }}>
- {wsForm.accentColor}
- </span>
+ </div>
+ <div
+ style={{
+ display: 'inline-flex',
+ alignItems: 'center',
+ padding: '4px 8px',
+ background: 'var(--c-bg-subtle)',
+ border: '1px solid var(--border-color)',
+ borderRadius: '6px',
+ fontFamily: 'var(--font-mono)',
+ fontSize: 'var(--fs-xs)',
+ fontWeight: 600,
+ color: 'var(--text-primary)',
+ }}
+ >
+ <span>{wsForm.accentColor || '#0f4cff'}</span>
+ </div>
  </div>
  </div>
 
@@ -903,15 +969,7 @@ export default function SettingsPage() {
  </select>
  </div>
 
- <div className="input-group">
- <label className="input-label">Morning Briefing Time</label>
- <input
- type="time"
- className="input"
- value={ordisForm.briefingTime}
- onChange={(e) => setOrdisForm({ ...ordisForm, briefingTime: e.target.value })}
- />
- </div>
+ 
  </div>
 
  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', borderTop: '1px solid var(--c-gray-200)', paddingTop: 'var(--sp-4)' }}>
@@ -928,18 +986,7 @@ export default function SettingsPage() {
  />
  </label>
 
- <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
- <div>
- <div style={{ fontWeight: 'var(--fw-bold)' }}>Daily Morning Briefing</div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Deliver daily top 3 priorities directly to the Overview dashboard tab</div>
- </div>
- <input
- type="checkbox"
- checked={ordisForm.morningBriefing}
- onChange={(e) => setOrdisForm({ ...ordisForm, morningBriefing: e.target.checked, morningBriefingEnabled: e.target.checked })}
- style={{ width: '18px', height: '18px', cursor: 'pointer' }}
- />
- </label>
+ 
  </div>
  </div>
 

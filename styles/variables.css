@@ -200,3 +200,61 @@
   --fs-base: 1.0625rem;
 }
 
+/* ============================================
+   CURSIS — High-Contrast Dark Mode Tokens
+   Deep Slate Canvas, Charcoal Cards, Crisp Ink & Warm Accents
+   ============================================ */
+[data-theme="dark"],
+.dark {
+  --c-cream: #0c0e12;
+  --c-paper: #161922;
+  --c-ink: #f9fafb;
+  --c-ink-soft: #e5e7eb;
+  --c-near-black: #ffffff;
+  --c-dark: #f9fafb;
+  --c-dark-2: #e5e7eb;
+  --c-white: #161922;
+
+  --c-bg: #0c0e12;
+  --c-bg-subtle: #141824;
+  --c-bg-elevated: #1e2230;
+
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --text-muted: #6b7280;
+
+  --surface-primary: #0c0e12;
+  --surface-secondary: #161922;
+  --surface-tertiary: #1e2230;
+  --surface-sidebar: #0f1117;
+  --surface-topbar: rgba(15, 17, 23, 0.95);
+  --surface-card: #161922;
+  --surface-modal: #161922;
+  --surface-overlay: rgba(0, 0, 0, 0.75);
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-active: rgba(255, 255, 255, 0.08);
+
+  --border-color: #282e3e;
+  --border-light: #212634;
+  --border-dark: #374151;
+
+  --c-brand-bg: rgba(255, 85, 0, 0.15);
+  --c-accent-bg: rgba(255, 194, 51, 0.15);
+  --c-success-bg: rgba(16, 185, 129, 0.15);
+  --c-warning-bg: rgba(245, 158, 11, 0.15);
+  --c-error-bg: rgba(239, 68, 68, 0.15);
+
+  --shadow-xs: 2px 2px 0 0 #000000;
+  --shadow-sm: 3px 3px 0 0 #000000;
+  --shadow-md: 6px 6px 0 0 #000000;
+  --shadow-lg: 8px 8px 0 0 #000000;
+  --shadow-xl: 10px 10px 0 0 #000000;
+  --shadow-2xl: 12px 12px 0 0 #000000;
+  --shadow-tano: 6px 6px 0 0 #000000;
+  --shadow-tano-hover: 8px 8px 0 0 #000000;
+  --shadow-card-hover: 8px 8px 0 0 #000000;
+  --shadow-brand: 6px 6px 0 0 #000000;
+}
+
+

@@ -22,14 +22,14 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
-  background: #ffffff;
-  color: #111827;
+  background: var(--surface-card, #ffffff);
+  color: var(--text-primary, #111827);
 }
 
 .btn:hover {
-  background: #F9FAFB;
-  border-color: #D1D5DB;
-  color: #111827;
+  background: var(--surface-hover, #F9FAFB);
+  border-color: var(--border-color, #D1D5DB);
+  color: var(--text-primary, #111827);
   transform: translateY(-1px);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
   text-decoration: none;
@@ -161,7 +161,7 @@
 
 /* ---- Cards (Tano 16px Rounded Cards) ---- */
 .card {
-  background: #ffffff;
+  background: var(--surface-card, #ffffff);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: var(--sp-5);
@@ -183,13 +183,13 @@
 
 .card-flat {
   border: 1px solid var(--border-color);
-  background: #ffffff;
+  background: var(--surface-card, #ffffff);
   box-shadow: none;
 }
 
 /* ---- Stat Cards ---- */
 .stat-card {
-  background: #ffffff;
+  background: var(--surface-card, #ffffff);
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: var(--sp-5);
@@ -286,7 +286,7 @@ input.input {
   font-family: var(--font-family);
   font-size: var(--fs-sm);
   color: var(--text-primary);
-  background: #ffffff;
+  background: var(--surface-card, #ffffff);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 10px 14px;

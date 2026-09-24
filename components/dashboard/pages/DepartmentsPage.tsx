@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { Department } from '@/lib/dashboard/types';
+import { AlertTriangle } from 'lucide-react';
 
 export default function DepartmentsPage() {
   const {
@@ -582,8 +583,9 @@ export default function DepartmentsPage() {
                     marginBottom: '14px',
                   }}
                 >
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#92400e', marginBottom: '8px' }}>
-                    ⚠️ {deletingDept.name} has {deletingDept.activeTaskCount} active task(s).
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#92400e', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertTriangle size={14} color="#92400e" />
+                    <span>{deletingDept.name} has {deletingDept.activeTaskCount} active task(s).</span>
                   </div>
                   <p style={{ fontSize: '12px', color: '#78350f', margin: '0 0 10px 0' }}>
                     Choose how to handle active tasks before deleting:
