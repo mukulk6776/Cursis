@@ -519,9 +519,32 @@
   position: relative;
 }
 
+/* Full-bleed responsive layout for Ordis AI workspace — eliminates double scrollbars & height clipping */
+.main-content.main-content-ordis,
+.main-content:has(.ordis-page),
+.main-content:has(#page-ordis) {
+  padding: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  transform: none !important;
+}
+
 .main-content > * {
   position: relative;
   z-index: 1;
+}
+
+.main-content.main-content-ordis > *,
+.main-content:has(.ordis-page) > * {
+  height: 100% !important;
+  max-height: 100% !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .page {

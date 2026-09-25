@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -30,6 +31,8 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ children }: DashboardShellProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen, openModal } = useDashboard();
+  const pathname = usePathname();
+  const isOrdisPage = pathname === '/dashboard/ordis' || pathname?.startsWith('/dashboard/ordis');
 
   // Trigger workspace setup options screen when user logs in or hasn't completed onboarding
   useEffect(() => {
@@ -77,11 +80,11 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         <div className="main-wrapper">
           <Topbar />
           <motion.main
-            key={typeof window !== 'undefined' ? window.location.pathname : 'main'}
+            key={pathname || 'main'}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-            className="main-content"
+            className={`main-content ${isOrdisPage ? 'main-content-ordis' : ''}`}
           >
             {children}
           </motion.main>

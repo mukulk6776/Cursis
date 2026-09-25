@@ -124,17 +124,21 @@ export default function LandingNav() {
 
         {/* Links drawer */}
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
-          {['#features', '#ordis', '#team', '#creators', '#modules', '#agency'].map((href, i) => (
+          {[
+            { href: '#features', label: 'Capabilities' },
+            { href: '#ordis', label: 'Ordis AI' },
+            { href: '#modules', label: 'Modules' },
+          ].map((item, i) => (
             <motion.a
-              key={href}
-              href={href}
-              onClick={(e) => handleAnchorClick(e, href)}
+              key={item.href}
+              href={item.href}
+              onClick={(e) => handleAnchorClick(e, item.href)}
               className="lp-nav-link"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12 + i * 0.05, duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              {['Platform', 'Ordis Intelligence', 'Teams', 'Creators', 'Modules', 'Enterprise'][i]}
+              {item.label}
             </motion.a>
           ))}
 

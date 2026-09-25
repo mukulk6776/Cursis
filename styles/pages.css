@@ -558,6 +558,7 @@
 .kanban-board-wrapper {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: 12px;
 }
 
@@ -1443,128 +1444,7 @@
 }
 
 
-/* ==== ORDIS PAGE ==== */
-.ordis-page {
- max-width: 800px;
- margin: 0 auto;
- height: calc(100vh - var(--topbar-height) - var(--sp-16));
- display: flex;
- flex-direction: column;
-}
-
-.ordis-header {
- text-align: center;
- padding: var(--sp-6) 0;
-}
-
-.ordis-logo {
- width: 48px;
- height: 48px;
- background: var(--c-gray-900);
- 
- display: flex;
- align-items: center;
- justify-content: center;
- color: white;
- font-size: var(--fs-xl);
- margin: 0 auto var(--sp-3);
-}
-
-.ordis-chat {
- flex: 1;
- overflow-y: auto;
- display: flex;
- flex-direction: column;
- gap: var(--sp-4);
- padding: var(--sp-4) 0;
-}
-
-.ordis-msg {
- display: flex;
- gap: var(--sp-3);
- max-width: 85%;
-}
-
-.ordis-msg.user {
- margin-left: auto;
- flex-direction: row-reverse;
-}
-
-.ordis-msg-avatar {
- border-radius: 50%;
- width: 32px;
- height: 32px;
- 
- display: flex;
- align-items: center;
- justify-content: center;
- flex-shrink: 0;
- font-size: var(--fs-sm);
-}
-
-.ordis-msg.ai .ordis-msg-avatar {
- border-radius: 50%;
- background: var(--c-gray-900);
- color: white;
-}
-
-.ordis-msg.user .ordis-msg-avatar {
- border-radius: 50%;
- background: var(--c-brand);
- color: white;
-}
-
-.ordis-msg-bubble {
- border-radius: 12px;
- padding: var(--sp-3) var(--sp-4);
- 
- font-size: var(--fs-base);
- line-height: var(--lh-relaxed);
-}
-
-.ordis-msg.ai .ordis-msg-bubble {
- border-radius: 12px;
- background: rgba(255,255,255,0.4);
- color: var(--text-primary);
- border-bottom-left-radius: var(--border-radius-xs);
-}
-
-.ordis-msg.user .ordis-msg-bubble {
- border-radius: 12px;
- background: var(--c-gray-900);
- color: white;
- border-bottom-right-radius: var(--border-radius-xs);
-}
-
-.ordis-suggestions {
- display: flex;
- flex-wrap: wrap;
- gap: var(--sp-2);
- padding: var(--sp-3) 0;
-}
-
-.ordis-suggestion-chip {
- border-radius: 9999px;
- padding: var(--sp-2) var(--sp-3);
- background: var(--c-white); 
- border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
- 
- font-size: var(--fs-sm);
- color: var(--text-secondary);
- cursor: pointer;
- transition: all var(--dur-fast) var(--ease-default);
-}
-
-.ordis-suggestion-chip:hover {
- background: var(--c-gray-900);
- color: white;
- border-color: var(--border-color);
-}
-
-.ordis-input-bar {
- padding: var(--sp-4) 0;
- border-top: 1px solid var(--border-color);
-}
+/* ==== ORDIS PAGE (Styles handled natively in OrdisPage.tsx) ==== */
 
 
 /* ==== COMMAND PALETTE ==== */
