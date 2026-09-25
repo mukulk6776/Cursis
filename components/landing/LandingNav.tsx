@@ -125,9 +125,11 @@ export default function LandingNav() {
         {/* Links drawer */}
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           {[
-            { href: '#features', label: 'Capabilities' },
+            { href: '#features', label: 'Features' },
+            { href: '#connected', label: 'Workflow' },
             { href: '#ordis', label: 'Ordis AI' },
             { href: '#modules', label: 'Modules' },
+            { href: '#creators', label: 'Creators' },
           ].map((item, i) => (
             <motion.a
               key={item.href}

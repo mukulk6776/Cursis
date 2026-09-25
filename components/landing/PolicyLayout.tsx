@@ -20,8 +20,6 @@ const POLICY_NAV_ITEMS = [
   { slug: 'privacy', label: 'Privacy Policy', href: '/privacy' },
   { slug: 'terms', label: 'Terms of Service', href: '/terms' },
   { slug: 'cookie-policy', label: 'Cookie Policy', href: '/cookie-policy' },
-  { slug: 'refund-policy', label: 'Refund Policy', href: '/refund-policy' },
-  { slug: 'data-deletion', label: 'Data Deletion', href: '/data-deletion' },
 ];
 
 export default function PolicyLayout({

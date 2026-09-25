@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 
-
 interface OrdisOperationalScenario {
   id: string;
   mode: 'conversational' | 'autonomous';
@@ -20,90 +19,79 @@ export default function OrdisSection() {
   const [executedActions, setExecutedActions] = useState<Record<string, boolean>>({});
 
   const scenarios: OrdisOperationalScenario[] = [
-    // --- CONVERSATIONAL GUIDANCE SCENARIOS ---
+    // --- QUICK ANSWERS SCENARIOS ---
     {
-      id: 'feature-doubt',
+      id: 'sprint-summary',
       mode: 'conversational',
-      label: 'Platform Guidance: "Operating Tasks & Kanban"',
-      userPrompt: 'How do I operate the Task Kanban, automated routing, and priority filters in Cursis?',
-      metaBadge: 'STANDARD · WORKFLOW GUIDE',
-      responseHeadline: 'Operating Framework: Tasks & Kanban Hierarchy',
-      responseBody: '1. Access Tasks from the primary navigation or press Cmd+K.\n2. Initialize "+ Add Task", configure assignee, milestone delivery SLA, and priority level (Urgent, High, Medium, Low).\n3. Reorder deliverables across Todo, In Progress, and Done pipelines.\n4. Filter by assignee or priority badge to isolate cross-functional bottlenecks.\nProactive Automation: Say "Create task: [Title] for [Name] due [Date]" to execute via natural language.',
-      actionButtonLabel: 'Open Tasks Framework',
-      actionExecutedText: 'Tasks guide bookmarked and synchronized',
+      label: 'Sprint Summary',
+      userPrompt: 'What are our key priorities and blockers for today?',
+      metaBadge: 'SPRINT UPDATE',
+      responseHeadline: 'Today\'s Sprint Overview',
+      responseBody: '• 3 tasks due today: Design Tokens, Auth Guard, and Mobile Nav.\n• 1 blocker: Design review needed for the checkout flow.\n• Sprint is 88% complete and on track for Friday delivery.',
+      actionButtonLabel: 'Copy Sprint Summary',
+      actionExecutedText: 'Sprint summary copied to clipboard',
     },
     {
-      id: 'summarize',
+      id: 'workload-check',
       mode: 'conversational',
-      label: 'Executive Briefing: "Sprint Velocity & Status"',
-      userPrompt: 'Synthesize current sprint velocity, open dependency blockers, and approaching deliverables',
-      metaBadge: 'STANDARD · EXECUTIVE BRIEFING',
-      responseHeadline: 'Sprint Velocity Executive Synthesis',
-      responseBody: '• Velocity Benchmark: 84% on schedule with 24 verified deliverables.\n• Active Initiatives: 6 high-priority tasks in progress across Design Systems and API Gateways.\n• Delivery Windows: 2 deliverables due within 24 hours (Brand Architecture & Checkout QA).\n• Blockers: 0 deadlocks identified; all upstream service contracts satisfied.',
-      actionButtonLabel: 'Export Executive Briefing',
-      actionExecutedText: 'Briefing exported to clipboard',
+      label: 'Team Workload',
+      userPrompt: 'Is anyone on the team overloaded right now?',
+      metaBadge: 'CAPACITY INSIGHT',
+      responseHeadline: 'Team Capacity Check',
+      responseBody: '• Sarah T. is at 88% capacity with 4 active deliverables.\n• Mukul K. and Alex R. have open bandwidth.\n• Recommendation: Reassign the OAuth security review to Mukul to balance the load.',
+      actionButtonLabel: 'View Team Capacity',
+      actionExecutedText: 'Switched to team workload view',
     },
     {
-      id: 'list-features',
+      id: 'project-status',
       mode: 'conversational',
-      label: 'Architecture Roster: "Integrated Subsystems"',
-      userPrompt: 'Provide comprehensive architecture roster of all unified Cursis modules',
-      metaBadge: 'STANDARD · SUBSYSTEM AUDIT',
-      responseHeadline: 'Complete Roster of Unified Modules',
-      responseBody: '1. Dashboard — Unified telemetry cockpit & throughput metrics\n2. Projects — Milestones, critical-path roadmaps, deliverable tracking\n3. Tasks — Kanban, nested subtasks, urgency matrices\n4. Messages — Channels, threaded discussions, real-time collaboration\n5. Calendar — Schedules, video sync rooms, delivery milestones\n6. Docs — Collaborative rich-text specifications & RFCs\n7. Files — Secure contextual asset repository\n8. Team — RBAC directory, role permissions, capacity allocation\n9. Creators — 5-stage production & media asset pipeline\n10. Invoicing & Time — Billable telemetry, automated enterprise invoicing\n11. Ordis AI — Autonomous operations & dynamic feature synthesis',
-      actionButtonLabel: 'Copy Architecture Roster',
-      actionExecutedText: 'Subsystem roster copied to clipboard',
-    },
-    {
-      id: 'strategic-roadmap',
-      mode: 'conversational',
-      label: 'Strategic Roadmap: "Enterprise Migration"',
-      userPrompt: 'Synthesize an autonomous execution roadmap for migrating multi-vendor stacks to Cursis',
-      metaBadge: 'STANDARD · STRATEGIC SYNTHESIS',
-      responseHeadline: 'Autonomous Enterprise Migration Framework',
-      responseBody: '1. Phase 1 — Subsystem Ingestion: Import active tasks, milestone timelines, and team roles via Cursis APIs.\n2. Phase 2 — Real-Time Telemetry: Ordis monitors dependency graphs and flags capacity bottlenecks.\n3. Phase 3 — Autonomous Action: Automated meeting agendas, milestone briefings, and client deliverables synthesized deterministically.\n\nResult: 100% data fidelity with zero operational downtime.',
-      actionButtonLabel: 'Synthesize Migration Blueprint',
-      actionExecutedText: 'Enterprise migration blueprint generated',
+      label: 'Project Status',
+      userPrompt: 'Give me a quick update on the Mobile App Redesign',
+      metaBadge: 'PROJECT STATUS',
+      responseHeadline: 'Mobile App Redesign Status',
+      responseBody: '• Current Sprint: 4 of 6 milestones completed.\n• Open Tasks: 4 in progress, 1 in review, 18 completed.\n• Next Deliverable: Staging build scheduled for tomorrow at 2:00 PM.',
+      actionButtonLabel: 'Open Project Roadmap',
+      actionExecutedText: 'Roadmap view opened',
     },
 
-    // --- AUTONOMOUS EXECUTION SCENARIOS ---
+    // --- ACTION WORKFLOWS SCENARIOS ---
     {
-      id: 'paid-every-feature',
+      id: 'create-task',
       mode: 'autonomous',
-      label: 'Telemetry: "Subsystem Telemetry Audit"',
-      userPrompt: 'Audit all enterprise subsystems, run deep ambient scan, evaluate CRM deals, and check API dispatch',
-      metaBadge: 'AUTONOMOUS · FULL SUBSYSTEM AUDIT',
-      responseHeadline: 'Full Subsystem Omniscience Active',
-      responseBody: '• Workload Deadlock Scan: 0 deadlocks detected across 38 enterprise tasks.\n• CRM Pipeline Velocity: $145,000 across 4 enterprise contracts in negotiation stage.\n• Financial Telemetry: $58,000 settled this billing cycle; 2 invoices awaiting reconciliation.\n• Webhook Dispatch: 2 active production endpoints streaming events with 99.99% success rate.\n• Database Throughput: Multi-collection read/write latency under 12ms globally.',
-      actionButtonLabel: 'Run Subsystem Telemetry Audit',
-      actionExecutedText: 'Global workspace telemetry synchronized',
+      label: 'Create Task',
+      userPrompt: 'Create a high-priority task: "Update auth token guard" for Mukul due Friday',
+      metaBadge: 'TASK CREATION',
+      responseHeadline: 'Task Created & Assigned',
+      responseBody: 'Task created successfully:\n• Title: Update auth token guard\n• Assignee: Mukul Kumar\n• Due Date: Friday, 5:00 PM\n• Priority: High\n• Status: Added to Sprint Backlog',
+      actionButtonLabel: 'View in Kanban',
+      actionExecutedText: 'Task highlighted in Kanban board',
     },
     {
-      id: 'paid-make-csat-feature',
+      id: 'rebalance-work',
       mode: 'autonomous',
-      label: 'Synthesis: "Client CSAT & NPS Collector"',
-      userPrompt: 'Synthesize custom feature: Client CSAT & NPS Feedback Collector with 1-click rating',
-      metaBadge: 'AUTONOMOUS · DYNAMIC FEATURE SYNTHESIS',
-      responseHeadline: 'Custom Feature Synthesized & Deployed',
-      responseBody: 'Ordis Autonomous Engine has compiled and deployed: "Client CSAT & NPS Collector"\n\n• Schema: Client Organization, Star Rating (1-5), NPS Category, Feedback Payload\n• Automated Actions: [Send Survey Invite], [Export CSV], [Trigger Follow-up Task]\n• Persistence: Registered in workspace custom tools & live database collection.\n• Widget: Live interactive card synthesized below for your team to use!',
-      actionButtonLabel: 'Deploy Custom Tool to Workspace',
-      actionExecutedText: 'Custom Feature "Client CSAT" is live in your workspace!',
+      label: 'Rebalance Workload',
+      userPrompt: 'Rebalance urgent deliverables from Sarah to Mukul',
+      metaBadge: 'WORKLOAD REBALANCE',
+      responseHeadline: 'Workload Rebalanced',
+      responseBody: '• Moved: "Security review for OAuth session guard" → Mukul K.\n• Sarah\'s capacity adjusted: 88% → 65% (Optimal)\n• Sprint delivery trajectory preserved without delay.',
+      actionButtonLabel: 'Confirm Rebalance',
+      actionExecutedText: 'Workload rebalanced across team',
     },
     {
-      id: 'paid-make-bounty-feature',
+      id: 'export-standup',
       mode: 'autonomous',
-      label: 'Synthesis: "Incentive & Bounty Engine"',
-      userPrompt: 'Build custom feature for Team Bounty Coins rewarding engineers for completing urgent tasks',
-      metaBadge: 'AUTONOMOUS · DYNAMIC FEATURE SYNTHESIS',
-      responseHeadline: 'Custom Feature Created: "Team Bounty Engine"',
-      responseBody: 'Autonomous feature compilation complete!\n\n• Feature ID: feat_bounty_engine_v1\n• Fields: Contributor Name, Deliverable Closed, Bounty Credits, Payout Status\n• Automation Trigger: Awards +50 credits whenever an urgent task transitions to Done.\n• Deployment: Live in Workspace Custom Tools Shelf.',
-      actionButtonLabel: 'Activate Bounty Engine',
-      actionExecutedText: 'Bounty system activated across all projects!',
+      label: 'Daily Standup',
+      userPrompt: 'Draft the daily standup notes from today\'s completed tasks',
+      metaBadge: 'STANDUP NOTES',
+      responseHeadline: 'Daily Standup Draft',
+      responseBody: 'Daily Standup Summary:\n• Done Yesterday: Design system tokens finalized (Mukul K.), Client sync action items indexed.\n• Working Today: OAuth review, Mobile checkout QA.\n• Blockers: None identified.',
+      actionButtonLabel: 'Send to Team Channel',
+      actionExecutedText: 'Standup shared to #general',
     },
   ];
 
   const filteredScenarios = scenarios.filter((s) => s.mode === activeMode);
-  const [activeScenarioId, setActiveScenarioId] = useState<string>('feature-doubt');
+  const [activeScenarioId, setActiveScenarioId] = useState<string>('sprint-summary');
 
   const activeScenario =
     scenarios.find((s) => s.id === activeScenarioId && s.mode === activeMode) ||
@@ -117,13 +105,12 @@ export default function OrdisSection() {
     <section className="lp-section lp-ordis-section" id="ordis">
       {/* Section Header */}
       <div className="lp-section-header">
-        <div className="lp-section-label">ORDIS INTELLIGENCE ENGINE</div>
+        <div className="lp-section-label">Ordis AI</div>
         <h2 className="lp-section-title">
-          From Conversational Intelligence<br />
-          <span className="lp-highlight">To Autonomous Orchestration.</span>
+          Meet your AI operations partner.
         </h2>
         <p className="lp-section-subtitle">
-          Ordis operates as an omnipresent intelligence and autonomous execution partner across your entire workspace — answering operational queries, generating sprint summaries, automatically detecting delivery bottlenecks, and synthesizing custom software widgets on the fly.
+          Ask questions about tasks, summarize sprints, or balance workload with simple conversation.
         </p>
       </div>
 
@@ -134,11 +121,11 @@ export default function OrdisSection() {
           className={`lp-tier-btn ${activeMode === 'conversational' ? 'active' : ''}`}
           onClick={() => {
             setActiveMode('conversational');
-            setActiveScenarioId('feature-doubt');
+            setActiveScenarioId('sprint-summary');
           }}
         >
           <span className="lp-tier-dot" />
-          Conversational Intelligence
+          Quick Answers
         </button>
 
         <button
@@ -146,11 +133,11 @@ export default function OrdisSection() {
           className={`lp-tier-btn ${activeMode === 'autonomous' ? 'active' : ''}`}
           onClick={() => {
             setActiveMode('autonomous');
-            setActiveScenarioId('paid-every-feature');
+            setActiveScenarioId('create-task');
           }}
         >
           <span className="lp-tier-dot pro" />
-          Autonomous Orchestration
+          Task Actions
         </button>
       </div>
 
@@ -166,7 +153,7 @@ export default function OrdisSection() {
               </svg>
             </span>
             <span className="lp-console-title">
-              {activeMode === 'conversational' ? 'Ordis Conversational Intelligence Copilot' : 'Ordis Autonomous Orchestration Engine'}
+              Ordis AI Assistant
             </span>
           </div>
 
@@ -178,7 +165,7 @@ export default function OrdisSection() {
 
         {/* Prompt Selector Pills */}
         <div className="lp-ordis-console-prompts-bar">
-          <span className="lp-prompts-caption">Select Operational Scenario:</span>
+          <span className="lp-prompts-caption">Select Example:</span>
           <div className="lp-prompts-pills">
             {filteredScenarios.map((sc) => (
               <button
@@ -198,7 +185,7 @@ export default function OrdisSection() {
           {/* User Message */}
           <div className="lp-console-bubble user">
             <div className="lp-bubble-sender">
-              <span className="lp-sender-label">OPERATOR QUERY</span>
+              <span className="lp-sender-label">YOU</span>
             </div>
             <div className="lp-bubble-content">
               "{activeScenario.userPrompt}"
@@ -210,7 +197,7 @@ export default function OrdisSection() {
             <div className="lp-bubble-sender">
               <span className="lp-ordis-live-dot" />
               <span className="lp-sender-label ordis">
-                {activeMode === 'conversational' ? 'ORDIS COPILOT RESPONSE' : 'ORDIS AUTONOMOUS SYNTHESIS'}
+                ORDIS
               </span>
             </div>
 

@@ -3,50 +3,49 @@ import React from 'react';
 export default function ProblemSection() {
   const problems = [
     {
-      title: 'Excessive Licensing Overhead',
-      desc: 'Compounding subscription overhead across 6–10 isolated vendors creates financial sprawl and procurement logjams.',
+      title: 'Tool sprawl',
+      desc: 'Paying for 5–8 different apps for chat, tasks, docs, and calendar creates confusion.',
     },
     {
-      title: 'Cognitive Context Switching',
-      desc: 'Teams lose up to 40% of productive hours switching context between siloed chats, ticket trackers, spreadsheets, and calendar apps.',
+      title: 'Context switching',
+      desc: 'Teams lose hours every day copying updates between Slack, Jira, and spreadsheets.',
     },
     {
-      title: 'Unmonitored Execution Gaps',
-      desc: 'Critical path dependencies slip undetected across disconnected point solutions until deadlines are already missed.',
+      title: 'Missed deadlines',
+      desc: 'Important blockers get buried in unread channels until launch dates are missed.',
     },
     {
-      title: 'Manual Standup Friction',
-      desc: 'Managers waste hours chasing verbal status updates rather than reviewing deterministic, live operational telemetry.',
+      title: 'Manual status meetings',
+      desc: 'Wasting valuable team time asking "what are you working on?" every single week.',
     },
   ];
 
   const solutions = [
     {
-      title: 'Single Consolidated Operating Fabric',
-      desc: 'One unified workspace integrates tasks, roadmaps, discussions, docs, and creator pipelines without multiple logins or tool bloat.',
+      title: 'All-in-one workspace',
+      desc: 'Tasks, roadmaps, docs, and channels integrated in one fast, unified interface.',
     },
     {
-      title: 'Autonomous Ordis Intelligence',
-      desc: 'Our native AI continuously monitors workloads, unblocks cross-functional tasks, generates executive summaries, and prevents deadlocks.',
+      title: 'Ordis AI partner',
+      desc: 'Ask questions, get instant sprint summaries, and spot blockers automatically.',
     },
     {
-      title: 'Single-Pane Institutional Telemetry',
-      desc: 'Real-time visibility into team bandwidth, deliverable SLAs, and milestone trajectory without manual status meetings.',
+      title: 'Real-time visibility',
+      desc: 'See team bandwidth, active deliverables, and sprint progress at a glance.',
     },
     {
-      title: 'Deterministic Zero-Bypass Security',
-      desc: 'Enterprise-grade session validation, role-based access control, and complete audit trails protecting your intellectual property.',
+      title: 'Built for speed',
+      desc: 'Keyboard shortcuts, instant search, and zero lag keep your team focused.',
     },
   ];
 
   return (
     <section className="lp-section" id="problem">
       <div className="lp-section-header">
-        <div className="lp-section-label">Enterprise Architecture Comparison</div>
-        <h2 className="lp-section-title">The Disjointed Enterprise Stack vs. Unified Architecture</h2>
+        <div className="lp-section-label">Why Cursis</div>
+        <h2 className="lp-section-title">Stop switching between 10 different tools.</h2>
         <p className="lp-section-subtitle">
-          When operational data is trapped across siloed point vendors, organizational velocity collapses.
-          Cursis provides a single consolidated operating plane for enterprise execution.
+          Replace scattered spreadsheets, chat threads, and trackers with one unified workspace.
         </p>
       </div>
 
@@ -54,9 +53,9 @@ export default function ProblemSection() {
         {/* Fragmented Stack Card */}
         <div className="lp-comparison-card negative">
           <div className="lp-comparison-header">
-            <span className="lp-card-pill red">Fragmented Point Solutions</span>
-            <h3 className="lp-card-headline">Multi-Vendor Tooling Sprawl</h3>
-            <p className="lp-card-desc">Siloed systems without unified context or autonomous cross-functional oversight.</p>
+            <span className="lp-card-pill red">The Old Way</span>
+            <h3 className="lp-card-headline">Scattered &amp; Disconnected</h3>
+            <p className="lp-card-desc">Siloed tools where context is lost and updates require constant manual effort.</p>
           </div>
 
           <ul className="lp-comparison-list">
@@ -80,9 +79,9 @@ export default function ProblemSection() {
         {/* Cursis Solution Card */}
         <div className="lp-comparison-card positive">
           <div className="lp-comparison-header">
-            <span className="lp-card-pill green">Unified Cursis Operating Plane</span>
-            <h3 className="lp-card-headline">Consolidated Enterprise Fabric</h3>
-            <p className="lp-card-desc">Synchronized telemetry, native Ordis intelligence, and fluid cross-functional execution.</p>
+            <span className="lp-card-pill green">With Cursis</span>
+            <h3 className="lp-card-headline">Unified &amp; Fast</h3>
+            <p className="lp-card-desc">One connected workspace where planning, chat, and execution live together.</p>
           </div>
 
           <ul className="lp-comparison-list">

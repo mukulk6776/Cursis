@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const STEPS = [
-  { num: 1, text: 'You invite ', highlight: 'sarah@organization.com', suffix: ' to the enterprise workspace' },
-  { num: 2, text: 'Sarah authenticates. Provisioned as ', highlight: 'Lead Product Designer', suffix: ' with tailored RBAC' },
-  { num: 3, text: 'You initialize the ', highlight: '"Global Architecture Refresh"', suffix: ' initiative' },
-  { num: 4, text: 'You route ownership to Sarah for ', highlight: '"Core Design System"', suffix: ' with target SLA' },
-  { num: 5, text: 'Sarah accesses ', highlight: 'Unified Work Cockpit', suffix: ' with pre-configured milestone dependencies' },
-  { num: 6, text: 'Ordis monitors telemetry and ', highlight: 'proactively resolves delivery bottlenecks', suffix: '' },
+  { num: 1, text: 'You invite ', highlight: 'sarah@company.com', suffix: ' to the workspace' },
+  { num: 2, text: 'Sarah joins as ', highlight: 'Lead Product Designer', suffix: ' with instant project access' },
+  { num: 3, text: 'You create the ', highlight: '"Mobile App Redesign"', suffix: ' project' },
+  { num: 4, text: 'Assign Sarah lead on ', highlight: '"Design System & Tokens"', suffix: ' with Friday deadline' },
+  { num: 5, text: 'Sarah views her ', highlight: 'assigned tasks and roadmap', suffix: ' without waiting on meetings' },
+  { num: 6, text: 'Ordis tracks sprint progress and ', highlight: 'flags blockers automatically', suffix: '' },
 ];
 
 export default function TeamDemoSection() {
@@ -41,15 +41,14 @@ export default function TeamDemoSection() {
 
   return (
     <section className="lp-section" id="team">
-      <div className="lp-section-label lp-reveal">Workforce Architecture</div>
-      <h2 className="lp-section-title lp-reveal">Orchestrate Enterprise Teams with Zero Friction</h2>
+      <div className="lp-section-label lp-reveal">Team Collaboration</div>
+      <h2 className="lp-section-title lp-reveal">Simple onboarding, clear ownership.</h2>
       <p className="lp-section-subtitle lp-reveal">
-        Assign granular role-based permissions, deploy cross-functional initiatives, and maintain complete
-        organizational visibility across every business unit.
+        Invite team members, assign projects, and get straight to work without complicated configuration.
       </p>
 
       <div className="lp-demo-container lp-reveal-scale" ref={containerRef}>
-        <div className="lp-demo-header">Automated Enterprise Team Orchestration</div>
+        <div className="lp-demo-header">How teams collaborate on Cursis</div>
         <div className="lp-demo-body">
           {STEPS.map((step) => {
             const isActive = activeStep >= step.num;

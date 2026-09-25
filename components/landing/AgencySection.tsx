@@ -95,10 +95,10 @@ export default function AgencySection() {
     <section className="lp-section" id="agency">
       <div className="lp-agency-section">
         <div style={{ textAlign: 'left', marginBottom: '32px' }}>
-          <div className="lp-section-label">Cursis Solutions Studio</div>
-          <h2 className="lp-section-title">Specialized Enterprise Engineering</h2>
+          <div className="lp-section-label">Solutions Studio</div>
+          <h2 className="lp-section-title">Custom engineering for your team.</h2>
           <p className="lp-section-subtitle" style={{ margin: '8px 0 0' }}>
-            Cursis operates an in-house engineering and solutions practice. Need custom AI agents, automated data connectors, or bespoke enterprise features? We architect and deploy it directly into your workspace.
+            Need custom integrations, automated workflows, or specialized features? Our team can build and deploy them directly into your workspace.
           </p>
         </div>
 
@@ -131,7 +131,7 @@ export default function AgencySection() {
             className="btn btn-primary btn-lg"
             onClick={() => setInquiryModalOpen(true)}
           >
-            Consult Our Engineering Studio
+            Talk to Our Engineering Team
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />

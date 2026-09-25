@@ -10,28 +10,28 @@ type TabKey = 'agent' | 'sprint' | 'team' | 'pipeline';
 export default function HeroSection() {
   const [activeTab, setActiveTab] = useState<TabKey>('agent');
   const [tasks, setTasks] = useState([
-    { id: 1, title: 'Finalize brand design system tokens', priority: 'High', status: 'In Progress', assignee: 'Mukul K.', sla: 'Today 5:00 PM' },
+    { id: 1, title: 'Finalize design system tokens', priority: 'High', status: 'In Progress', assignee: 'Mukul K.', sla: 'Today 5:00 PM' },
     { id: 2, title: 'Security review for OAuth session guard', priority: 'Urgent', status: 'Pending', assignee: 'Sarah T.', sla: 'Tomorrow' },
-    { id: 3, title: 'Synthesize Q3 enterprise deliverables', priority: 'Medium', status: 'Done', assignee: 'Alex R.', sla: 'Completed' },
+    { id: 3, title: 'Review Q3 sprint deliverables', priority: 'Medium', status: 'Done', assignee: 'Alex R.', sla: 'Completed' },
   ]);
   const [ordisActionExecuted, setOrdisActionExecuted] = useState(false);
   const [activePromptIndex, setActivePromptIndex] = useState(0);
 
   const prompts = [
     {
-      label: 'Scan Workload Bottlenecks',
-      prompt: 'Ordis, scan all engineering work streams and highlight delivery risks for tomorrow.',
-      result: 'Identified 1 high-priority blocker: "Security review for OAuth session guard" assigned to Sarah T. (currently at 88% capacity). Recommended: Rebalance deliverable to Mukul K.',
+      label: 'Check Blockers',
+      prompt: 'Ordis, what are the key delivery risks for tomorrow?',
+      result: '1 blocker found: "Security review for OAuth session guard" assigned to Sarah T. (at 88% capacity). Recommended: Reassign to Mukul K.',
     },
     {
-      label: 'Synthesize Executive Standup',
-      prompt: 'Generate autonomous standup briefing for the executive committee.',
-      result: 'Sprint Velocity: 84% on target. 24 deliverables closed. Zero upstream deadlocks. All SLA requirements satisfied across active enterprise tenants.',
+      label: 'Sprint Summary',
+      prompt: 'Summarize sprint progress and current status.',
+      result: 'Sprint progress: 84% on track. 24 tasks completed this week. All milestone deadlines healthy.',
     },
     {
-      label: 'Balance Engineering Load',
-      prompt: 'Optimize team bandwidth and equalize sprint story points across product squads.',
-      result: 'Rebalanced 3 deliverables. Team capacity normalized to 72% average load. Burnout risk downgraded to zero.',
+      label: 'Balance Workload',
+      prompt: 'Balance team workload across active squads.',
+      result: 'Rebalanced 2 tasks. Team load normalized to 68%. No members overloaded.',
     },
   ];
 
@@ -79,39 +79,38 @@ export default function HeroSection() {
       >
         <motion.div className="tano-hero-badge" variants={line}>
           <span className="tano-hero-badge-pill">NEW</span>
-          <span className="tano-hero-badge-text">Ordis Autonomous Intelligence</span>
+          <span className="tano-hero-badge-text">Ordis AI 4.0 is live</span>
           <span className="tano-hero-badge-arrow">→</span>
         </motion.div>
 
         <motion.h1 className="lp-hero-title" variants={line}>
-          Cursis — Autonomous AI Workplace &amp; Agency OS.<br />
-          <span className="tano-hero-marker">Parse. Rebalance. Execute.</span><br />
-          Not Just Chat. Real Actions.
+          The AI workspace<br />
+          <span className="tano-hero-marker">for modern teams.</span>
         </motion.h1>
 
         <motion.p className="lp-hero-text" variants={line}>
-          While ordinary copilots only generate text, <strong>Ordis</strong> actively parses enterprise requests, identifies sprint bottlenecks, and autonomously rebalances workload across your team in real time.
+          Plan sprints, manage tasks, and keep everyone aligned in real time. Powered by built-in intelligence.
         </motion.p>
 
         <motion.div className="lp-hero-ctas" variants={line}>
           <Link href="/signup" className="btn btn-primary btn-lg">
-            Deploy Workspace
+            Start Free
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
             </svg>
           </Link>
           <a href="#ordis" onClick={handleScrollToOrdis} className="btn btn-secondary btn-lg">
-            Explore Ordis Engine
+            See How It Works
           </a>
         </motion.div>
 
         <motion.div className="lp-hero-benefits" variants={line}>
-          <span className="lp-benefit-item">SOC-2 Type II Certified</span>
+          <span className="lp-benefit-item">Free for small teams</span>
           <span className="lp-benefit-sep">•</span>
-          <span className="lp-benefit-item">99.99% Guaranteed SLA Uptime</span>
+          <span className="lp-benefit-item">No credit card required</span>
           <span className="lp-benefit-sep">•</span>
-          <span className="lp-benefit-item">Deterministic Zero-Bypass Security</span>
+          <span className="lp-benefit-item">Setup in 2 minutes</span>
         </motion.div>
       </motion.div>
 
@@ -162,7 +161,7 @@ export default function HeroSection() {
                 <path d="M12 16v-4" />
                 <path d="M12 8h.01" />
               </svg>
-              <span>Autonomous Ordis Copilot</span>
+              <span>Ordis AI Assistant</span>
               <span className="lp-tab-pulse-badge">LIVE</span>
             </button>
 
@@ -174,7 +173,7 @@ export default function HeroSection() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
               </svg>
-              <span>Sprint Telemetry &amp; SLA</span>
+              <span>Sprint Velocity</span>
             </button>
 
             <button
@@ -188,7 +187,7 @@ export default function HeroSection() {
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
-              <span>Team Bandwidth (4)</span>
+              <span>Team Workload (4)</span>
             </button>
 
             <button
@@ -202,7 +201,7 @@ export default function HeroSection() {
                 <rect x="14" y="14" width="7" height="7" rx="1" />
                 <rect x="3" y="14" width="7" height="7" rx="1" />
               </svg>
-              <span>5-Stage Deliverables Pipeline</span>
+              <span>Project Pipeline</span>
             </button>
           </div>
         </div>
@@ -216,10 +215,10 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">Active Initiative Orchestration</h3>
-                    <span className="lp-mockup-view-subtitle">3 critical deliverables • Ordis continuous telemetry active</span>
+                    <h3 className="lp-mockup-view-title">Active Tasks</h3>
+                    <span className="lp-mockup-view-subtitle">3 tasks in progress • Sprint 84% on track</span>
                   </div>
-                  <span className="badge badge-brand">84% SPRINT ADHERENCE</span>
+                  <span className="badge badge-brand">84% ON TRACK</span>
                 </div>
 
                 {/* Interactive Task Cards */}
@@ -278,11 +277,11 @@ export default function HeroSection() {
 
                   <div className="lp-prompt-active-card">
                     <div className="lp-prompt-query">
-                      <span className="lp-prompt-sender">Operator:</span>
+                      <span className="lp-prompt-sender">You:</span>
                       <span>"{prompts[activePromptIndex].prompt}"</span>
                     </div>
                     <div className="lp-prompt-reply">
-                      <span className="lp-prompt-ordis-tag">Ordis Intelligence:</span>
+                      <span className="lp-prompt-ordis-tag">Ordis:</span>
                       <p>{prompts[activePromptIndex].result}</p>
                       {activePromptIndex === 0 && (
                         <div style={{ marginTop: '10px' }}>
@@ -292,7 +291,7 @@ export default function HeroSection() {
                             className="btn btn-sm btn-primary"
                             style={{ fontSize: '0.78rem', padding: '5px 12px', borderRadius: '6px' }}
                           >
-                            {ordisActionExecuted ? 'Task Rebalanced to Mukul K.' : 'Execute Ordis Rebalance'}
+                            {ordisActionExecuted ? 'Task Reassigned to Mukul K.' : 'Reassign Task to Mukul'}
                           </button>
                         </div>
                       )}
@@ -307,10 +306,10 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">Sprint Telemetry &amp; Velocity Matrix</h3>
-                    <span className="lp-mockup-view-subtitle">Sprint 42 • Target End: Friday 6:00 PM</span>
+                    <h3 className="lp-mockup-view-title">Sprint Velocity</h3>
+                    <span className="lp-mockup-view-subtitle">Current Sprint • Target End: Friday 6:00 PM</span>
                   </div>
-                  <span className="badge badge-brand">HEALTHY (99.4% SLA)</span>
+                  <span className="badge badge-brand">ON TRACK (99% ON TIME)</span>
                 </div>
 
                 <div className="lp-sprint-grid">
@@ -474,22 +473,22 @@ export default function HeroSection() {
             <div className="lp-ordis-panel-header">
               <div className="lp-ordis-icon-box">O</div>
               <div className="lp-ordis-header-text">
-                <span className="lp-ordis-title">Ordis Workspace Copilot</span>
-                <span className="lp-ordis-subtitle">Live Autonomous Action Engine</span>
+                <span className="lp-ordis-title">Ordis Assistant</span>
+                <span className="lp-ordis-subtitle">Real-time task intelligence</span>
               </div>
             </div>
 
             <div className="lp-ordis-action-box">
-              <div className="lp-ordis-tag">PROACTIVE NOTICE</div>
+              <div className="lp-ordis-tag">SMART SUGGESTION</div>
               <p className="lp-ordis-msg">
-                <strong>"Security review for OAuth session guard"</strong> is flagged for tomorrow's milestone. Sarah T. has 2 competing commitments.
+                <strong>"OAuth security review"</strong> is scheduled for tomorrow. Sarah T. is at 88% capacity.
               </p>
 
               {!ordisActionExecuted ? (
                 <div className="lp-ordis-action-footer">
-                  <span className="lp-ordis-suggestion">Recommended Action:</span>
+                  <span className="lp-ordis-suggestion">Suggested Action:</span>
                   <button className="btn btn-brand btn-sm" onClick={handleExecuteAction}>
-                    Rebalance to Mukul K. →
+                    Reassign to Mukul K. →
                   </button>
                 </div>
               ) : (
@@ -497,36 +496,36 @@ export default function HeroSection() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  <span>Action executed: Workload rebalanced and SLA preserved.</span>
+                  <span>Reassigned to Mukul K. Workload balanced.</span>
                 </div>
               )}
             </div>
 
             <div className="lp-ordis-stats-widget">
-              <span className="lp-widget-title">Ordis Continuous Telemetry</span>
+              <span className="lp-widget-title">Sprint Overview</span>
               <div className="lp-widget-row">
-                <span>Autonomous Checks</span>
-                <strong>4,820 / hr</strong>
+                <span>Tasks Completed</span>
+                <strong>24 this week</strong>
               </div>
               <div className="lp-widget-row">
-                <span>Deadlock Preventions</span>
-                <strong>14 this sprint</strong>
+                <span>Sprint Health</span>
+                <strong>94% on track</strong>
               </div>
               <div className="lp-widget-row">
-                <span>System Latency</span>
-                <strong>12ms globally</strong>
+                <span>Team Status</span>
+                <strong>4 online</strong>
               </div>
             </div>
 
             <div className="lp-ordis-quick-prompts">
-              <span className="lp-prompts-label">Quick Switchers:</span>
+              <span className="lp-prompts-label">Quick Views:</span>
               <div
                 className="lp-prompt-pill"
                 onClick={() => setActiveTab('team')}
                 role="button"
                 tabIndex={0}
               >
-                Inspect Live Team Bandwidth
+                View Team Workload
               </div>
               <div
                 className="lp-prompt-pill"
@@ -534,7 +533,7 @@ export default function HeroSection() {
                 role="button"
                 tabIndex={0}
               >
-                View Sprint Velocity Dial
+                View Sprint Velocity
               </div>
             </div>
           </div>

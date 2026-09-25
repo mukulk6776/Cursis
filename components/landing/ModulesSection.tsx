@@ -46,62 +46,62 @@ export default function ModulesSection() {
     {
       num: '01',
       name: 'Dashboard',
-      desc: 'Command center for your enterprise. Real-time velocity, KPIs, and executive telemetry at a glance.',
+      desc: 'Track projects, active tasks, and team updates in a single view.',
       featured: false,
     },
     {
       num: '02',
-      name: 'Ordis Copilot',
-      desc: 'Autonomous workspace intelligence that proactively rebalances workload, resolves bottlenecks, and unifies cross-functional data.',
+      name: 'Ordis AI',
+      desc: 'Your AI partner for sprint summaries, task creation, and workload balancing.',
       featured: true, // Prominent featured card in Tano Butter Yellow (#FFD66B) with washi tape
-      badge: 'AUTONOMOUS CORE',
+      badge: 'BUILT-IN AI',
     },
     {
       num: '03',
       name: 'Tasks & Kanban',
-      desc: 'Interactive Kanban boards and lists with priority matrices, SLA countdowns, and automated routing.',
+      desc: 'Organize work with clean boards, filters, and priority tags.',
       featured: false,
     },
     {
       num: '04',
       name: 'Projects',
-      desc: 'Milestone roadmaps, critical-path dependency tracking, and deliverable phase trajectories.',
+      desc: 'Plan roadmaps, milestones, and project goals with clear deadlines.',
       featured: false,
     },
     {
       num: '05',
       name: 'Team',
-      desc: 'Role-based directory, granular permissions, workload capacity distribution, and live presence.',
+      desc: 'Manage member roles, permissions, and team bandwidth.',
       featured: false,
     },
     {
       num: '06',
       name: 'Calendar',
-      desc: 'Deliverable deadlines, team milestone schedules, and synchronized operational events.',
+      desc: 'Schedule deadlines, sprint dates, and team events.',
       featured: false,
     },
     {
       num: '07',
       name: 'Meetings',
-      desc: 'Live video rooms, real-time collaboration, and automated discussion minutes.',
+      desc: 'Host video syncs and turn discussions directly into tasks.',
       featured: false,
     },
     {
       num: '08',
       name: 'Messages',
-      desc: 'Threaded discussions, team channels, and direct contextual communication without tool bloat.',
+      desc: 'Chat in organized channels and direct messages right next to your work.',
       featured: false,
     },
     {
       num: '09',
       name: 'Analytics',
-      desc: 'Visual velocity dashboards, sprint burnup trajectory, and delivery SLA adherence tracking.',
+      desc: 'View sprint velocity, cycle times, and completion rates.',
       featured: false,
     },
     {
       num: '10',
       name: 'Settings',
-      desc: 'Deterministic RBAC, session security guard, audit logs, and workspace configuration.',
+      desc: 'Customize workspace settings, integrations, and access controls.',
       featured: false,
     },
   ];
@@ -110,11 +110,11 @@ export default function ModulesSection() {
     <section className="lp-section" id="modules" ref={sectionRef}>
       <div className="lp-section-header">
         <div className="lp-section-label lp-reveal">
-          <span>{count}</span> Real Workspace Modules
+          <span>{count}</span> Workspace Modules
         </div>
-        <h2 className="lp-section-title lp-reveal">One unified workspace. Ten integrated subsystems.</h2>
+        <h2 className="lp-section-title lp-reveal">One workspace. Ten integrated tools.</h2>
         <p className="lp-section-subtitle lp-reveal">
-          Every module connects directly to your live workspace graph. Zero fake point tools, zero third-party glue code, and zero context switching.
+          Everything your team needs, built into one fast and reliable platform.
         </p>
       </div>
 
