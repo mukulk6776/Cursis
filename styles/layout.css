@@ -527,6 +527,8 @@
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
   height: 100% !important;
   max-height: 100% !important;
   transform: none !important;
@@ -543,8 +545,7 @@
   max-height: 100% !important;
   flex: 1 !important;
   min-height: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
+  width: 100% !important;
 }
 
 .page {
