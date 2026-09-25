@@ -1,0 +1,48 @@
+Cursis Commercial Enterprise License
+Copyright (c) 2026 Cursis Technologies Inc. All Rights Reserved.
+
+CONFIDENTIAL AND PROPRIETARY
+
+This source code, software, documentation, and related intellectual property
+("Software") are the exclusive property of Cursis Technologies Inc. ("Cursis")
+and its authorized licensors.
+
+1. GRANT OF LICENSE
+Subject to the terms and conditions of an active Cursis Enterprise Master Services
+Agreement (MSA) or Commercial Software License Agreement, Cursis grants the licensee
+a non-exclusive, non-transferable, revocable license to deploy, configure, and operate
+the Software within authorized private cloud, sovereign infrastructure, or dedicated
+hybrid enterprise environments.
+
+2. RESTRICTIONS
+Except as expressly permitted by written authorization from Cursis Technologies Inc.,
+you may not:
+  a. Distribute, sublicense, lease, resell, rent, or publicly disclose the Software
+     or any portion thereof to third parties.
+  b. Reverse engineer, decompile, decrypt, or attempt to derive the underlying
+     algorithmic models, proprietary weights, or source instructions of the ORDIS
+     Operational AI Engine.
+  c. Remove, alter, or obscure any proprietary copyright, trademark, or attribution
+     notices embedded in or displayed by the Software.
+  d. Use the Software to train competing artificial intelligence, workflow automation,
+     or commercial agency operating systems.
+
+3. INTELLECTUAL PROPERTY
+All title, ownership rights, patent rights, trademarks, trade secrets, and intellectual
+property rights in and to the Software, including any derivatives, enhancements, or
+modifications, shall remain exclusively vested in Cursis Technologies Inc.
+
+4. DISCLAIMER OF WARRANTIES
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. IN NO EVENT SHALL
+CURSIS TECHNOLOGIES INC. BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE, EXCEPT AS EXPRESSLY STIPULATED IN AN EXECUTED ENTERPRISE SLA.
+
+For commercial enterprise licensing, dedicated private deployments, or regulatory
+compliance inquiries, contact:
+  Cursis Technologies Inc.
+  Enterprise Inquiries: enterprise@cursis.in
+  Security & Governance: security@cursis.in
+  Web: https://cursis.in

@@ -1,0 +1,41 @@
+name: 💡 Feature Request / Proposal
+description: Suggest an idea or architectural improvement for Cursis
+title: "[FEAT]: "
+labels: ["enhancement", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome architectural proposals and capability requests from enterprise teams, agencies, and developers.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem or organizational bottleneck?
+      placeholder: As an enterprise administrator managing 50 client workspaces, I need to...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution & User Experience
+      description: Describe the solution you'd like to see implemented.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you've explored?
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Target Subsystem
+      options:
+        - ORDIS AI Engine & Tooling
+        - Multi-Tenant Workspaces & RBAC
+        - Document Studio & Paperwork
+        - Edge Security & Proxy WAF
+        - Calendar & Meeting Systems
+        - Analytics & Executive Reports
+        - Agency Client Vaults

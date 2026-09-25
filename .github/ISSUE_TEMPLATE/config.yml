@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability Report
+    url: https://github.com/mukulk6776/Cursis/blob/main/SECURITY.md
+    about: Please report security vulnerabilities privately via our security disclosure program.
+  - name: 💬 Enterprise Support & Partnerships
+    url: mailto:enterprise@cursis.in
+    about: Contact our enterprise engineering team for dedicated deployment architecture and SLAs.

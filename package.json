@@ -1,12 +1,37 @@
 {
   "name": "cursis",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Enterprise Autonomous AI Workplace & Agency Operating System",
+  "author": "Cursis Technologies Inc.",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://cursis.in",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mukulk6776/Cursis.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mukulk6776/Cursis/issues"
+  },
+  "keywords": [
+    "autonomous-workplace",
+    "agency-os",
+    "ordis-ai",
+    "nextjs16",
+    "react19",
+    "typescript",
+    "enterprise-software",
+    "multi-tenant",
+    "rbac",
+    "zero-trust"
+  ],
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.cjs"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",

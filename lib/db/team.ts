@@ -441,6 +441,7 @@ export async function removeTeamMember(
 
   // Also remove from inMemoryMemberships
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { inMemoryMemberships, inMemoryInvitations } = require('./invitations');
     if (inMemoryMemberships) {
       for (const [k, mem] of inMemoryMemberships.entries()) {

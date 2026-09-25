@@ -1,0 +1,61 @@
+name: 🐛 Bug Report
+description: Create a report to help us improve Cursis enterprise stability
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please verify your issue does not contain sensitive security vulnerabilities. For security vulnerabilities, refer to [SECURITY.md](https://github.com/mukulk6776/Cursis/blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Cursis Platform Version / Commit
+      description: What commit hash or release tag are you running?
+      placeholder: e.g., v1.0.0 or commit main@3b7c89f
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Operating Environment
+      options:
+        - Vercel Edge / Serverless
+        - Node.js Self-Hosted / Docker
+        - Local Development (next dev)
+        - Dedicated Enterprise Cluster
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Description of the Problem
+      description: Provide a clear and concise description of what the bug is.
+      placeholder: When navigating to /dashboard/documents and uploading a contract...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps To Reproduce
+      description: How can maintainers reproduce the behavior?
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console or API Logs
+      description: Paste any relevant terminal, browser console, or API route logs.
+      render: shell

@@ -18,7 +18,7 @@ export default function OrdisFloatingChat() {
   return null;
 }
 
-function _DisabledOrdisFloatingChat() {
+function DisabledOrdisFloatingChat() {
  const {
  ordisFloatingOpen,
  setOrdisFloatingOpen,
