@@ -12,11 +12,13 @@ export default function HowItWorksSection() {
 
   return (
     <section className="lp-section" id="how-it-works">
-      <div className="lp-section-label lp-reveal">Getting Started</div>
-      <h2 className="lp-section-title lp-reveal">Up and running in 6 steps</h2>
-      <p className="lp-section-subtitle lp-reveal">
-        No complex setup. No onboarding calls. Create your workspace and start working.
-      </p>
+      <div className="lp-section-header">
+        <div className="lp-section-label lp-reveal">Getting Started</div>
+        <h2 className="lp-section-title lp-reveal">Up and running in minutes</h2>
+        <p className="lp-section-subtitle lp-reveal">
+          No complex setup. No onboarding calls. Create your workspace and start working.
+        </p>
+      </div>
 
       <div className="lp-steps-flow lp-stagger">
         {steps.map((s, idx) => (

@@ -41,11 +41,13 @@ export default function TeamDemoSection() {
 
   return (
     <section className="lp-section" id="team">
-      <div className="lp-section-label lp-reveal">Team Collaboration</div>
-      <h2 className="lp-section-title lp-reveal">Simple onboarding, clear ownership.</h2>
-      <p className="lp-section-subtitle lp-reveal">
-        Invite team members, assign projects, and get straight to work without complicated configuration.
-      </p>
+      <div className="lp-section-header">
+        <div className="lp-section-label lp-reveal">Team Collaboration</div>
+        <h2 className="lp-section-title lp-reveal">Simple onboarding, clear ownership.</h2>
+        <p className="lp-section-subtitle lp-reveal">
+          Invite team members, assign projects, and get straight to work without complicated configuration.
+        </p>
+      </div>
 
       <div className="lp-demo-container lp-reveal-scale" ref={containerRef}>
         <div className="lp-demo-header">How teams collaborate on Cursis</div>
