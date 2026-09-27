@@ -3657,3 +3657,187 @@ body.lp-body,
     transition: none !important;
   }
 }
+
+/* ============================================
+   DYNAMIC SCROLL-BASED ANIMATIONS
+   Enhanced parallax and scroll-responsive effects
+   ============================================ */
+
+/* Parallax Elements - Smooth vertical movement on scroll */
+.lp-parallax {
+  will-change: transform;
+  transition: transform 0.1s linear;
+}
+
+/* Dynamic fade elements - Fade in as they enter viewport */
+.lp-fade-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  will-change: opacity, transform;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Enhanced stagger with dynamic delays */
+.lp-stagger-dynamic > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lp-stagger-dynamic.lp-visible > *:nth-child(1)  { transition-delay: 0ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(2)  { transition-delay: 80ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(3)  { transition-delay: 160ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(4)  { transition-delay: 240ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(5)  { transition-delay: 320ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(6)  { transition-delay: 400ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(7)  { transition-delay: 480ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(8)  { transition-delay: 560ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(9)  { transition-delay: 640ms; opacity: 1; transform: translateY(0); }
+.lp-stagger-dynamic.lp-visible > *:nth-child(10) { transition-delay: 720ms; opacity: 1; transform: translateY(0); }
+
+/* Scale and rotate on scroll reveal */
+.lp-reveal-rotate {
+  opacity: 0;
+  transform: rotate(-3deg) scale(0.96);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lp-reveal-rotate.lp-visible {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Slide up with bounce */
+.lp-reveal-bounce {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lp-reveal-bounce.lp-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card hover with dynamic shadow expansion */
+.lp-card-dynamic {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lp-card-dynamic:hover {
+  transform: translateY(-4px);
+  box-shadow: 10px 10px 0 0 #0A0A0A !important;
+}
+
+/* Smooth opacity transitions */
+.lp-opacity-reveal {
+  opacity: 0;
+  transition: opacity 0.8s ease-out;
+}
+
+.lp-opacity-reveal.lp-visible {
+  opacity: 1;
+}
+
+/* Progressive blur fade-in */
+.lp-blur-reveal {
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 0.6s ease, filter 0.6s ease;
+}
+
+.lp-blur-reveal.lp-visible {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* Counter animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lp-counter {
+  animation: countUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Floating animation for badges and icons */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.lp-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse effect for attention */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.lp-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Gradient shift animation */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.lp-gradient-animate {
+  background-size: 200% 200%;
+  animation: gradientShift 6s ease infinite;
+}
+
+/* Slide from bottom with overshoot */
+.lp-slide-up-overshoot {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lp-slide-up-overshoot.lp-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Accessibility: Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .lp-parallax,
+  .lp-fade-scroll,
+  .lp-reveal-rotate,
+  .lp-reveal-bounce,
+  .lp-blur-reveal,
+  .lp-slide-up-overshoot,
+  .lp-float,
+  .lp-pulse,
+  .lp-gradient-animate {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* Performance optimization */
+.lp-reveal,
+.lp-reveal-left,
+.lp-reveal-right,
+.lp-reveal-scale,
+.lp-reveal-rotate,
+.lp-reveal-bounce,
+.lp-parallax,
+.lp-fade-scroll {
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
