@@ -57,8 +57,8 @@ export default function Footer() {
 
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Contact</div>
-            <a href="mailto:hello@cursis.app" className="lp-footer-link">hello@cursis.app</a>
-            <a href="mailto:support@cursis.app" className="lp-footer-link">Support</a>
+            <a href="mailto:cursis.in@gmail.com" className="lp-footer-link">cursis.in@gmail.com</a>
+            <a href="mailto:cursis.in@gmail.com" className="lp-footer-link">Support</a>
           </div>
         </div>
       </div>
