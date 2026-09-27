@@ -161,6 +161,8 @@ interface DashboardContextType {
  // Connected Settings State
  workspaceSettings: WorkspaceSettings;
  updateWorkspaceSettings: (updates: Partial<WorkspaceSettings> & Record<string, any>) => void | Promise<void>;
+  saveWorkspaceName: (name: string, workspaceId?: string) => Promise<boolean>;
+  updateWorkspaceName: (name: string, workspaceId?: string) => Promise<boolean>;
  teamSettings: TeamSettings;
  updateTeamSettings: (updates: Partial<TeamSettings>) => void;
  notificationSettings: NotificationSettings;
@@ -404,10 +406,36 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         const serverWs = data.data?.workspaces || data.workspaces;
         if (Array.isArray(serverWs) && serverWs.length > 0) {
-          setWorkspaces(serverWs);
+          let nameMap: Record<string, string> = {};
+          let globalCustomName: string | null = null;
+          if (typeof window !== 'undefined') {
+            try {
+              globalCustomName = localStorage.getItem('cursis_custom_workspace_name');
+              const rawMap = localStorage.getItem('cursis_workspace_names');
+              if (rawMap) nameMap = JSON.parse(rawMap);
+            } catch {}
+          }
+
+          const mergedWs = serverWs.map((w: Workspace, idx: number) => {
+            const customForThis =
+              nameMap[w.id] ||
+              (typeof window !== 'undefined' ? localStorage.getItem(`cursis_ws_name_${w.id}`) : null) ||
+              (idx === 0 && globalCustomName ? globalCustomName : null);
+
+            if (customForThis) {
+              return {
+                ...w,
+                name: customForThis,
+                shortName: customForThis.slice(0, 3).toUpperCase(),
+              };
+            }
+            return w;
+          });
+
+          setWorkspaces(mergedWs);
           setActiveWorkspaceId((prev) => {
-            if (!prev || prev === 'ws_public' || prev === 'ws_default' || !serverWs.some((w) => w.id === prev)) {
-              return serverWs[0].id;
+            if (!prev || prev === 'ws_public' || prev === 'ws_default' || !mergedWs.some((w: Workspace) => w.id === prev)) {
+              return mergedWs[0].id;
             }
             return prev;
           });
@@ -490,12 +518,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user?.name || user.name === 'Workspace Member') return;
 
-    // Check if user set a custom workspace name in setup wizard
+    // Check if user set a custom workspace name in setup wizard or settings
     const customWsName = typeof window !== 'undefined' ? localStorage.getItem('cursis_custom_workspace_name') : null;
     if (customWsName) {
       setWorkspaces((prev) =>
-        prev.map((w) => {
-          if (w.id === 'ws_default' || w.id === 'ws_public') {
+        prev.map((w, idx) => {
+          if (w.id === activeWorkspaceId || w.id === 'ws_default' || w.id === 'ws_public' || idx === 0) {
             return {
               ...w,
               name: customWsName,
@@ -867,8 +895,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const userWsShortName = customWsName ? customWsName.slice(0, 3).toUpperCase() : getUserWorkspaceShortName(activeUser.name);
 
         setWorkspaces((prev) =>
-          prev.map((w) => {
-            if (w.id === 'ws_default' || w.id === 'ws_public') {
+          prev.map((w, idx) => {
+            if (w.id === activeWorkspaceId || w.id === 'ws_default' || w.id === 'ws_public' || idx === 0) {
               return {
                 ...w,
                 name: userWsName,
@@ -1221,58 +1249,175 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }
  })
  .catch(() => {});
- }, []);
+ }, []);  // ---- Workspace Name Mutation Handlers with Full Persistence ----
+  const saveWorkspaceName = async (name: string, targetId?: string): Promise<boolean> => {
+    const cleanName = (name || '').trim();
+    if (!cleanName) {
+      showToast('Workspace name cannot be empty');
+      return false;
+    }
+
+    const wsIdToUpdate = targetId || activeWorkspaceId || 'ws_default';
+    const shortName = cleanName.length >= 3 ? cleanName.slice(0, 3).toUpperCase() : cleanName.toUpperCase();
+
+    // 1. Immediately update local state in workspaces array
+    setWorkspaces((prev) =>
+      prev.map((w, idx) => {
+        const isTarget =
+          w.id === wsIdToUpdate ||
+          (wsIdToUpdate === 'ws_default' && (w.id === 'ws_default' || w.id === 'ws_public' || idx === 0)) ||
+          (!targetId && w.id === activeWorkspaceId);
+        if (isTarget) {
+          return {
+            ...w,
+            name: cleanName,
+            shortName,
+          };
+        }
+        return w;
+      })
+    );
+
+    // 2. Synchronize workspaceSettings & orgSettings
+    setWorkspaceSettings((prev) => ({ ...prev, name: cleanName }));
+    setOrgSettings((prev) => ({ ...prev, name: cleanName }));
+
+    // 3. Immediately persist to localStorage for instant recovery across reloads
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cursis_custom_workspace_name', cleanName);
+        localStorage.setItem(`cursis_ws_name_${wsIdToUpdate}`, cleanName);
+        const existingMapRaw = localStorage.getItem('cursis_workspace_names');
+        const nameMap = existingMapRaw ? JSON.parse(existingMapRaw) : {};
+        nameMap[wsIdToUpdate] = cleanName;
+        localStorage.setItem('cursis_workspace_names', JSON.stringify(nameMap));
+
+        const savedWs = localStorage.getItem('cursis_workspace_settings');
+        if (savedWs) {
+          const parsed = JSON.parse(savedWs);
+          parsed.name = cleanName;
+          localStorage.setItem('cursis_workspace_settings', JSON.stringify(parsed));
+        }
+
+        const savedOrg = localStorage.getItem('cursis_org_settings');
+        if (savedOrg) {
+          const parsedOrg = JSON.parse(savedOrg);
+          parsedOrg.name = cleanName;
+          localStorage.setItem('cursis_org_settings', JSON.stringify(parsedOrg));
+        }
+      } catch (e) {
+        console.warn('LocalStorage save workspace name warning:', e);
+      }
+    }
+
+    // 4. Persist to MongoDB backend
+    try {
+      const serverTargetId =
+        wsIdToUpdate !== 'ws_default' && wsIdToUpdate !== 'ws_public'
+          ? wsIdToUpdate
+          : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || 'ws_default');
+
+      // Call primary PATCH /api/workspaces
+      const res = await fetch('/api/workspaces', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspaceId: serverTargetId,
+          name: cleanName,
+        }),
+      });
+
+      // Call companion /api/workspaces/[id]/settings
+      fetch(`/api/workspaces/${encodeURIComponent(serverTargetId)}/settings`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: cleanName }),
+      }).catch(() => {});
+
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.data?.workspace?.name) {
+          const confirmed = data.data.workspace.name;
+          setWorkspaces((prev) =>
+            prev.map((w) =>
+              w.id === serverTargetId || w.id === wsIdToUpdate
+                ? { ...w, name: confirmed, shortName: confirmed.slice(0, 3).toUpperCase() }
+                : w
+            )
+          );
+        }
+      }
+
+      addAuditEntry(user.name, 'workspace.renamed', 'Workspace Settings', `Renamed workspace to "${cleanName}"`);
+      showToast(`Workspace name saved: ${cleanName}`);
+      return true;
+    } catch (err) {
+      console.warn('Backend save workspace name warning:', err);
+      showToast('Workspace name saved');
+      return true;
+    }
+  };
+
+  const updateWorkspaceName = saveWorkspaceName;
+
+
 
  // ---- Settings Mutation Handlers with Persistence ----
  const updateWorkspaceSettings = async (updates: Partial<WorkspaceSettings> & Record<string, any>) => {
- setWorkspaceSettings((prev) => {
- const next = { ...prev, ...updates };
- try {
- localStorage.setItem('cursis_workspace_settings', JSON.stringify(next));
- } catch {}
+    if (updates.name && updates.name.trim()) {
+      await saveWorkspaceName(updates.name.trim());
+    }
 
- // Sync active workspace attributes (name, tagline, accentColor)
- setWorkspaces((wsList) =>
- wsList.map((w) => {
- if (w.id === activeWorkspaceId) {
- return {
- ...w,
- ...(updates.name ? { name: updates.name, shortName: updates.name.slice(0, 3).toUpperCase() } : {}),
- ...(updates.tagline ? { tagline: updates.tagline } : {}),
- ...(updates.accentColor ? { color: updates.accentColor } : {}),
- };
- }
- return w;
- })
- );
+    setWorkspaceSettings((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('cursis_workspace_settings', JSON.stringify(next));
+      } catch {}
 
- if (updates.name) {
- try {
- localStorage.setItem('cursis_custom_workspace_name', updates.name);
- } catch {}
- }
+      // Sync active workspace attributes (name, tagline, accentColor)
+      setWorkspaces((wsList) =>
+        wsList.map((w) => {
+          if (w.id === activeWorkspaceId) {
+            return {
+              ...w,
+              ...(updates.name ? { name: updates.name, shortName: updates.name.slice(0, 3).toUpperCase() } : {}),
+              ...(updates.tagline ? { tagline: updates.tagline } : {}),
+              ...(updates.accentColor ? { color: updates.accentColor } : {}),
+            };
+          }
+          return w;
+        })
+      );
 
- if (updates.name || updates.industry || updates.timezone || updates.language || updates.dateFormat) {
- setOrgSettings((org) => {
- const nextOrg: OrgSettings = {
- ...org,
- ...(updates.name ? { name: updates.name } : {}),
- ...(updates.industry ? { industry: updates.industry } : {}),
- ...(updates.timezone ? { timezone: updates.timezone } : {}),
- ...(updates.language ? { language: updates.language } : {}),
- ...(updates.dateFormat ? { dateFormat: updates.dateFormat } : {}),
- };
- try {
- localStorage.setItem('cursis_org_settings', JSON.stringify(nextOrg));
- } catch {}
- return nextOrg;
- });
- }
+      if (updates.name) {
+        try {
+          localStorage.setItem('cursis_custom_workspace_name', updates.name);
+        } catch {}
+      }
 
- return next;
- });
- addAuditEntry(user.name, 'workspace.settings.updated', 'Workspace Settings', 'Updated workspace customization, identity, and theme');
- showToast('Workspace settings saved');
+      if (updates.name || updates.industry || updates.timezone || updates.language || updates.dateFormat) {
+        setOrgSettings((org) => {
+          const nextOrg: OrgSettings = {
+            ...org,
+            ...(updates.name ? { name: updates.name } : {}),
+            ...(updates.industry ? { industry: updates.industry } : {}),
+            ...(updates.timezone ? { timezone: updates.timezone } : {}),
+            ...(updates.language ? { language: updates.language } : {}),
+            ...(updates.dateFormat ? { dateFormat: updates.dateFormat } : {}),
+          };
+          try {
+            localStorage.setItem('cursis_org_settings', JSON.stringify(nextOrg));
+          } catch {}
+          return nextOrg;
+        });
+      }
+
+      return next;
+    });
+    addAuditEntry(user.name, 'workspace.settings.updated', 'Workspace Settings', 'Updated workspace customization, identity, and theme');
+    showToast('Workspace settings saved');
 
  // Persist to MongoDB through /api/workspaces/[id]/settings
  try {
@@ -3098,7 +3243,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  clearChatHistory,
  workspaceSettings,
  updateWorkspaceSettings,
- teamSettings,
+   saveWorkspaceName,
+  updateWorkspaceName,
+teamSettings,
  updateTeamSettings,
  notificationSettings,
  updateNotificationSettings,

@@ -349,26 +349,59 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
 }
 
 export async function updateWorkspace(id: string, updates: Partial<Workspace>): Promise<Workspace | null> {
-  let ws: Workspace | null | undefined = inMemoryStore.workspaces.get(id);
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  let ws: Workspace | null | undefined = inMemoryStore.workspaces.get(cleanId);
 
   if (!ws) {
-    ws = await getWorkspace(id);
+    ws = await getWorkspace(cleanId);
   }
 
   if (!ws) {
     try {
       const col = await getCollection<Workspace>('workspaces');
       if (col) {
-        ws = (await col.findOne({ id })) as Workspace | null;
+        ws = (await col.findOne({ id: cleanId })) as Workspace | null;
       }
     } catch {}
   }
 
-  if (!ws) return null;
+  // If workspace not found in database or memory yet, create a baseline record to upsert
+  if (!ws) {
+    const fallbackName = updates.name ? updates.name.trim() : 'Workspace';
+    ws = {
+      id: cleanId,
+      name: fallbackName,
+      slug: fallbackName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      tier: updates.tier || 'free',
+      ordisMode: 'chill',
+      industry: updates.industry || 'Technology',
+      teamSize: updates.teamSize || '1-10',
+      features: updates.features || ['workspace_core', 'team'],
+      settings: {
+        ambientMonitoring: true,
+        approvalRequiredForActions: true,
+        simulationMode: false,
+        riskTolerance: 'medium',
+        ...updates.settings,
+      },
+      ownerId: updates.ownerId || (cleanId.startsWith('ws_') ? cleanId.slice(3) : 'user_owner'),
+      memberCount: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  const updatedName = updates.name ? updates.name.trim() : ws.name;
+  const updatedShortName = updatedName ? updatedName.slice(0, 3).toUpperCase() : 'WS';
 
   const updated: Workspace = {
     ...ws,
     ...updates,
+    name: updatedName,
+    shortName: updatedShortName,
+    slug: updatedName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     settings: {
       ...ws.settings,
       ...updates.settings,
@@ -386,22 +419,32 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
     }
   }
 
-  inMemoryStore.workspaces.set(id, updated);
+  inMemoryStore.workspaces.set(cleanId, updated);
 
   try {
     const col = await getCollection<Workspace>('workspaces');
     if (col) {
-      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+      await col.updateOne({ id: cleanId }, { $set: updated }, { upsert: true });
     }
 
     // If workspace name changed, also update workspace_teams collection
     if (updates.name) {
+      const cleanName = updates.name.trim();
       const teamCol = await getCollection<any>('workspace_teams');
       if (teamCol) {
         await teamCol.updateMany(
-          { workspaceId: id },
-          { $set: { workspaceName: updates.name.trim() } }
-        );
+          { workspaceId: cleanId },
+          { $set: { workspaceName: cleanName } }
+        ).catch(() => {});
+      }
+
+      // Also sync active workspace name in users collection
+      const userCol = await getCollection<any>('users');
+      if (userCol) {
+        await userCol.updateMany(
+          { activeWorkspaceId: cleanId },
+          { $set: { workspaceName: cleanName } }
+        ).catch(() => {});
       }
     }
   } catch (e) {

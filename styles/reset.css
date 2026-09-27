@@ -14,10 +14,14 @@ html {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--c-bg);
   /* The subtle grid pattern like Somba */
-  background-image: 
+  background-image:
     linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
   background-size: 20px 20px;
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100vw !important;
+  position: relative;
 }
 
 body {
@@ -28,9 +32,13 @@ body {
   color: var(--text-primary);
   background: transparent;
   min-height: 100vh;
-  width: 100%;
-  overflow-x: hidden;
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden !important;
   overflow-y: auto;
+  position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 body:has(.app) {
@@ -87,22 +95,36 @@ ul, ol {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 0px;
+  height: 0px;
+  display: none;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--c-bg);
-  border-left: var(--border-width) solid var(--c-near-black);
+  background: transparent;
+  display: none;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--c-near-black);
-  border: 2px solid var(--c-bg);
+  background: transparent;
+  display: none;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--c-brand);
+  background: transparent;
+  display: none;
+}
+
+/* Hide scrollbars completely on all browsers */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
 }
 
 /* Selection */

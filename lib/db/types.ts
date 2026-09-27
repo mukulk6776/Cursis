@@ -31,6 +31,9 @@ export interface Workspace {
   };
   ownerId: string;
   memberCount: number;
+  shortName?: string;
+  color?: string;
+  badge?: string;
   createdAt: string;
   updatedAt: string;
 }

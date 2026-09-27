@@ -1995,3 +1995,112 @@
 .user-status-dot.busy { background: var(--c-warning); }
 .user-status-dot.offline { background: var(--border-color); }
 
+/* =========================================================================
+   Mobile Responsiveness Guard (Phones & Small Screens <= 768px and <= 480px)
+   Prevents screen horizontal blowout and ensures smooth in-bounds mobile UX
+   ========================================================================= */
+@media (max-width: 768px) {
+  .page {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .card {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .tabs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    max-width: 100% !important;
+  }
+
+  .tab {
+    flex-shrink: 0 !important;
+    font-size: var(--fs-xs) !important;
+    padding: 6px 10px !important;
+  }
+
+  .kanban-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
+  }
+
+  .task-list-view {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
+  }
+
+  .workspace-dropdown-menu {
+    max-width: calc(100vw - 24px) !important;
+    width: auto !important;
+    min-width: 260px !important;
+    right: -10px !important;
+  }
+
+  .form-row,
+  .input-row {
+    flex-direction: column !important;
+    gap: var(--sp-3) !important;
+  }
+
+  .input-group,
+  .form-group {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .input,
+  .form-control,
+  select,
+  textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: var(--sp-3) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .page-header-actions {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .page-header-actions .btn {
+    flex: 1 1 auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: var(--sp-3) !important;
+  }
+
+  .card {
+    padding: var(--sp-3) !important;
+  }
+
+  .stat-card {
+    padding: var(--sp-3) !important;
+  }
+}
+

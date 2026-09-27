@@ -39,12 +39,17 @@ export async function PATCH(
     }
 
     const { id } = await params;
+    const cleanId = (id || '').trim();
+    const targetId = (cleanId === 'ws_default' || cleanId === 'ws_public')
+      ? (authUser.workspaceId || `ws_${authUser.uid}`)
+      : cleanId;
+
     // Only owner or admin can update workspace configuration
-    const auth = await authorizeWorkspaceAccess(request, id, ['owner', 'admin']);
+    const auth = await authorizeWorkspaceAccess(request, targetId, ['owner', 'admin']);
     if (auth.errorResponse) return auth.errorResponse;
 
     const body = await request.json().catch(() => ({}));
-    const updated = await updateWorkspace(id, body);
+    const updated = await updateWorkspace(targetId, body);
 
     if (!updated) {
       return apiError('Workspace not found or update failed.', 404);

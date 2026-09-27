@@ -14,8 +14,13 @@ export async function PATCH(
     }
 
     const { id } = await params;
+    const cleanId = (id || '').trim();
+    const targetId = (cleanId === 'ws_default' || cleanId === 'ws_public')
+      ? (authUser.workspaceId || `ws_${authUser.uid}`)
+      : cleanId;
+
     // Only owner, admin, or manager can update workspace settings
-    const auth = await authorizeWorkspaceAccess(request, id, ['owner', 'admin', 'manager']);
+    const auth = await authorizeWorkspaceAccess(request, targetId, ['owner', 'admin', 'manager']);
     if (auth.errorResponse) return auth.errorResponse;
 
     const body = await request.json().catch(() => ({}));
@@ -30,7 +35,7 @@ export async function PATCH(
 
     // Merge settings
     if (body.settings || body.timezone || body.language || body.dateFormat || body.companyTone) {
-      const currentWorkspace = await getWorkspace(id);
+      const currentWorkspace = await getWorkspace(targetId);
       workspaceUpdate.settings = {
         ...(currentWorkspace?.settings || {}),
         ...(body.settings || {}),
@@ -42,7 +47,7 @@ export async function PATCH(
       if (body.companyTone) workspaceUpdate.settings.companyTone = body.companyTone;
     }
 
-    const updated = await updateWorkspace(id, workspaceUpdate);
+    const updated = await updateWorkspace(targetId, workspaceUpdate);
 
     if (!updated) {
       return apiError('Workspace not found or update failed.', 404);
