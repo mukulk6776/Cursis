@@ -396,7 +396,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  // Multi-Workspace State
  const [workspaces, setWorkspaces] = useState<Workspace[]>(INITIAL_WORKSPACES);
- const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>('ws_default');
+ const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>(() => {
+   // Initialize from localStorage to persist workspace selection across page refreshes
+   if (typeof window !== 'undefined') {
+     const saved = localStorage.getItem('cursis_active_workspace_id');
+     if (saved) return saved;
+   }
+   return 'ws_default';
+ });
  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
 
   const fetchWorkspaces = async (): Promise<void> => {
@@ -449,6 +456,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const switchWorkspace = (workspaceId: string) => {
     if (workspaces.some((w) => w.id === workspaceId)) {
       setActiveWorkspaceId(workspaceId);
+      // Persist active workspace to localStorage for page refresh persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cursis_active_workspace_id', workspaceId);
+      }
       setTasks([]);
       setDepartments([]);
       const ws = workspaces.find((w) => w.id === workspaceId);
