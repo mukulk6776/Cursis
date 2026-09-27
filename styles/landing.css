@@ -3841,3 +3841,39 @@ body.lp-body,
   backface-visibility: hidden;
   perspective: 1000px;
 }
+
+/* ============================================
+   FOOTER SOCIAL MEDIA LINKS
+   ============================================ */
+
+.lp-footer-social {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.lp-footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #FFFFFF;
+  border: 2.5px solid #0A0A0A;
+  border-radius: 10px;
+  color: #0A0A0A;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 3px 3px 0 0 #0A0A0A;
+}
+
+.lp-footer-social-link:hover {
+  background: #FF5500;
+  color: #FFFFFF;
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 0 #0A0A0A;
+}
+
+.lp-footer-social-link svg {
+  flex-shrink: 0;
+}
