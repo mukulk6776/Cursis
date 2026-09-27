@@ -1,28 +1,32 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, CheckCircle, Sparkles, Users, Zap, BarChart3, MessageSquare, FolderKanban } from 'lucide-react';
+import { ArrowRight, CheckCircle, Sparkles, Users, Zap, BarChart3, MessageSquare, FolderKanban, Target, Workflow, Clock, Shield } from 'lucide-react';
 import LandingNav from './LandingNav';
 import Footer from './Footer';
+import ScrollObserver from './ScrollObserver';
 import '@/styles/landing.css';
 
-export default function LandingPageCondensed() {
+export default function LandingPageBalanced() {
   return (
-    <div className="lp-body lp-condensed">
+    <div className="lp-body lp-balanced">
+      <ScrollObserver />
       <LandingNav />
       <main id="main-content" tabIndex={-1}>
-        <HeroSectionCondensed />
-        <ValuePropsCondensed />
-        <FeaturesGridCondensed />
-        <SocialProofCondensed />
-        <CtaSectionCondensed />
+        <HeroSectionBalanced />
+        <TrustBarBalanced />
+        <ProblemSolutionBalanced />
+        <FeaturesShowcaseBalanced />
+        <HowItWorksBalanced />
+        <TestimonialBalanced />
+        <CtaSectionBalanced />
       </main>
       <Footer />
     </div>
   );
 }
 
-function HeroSectionCondensed() {
+function HeroSectionBalanced() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -30,43 +34,58 @@ function HeroSectionCondensed() {
   }, []);
 
   return (
-    <section className="hero-condensed" style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(20px)', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-      <div className="hero-condensed-container">
-        <div className="hero-badge" style={{ transitionDelay: '0.1s', opacity: isVisible ? 1 : 0, transform: isVisible ? 'scale(1)' : 'scale(0.9)' }}>
-          <Sparkles size={14} />
+    <section className="tano-hero lp-reveal">
+      <div className="tano-container">
+        <div className="tano-hero-badge lp-reveal" style={{ transitionDelay: '0.1s' }}>
+          <Sparkles size={16} />
           <span>Powered by Ordis Autonomous AI</span>
         </div>
 
-        <h1 style={{ transitionDelay: '0.2s', opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(10px)' }}>
+        <h1 className="tano-hero-title lp-reveal" style={{ transitionDelay: '0.2s' }}>
           Your workspace that works for you
         </h1>
 
-        <p className="hero-subtitle" style={{ transitionDelay: '0.3s', opacity: isVisible ? 1 : 0 }}>
-          Cursis is an autonomous AI workplace that detects bottlenecks, rebalances workloads, and takes real actions—so your team can focus on what matters.
+        <p className="tano-hero-subtitle lp-reveal" style={{ transitionDelay: '0.3s' }}>
+          Cursis is the autonomous AI workplace that detects bottlenecks, rebalances workloads, and takes real actions—so your team can focus on what matters.
         </p>
 
-        <div className="hero-cta-group" style={{ transitionDelay: '0.4s', opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(10px)' }}>
-          <a href="/signup" className="btn-primary-hero">
+        <div className="tano-hero-cta lp-reveal" style={{ transitionDelay: '0.4s' }}>
+          <a href="/signup" className="tano-btn tano-btn-primary tano-btn-lg">
             Start free trial
-            <ArrowRight size={16} />
+            <ArrowRight size={18} />
           </a>
-          <a href="#features" className="btn-secondary-hero">
+          <a href="#features" className="tano-btn tano-btn-secondary tano-btn-lg">
             See how it works
           </a>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        <div className="hero-trust" style={{ transitionDelay: '0.5s', opacity: isVisible ? 1 : 0 }}>
-          <div className="trust-stat">
+function TrustBarBalanced() {
+  return (
+    <section className="tano-trust-bar lp-reveal">
+      <div className="tano-container">
+        <div className="tano-trust-stats">
+          <div className="tano-trust-stat">
             <strong>1,250+</strong>
-            <span>teams</span>
+            <span>Teams worldwide</span>
           </div>
-          <div className="trust-stat">
+          <div className="tano-trust-divider" />
+          <div className="tano-trust-stat">
             <strong>99.99%</strong>
-            <span>uptime SLA</span>
+            <span>Uptime SLA</span>
           </div>
-          <div className="trust-stat">
+          <div className="tano-trust-divider" />
+          <div className="tano-trust-stat">
             <strong>SOC 2</strong>
-            <span>certified</span>
+            <span>Certified</span>
+          </div>
+          <div className="tano-trust-divider" />
+          <div className="tano-trust-stat">
+            <strong>40%</strong>
+            <span>Avg. velocity increase</span>
           </div>
         </div>
       </div>
@@ -74,130 +93,104 @@ function HeroSectionCondensed() {
   );
 }
 
-function ValuePropsCondensed() {
-  const [visibleCards, setVisibleCards] = useState<number[]>([]);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            [0, 1, 2].forEach((i) => {
-              setTimeout(() => {
-                setVisibleCards((prev) => [...prev, i]);
-              }, i * 150);
-            });
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.2 }
-    );
-
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  const props = [
-    {
-      icon: Zap,
-      title: 'Proactive intelligence',
-      desc: 'Ordis identifies bottlenecks and optimizes workflows before you ask.',
-    },
-    {
-      icon: Users,
-      title: 'Real collaboration',
-      desc: 'Teams, projects, tasks, and docs in one unified workspace.',
-    },
-    {
-      icon: CheckCircle,
-      title: 'Autonomous actions',
-      desc: 'Not just suggestions—Ordis rebalances workloads and updates status automatically.',
-    },
-  ];
-
+function ProblemSolutionBalanced() {
   return (
-    <section ref={sectionRef} className="value-props-condensed">
-      <div className="vp-container">
-        {props.map((prop, idx) => (
-          <div
-            key={idx}
-            className="vp-card"
-            style={{
-              opacity: visibleCards.includes(idx) ? 1 : 0,
-              transform: visibleCards.includes(idx) ? 'translateY(0)' : 'translateY(30px)',
-              transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-          >
-            <div className="vp-icon">
-              <prop.icon size={22} />
+    <section className="tano-section tano-section-alt">
+      <div className="tano-container">
+        <div className="tano-split">
+          <div className="tano-split-content lp-reveal-left">
+            <h2 className="tano-section-title">The problem with traditional workspaces</h2>
+            <div className="tano-problem-list">
+              <div className="tano-problem-item">
+                <div className="tano-problem-x">✕</div>
+                <div>
+                  <strong>Reactive management</strong>
+                  <p>You only find out about bottlenecks after they've become fires</p>
+                </div>
+              </div>
+              <div className="tano-problem-item">
+                <div className="tano-problem-x">✕</div>
+                <div>
+                  <strong>Manual workload balancing</strong>
+                  <p>Managers spend hours redistributing tasks and checking capacity</p>
+                </div>
+              </div>
+              <div className="tano-problem-item">
+                <div className="tano-problem-x">✕</div>
+                <div>
+                  <strong>Fragmented tools</strong>
+                  <p>Data scattered across Slack, Jira, Notion, Asana, and spreadsheets</p>
+                </div>
+              </div>
             </div>
-            <h3>{prop.title}</h3>
-            <p>{prop.desc}</p>
           </div>
-        ))}
+
+          <div className="tano-split-content lp-reveal-right">
+            <h2 className="tano-section-title">How Cursis solves it</h2>
+            <div className="tano-solution-list">
+              <div className="tano-solution-item">
+                <div className="tano-solution-icon">
+                  <Zap size={20} />
+                </div>
+                <div>
+                  <strong>Proactive intelligence</strong>
+                  <p>Ordis identifies bottlenecks and suggests optimizations before you ask</p>
+                </div>
+              </div>
+              <div className="tano-solution-item">
+                <div className="tano-solution-icon">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <strong>Autonomous actions</strong>
+                  <p>Automatically rebalances workloads, updates status, and delegates tasks</p>
+                </div>
+              </div>
+              <div className="tano-solution-item">
+                <div className="tano-solution-icon">
+                  <Target size={20} />
+                </div>
+                <div>
+                  <strong>Unified workspace</strong>
+                  <p>Projects, tasks, docs, chat, and analytics in one place</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
-function FeaturesGridCondensed() {
-  const [visibleFeatures, setVisibleFeatures] = useState<number[]>([]);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            [0, 1, 2, 3, 4, 5].forEach((i) => {
-              setTimeout(() => {
-                setVisibleFeatures((prev) => [...prev, i]);
-              }, i * 100);
-            });
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
+function FeaturesShowcaseBalanced() {
   const features = [
-    { icon: MessageSquare, name: 'Ordis AI Chat', desc: 'Natural language workspace commands' },
-    { icon: FolderKanban, name: 'Projects & Tasks', desc: 'Kanban, Gantt, workload views' },
-    { icon: Users, name: 'Team Management', desc: 'Roles, permissions, departments' },
-    { icon: BarChart3, name: 'Analytics', desc: 'Velocity, burndown, capacity insights' },
-    { icon: Sparkles, name: 'Autonomous Actions', desc: 'Auto-rebalance, smart delegation' },
-    { icon: CheckCircle, name: 'Enterprise Ready', desc: 'SSO, audit logs, compliance' },
+    { icon: MessageSquare, name: 'Ordis AI Chat', desc: 'Natural language workspace commands and intelligent suggestions', color: '#FF5500' },
+    { icon: FolderKanban, name: 'Projects & Tasks', desc: 'Kanban boards, Gantt charts, and workload views', color: '#FFC233' },
+    { icon: Users, name: 'Team Management', desc: 'Roles, permissions, departments, and capacity planning', color: '#4ADE80' },
+    { icon: BarChart3, name: 'Analytics', desc: 'Velocity tracking, burndown charts, and capacity insights', color: '#93C5FD' },
+    { icon: Workflow, name: 'Automation', desc: 'Smart delegation, auto-rebalancing, and workflow triggers', color: '#C084FC' },
+    { icon: Shield, name: 'Enterprise Ready', desc: 'SSO, RBAC, audit logs, and compliance', color: '#F472B6' },
   ];
 
   return (
-    <section ref={sectionRef} id="features" className="features-grid-condensed">
-      <div className="fg-container">
-        <h2 style={{ opacity: visibleFeatures.length > 0 ? 1 : 0, transform: visibleFeatures.length > 0 ? 'translateY(0)' : 'translateY(20px)', transition: 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-          Everything you need to run your team
-        </h2>
-        <div className="fg-grid">
+    <section id="features" className="tano-section">
+      <div className="tano-container">
+        <div className="tano-section-header lp-reveal">
+          <h2 className="tano-section-title tano-centered">Everything you need to run your team</h2>
+          <p className="tano-section-subtitle tano-centered">
+            A complete workspace platform with proactive AI that takes action
+          </p>
+        </div>
+
+        <div className="tano-features-grid lp-stagger">
           {features.map((feat, idx) => (
-            <div
-              key={idx}
-              className="fg-item"
-              style={{
-                opacity: visibleFeatures.includes(idx) ? 1 : 0,
-                transform: visibleFeatures.includes(idx) ? 'scale(1)' : 'scale(0.95)',
-                transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-              }}
-            >
-              <div className="fg-icon">
-                <feat.icon size={20} />
+            <div key={idx} className="tano-feature-card">
+              <div className="tano-feature-icon" style={{ background: feat.color }}>
+                <feat.icon size={24} />
               </div>
-              <h4>{feat.name}</h4>
-              <p>{feat.desc}</p>
+              <h3 className="tano-feature-title">{feat.name}</h3>
+              <p className="tano-feature-desc">{feat.desc}</p>
             </div>
           ))}
         </div>
@@ -206,73 +199,79 @@ function FeaturesGridCondensed() {
   );
 }
 
-function SocialProofCondensed() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
+function HowItWorksBalanced() {
+  const steps = [
+    { number: '01', title: 'Connect your team', desc: 'Invite your team and set up projects in minutes', icon: Users },
+    { number: '02', title: 'Ordis learns your workflow', desc: 'AI observes patterns and builds intelligence', icon: Sparkles },
+    { number: '03', title: 'Autonomous optimization', desc: 'Ordis proactively balances work and removes blockers', icon: Zap },
+  ];
 
   return (
-    <section ref={sectionRef} className="social-proof-condensed">
-      <div className="sp-container" style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-        <blockquote>
-          "Cursis transformed how we work. Ordis catches bottlenecks before they become fires, and our team velocity increased 40% in the first quarter."
-        </blockquote>
-        <cite>
-          <strong>Sarah Chen</strong>
-          <span>VP Engineering, TechFlow</span>
-        </cite>
+    <section className="tano-section tano-section-alt">
+      <div className="tano-container">
+        <div className="tano-section-header lp-reveal">
+          <h2 className="tano-section-title tano-centered">How it works</h2>
+          <p className="tano-section-subtitle tano-centered">
+            Get up and running in three simple steps
+          </p>
+        </div>
+
+        <div className="tano-steps-grid lp-stagger">
+          {steps.map((step, idx) => (
+            <div key={idx} className="tano-step-card">
+              <div className="tano-step-number">{step.number}</div>
+              <div className="tano-step-icon">
+                <step.icon size={28} />
+              </div>
+              <h3 className="tano-step-title">{step.title}</h3>
+              <p className="tano-step-desc">{step.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-function CtaSectionCondensed() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.4 }
-    );
-
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
+function TestimonialBalanced() {
   return (
-    <section ref={sectionRef} className="cta-condensed">
-      <div className="cta-container" style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'scale(1)' : 'scale(0.97)', transition: 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-        <h2>Ready to work smarter?</h2>
-        <p>Join 1,250+ teams using Cursis to build better, faster.</p>
-        <a href="/signup" className="cta-btn">
-          Start free trial
-          <ArrowRight size={18} />
-        </a>
-        <p className="cta-note">No credit card required · 14-day free trial</p>
+    <section className="tano-section">
+      <div className="tano-container tano-container-narrow">
+        <div className="tano-testimonial-card lp-reveal-scale">
+          <div className="tano-quote-mark">"</div>
+          <blockquote className="tano-testimonial-quote">
+            Cursis transformed how we work. Ordis catches bottlenecks before they become fires, and our team velocity increased 40% in the first quarter. It's like having a brilliant operations manager working 24/7.
+          </blockquote>
+          <div className="tano-testimonial-author">
+            <div className="tano-author-avatar">SC</div>
+            <div>
+              <strong className="tano-author-name">Sarah Chen</strong>
+              <p className="tano-author-title">VP Engineering, TechFlow</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CtaSectionBalanced() {
+  return (
+    <section className="tano-cta-section">
+      <div className="tano-container">
+        <div className="tano-cta-card lp-reveal-scale">
+          <h2 className="tano-cta-title">Ready to work smarter?</h2>
+          <p className="tano-cta-subtitle">
+            Join 1,250+ teams using Cursis to build better, faster.
+          </p>
+          <div className="tano-cta-actions">
+            <a href="/signup" className="tano-btn tano-btn-cta tano-btn-xl">
+              Start free trial
+              <ArrowRight size={20} />
+            </a>
+          </div>
+          <p className="tano-cta-note">No credit card required · 14-day free trial · Cancel anytime</p>
+        </div>
       </div>
     </section>
   );
