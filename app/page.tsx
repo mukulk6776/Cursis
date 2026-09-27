@@ -1,5 +1,5 @@
 import React from 'react';
-import LandingPage from '@/components/landing/LandingPage';
+import LandingPageCondensed from '@/components/landing/LandingPageCondensed';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -59,7 +59,7 @@ export default function MainPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <LandingPage />
+      <LandingPageCondensed />
     </>
   );
 }
