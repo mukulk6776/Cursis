@@ -7,9 +7,23 @@ import { findUserByEmail, registerUser } from '@/lib/db/users';
 import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
 
 export async function POST(request: Request) {
   try {
+    // Get client IP for rate limiting
+    const clientIP = getClientIP(request);
+
+    // Check rate limit before processing
+    const rateCheck = await checkRateLimit(clientIP);
+    if (!rateCheck.allowed) {
+      return apiError(
+        rateCheck.message || 'Too many signup attempts. Please try again in 30 minutes.',
+        429,
+        { resetAt: rateCheck.resetAt?.toISOString() }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const name = String(body.name || '').trim();
     const email = String(body.email || '').trim().toLowerCase();
@@ -36,6 +50,8 @@ export async function POST(request: Request) {
     // Check if account already exists
     const existing = await findUserByEmail(email);
     if (existing && existing.passwordHash) {
+      // Record attempt for duplicate signup
+      await recordAttempt(clientIP);
       return apiError('An account with this email already exists. Please sign in instead.', 409);
     }
 
@@ -47,6 +63,9 @@ export async function POST(request: Request) {
       password,
       role: isFounder ? 'owner' : 'member',
     });
+
+    // Clear rate limit on successful signup
+    await clearRateLimit(clientIP);
 
     const sessionPayload = {
       uid: user.uid,

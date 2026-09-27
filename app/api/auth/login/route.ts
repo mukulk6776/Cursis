@@ -7,9 +7,23 @@ import { findUserByEmail, registerUser, verifyPassword } from '@/lib/db/users';
 import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
 
 export async function POST(request: Request) {
   try {
+    // Get client IP for rate limiting
+    const clientIP = getClientIP(request);
+
+    // Check rate limit before processing
+    const rateCheck = await checkRateLimit(clientIP);
+    if (!rateCheck.allowed) {
+      return apiError(
+        rateCheck.message || 'Too many login attempts. Please try again in 30 minutes.',
+        429,
+        { resetAt: rateCheck.resetAt?.toISOString() }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
@@ -45,8 +59,13 @@ export async function POST(request: Request) {
     // Verify stored password hash
     const isValid = verifyPassword(password, user.salt, user.passwordHash);
     if (!isValid) {
+      // Record failed attempt
+      await recordAttempt(clientIP);
       return apiError('Incorrect email or password. Please verify your credentials.', 401);
     }
+
+    // Clear rate limit on successful login
+    await clearRateLimit(clientIP);
 
     const sessionPayload = {
       uid: user.uid,
