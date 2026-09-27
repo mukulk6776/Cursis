@@ -43,11 +43,44 @@ export function getUserWorkspaceName(userName?: string): string {
 
 export function getUserWorkspaceShortName(userName?: string): string {
   if (!userName || !userName.trim() || userName === 'Workspace Member') {
-    return 'My Workspace';
+    return 'MWS';
   }
   const firstName = userName.trim().split(' ')[0];
-  const suffix = firstName.endsWith('s') || firstName.endsWith('S') ? "'" : "'s";
-  return `${firstName}${suffix} Workspace`;
+  // Take first 3 letters of first name for abbreviation
+  return firstName.slice(0, 3).toUpperCase();
+}
+
+// Generate a 2-3 letter abbreviation from workspace name
+export function generateWorkspaceAbbreviation(workspaceName: string): string {
+  if (!workspaceName || !workspaceName.trim()) {
+    return 'WS';
+  }
+
+  const cleaned = workspaceName.trim();
+
+  // Remove possessive markers and common words
+  const withoutPossessive = cleaned.replace(/['']s?\s+/g, ' ');
+  const words = withoutPossessive
+    .split(/[\s\-_]+/)
+    .filter(word => word.length > 0 && !['workspace', 'the', 'a', 'an'].includes(word.toLowerCase()));
+
+  if (words.length === 0) {
+    // Fallback: take first 3 alphanumeric characters
+    const alphanumeric = cleaned.replace(/[^a-zA-Z0-9]/g, '');
+    return alphanumeric.slice(0, 3).toUpperCase() || 'WS';
+  }
+
+  if (words.length === 1) {
+    // Single word: take first 3 letters
+    return words[0].slice(0, 3).toUpperCase();
+  }
+
+  // Multiple words: take first letter of each word (up to 3)
+  return words
+    .slice(0, 3)
+    .map(word => word[0])
+    .join('')
+    .toUpperCase();
 }
 
 // ---- Workspaces (Clean Production Default) ----

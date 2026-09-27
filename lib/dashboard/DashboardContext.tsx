@@ -70,6 +70,7 @@ import {
  INITIAL_ORDIS_SETTINGS,
  getUserWorkspaceName,
  getUserWorkspaceShortName,
+ generateWorkspaceAbbreviation,
 } from './data';
 import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
 import { isFounderEmail } from '@/lib/auth/founder';
@@ -433,7 +434,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               return {
                 ...w,
                 name: customForThis,
-                shortName: customForThis.slice(0, 3).toUpperCase(),
+                shortName: generateWorkspaceAbbreviation(customForThis),
               };
             }
             return w;
@@ -538,7 +539,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             return {
               ...w,
               name: customWsName,
-              shortName: customWsName.slice(0, 3).toUpperCase(),
+              shortName: generateWorkspaceAbbreviation(customWsName),
             };
           }
           return w;
@@ -903,7 +904,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         // Dynamically name default workspace based on authenticated user or custom setup name
         const customWsName = typeof window !== 'undefined' ? localStorage.getItem('cursis_custom_workspace_name') : null;
         const userWsName = customWsName || getUserWorkspaceName(activeUser.name);
-        const userWsShortName = customWsName ? customWsName.slice(0, 3).toUpperCase() : getUserWorkspaceShortName(activeUser.name);
+        const userWsShortName = customWsName ? generateWorkspaceAbbreviation(customWsName) : getUserWorkspaceShortName(activeUser.name);
 
         setWorkspaces((prev) =>
           prev.map((w, idx) => {
@@ -1269,7 +1270,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
 
     const wsIdToUpdate = targetId || activeWorkspaceId || 'ws_default';
-    const shortName = cleanName.length >= 3 ? cleanName.slice(0, 3).toUpperCase() : cleanName.toUpperCase();
+    const shortName = generateWorkspaceAbbreviation(cleanName);
 
     // 1. Immediately update local state in workspaces array
     setWorkspaces((prev) =>
@@ -1354,7 +1355,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           setWorkspaces((prev) =>
             prev.map((w) =>
               w.id === serverTargetId || w.id === wsIdToUpdate
-                ? { ...w, name: confirmed, shortName: confirmed.slice(0, 3).toUpperCase() }
+                ? { ...w, name: confirmed, shortName: generateWorkspaceAbbreviation(confirmed) }
                 : w
             )
           );
@@ -1393,7 +1394,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           if (w.id === activeWorkspaceId) {
             return {
               ...w,
-              ...(updates.name ? { name: updates.name, shortName: updates.name.slice(0, 3).toUpperCase() } : {}),
+              ...(updates.name ? { name: updates.name, shortName: generateWorkspaceAbbreviation(updates.name) } : {}),
               ...(updates.tagline ? { tagline: updates.tagline } : {}),
               ...(updates.accentColor ? { color: updates.accentColor } : {}),
             };
@@ -1466,7 +1467,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  if (data?.data?.workspace?.name) {
  const savedName = data.data.workspace.name;
  setWorkspaces((prev) =>
- prev.map((w) => (w.id === targetWsId ? { ...w, name: savedName, shortName: savedName.slice(0, 3).toUpperCase() } : w))
+ prev.map((w) => (w.id === targetWsId ? { ...w, name: savedName, shortName: generateWorkspaceAbbreviation(savedName) } : w))
  );
  }
  }

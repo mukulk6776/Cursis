@@ -1,5 +1,6 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
 import { getUserWorkspaces, createWorkspace, updateWorkspace } from '@/lib/db/workspaces';
+import { generateWorkspaceAbbreviation } from '@/lib/dashboard/data';
 
 export async function GET(request: Request) {
   try {
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
     const formatted = workspaces.map((w) => ({
       id: w.id,
       name: w.name || 'Workspace',
-      shortName: (w as any).shortName || (w.name ? w.name.slice(0, 3).toUpperCase() : 'WS'),
+      shortName: (w as any).shortName || generateWorkspaceAbbreviation(w.name || 'Workspace'),
       tagline: (w as any).tagline || 'Intelligent Workspace for Modern Teams',
       isCustomClient: Boolean((w as any).isCustomClient),
       badge: w.ownerId === authUser.uid ? 'Owner' : 'Member',
@@ -70,7 +71,7 @@ export async function PATCH(request: Request) {
     const updates: any = {};
     if (name) {
       updates.name = name;
-      updates.shortName = name.slice(0, 3).toUpperCase();
+      updates.shortName = generateWorkspaceAbbreviation(name);
     }
     if (body.tagline !== undefined) updates.tagline = body.tagline;
     if (body.industry !== undefined) updates.industry = body.industry;
@@ -87,7 +88,7 @@ export async function PATCH(request: Request) {
       workspace: {
         id: updated.id,
         name: updated.name,
-        shortName: (updated as any).shortName || (updated.name ? updated.name.slice(0, 3).toUpperCase() : 'WS'),
+        shortName: (updated as any).shortName || generateWorkspaceAbbreviation(updated.name || 'Workspace'),
         tagline: (updated as any).tagline || 'Intelligent Workspace for Modern Teams',
         color: (updated as any).color || '#0f4cff',
         updatedAt: updated.updatedAt,
