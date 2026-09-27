@@ -1,4 +1,4 @@
-import { connectDB } from './mongodb';
+import { getCollection } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
 /**
@@ -49,8 +49,7 @@ export async function createWorkspace(data: {
   ownerId: string;
   ownerEmail: string;
 }): Promise<Workspace> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   const baseSlug = generateSlug(data.name);
   let slug = baseSlug;
@@ -93,8 +92,7 @@ export async function createWorkspace(data: {
  * Get workspace by ID or slug
  */
 export async function getWorkspace(identifier: string): Promise<Workspace | null> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   // Try finding by slug first, then by workspaceId
   const workspace = await workspaces.findOne({
@@ -108,8 +106,7 @@ export async function getWorkspace(identifier: string): Promise<Workspace | null
  * Get all workspaces for a user
  */
 export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   const userWorkspaces = await workspaces
     .find({
@@ -128,8 +125,7 @@ export async function updateWorkspace(
   identifier: string,
   updates: Partial<Pick<Workspace, 'name' | 'settings'>>
 ): Promise<Workspace | null> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   const updateData: any = {
     ...updates,
@@ -169,8 +165,7 @@ export async function addWorkspaceMember(
     role: 'admin' | 'member';
   }
 ): Promise<boolean> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   const result = await workspaces.updateOne(
     { workspaceId },
@@ -195,8 +190,7 @@ export async function removeWorkspaceMember(
   workspaceId: string,
   userId: string
 ): Promise<boolean> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   const result = await workspaces.updateOne(
     { workspaceId },
@@ -218,8 +212,7 @@ export async function hasWorkspaceAccess(
   workspaceId: string,
   userId: string
 ): Promise<boolean> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   const workspace = await workspaces.findOne({
     $or: [{ slug: workspaceId }, { workspaceId }],
@@ -236,8 +229,7 @@ export async function getUserWorkspaceRole(
   workspaceId: string,
   userId: string
 ): Promise<'owner' | 'admin' | 'member' | null> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   const workspace = await workspaces.findOne({
     $or: [{ slug: workspaceId }, { workspaceId }],
@@ -253,8 +245,7 @@ export async function getUserWorkspaceRole(
  * Delete workspace (owner only)
  */
 export async function deleteWorkspace(workspaceId: string, userId: string): Promise<boolean> {
-  const db = await connectDB();
-  const workspaces = db.collection<Workspace>('workspaces');
+  const workspaces = await getCollection<Workspace>('workspaces');
 
   const result = await workspaces.deleteOne({
     workspaceId,

@@ -1,4 +1,4 @@
-import { connectDB } from './mongodb';
+import { getCollection } from '@/lib/mongodb';
 
 /**
  * Rate limiting collection for tracking login/signup attempts by IP
@@ -27,8 +27,7 @@ export async function checkRateLimit(ip: string): Promise<{
   message?: string;
 }> {
   try {
-    const db = await connectDB();
-    const rateLimits = db.collection<RateLimitEntry>('rate_limits');
+    const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
 
     const now = new Date();
     const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW);
@@ -109,8 +108,7 @@ export async function checkRateLimit(ip: string): Promise<{
  */
 export async function recordAttempt(ip: string): Promise<void> {
   try {
-    const db = await connectDB();
-    const rateLimits = db.collection<RateLimitEntry>('rate_limits');
+    const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
 
     const now = new Date();
     const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW);
@@ -159,8 +157,7 @@ export async function recordAttempt(ip: string): Promise<void> {
  */
 export async function clearRateLimit(ip: string): Promise<void> {
   try {
-    const db = await connectDB();
-    const rateLimits = db.collection<RateLimitEntry>('rate_limits');
+    const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
     await rateLimits.deleteOne({ ip });
   } catch (error) {
     console.error('Clear rate limit error:', error);
@@ -187,8 +184,7 @@ export function getClientIP(request: Request): string {
  */
 export async function cleanupOldRateLimits(): Promise<void> {
   try {
-    const db = await connectDB();
-    const rateLimits = db.collection<RateLimitEntry>('rate_limits');
+    const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
     const cutoff = new Date(Date.now() - RATE_LIMIT_WINDOW);
 
     await rateLimits.deleteMany({
