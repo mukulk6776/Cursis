@@ -28,6 +28,13 @@ export async function checkRateLimit(ip: string): Promise<{
 }> {
   try {
     const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
+    if (!rateLimits) {
+      // Fail open if database is unavailable
+      return {
+        allowed: true,
+        remainingAttempts: MAX_ATTEMPTS,
+      };
+    }
 
     const now = new Date();
     const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW);
@@ -109,6 +116,7 @@ export async function checkRateLimit(ip: string): Promise<{
 export async function recordAttempt(ip: string): Promise<void> {
   try {
     const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
+    if (!rateLimits) return; // Silently fail if database unavailable
 
     const now = new Date();
     const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW);
@@ -158,6 +166,8 @@ export async function recordAttempt(ip: string): Promise<void> {
 export async function clearRateLimit(ip: string): Promise<void> {
   try {
     const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
+    if (!rateLimits) return; // Silently fail if database unavailable
+
     await rateLimits.deleteOne({ ip });
   } catch (error) {
     console.error('Clear rate limit error:', error);
@@ -185,6 +195,8 @@ export function getClientIP(request: Request): string {
 export async function cleanupOldRateLimits(): Promise<void> {
   try {
     const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
+    if (!rateLimits) return; // Silently fail if database unavailable
+
     const cutoff = new Date(Date.now() - RATE_LIMIT_WINDOW);
 
     await rateLimits.deleteMany({
