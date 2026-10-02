@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="rounded-corners">
+      <rect x="0" y="0" width="1024" height="1024" rx="180" ry="180"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#rounded-corners)">
+    <!-- Background -->
+    <rect x="0" y="0" width="1024" height="1024" fill="#FFFFFF"/>
+
+    <!-- C Arc -->
+    <path d="M 545 240 A 282 282 0 1 0 782 566"
+          stroke="#000000"
+          stroke-width="142"
+          stroke-linecap="round"
+          fill="none"/>
+
+    <!-- Orange Square -->
+    <rect x="625" y="196" width="156" height="156" rx="42"
+          transform="rotate(-10 703 274)"
+          fill="#FF5500"/>
+  </g>
+</svg>

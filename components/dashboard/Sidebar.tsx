@@ -55,22 +55,30 @@ export default function Sidebar() {
       <div className="sidebar-header">
         <div className="sidebar-logo" onClick={() => handleNav('home')} style={{ cursor: 'pointer' }}>
           <svg className="sidebar-logo-icon" viewBox="0 0 1024 1024" fill="none" width="28" height="28" style={{ borderRadius: '8px', overflow: 'hidden' }}>
-            <path
-              d="M 545 240 A 282 282 0 1 0 782 566"
-              stroke="#000000"
-              strokeWidth="142"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <rect
-              x="625"
-              y="196"
-              width="156"
-              height="156"
-              rx="42"
-              transform="rotate(-10 703 274)"
-              fill="#FF5500"
-            />
+            <defs>
+              <clipPath id="rounded-logo-sidebar">
+                <rect x="0" y="0" width="1024" height="1024" rx="180" ry="180" />
+              </clipPath>
+            </defs>
+            <g clipPath="url(#rounded-logo-sidebar)">
+              <rect x="0" y="0" width="1024" height="1024" fill="white" />
+              <path
+                d="M 545 240 A 282 282 0 1 0 782 566"
+                stroke="#000000"
+                strokeWidth="142"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <rect
+                x="625"
+                y="196"
+                width="156"
+                height="156"
+                rx="42"
+                transform="rotate(-10 703 274)"
+                fill="#FF5500"
+              />
+            </g>
           </svg>
           <span className="sidebar-logo-text">Cursis</span>
         </div>
@@ -127,25 +135,34 @@ export default function Sidebar() {
                 justifyContent: 'center',
                 boxShadow: '1.5px 1.5px 0 0 #FF5500',
                 flexShrink: 0,
+                overflow: 'hidden',
               }}
             >
               <svg width="15" height="15" viewBox="0 0 1024 1024" fill="none">
-                <path
-                  d="M 545 240 A 282 282 0 1 0 782 566"
-                  stroke="#FFFFFF"
-                  strokeWidth="142"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <rect
-                  x="625"
-                  y="196"
-                  width="156"
-                  height="156"
-                  rx="42"
-                  transform="rotate(-10 703 274)"
-                  fill="#FF5500"
-                />
+                <defs>
+                  <clipPath id="rounded-logo-ordis">
+                    <rect x="0" y="0" width="1024" height="1024" rx="180" ry="180" />
+                  </clipPath>
+                </defs>
+                <g clipPath="url(#rounded-logo-ordis)">
+                  <rect x="0" y="0" width="1024" height="1024" fill="#0A0A0A" />
+                  <path
+                    d="M 545 240 A 282 282 0 1 0 782 566"
+                    stroke="#FFFFFF"
+                    strokeWidth="142"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <rect
+                    x="625"
+                    y="196"
+                    width="156"
+                    height="156"
+                    rx="42"
+                    transform="rotate(-10 703 274)"
+                    fill="#FF5500"
+                  />
+                </g>
               </svg>
             </span>
           </span>

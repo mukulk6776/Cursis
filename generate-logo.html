@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursis Logo PNG Generator</title>
+</head>
+<body style="margin: 0; padding: 20px; font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <h1 style="font-size: 24px; font-weight: 800; margin-bottom: 20px;">Cursis Logo PNG Generator</h1>
+
+        <div style="background: white; padding: 20px; border-radius: 12px; border: 2px solid #000; box-shadow: 4px 4px 0 #000; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Preview</h2>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                <div>
+                    <canvas id="logo1024" width="1024" height="1024" style="border: 2px solid #e0e0e0; border-radius: 8px; max-width: 200px; height: auto;"></canvas>
+                    <p style="font-size: 12px; margin-top: 8px; text-align: center;">1024x1024</p>
+                </div>
+                <div>
+                    <canvas id="logo512" width="512" height="512" style="border: 2px solid #e0e0e0; border-radius: 8px; max-width: 150px; height: auto;"></canvas>
+                    <p style="font-size: 12px; margin-top: 8px; text-align: center;">512x512</p>
+                </div>
+                <div>
+                    <canvas id="logo256" width="256" height="256" style="border: 2px solid #e0e0e0; border-radius: 8px; max-width: 128px; height: auto;"></canvas>
+                    <p style="font-size: 12px; margin-top: 8px; text-align: center;">256x256</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: 12px; border: 2px solid #000; box-shadow: 4px 4px 0 #000; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Download PNG</h2>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button id="download1024" style="padding: 10px 20px; font-size: 14px; font-weight: 700; background: #FF5500; color: white; border: 2px solid #000; border-radius: 6px; cursor: pointer; box-shadow: 2px 2px 0 #000;">
+                    Download 1024x1024 PNG
+                </button>
+                <button id="download512" style="padding: 10px 20px; font-size: 14px; font-weight: 700; background: #FF5500; color: white; border: 2px solid #000; border-radius: 6px; cursor: pointer; box-shadow: 2px 2px 0 #000;">
+                    Download 512x512 PNG
+                </button>
+                <button id="download256" style="padding: 10px 20px; font-size: 14px; font-weight: 700; background: #FF5500; color: white; border: 2px solid #000; border-radius: 6px; cursor: pointer; box-shadow: 2px 2px 0 #000;">
+                    Download 256x256 PNG
+                </button>
+                <button id="downloadAll" style="padding: 10px 20px; font-size: 14px; font-weight: 700; background: #000; color: white; border: 2px solid #000; border-radius: 6px; cursor: pointer; box-shadow: 2px 2px 0 #000;">
+                    Download All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        function drawCursisLogo(canvas) {
+            const ctx = canvas.getContext('2d', { alpha: true });
+            const size = canvas.width;
+            const scale = size / 1024;
+
+            // Enable high quality rendering
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+
+            // Create rounded clipping mask
+            const cornerRadius = 180 * scale;
+            roundRect(ctx, 0, 0, size, size, cornerRadius);
+            ctx.clip();
+
+            // Fill white background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw the C arc (black stroke)
+            // SVG Path: M 545 240 A 282 282 0 1 0 782 566
+            // This creates an arc from (545, 240) to (782, 566) with radius 282
+
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 142 * scale;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Calculate the arc
+            // Center is at (545, 522) - the circle center for the C shape
+            const cx = 545 * scale;
+            const cy = 522 * scale;
+            const radius = 282 * scale;
+
+            // Start point: (545, 240) - top of the C
+            // End point: (782, 566) - right opening of the C
+            // The arc goes counter-clockwise from top, around the left, to bottom-right
+
+            // Calculate angles
+            const startX = 545 * scale;
+            const startY = 240 * scale;
+            const endX = 782 * scale;
+            const endY = 566 * scale;
+
+            const startAngle = Math.atan2(startY - cy, startX - cx);
+            const endAngle = Math.atan2(endY - cy, endX - cx);
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, startAngle, endAngle, false);
+            ctx.stroke();
+
+            // Draw the orange square (rotated -10 degrees)
+            ctx.save();
+
+            // Transform origin point for the rotation
+            ctx.translate(703 * scale, 274 * scale);
+            ctx.rotate(-10 * Math.PI / 180);
+
+            // Draw rounded rectangle centered at origin
+            const rectSize = 156 * scale;
+            const rectRadius = 42 * scale;
+            const rectX = -rectSize / 2;
+            const rectY = -rectSize / 2;
+
+            roundRect(ctx, rectX, rectY, rectSize, rectSize, rectRadius);
+            ctx.fillStyle = '#FF5500';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function downloadCanvas(canvas, filename) {
+            canvas.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(link.href), 100);
+            }, 'image/png', 1.0);
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Draw logos
+            drawCursisLogo(document.getElementById('logo1024'));
+            drawCursisLogo(document.getElementById('logo512'));
+            drawCursisLogo(document.getElementById('logo256'));
+
+            console.log('✓ All logos rendered successfully');
+
+            // Setup download buttons
+            document.getElementById('download1024').addEventListener('click', () => {
+                downloadCanvas(document.getElementById('logo1024'), 'cursis-logo-1024.png');
+            });
+            document.getElementById('download512').addEventListener('click', () => {
+                downloadCanvas(document.getElementById('logo512'), 'cursis-logo-512.png');
+            });
+            document.getElementById('download256').addEventListener('click', () => {
+                downloadCanvas(document.getElementById('logo256'), 'cursis-logo-256.png');
+            });
+            document.getElementById('downloadAll').addEventListener('click', () => {
+                downloadCanvas(document.getElementById('logo1024'), 'cursis-logo-1024.png');
+                setTimeout(() => downloadCanvas(document.getElementById('logo512'), 'cursis-logo-512.png'), 200);
+                setTimeout(() => downloadCanvas(document.getElementById('logo256'), 'cursis-logo-256.png'), 400);
+            });
+        });
+    </script>
+</body>
+</html>
