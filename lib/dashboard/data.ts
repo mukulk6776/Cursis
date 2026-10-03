@@ -47,7 +47,9 @@ export function getUserWorkspaceShortName(userName?: string): string {
   }
   const firstName = userName.trim().split(' ')[0];
   // Take first 3 letters of first name for abbreviation
-  return firstName.slice(0, 3).toUpperCase();
+  const abbr = firstName.slice(0, 3);
+  // Capitalize only the first letter, keep rest as-is
+  return abbr.charAt(0).toUpperCase() + abbr.slice(1).toLowerCase();
 }
 
 // Generate a 2-3 letter abbreviation from workspace name

@@ -116,7 +116,7 @@ export default function Topbar() {
  <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#18181b" strokeWidth="142" strokeLinecap="round" fill="none" />
  <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#ff5710" />
  </svg>
- <span className="topbar-workspace-name">{activeWorkspace.shortName}</span>
+ <span className="topbar-workspace-name">{user.name.split(' ')[0]}</span>
  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
  <polyline points="6 9 12 15 18 9" />
  </svg>
