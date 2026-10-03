@@ -1,6 +1,7 @@
 import { inMemoryStore } from './store';
 import { Workspace } from './types';
 import { getCollection } from '@/lib/mongodb';
+import { notifyAdminCustomClientWorkspace, sendWorkspaceWelcomeEmail } from '@/lib/email/notifications';
 
 export async function getWorkspace(id: string): Promise<Workspace | null> {
   const ws = inMemoryStore.workspaces.get(id);
@@ -314,9 +315,11 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
     }
     const teamCol = await getCollection<any>('workspace_teams');
     const userCol = await getCollection<any>('users');
+    let ownerData: any = null;
     if (teamCol && userCol) {
       const owner = await userCol.findOne({ $or: [{ uid: userId }, { id: userId }] });
       if (owner) {
+        ownerData = owner;
         await teamCol.updateOne(
           { workspaceId: id, userId },
           {
@@ -340,6 +343,34 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
           { upsert: true }
         );
       }
+    }
+
+    // Check if this is a custom client workspace (paid tier or has isCustomClient flag)
+    const isCustomClient = Boolean((data as any).isCustomClient) || newWorkspace.tier === 'paid';
+
+    if (isCustomClient) {
+      // Send admin notification email
+      await notifyAdminCustomClientWorkspace({
+        workspaceId: id,
+        workspaceName: newWorkspace.name,
+        ownerUserId: userId,
+        ownerEmail: ownerData?.email,
+        ownerName: ownerData?.displayName || ownerData?.name,
+        industry: newWorkspace.industry,
+        teamSize: newWorkspace.teamSize,
+        features: newWorkspace.features,
+        tier: newWorkspace.tier,
+        createdAt: newWorkspace.createdAt,
+      });
+    }
+
+    // Send welcome email to the workspace owner
+    if (ownerData?.email) {
+      await sendWorkspaceWelcomeEmail(
+        ownerData.email,
+        newWorkspace.name,
+        ownerData.displayName || ownerData.name
+      );
     }
   } catch (e) {
     console.warn('MongoDB insert workspace notice:', e);
