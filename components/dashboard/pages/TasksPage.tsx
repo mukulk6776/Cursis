@@ -392,11 +392,11 @@ export default function TasksPage() {
                       >
                         {/* Column Header */}
                         <div className="kanban-column-header">
-                          <div className="kanban-column-title">
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: col.color, display: 'inline-block' }} />
-                            <span>{col.label}</span>
+                          <div className="kanban-column-title" style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: col.color, display: 'inline-block', flexShrink: 0 }} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{col.label}</span>
                           </div>
-                          <span className="kanban-column-count">
+                          <span className="kanban-column-count" style={{ flexShrink: 0 }}>
                             {colTasks.length}
                           </span>
                         </div>

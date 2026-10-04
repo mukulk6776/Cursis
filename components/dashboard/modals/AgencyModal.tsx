@@ -15,7 +15,19 @@ export default function AgencyModal() {
 
  const handleSubmit = (e: React.FormEvent) => {
  e.preventDefault();
- if (!company.trim() || !email.trim()) return;
+ if (!company.trim() || !email.trim()) {
+   // Show error feedback instead of silently returning
+   if (!company.trim()) {
+     const companyInput = document.querySelector('input[placeholder="e.g. Acme Corp"]') as HTMLInputElement;
+     if (companyInput) {
+       companyInput.focus();
+       companyInput.setCustomValidity('Please fill in this field.');
+       companyInput.reportValidity();
+       setTimeout(() => companyInput.setCustomValidity(''), 3000);
+     }
+   }
+   return;
+ }
 
  submitAgencyRequest({
  company: company.trim(),

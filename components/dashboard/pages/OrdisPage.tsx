@@ -1149,10 +1149,11 @@ export default function OrdisPage() {
           min-height: 24px;
           max-height: 180px;
           padding: 4px 0;
+          font-family: inherit;
         }
 
         .ordis-composer textarea::placeholder {
-          color: #8E8E93;
+          color: #9CA3AF;
         }
 
         .ordis-send-btn {

@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 
     const cookieOptions = {
       maxAge: maxAgeSeconds,
-      httpOnly: false,
+      httpOnly: true,  // ✅ SECURITY FIX: Prevent XSS access to session cookie
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'lax' as const,

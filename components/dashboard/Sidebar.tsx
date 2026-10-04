@@ -369,6 +369,8 @@ export default function Sidebar() {
             cursor: 'pointer',
             boxShadow: '1px 1px 0 0 var(--border-color)',
             position: 'relative',
+            borderRadius: '6px',
+            transition: 'background 0.15s ease, border-color 0.15s ease',
           }}
           title={sidebarCollapsed ? 'Expand sidebar & open profile' : `${user.name} (${user.email}) - Click for options`}
         >
