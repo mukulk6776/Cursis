@@ -5,7 +5,7 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { Task, TaskStatus } from '@/lib/dashboard/types';
 import { formatDate, isOverdue } from '@/lib/dashboard/data';
 
-type ViewMode = 'kanban' | 'list' | 'calendar' | 'timeline';
+type ViewMode = 'list' | 'calendar' | 'timeline';
 type FilterMode = 'all' | 'overdue' | 'high-priority' | 'assigned-to-me' | 'upcoming' | 'completed';
 
 export default function TasksPage() {
@@ -23,47 +23,11 @@ export default function TasksPage() {
     departments,
   } = useDashboard();
 
-  const [currentView, setCurrentView] = useState<ViewMode>('kanban');
+  const [currentView, setCurrentView] = useState<ViewMode>('list');
   const [activeFilter, setActiveFilter] = useState<FilterMode>('all');
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('');
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
-  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
-  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [selectedTaskDetail, setSelectedTaskDetail] = useState<Task | null>(null);
-
-  const columns: { id: TaskStatus; label: string; color: string }[] = [
-    { id: 'todo', label: 'To Do', color: 'var(--c-gray-400)' },
-    { id: 'in-progress', label: 'In Progress', color: 'var(--c-brand)' },
-    { id: 'review', label: 'Review', color: 'var(--c-warning)' },
-    { id: 'completed', label: 'Completed', color: 'var(--c-success)' },
-  ];
-
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, taskId: string) => {
-    e.dataTransfer.setData('text/plain', taskId);
-    setDraggingTaskId(taskId);
-  };
-
-  const handleDragEnd = () => {
-    setDraggingTaskId(null);
-    setDragOverColumn(null);
-  };
-
-  const handleDragOver = (e: React.DragEvent, colId: string) => {
-    e.preventDefault();
-    if (dragOverColumn !== colId) {
-      setDragOverColumn(colId);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent, colId: TaskStatus) => {
-    e.preventDefault();
-    setDragOverColumn(null);
-    const taskId = e.dataTransfer.getData('text/plain') || draggingTaskId;
-    if (taskId) {
-      updateTaskStatus(taskId, colId);
-    }
-  };
 
   // Filter logic
   const getFilteredTasks = () => {
@@ -168,7 +132,7 @@ export default function TasksPage() {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {/* View Switcher */}
           <div style={{ display: 'flex', background: '#F3F4F6', padding: '3px', borderRadius: '8px', border: '1px solid #E5E7EB', gap: '2px' }}>
-            {(['kanban', 'list', 'calendar', 'timeline'] as ViewMode[]).map((v) => (
+            {(['list', 'calendar', 'timeline'] as ViewMode[]).map((v) => (
               <button
                 key={v}
                 type="button"
@@ -376,204 +340,7 @@ export default function TasksPage() {
           </div>
         ) : (
           <>
-            {/* 1. Kanban View */}
-            {currentView === 'kanban' && (
-              <div className="kanban-board-wrapper">
-                <div className="kanban-board">
-                  {columns.map((col) => {
-                    const colTasks = filteredTasks.filter((t) => t.status === col.id);
-                    const isOver = dragOverColumn === col.id;
-                    return (
-                      <div
-                        key={col.id}
-                        className={`kanban-column ${isOver ? 'drag-over' : ''}`}
-                        onDragOver={(e) => handleDragOver(e, col.id)}
-                        onDrop={(e) => handleDrop(e, col.id)}
-                      >
-                        {/* Column Header */}
-                        <div className="kanban-column-header">
-                          <div className="kanban-column-title" style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: col.color, display: 'inline-block', flexShrink: 0 }} />
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{col.label}</span>
-                          </div>
-                          <span className="kanban-column-count" style={{ flexShrink: 0 }}>
-                            {colTasks.length}
-                          </span>
-                        </div>
-
-                        {/* Tasks Container */}
-                        <div className="kanban-column-body">
-                          {colTasks.length === 0 ? (
-                            <div
-                              style={{
-                                border: '1.5px dashed #E5E7EB',
-                                borderRadius: '8px',
-                                padding: '32px 14px',
-                                textAlign: 'center',
-                                color: '#9CA3AF',
-                                fontSize: '12px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                minHeight: '140px',
-                                background: '#FAFAFA',
-                              }}
-                            >
-                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="1.5">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M12 8v8M8 12h8" />
-                              </svg>
-                              <span>No tasks in {col.label.toLowerCase()}</span>
-                            </div>
-                          ) : (
-                            colTasks.map((t) => {
-                              const proj = getProject(t.project);
-                              const assigneeEmp = getEmployee(t.assignee);
-                              const isOverdueItem = isOverdue(t.deadline) && t.status !== 'completed';
-                              const dept = departments.find((d) => d.id === t.departmentId);
-
-                              return (
-                                <div
-                                  key={t.id}
-                                  className="kanban-card"
-                                  draggable
-                                  onDragStart={(e) => handleDragStart(e, t.id)}
-                                  onDragEnd={handleDragEnd}
-                                  onClick={() => setSelectedTaskDetail(t)}
-                                >
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedTaskIds.includes(t.id)}
-                                        onChange={(e) => {
-                                          e.stopPropagation();
-                                          toggleSelectTask(t.id);
-                                        }}
-                                        style={{ cursor: 'pointer', width: '14px', height: '14px', accentColor: '#FF5500' }}
-                                      />
-                                      {dept && (
-                                        <span
-                                          style={{
-                                            background: 'rgba(15, 76, 255, 0.08)',
-                                            color: '#0f4cff',
-                                            border: '1px solid rgba(15, 76, 255, 0.2)',
-                                            fontSize: '10px',
-                                            fontWeight: 600,
-                                            padding: '1px 6px',
-                                            borderRadius: '4px',
-                                          }}
-                                        >
-                                          {dept.name}
-                                        </span>
-                                      )}
-                                      {proj && (
-                                        <span
-                                          style={{
-                                            background: 'var(--c-surface)',
-                                            fontSize: '10px',
-                                            padding: '1px 6px',
-                                            borderRadius: '4px',
-                                            color: 'var(--text-secondary)',
-                                          }}
-                                        >
-                                          {proj.name}
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                      <span
-                                        style={{
-                                          fontSize: '9px',
-                                          textTransform: 'uppercase',
-                                          fontWeight: 700,
-                                          padding: '1px 6px',
-                                          borderRadius: '4px',
-                                          border: '1px solid var(--border-color)',
-                                          background: t.priority === 'urgent' || t.priority === 'high' ? 'rgba(239, 68, 68, 0.08)' : 'var(--c-surface)',
-                                          color: t.priority === 'urgent' || t.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
-                                        }}
-                                      >
-                                        {t.priority}
-                                      </span>
-                                      <button
-                                        type="button"
-                                        className="btn btn-ghost btn-sm"
-                                        style={{
-                                          padding: 0,
-                                          height: '18px',
-                                          width: '18px',
-                                          minWidth: '18px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          color: 'var(--text-tertiary)',
-                                        }}
-                                        title="Delete task"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
-                                            deleteTask(t.id);
-                                          }
-                                        }}
-                                      >
-                                        ✕
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  <div style={{ fontWeight: 600, fontSize: '13px', color: '#111827', marginBottom: '6px', lineHeight: 1.4 }}>
-                                    {t.name}
-                                  </div>
-
-                                  {t.subtasks && t.subtasks.length > 0 && (
-                                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '6px' }}>
-                                      Subtasks: {t.subtasks.filter((s) => s.done).length}/{t.subtasks.length}
-                                    </div>
-                                  )}
-
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-color)' }}>
-                                    {assigneeEmp ? (
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                        <div
-                                          className="avatar avatar-sm"
-                                          style={{ background: assigneeEmp.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px', color: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                        >
-                                          {assigneeEmp.initials}
-                                        </div>
-                                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                                          {assigneeEmp.name.split(' ')[0]}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Unassigned</span>
-                                    )}
-
-                                    <span
-                                      style={{
-                                        fontSize: '11px',
-                                        color: isOverdueItem ? '#dc2626' : 'var(--text-secondary)',
-                                        fontWeight: isOverdueItem ? 700 : 500,
-                                      }}
-                                    >
-                                      {formatDate(t.deadline)}
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* 2. List View */}
+            {/* List View */}
             {currentView === 'list' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
                 <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>

@@ -77,11 +77,17 @@ export default function HeroSection() {
         initial="initial"
         animate="animate"
       >
-        <motion.div className="tano-hero-badge" variants={line}>
+        <motion.a
+          href="#ordis"
+          onClick={handleScrollToOrdis}
+          className="tano-hero-badge"
+          variants={line}
+          style={{ cursor: 'pointer', textDecoration: 'none' }}
+        >
           <span className="tano-hero-badge-pill">NEW</span>
           <span className="tano-hero-badge-text">Ordis AI 4.0 is live</span>
           <span className="tano-hero-badge-arrow">→</span>
-        </motion.div>
+        </motion.a>
 
         <motion.h1 className="lp-hero-title" variants={line}>
           The AI workspace<br />

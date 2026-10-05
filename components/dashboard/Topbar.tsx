@@ -148,7 +148,7 @@ export default function Topbar() {
  >
  <div style={{ flex: 1 }}>
  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
- <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)' }}>{w.shortName}</span>
+ <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)' }}>{w.name}</span>
  <span className={`badge ${w.isCustomClient ? 'badge-brand' : 'badge-neutral'}`} style={{ fontSize: '10px', padding: '1px 5px' }}>
  {w.badge}
  </span>

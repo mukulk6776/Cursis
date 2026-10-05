@@ -219,10 +219,10 @@ export default function LandingNav() {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn btn-secondary btn-sm lp-hide-mobile">
+              <Link href="/login" className="lp-nav-cta-secondary lp-hide-mobile">
                 Sign In
               </Link>
-              <Link href="/signup" className="btn btn-primary btn-sm lp-hide-mobile">
+              <Link href="/signup" className="lp-nav-cta-primary lp-hide-mobile">
                 Deploy Workspace
               </Link>
             </>

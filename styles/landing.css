@@ -193,6 +193,11 @@ body.lp-body,
   font-weight: 800;
   color: #0A0A0A;
   text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tano-hero-badge:hover {
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 5px 5px 0 0 #0A0A0A;
 }
 .tano-hero-badge-pill {
   background: #FF5500;
@@ -383,6 +388,51 @@ body.lp-body,
   flex-shrink: 0;
 }
 
+/* Nav CTA Buttons - Neo-Brutalist Style */
+.lp-nav-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #FFFFFF;
+  background: #FF5500;
+  border: 2.5px solid #0A0A0A;
+  border-radius: 9999px;
+  box-shadow: 3px 3px 0 0 #0A0A0A;
+  text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.lp-nav-cta-primary:hover {
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4.5px 4.5px 0 0 #0A0A0A;
+}
+
+.lp-nav-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0A0A0A;
+  background: #FFFFFF;
+  border: 2.5px solid #0A0A0A;
+  border-radius: 9999px;
+  box-shadow: 3px 3px 0 0 #0A0A0A;
+  text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.lp-nav-cta-secondary:hover {
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4.5px 4.5px 0 0 #0A0A0A;
+}
+
 .lp-hide-mobile {
   display: inline-flex !important;
 }
@@ -548,6 +598,9 @@ body.lp-body,
 }
 
 .lp-mockup-status {
+  position: absolute;
+  top: -14px;
+  right: 140px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -559,6 +612,8 @@ body.lp-body,
   border-radius: 9999px;
   padding: 3px 10px;
   box-shadow: 2px 2px 0 0 #0A0A0A;
+  z-index: 5;
+  pointer-events: none;
 }
 .lp-status-live-dot {
   width: 7px;

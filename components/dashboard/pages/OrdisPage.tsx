@@ -377,7 +377,7 @@ export default function OrdisPage() {
 
             {/* Model Badge (ChatGPT style) */}
             <div className="ordis-model-pill" title="Ordis Pro Intelligence Engine">
-              <Sparkles size={14} className="ordis-model-spark" aria-hidden="true" />
+              <OrdisMark size={14} />
               <span className="ordis-model-name">Ordis 4.0</span>
             </div>
           </div>

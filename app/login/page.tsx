@@ -118,14 +118,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Only allow Gmail and Microsoft email domains
-    const allowedDomains = ['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com'];
-    const emailDomain = cleanEmail.split('@')[1];
-    if (!emailDomain || !allowedDomains.includes(emailDomain)) {
-      setErrorMsg('Only Gmail and Microsoft email accounts (gmail.com, outlook.com, hotmail.com, live.com) are permitted to sign in.');
-      return;
-    }
-
     setLoading(true);
     setErrorMsg('');
     setSuccessMsg('');
