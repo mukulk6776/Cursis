@@ -163,18 +163,6 @@ export default function OrdisPage() {
             </div>
             <span className="ordis-sidebar-title">Ordis</span>
           </div>
-
-          <div className="ordis-sidebar-top-actions">
-            <button
-              type="button"
-              className="ordis-icon-btn"
-              title="Close sidebar"
-              aria-label="Close sidebar"
-              onClick={toggleSidebar}
-            >
-              <PanelLeftClose size={18} />
-            </button>
-          </div>
         </div>
 
         {/* New Chat Primary Action */}
@@ -432,11 +420,14 @@ export default function OrdisPage() {
           opacity: 0.45;
         }
 
-        .ordis-page button:focus-visible,
-        .ordis-page input:focus-visible,
-        .ordis-page textarea:focus-visible {
+        .ordis-page button:focus-visible {
           outline: 2px solid #FF5500;
           outline-offset: 1px;
+        }
+
+        .ordis-page input:focus-visible,
+        .ordis-page textarea:focus-visible {
+          outline: none;
         }
 
         /* ---- Left Sidebar (ChatGPT style) ---- */

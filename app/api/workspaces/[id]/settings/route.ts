@@ -34,7 +34,7 @@ export async function PATCH(
     if (body.teamSize) workspaceUpdate.teamSize = body.teamSize;
 
     // Merge settings
-    if (body.settings || body.timezone || body.language || body.dateFormat || body.companyTone) {
+    if (body.settings || body.timezone || body.dateFormat || body.companyTone) {
       const currentWorkspace = await getWorkspace(targetId);
       workspaceUpdate.settings = {
         ...(currentWorkspace?.settings || {}),
@@ -42,7 +42,6 @@ export async function PATCH(
       };
 
       if (body.timezone) workspaceUpdate.settings.timezone = body.timezone;
-      if (body.language) workspaceUpdate.settings.language = body.language;
       if (body.dateFormat) workspaceUpdate.settings.dateFormat = body.dateFormat;
       if (body.companyTone) workspaceUpdate.settings.companyTone = body.companyTone;
     }

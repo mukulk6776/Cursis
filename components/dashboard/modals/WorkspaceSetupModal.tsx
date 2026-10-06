@@ -47,7 +47,6 @@ export default function WorkspaceSetupModal() {
   const [industry, setIndustry] = useState('Software & Technology');
   const [accentColor, setAccentColor] = useState('#0f4cff');
   const [density, setDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable');
-  const [language, setLanguage] = useState('English');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize or prefill fields with existing workspace settings or user default
@@ -59,7 +58,6 @@ export default function WorkspaceSetupModal() {
       setIndustry(workspaceSettings.industry || 'Software & Technology');
       setAccentColor(workspaceSettings.accentColor || '#0f4cff');
       setDensity(workspaceSettings.density || 'comfortable');
-      setLanguage(workspaceSettings.language || 'English');
     }
   }, [activeModal, workspaceSettings, user.name]);
 
@@ -80,7 +78,6 @@ export default function WorkspaceSetupModal() {
       industry: cleanIndustry,
       accentColor,
       density,
-      language,
     });
 
     // Save custom workspace name and mark onboarding completed
@@ -463,28 +460,6 @@ export default function WorkspaceSetupModal() {
                 </div>
               </div>
 
-              {/* Language */}
-              <div className="input-group" style={{ margin: 0 }}>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
-                  Primary Language
-                </label>
-                <select
-                  className="input select"
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  style={{
-                    height: '40px',
-                    fontSize: '13px',
-                    borderRadius: '10px',
-                  }}
-                >
-                  <option value="English">English (United States &amp; International)</option>
-                  <option value="Spanish">Spanish (Español)</option>
-                  <option value="French">French (Français)</option>
-                  <option value="German">German (Deutsch)</option>
-                  <option value="Japanese">Japanese (日本語)</option>
-                </select>
-              </div>
             </div>
           </div>
 
