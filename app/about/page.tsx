@@ -39,6 +39,19 @@ const teamMembers = [
 export default function AboutPage() {
   return (
     <div className="lp-body">
+      <style>{`
+        .team-member-card {
+          padding: 40px;
+          background: var(--lp-card-bg);
+          border: 2px solid var(--lp-border);
+          border-radius: 12px;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .team-member-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+      `}</style>
       <nav className="lp-nav">
         <div className="lp-nav-container">
           <Link href="/" className="lp-nav-logo">
@@ -91,22 +104,7 @@ export default function AboutPage() {
               {teamMembers.map((member) => (
                 <div
                   key={member.name}
-                  className="lp-feature-card"
-                  style={{
-                    padding: '40px',
-                    background: 'var(--lp-card-bg)',
-                    border: '2px solid var(--lp-border)',
-                    borderRadius: '12px',
-                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.12)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
+                  className="lp-feature-card team-member-card"
                 >
                   <div
                     style={{

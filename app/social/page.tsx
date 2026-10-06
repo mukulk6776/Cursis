@@ -64,6 +64,13 @@ export default function SocialPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePageSchema) }}
       />
+      <style>{`
+        .social-profile-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+          border-color: var(--c-accent-primary);
+        }
+      `}</style>
       <div style={{ minHeight: '100vh', background: 'var(--c-bg-primary)', padding: '4rem 1rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
@@ -127,14 +134,6 @@ export default function SocialPage() {
             </Link>
           </div>
         </div>
-
-        <style jsx>{`
-          .social-profile-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            border-color: var(--c-accent-primary);
-          }
-        `}</style>
       </div>
     </>
   );
