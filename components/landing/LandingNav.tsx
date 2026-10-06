@@ -133,23 +133,37 @@ export default function LandingNav() {
         {/* Links drawer */}
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           {[
-            { href: '#features', label: 'Features' },
-            { href: '#connected', label: 'Workflow' },
-            { href: '#ordis', label: 'Ordis AI' },
-            { href: '#modules', label: 'Modules' },
-            { href: '#creators', label: 'Creators' },
+            { href: '#features', label: 'Features', isAnchor: true },
+            { href: '#connected', label: 'Workflow', isAnchor: true },
+            { href: '#ordis', label: 'Ordis AI', isAnchor: true },
+            { href: '#modules', label: 'Modules', isAnchor: true },
+            { href: '#creators', label: 'Creators', isAnchor: true },
+            { href: '/about', label: 'About', isAnchor: false },
           ].map((item, i) => (
-            <motion.a
-              key={item.href}
-              href={item.href}
-              onClick={(e) => handleAnchorClick(e, item.href)}
-              className="lp-nav-link"
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.12 + i * 0.05, duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              {item.label}
-            </motion.a>
+            item.isAnchor ? (
+              <motion.a
+                key={item.href}
+                href={item.href}
+                onClick={(e) => handleAnchorClick(e, item.href)}
+                className="lp-nav-link"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 + i * 0.05, duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                {item.label}
+              </motion.a>
+            ) : (
+              <motion.div
+                key={item.href}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 + i * 0.05, duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                <Link href={item.href} className="lp-nav-link" onClick={() => setMobileOpen(false)}>
+                  {item.label}
+                </Link>
+              </motion.div>
+            )
           ))}
 
           {/* Mobile drawer actions */}

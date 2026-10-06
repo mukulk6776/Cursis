@@ -61,6 +61,12 @@ export default function Footer() {
           </div>
 
           <div className="lp-footer-col">
+            <div className="lp-footer-col-title">Company</div>
+            <Link href="/about" className="lp-footer-link">About Us</Link>
+            <Link href="/social" className="lp-footer-link">Social Media</Link>
+          </div>
+
+          <div className="lp-footer-col">
             <div className="lp-footer-col-title">Workspace</div>
             <Link href="/dashboard" className="lp-footer-link">Dashboard</Link>
             <Link href="/login" className="lp-footer-link">Sign In</Link>
