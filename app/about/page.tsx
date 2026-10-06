@@ -192,23 +192,6 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* CTA */}
-          <div style={{ textAlign: 'center', marginTop: '80px' }}>
-            <Link
-              href="/signup"
-              className="lp-cta-btn"
-              style={{
-                display: 'inline-block',
-                padding: '16px 40px',
-                fontSize: '1.125rem',
-                fontWeight: '600',
-                borderRadius: '8px',
-                textDecoration: 'none',
-              }}
-            >
-              Join Our Team
-            </Link>
-          </div>
         </div>
       </main>
 
