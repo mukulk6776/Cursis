@@ -134,11 +134,29 @@ const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Cursis Inc.',
+  alternateName: 'Cursis',
   url: 'https://cursis.in',
   logo: 'https://cursis.in/icon.png',
+  description: 'Autonomous AI workplace and agency operating system powered by Ordis AI',
+  foundingDate: '2024',
+  foundingLocation: {
+    '@type': 'Place',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Bengaluru',
+      addressRegion: 'Karnataka',
+      addressCountry: 'IN',
+    },
+  },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'Customer Support',
+    email: 'support@cursis.in',
+    availableLanguage: ['English'],
+  },
   sameAs: [
-    'https://twitter.com/cursis',
-    'https://github.com/mukulk6776/Cursis',
+    'https://instagram.com/cursis.in',
+    'https://x.com/cursis_',
   ],
 };
 
@@ -150,6 +168,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
+        <link rel="author" href="/humans.txt" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}

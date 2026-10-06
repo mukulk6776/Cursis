@@ -1,0 +1,15 @@
+# robots.txt for https://cursis.in
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://cursis.in/sitemap.xml
+
+# Disallow sensitive areas
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /admin/
+
+# Crawl-delay (optional, for aggressive bots)
+Crawl-delay: 1

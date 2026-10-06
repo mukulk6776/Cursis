@@ -1,0 +1,18 @@
+# humanstxt.org
+
+/* TEAM */
+  Company: Cursis Inc.
+  Location: Bengaluru, Karnataka, India
+  Contact: cursis.in@gmail.com
+
+/* SITE */
+  Standards: HTML5, CSS3, JavaScript
+  Components: Next.js, React, TypeScript
+  Software: Claude Code, VS Code
+
+/* SOCIAL */
+  Instagram: https://instagram.com/cursis.in
+  X (Twitter): https://x.com/cursis_
+
+/* THANKS */
+  To our community for the support and feedback!
