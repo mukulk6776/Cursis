@@ -164,13 +164,13 @@ export default function LandingNav() {
               >
                 {isAuthenticated ? (
                   <>
-                    <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
+                    <Link href="/dashboard" className="lp-nav-cta-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>
                       Open Dashboard →
                     </Link>
                     <button
                       type="button"
-                      className="btn btn-ghost btn-sm"
-                      style={{ color: 'var(--c-error)', fontWeight: 700 }}
+                      className="lp-nav-btn-signout"
+                      style={{ width: '100%', justifyContent: 'center' }}
                       onClick={() => { setMobileOpen(false); handleSignOut(); }}
                     >
                       Sign Out
@@ -202,16 +202,14 @@ export default function LandingNav() {
             <>
               <Link
                 href="/dashboard"
-                className="btn btn-primary btn-sm lp-hide-mobile"
-                style={{ fontWeight: 800 }}
+                className="lp-nav-cta-primary lp-hide-mobile"
                 title={userEmail ? `Signed in as ${userEmail}` : 'Open Dashboard'}
               >
                 Open Dashboard →
               </Link>
               <button
                 type="button"
-                className="btn btn-ghost btn-sm lp-hide-mobile"
-                style={{ color: 'var(--c-error)', fontWeight: 700 }}
+                className="lp-nav-btn-signout lp-hide-mobile"
                 onClick={handleSignOut}
               >
                 Sign Out

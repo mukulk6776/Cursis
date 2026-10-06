@@ -72,15 +72,59 @@ export default function OrdisPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [draftVersion, setDraftVersion] = useState(0);
 
+  // Resizable sidebar state
+  const [sidebarWidth, setSidebarWidth] = useState(260);
+  const [isResizing, setIsResizing] = useState(false);
+
   const searchRef = useRef<HTMLInputElement>(null);
+  const resizeRef = useRef<HTMLDivElement>(null);
 
   // Restore saved sidebar state from localStorage if available
   useEffect(() => {
     try {
       const saved = localStorage.getItem('cursis_ordis_sidebar_collapsed');
       if (saved === 'true') setSidebarCollapsed(true);
+
+      const savedWidth = localStorage.getItem('cursis_ordis_sidebar_width');
+      if (savedWidth) {
+        const width = parseInt(savedWidth, 10);
+        if (width >= 220 && width <= 480) setSidebarWidth(width);
+      }
     } catch {}
   }, []);
+
+  // Handle resize drag
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      e.preventDefault();
+      const newWidth = Math.max(220, Math.min(480, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        try {
+          localStorage.setItem('cursis_ordis_sidebar_width', String(sidebarWidth));
+        } catch {}
+      }
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, sidebarWidth]);
 
   const toggleSidebar = () => {
     if (typeof window !== 'undefined' && window.innerWidth <= 860) {
@@ -150,6 +194,7 @@ export default function OrdisPage() {
         className={`ordis-sidebar ${sidebarCollapsed ? 'is-collapsed' : ''} ${
           mobileDrawerOpen ? 'mobile-open' : ''
         }`}
+        style={{ width: sidebarCollapsed ? 0 : `${sidebarWidth}px`, flex: sidebarCollapsed ? '0 0 0' : `0 0 ${sidebarWidth}px` }}
         aria-label="Ordis conversation history"
         onKeyDown={(event) => {
           if (event.key === 'Escape') closeMobileDrawer();
@@ -348,6 +393,51 @@ export default function OrdisPage() {
         </div>
       </aside>
 
+      {/* Resize Handle */}
+      {!sidebarCollapsed && typeof window !== 'undefined' && window.innerWidth > 860 && (
+        <div
+          ref={resizeRef}
+          className="ordis-resize-handle"
+          onMouseDown={() => setIsResizing(true)}
+          onDoubleClick={() => {
+            setSidebarWidth(260);
+            try {
+              localStorage.setItem('cursis_ordis_sidebar_width', '260');
+            } catch {}
+          }}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize conversation history"
+          aria-valuenow={sidebarWidth}
+          aria-valuemin={220}
+          aria-valuemax={480}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const newWidth = Math.max(220, sidebarWidth - 10);
+              setSidebarWidth(newWidth);
+              try {
+                localStorage.setItem('cursis_ordis_sidebar_width', String(newWidth));
+              } catch {}
+            } else if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const newWidth = Math.min(480, sidebarWidth + 10);
+              setSidebarWidth(newWidth);
+              try {
+                localStorage.setItem('cursis_ordis_sidebar_width', String(newWidth));
+              } catch {}
+            } else if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setSidebarWidth(260);
+              try {
+                localStorage.setItem('cursis_ordis_sidebar_width', '260');
+              } catch {}
+            }
+          }}
+        />
+      )}
+
       {/* Main Chat Interface */}
       <main className="ordis-main" aria-label="Ordis conversation workspace">
         {/* Minimal ChatGPT Header */}
@@ -432,8 +522,6 @@ export default function OrdisPage() {
 
         /* ---- Left Sidebar (ChatGPT style) ---- */
         .ordis-sidebar {
-          width: 260px;
-          flex: 0 0 260px;
           display: flex;
           flex-direction: column;
           background: #F9F9F9;
@@ -441,7 +529,7 @@ export default function OrdisPage() {
           height: 100%;
           min-height: 0;
           overflow: hidden;
-          transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
+          transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), flex 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
           z-index: 50;
         }
 
@@ -451,6 +539,36 @@ export default function OrdisPage() {
           border-right: none !important;
           opacity: 0;
           pointer-events: none;
+        }
+
+        /* Resize Handle */
+        .ordis-resize-handle {
+          width: 4px;
+          height: 100%;
+          background: transparent;
+          cursor: col-resize;
+          flex-shrink: 0;
+          position: relative;
+          z-index: 51;
+          transition: background 0.15s ease;
+        }
+
+        .ordis-resize-handle:hover {
+          background: #E5E7EB;
+        }
+
+        .ordis-resize-handle:focus-visible {
+          outline: 2px solid #FF5500;
+          outline-offset: -1px;
+        }
+
+        .ordis-resize-handle::after {
+          content: '';
+          position: absolute;
+          left: -2px;
+          right: -2px;
+          top: 0;
+          bottom: 0;
         }
 
         .ordis-sidebar-top {
@@ -1201,7 +1319,8 @@ export default function OrdisPage() {
             top: 0;
             bottom: 0;
             left: 0;
-            width: 280px;
+            width: 280px !important;
+            flex: 0 0 280px !important;
             max-width: 84vw;
             height: 100dvh;
             z-index: 1200;
@@ -1212,6 +1331,10 @@ export default function OrdisPage() {
           .ordis-sidebar.mobile-open {
             transform: translateX(0);
             box-shadow: 8px 0 32px rgba(0, 0, 0, 0.18);
+          }
+
+          .ordis-resize-handle {
+            display: none;
           }
 
           .ordis-mobile-backdrop {

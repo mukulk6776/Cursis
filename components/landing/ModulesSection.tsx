@@ -58,7 +58,7 @@ export default function ModulesSection() {
     },
     {
       num: '03',
-      name: 'Tasks & Kanban',
+      name: 'Tasks',
       desc: 'Organize work with clean boards, filters, and priority tags.',
       featured: false,
     },
@@ -104,6 +104,13 @@ export default function ModulesSection() {
       desc: 'Customize workspace settings, integrations, and access controls.',
       featured: false,
     },
+    {
+      num: '→',
+      name: 'Start Your Workspace',
+      desc: 'Deploy your team autonomous AI workplace in under 60 seconds.',
+      featured: false,
+      cta: true,
+    },
   ];
 
   return (
@@ -119,28 +126,50 @@ export default function ModulesSection() {
       </div>
 
       <div className="tano-modules-grid lp-stagger">
-        {modules.map((m) => (
-          <div
-            key={m.num}
-            className={`tano-module-card ${m.featured ? 'tano-module-featured' : ''}`}
-          >
-            {m.featured && (
-              <div
-                className="tano-washi-tape"
-                style={{ top: -11, right: 28, transform: 'rotate(2deg)' }}
-                aria-hidden="true"
-              />
-            )}
+        {modules.map((m) => {
+          if (m.cta) {
+            return (
+              <a
+                key={m.num}
+                href="/signup"
+                className="tano-module-card tano-module-cta"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <div className="tano-module-top">
+                  <span className="tano-module-num tano-module-cta-icon">{m.num}</span>
+                </div>
+                <h3 className="tano-module-name">{m.name}</h3>
+                <p className="tano-module-desc">{m.desc}</p>
+                <div className="tano-module-cta-footer">
+                  <span className="tano-cta-arrow">→</span>
+                  <span className="tano-cta-text">Deploy Now</span>
+                </div>
+              </a>
+            );
+          }
+          return (
+            <div
+              key={m.num}
+              className={`tano-module-card ${m.featured ? 'tano-module-featured' : ''}`}
+            >
+              {m.featured && (
+                <div
+                  className="tano-washi-tape"
+                  style={{ top: -11, right: 28, transform: 'rotate(2deg)' }}
+                  aria-hidden="true"
+                />
+              )}
 
-            <div className="tano-module-top">
-              <span className="tano-module-num">{m.num}</span>
-              {m.badge && <span className="tano-module-badge">{m.badge}</span>}
+              <div className="tano-module-top">
+                <span className="tano-module-num">{m.num}</span>
+                {m.badge && <span className="tano-module-badge">{m.badge}</span>}
+              </div>
+
+              <h3 className="tano-module-name">{m.name}</h3>
+              <p className="tano-module-desc">{m.desc}</p>
             </div>
-
-            <h3 className="tano-module-name">{m.name}</h3>
-            <p className="tano-module-desc">{m.desc}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

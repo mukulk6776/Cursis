@@ -159,7 +159,7 @@ body.lp-body,
   border: 2.5px solid #0A0A0A;
   transform: rotate(-3.5deg);
   box-shadow: 2px 2px 0 0 #0A0A0A;
-  z-index: 5;
+  z-index: 15;
   pointer-events: none;
   border-radius: 2px;
 }
@@ -393,7 +393,7 @@ body.lp-body,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 18px;
+  padding: 10px 20px;
   font-size: 13px;
   font-weight: 800;
   color: #FFFFFF;
@@ -409,6 +409,16 @@ body.lp-body,
 .lp-nav-cta-primary:hover {
   transform: translate(-1.5px, -1.5px);
   box-shadow: 4.5px 4.5px 0 0 #0A0A0A;
+}
+
+.lp-nav-cta-primary:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1.5px 1.5px 0 0 #0A0A0A;
+}
+
+.lp-nav-cta-primary:focus-visible {
+  outline: 3px solid #FF5500;
+  outline-offset: 2px;
 }
 
 .lp-nav-cta-secondary {
@@ -431,6 +441,50 @@ body.lp-body,
 .lp-nav-cta-secondary:hover {
   transform: translate(-1.5px, -1.5px);
   box-shadow: 4.5px 4.5px 0 0 #0A0A0A;
+}
+
+.lp-nav-cta-secondary:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1.5px 1.5px 0 0 #0A0A0A;
+}
+
+.lp-nav-cta-secondary:focus-visible {
+  outline: 3px solid #FF5500;
+  outline-offset: 2px;
+}
+
+.lp-nav-btn-signout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #DC2626;
+  background: #FEF2F2;
+  border: 2.5px solid #0A0A0A;
+  border-radius: 9999px;
+  box-shadow: 3px 3px 0 0 #0A0A0A;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.lp-nav-btn-signout:hover {
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4.5px 4.5px 0 0 #0A0A0A;
+  background: #FEE2E2;
+}
+
+.lp-nav-btn-signout:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1.5px 1.5px 0 0 #0A0A0A;
+}
+
+.lp-nav-btn-signout:focus-visible {
+  outline: 3px solid #DC2626;
+  outline-offset: 2px;
 }
 
 .lp-hide-mobile {
@@ -546,7 +600,7 @@ body.lp-body,
   border-radius: 18px !important;
   box-shadow: 10px 10px 0 0 #0A0A0A !important;
   background: #FFFFFF !important;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   margin-top: 24px;
 }
@@ -558,6 +612,8 @@ body.lp-body,
   padding: 12px 20px;
   background: #FAF6EE;
   border-bottom: 3px solid #0A0A0A;
+  position: relative;
+  overflow: visible;
 }
 .lp-mockup-topbar-left {
   display: flex;
@@ -595,12 +651,11 @@ body.lp-body,
   font-weight: 700;
   color: #0A0A0A;
   box-shadow: 2px 2px 0 0 #0A0A0A;
+  position: relative;
+  z-index: 10;
 }
 
 .lp-mockup-status {
-  position: absolute;
-  top: -14px;
-  right: 140px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -612,8 +667,8 @@ body.lp-body,
   border-radius: 9999px;
   padding: 3px 10px;
   box-shadow: 2px 2px 0 0 #0A0A0A;
-  z-index: 5;
-  pointer-events: none;
+  position: relative;
+  z-index: 10;
 }
 .lp-status-live-dot {
   width: 7px;
@@ -2415,7 +2470,7 @@ body.lp-body,
 
 /* ============================================
 /* ============================================
-   10. REAL WORKSPACE MODULES (11 SUBSYSTEMS)
+   10. REAL WORKSPACE MODULES (11 SUBSYSTEMS + CTA)
    ============================================ */
 .tano-modules-grid {
   display: grid;
@@ -2436,10 +2491,60 @@ body.lp-body,
   flex-direction: column;
   position: relative;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
+  min-height: 180px;
 }
 .tano-module-card:hover {
   transform: translate(-2px, -2px);
   box-shadow: 7px 7px 0 0 #0A0A0A !important;
+}
+
+/* CTA Card (11th slot) */
+.tano-module-card.tano-module-cta {
+  background: #FF5500 !important;
+  color: #FFFFFF;
+  cursor: pointer;
+  border: 3.5px solid #0A0A0A !important;
+  box-shadow: 6px 6px 0 0 #0A0A0A !important;
+}
+.tano-module-card.tano-module-cta:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0 0 #0A0A0A !important;
+}
+.tano-module-card.tano-module-cta .tano-module-num {
+  background: #FFFFFF;
+  color: #FF5500;
+  font-size: 20px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 2px solid #0A0A0A;
+  box-shadow: 2px 2px 0 0 #0A0A0A;
+  font-weight: 900;
+}
+.tano-module-card.tano-module-cta .tano-module-name {
+  color: #FFFFFF;
+}
+.tano-module-card.tano-module-cta .tano-module-desc {
+  color: rgba(255, 255, 255, 0.95);
+}
+.tano-module-cta-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: #FFFFFF;
+  letter-spacing: 0.02em;
+}
+.tano-cta-arrow {
+  font-size: 18px;
+  font-weight: 900;
 }
 
 /* Featured Ordis Copilot Card (Tano Signature Butter Yellow with Washi Tape) */
