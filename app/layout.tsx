@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-import CookieConsent from '@/components/CookieConsent';
+import { ClientProviders } from '@/components/ClientProviders';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -169,6 +169,14 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="author" href="/humans.txt" />
+        {/* DNS prefetch and preconnect for critical external resources */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Firebase domains - only preconnect, don't prefetch (loaded on-demand) */}
+        <link rel="dns-prefetch" href="https://firebaseapp.com" />
+        <link rel="dns-prefetch" href="https://googleapis.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
@@ -189,7 +197,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased min-h-screen`}>
         {children}
-        <CookieConsent />
+        <ClientProviders />
       </body>
     </html>
   );

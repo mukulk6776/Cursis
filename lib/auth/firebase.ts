@@ -59,12 +59,8 @@ export function getFirebaseAuth(): Auth | null {
   return null;
 }
 
-// Initial client-side warm up
-if (typeof window !== "undefined" && isFirebaseConfigured) {
-  try {
-    getFirebaseAuth();
-  } catch {}
-}
+// Lazy initialization - only initialize when actually needed
+// Removed automatic initialization to prevent blocking the critical rendering path
 
 export { app, auth };
 

@@ -6,7 +6,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['192.168.1.6'],
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
+    optimizeCss: true,
   },
+  // Turbopack configuration (Next.js 16 default)
+  turbopack: {},
   images: {
     remotePatterns: [
       {
