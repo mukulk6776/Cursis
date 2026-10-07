@@ -41,10 +41,10 @@ const teamMembers = [
 ];
 
 const stats = [
-  { label: 'Team Members', value: '12+', desc: 'Distributed globally' },
-  { label: 'Active Users', value: '1,250+', desc: 'Teams worldwide' },
+  { label: 'Team Members', value: '10', desc: 'Distributed globally' },
+  { label: 'Active Users', value: '500+', desc: 'Teams worldwide' },
   { label: 'Uptime SLA', value: '99.99%', desc: 'Enterprise-grade' },
-  { label: 'Founded', value: '2024', desc: 'Bengaluru, India' },
+  { label: 'Founded', value: '2026', desc: 'Delhi, India' },
 ];
 
 export default function AboutPage() {

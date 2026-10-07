@@ -113,7 +113,7 @@ const softwareSchema = {
   author: {
     '@type': 'Organization',
     name: 'Cursis Inc.',
-    location: 'Bengaluru, Karnataka, India',
+    location: 'Delhi, India',
   },
 };
 
@@ -138,13 +138,13 @@ const organizationSchema = {
   url: 'https://cursis.in',
   logo: 'https://cursis.in/icon.png',
   description: 'Autonomous AI workplace and agency operating system powered by Ordis AI',
-  foundingDate: '2024',
+  foundingDate: '2026-01',
   foundingLocation: {
     '@type': 'Place',
     address: {
       '@type': 'PostalAddress',
-      addressLocality: 'Bengaluru',
-      addressRegion: 'Karnataka',
+      addressLocality: 'Delhi',
+      addressRegion: 'Delhi',
       addressCountry: 'IN',
     },
   },
