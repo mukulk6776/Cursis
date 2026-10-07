@@ -344,7 +344,6 @@ export default function AboutPage() {
             {/* Hero Header */}
             <div style={{ textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
               <div className="about-hero-badge">
-                <span style={{ fontSize: '1.2rem' }}>●</span>
                 <span>ABOUT CURSIS</span>
               </div>
 
@@ -378,7 +377,7 @@ export default function AboutPage() {
 
               <div className="about-values-grid">
                 <div className="about-value-card">
-                  <div className="about-value-icon">⚡</div>
+                  <div className="about-value-icon">A</div>
                   <h3 className="about-value-title">Autonomous by Design</h3>
                   <p className="about-value-desc">
                     We build systems that take intelligent action, not just wait for commands. Real autonomy means real impact.
@@ -386,7 +385,7 @@ export default function AboutPage() {
                 </div>
 
                 <div className="about-value-card">
-                  <div className="about-value-icon">🎯</div>
+                  <div className="about-value-icon">C</div>
                   <h3 className="about-value-title">Clarity Over Complexity</h3>
                   <p className="about-value-desc">
                     Simple interfaces, powerful results. We eliminate noise so teams can focus on what matters.
@@ -394,7 +393,7 @@ export default function AboutPage() {
                 </div>
 
                 <div className="about-value-card">
-                  <div className="about-value-icon">🚀</div>
+                  <div className="about-value-icon">S</div>
                   <h3 className="about-value-title">Built for Scale</h3>
                   <p className="about-value-desc">
                     From startups to enterprises, our infrastructure is designed to grow with your team's ambitions.
@@ -432,7 +431,7 @@ export default function AboutPage() {
 
             {/* Mission Statement */}
             <div className="about-mission-box">
-              <div className="about-mission-icon">🎯</div>
+              <div className="about-mission-icon">M</div>
               <div style={{ textAlign: 'center' }}>
                 <div className="about-mission-label">OUR MISSION</div>
                 <h2 className="about-mission-title">Intelligent work, not just digital work.</h2>
