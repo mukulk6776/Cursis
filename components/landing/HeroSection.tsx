@@ -234,6 +234,7 @@ export default function HeroSection() {
                       <div className="lp-mockup-task-check">
                         <input
                           type="checkbox"
+                          id={`task-${t.id}`}
                           checked={t.status === 'Done'}
                           onChange={() => {
                             setTasks((prev) =>
@@ -244,12 +245,13 @@ export default function HeroSection() {
                               )
                             );
                           }}
+                          aria-label={`Mark task "${t.title}" as ${t.status === 'Done' ? 'incomplete' : 'complete'}`}
                         />
                       </div>
                       <div className="lp-mockup-task-details">
-                        <span className={`lp-mockup-task-name ${t.status === 'Done' ? 'completed' : ''}`}>
+                        <label htmlFor={`task-${t.id}`} className={`lp-mockup-task-name ${t.status === 'Done' ? 'completed' : ''}`}>
                           {t.title}
-                        </span>
+                        </label>
                         <div className="lp-mockup-task-meta">
                           <span className="lp-mockup-assignee">
                             <span className="lp-avatar-dot" />
