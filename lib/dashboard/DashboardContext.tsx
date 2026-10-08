@@ -225,7 +225,7 @@ interface DashboardContextType {
  addProject: (proj: Partial<Project> & { name: string }) => void;
  updateProject: (id: string, updates: Partial<Project>) => void;
  deleteProject: (id: string) => void;
- addMeeting: (meeting: Partial<Meeting> & { name: string }) => void;
+ addMeeting: (meeting: Partial<Meeting> & { name: string; meetingUrl: string }) => void;
  updateMeeting: (id: string, updates: Partial<Meeting>) => void;
  deleteMeeting: (id: string) => void;
  addEmployee: (emp: Partial<Employee> & { name: string; role: string; department: string }) => void;
