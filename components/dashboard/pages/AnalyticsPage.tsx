@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Top 4 Stat Cards */}
+      {/* Top 3 Stat Cards */}
       <div
         style={{
           display: 'grid',
@@ -169,26 +169,6 @@ export default function AnalyticsPage() {
           </div>
           <div style={{ fontSize: '12px', color: '#0f4cff', fontWeight: 600 }}>
             {projects.filter((p) => p.status === 'In Progress').length} active projects
-          </div>
-        </div>
-
-        <div
-          className="card"
-          style={{
-            padding: '16px 18px',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            background: 'var(--c-white)',
-          }}
-        >
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
-            Pipeline Volume
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
-            ${(pipelineValue / 1000).toFixed(0)}k
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-            {deals.length} active opportunities
           </div>
         </div>
       </div>
