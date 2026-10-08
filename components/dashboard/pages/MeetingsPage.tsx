@@ -229,7 +229,7 @@ export default function MeetingsPage() {
           {filteredMeetings.map((m) => {
             const platformMeta = getPlatformMeta(m.platform);
             const linkedProject = getProject(m.project || m.projectId);
-            const meetingUrl = m.meetingUrl || 'https://meet.google.com/new';
+            const meetingUrl = m.meetingUrl;
             const isCompleted = m.status === 'completed';
 
             return (

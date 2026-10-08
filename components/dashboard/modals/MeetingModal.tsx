@@ -46,11 +46,15 @@ export default function MeetingModal() {
  const handleSubmit = (e: React.FormEvent) => {
  e.preventDefault();
  if (!name.trim()) return;
+ if (!meetingUrl.trim()) {
+ showToast('Please provide a meeting link');
+ return;
+ }
 
  addMeeting({
  name: name.trim(),
  platform,
- meetingUrl: meetingUrl.trim() || 'https://meet.google.com/new',
+ meetingUrl: meetingUrl.trim(),
  date,
  time,
  duration: Number(duration),

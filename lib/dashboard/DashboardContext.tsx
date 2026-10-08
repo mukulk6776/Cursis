@@ -1943,13 +1943,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  // ---- Meeting Mutations ----
- const addMeeting = (m: Partial<Meeting> & { name: string }) => {
+ const addMeeting = (m: Partial<Meeting> & { name: string; meetingUrl: string }) => {
  const newM: Meeting = {
  id: 'm_' + Date.now(),
  name: m.name,
  title: m.name,
  platform: m.platform || meetingCalendarSettings.defaultPlatform,
- meetingUrl: m.meetingUrl || 'https://meet.google.com/crs-' + Math.random().toString(36).substring(2, 6),
+ meetingUrl: m.meetingUrl,
  date: m.date || '2026-09-09',
  time: m.time || '14:00',
  duration: m.duration || meetingCalendarSettings.defaultDuration,
