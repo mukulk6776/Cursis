@@ -17,13 +17,23 @@ export interface SessionPayload {
   workspaceId: string;
   photoURL?: string;
   createdAt: number;
+  iat?: number;
+  exp?: number;
 }
 
 /**
  * Creates a tamper-evident signed session token using HMAC-SHA256
  */
 export function createSessionToken(payload: SessionPayload): string {
-  const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const now = Date.now();
+  const maxAgeMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+  const enriched: SessionPayload = {
+    ...payload,
+    createdAt: payload.createdAt || now,
+    iat: payload.iat || Math.floor((payload.createdAt || now) / 1000),
+    exp: payload.exp || Math.floor(((payload.createdAt || now) + maxAgeMs) / 1000),
+  };
+  const data = Buffer.from(JSON.stringify(enriched)).toString('base64url');
   const signature = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
   return `cursis_usr_${data}.${signature}`;
 }
@@ -66,9 +76,15 @@ export function verifySessionToken(token: string): SessionPayload | null {
       return null;
     }
 
-    // Enforce 7-day expiration window
+    // Enforce expiration window using exp claim and createdAt
+    const now = Date.now();
+    const nowSec = Math.floor(now / 1000);
+    if (payload.exp && payload.exp < nowSec) {
+      return null;
+    }
+
     const maxAgeMs = 7 * 24 * 60 * 60 * 1000;
-    if (payload.createdAt && Date.now() - payload.createdAt > maxAgeMs) {
+    if (payload.createdAt && now - payload.createdAt > maxAgeMs) {
       return null;
     }
 

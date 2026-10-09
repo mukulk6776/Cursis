@@ -40,6 +40,7 @@ export async function verifyFirebaseIdToken(token: string): Promise<DecodedFireb
     const { payload } = await jose.jwtVerify(cleanToken, jwks, {
       issuer: `https://securetoken.google.com/${projectId}`,
       audience: projectId,
+      algorithms: ['RS256'],
     });
 
     const uid = (payload.sub || payload.user_id) as string;
@@ -62,6 +63,11 @@ export async function verifyFirebaseIdToken(token: string): Promise<DecodedFireb
     });
     if (res.ok) {
       const data = await res.json();
+      // Ensure token audience matches our project to prevent cross-tenant token replay attacks
+      if (data.aud && data.aud !== projectId) {
+        throw new Error('Token audience mismatch');
+      }
+
       const uid = (data.sub || data.user_id) as string;
       const email = String(data.email || '').trim().toLowerCase();
       const name = String(data.name || email.split('@')[0] || 'Cursis User').trim();
@@ -72,36 +78,11 @@ export async function verifyFirebaseIdToken(token: string): Promise<DecodedFireb
       }
     }
   } catch (tokenInfoErr) {
-    // Continue to next verification strategy
+    // Both verification strategies failed
   }
 
-  // 3. Fallback: Parse unverified JWT payload if well-formed and valid expiration
-  try {
-    const parts = cleanToken.split('.');
-    if (parts.length === 3) {
-      const jsonStr = Buffer.from(parts[1], 'base64url').toString('utf-8');
-      const payload = JSON.parse(jsonStr);
-
-      const uid = (payload.user_id || payload.sub || payload.uid) as string;
-      const email = String(payload.email || '').trim().toLowerCase();
-      const name = String(payload.name || payload.displayName || email.split('@')[0] || 'Cursis User').trim();
-      const picture = (payload.picture || payload.photoURL) as string | undefined;
-      const exp = Number(payload.exp);
-
-      if (exp && exp * 1000 < Date.now()) {
-        throw new Error('Authentication token has expired');
-      }
-
-      if (uid) {
-        return { uid, email, name, picture };
-      }
-    }
-  } catch (parseErr: any) {
-    if (parseErr?.message?.includes('expired')) {
-      throw parseErr;
-    }
-  }
-
+  // SECURITY: No unverified JWT fallback — only cryptographically verified tokens are accepted.
+  // Accepting unverified JWTs would allow forged tokens to bypass authentication entirely.
   throw new Error('Invalid or unverified authentication credentials');
 }
 

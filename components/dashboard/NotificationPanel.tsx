@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function NotificationPanel() {
@@ -164,7 +165,12 @@ export default function NotificationPanel() {
                   <div className="notif-item-content" style={{ flex: 1 }}>
                     <div
                       className="notif-item-text"
-                      dangerouslySetInnerHTML={{ __html: n.text }}
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(n.text, {
+                          ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
+                          ALLOWED_ATTR: ['href', 'target']
+                        })
+                      }}
                     />
                     <div className="notif-item-time" style={{ marginTop: '2px' }}>{n.time}</div>
 

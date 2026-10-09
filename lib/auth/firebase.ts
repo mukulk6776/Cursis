@@ -105,7 +105,9 @@ export async function signInWithEmail(email: string, pass: string): Promise<Auth
   if (typeof window !== 'undefined' && token) {
     try {
       localStorage.setItem('cursis_token', token);
-      document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+      // SECURITY: Do NOT set cursis_session via document.cookie here.
+      // The server sets it with httpOnly+Secure flags. Client-side writes
+      // would overwrite the httpOnly cookie, exposing it to XSS attacks.
     } catch {}
   }
 
@@ -147,7 +149,9 @@ export async function signUpWithEmail(email: string, pass: string, displayName: 
   if (typeof window !== 'undefined' && token) {
     try {
       localStorage.setItem('cursis_token', token);
-      document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+      // SECURITY: Do NOT set cursis_session via document.cookie here.
+      // The server sets it with httpOnly+Secure flags. Client-side writes
+      // would overwrite the httpOnly cookie, exposing it to XSS attacks.
     } catch {}
   }
 

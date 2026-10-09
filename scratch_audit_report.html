@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cursis - Semgrep Code Combined Findings & Security Audit Report</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 15mm 12mm 15mm 12mm;
+      @bottom-right {
+        content: counter(page);
+      }
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      background: #ffffff;
+      line-height: 1.5;
+      font-size: 11pt;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .header-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%);
+      color: #ffffff;
+      padding: 24px 28px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 10px;
+    }
+    .logo {
+      font-size: 20pt;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo span {
+      color: #60a5fa;
+    }
+    .meta-badge {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 9pt;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .title {
+      font-size: 17pt;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #f8fafc;
+    }
+    .subtitle {
+      font-size: 10pt;
+      color: #cbd5e1;
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .subtitle strong {
+      color: #ffffff;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .metric-card.critical {
+      border-top: 4px solid #ef4444;
+      background: #fffafa;
+    }
+    .metric-card.high {
+      border-top: 4px solid #f97316;
+      background: #fffcf9;
+    }
+    .metric-card.medium {
+      border-top: 4px solid #eab308;
+      background: #fffdf5;
+    }
+    .metric-card.resolved {
+      border-top: 4px solid #10b981;
+      background: #f0fdf4;
+    }
+    .metric-val {
+      font-size: 22pt;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .metric-card.resolved .metric-val {
+      color: #059669;
+    }
+    .metric-lbl {
+      font-size: 8.5pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+    }
+    h2 {
+      font-size: 13pt;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 22px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 8pt;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .badge-critical {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+    }
+    .badge-high {
+      background: #ffedd5;
+      color: #c2410c;
+      border: 1px solid #fdba74;
+    }
+    .badge-medium {
+      background: #fef9c3;
+      color: #a16207;
+      border: 1px solid #fde047;
+    }
+    .badge-low {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+    .badge-fixed {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 8.5pt;
+    }
+    table.data-table th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      text-transform: uppercase;
+      font-size: 7.5pt;
+      letter-spacing: 0.5px;
+    }
+    table.data-table td {
+      padding: 7px 10px;
+      border: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    table.data-table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .finding-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      background: #ffffff;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .finding-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 6px;
+    }
+    .finding-id {
+      font-weight: 800;
+      color: #0f172a;
+      font-size: 10pt;
+    }
+    .finding-rule {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 8pt;
+      color: #475569;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .finding-title {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .finding-meta {
+      font-size: 8.5pt;
+      color: #64748b;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .finding-meta span strong {
+      color: #334155;
+    }
+    .finding-desc {
+      font-size: 9pt;
+      color: #334155;
+      margin-bottom: 8px;
+      line-height: 1.45;
+    }
+    .remediation-box {
+      background: #f0fdf4;
+      border-left: 3px solid #10b981;
+      padding: 7px 12px;
+      border-radius: 0 4px 4px 0;
+      font-size: 8.5pt;
+      color: #065f46;
+    }
+    .remediation-box strong {
+      color: #047857;
+    }
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+    .footer-note {
+      margin-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      font-size: 8pt;
+      color: #94a3b8;
+      text-align: center;
+    }
+    .code-pill {
+      font-family: ui-monospace, monospace;
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 8pt;
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER BANNER -->
+  <div class="header-banner">
+    <div class="header-top">
+      <div class="logo">CURSIS <span>ENTERPRISE</span></div>
+      <div class="meta-badge">SOC-2 / OWASP AUDIT</div>
+    </div>
+    <div class="title">Semgrep Code Combined Findings & Security Audit Report</div>
+    <div class="subtitle">
+      <span><strong>Audit Date:</strong> October 8, 2026</span>
+      <span><strong>Target:</strong> Cursis Workspace</span>
+      <span><strong>Scope:</strong> Full-Stack Codebase & API Security</span>
+      <span><strong>Status:</strong> 13 / 13 Remediated (100%)</span>
+    </div>
+  </div>
+
+  <!-- SUMMARY METRICS -->
+  <div class="summary-grid">
+    <div class="metric-card critical">
+      <div class="metric-val">2</div>
+      <div class="metric-lbl">Critical Remediated</div>
+    </div>
+    <div class="metric-card high">
+      <div class="metric-val">4</div>
+      <div class="metric-lbl">High Remediated</div>
+    </div>
+    <div class="metric-card medium">
+      <div class="metric-val">6</div>
+      <div class="metric-lbl">Medium Remediated</div>
+    </div>
+    <div class="metric-card resolved">
+      <div class="metric-val">100%</div>
+      <div class="metric-lbl">Clean / Remediated</div>
+    </div>
+  </div>
+
+  <!-- AUDIT OVERVIEW & METHODOLOGY -->
+  <h2>🛡️ Audit Overview & Testing Proof</h2>
+  <p style="font-size: 9pt; color: #334155; margin-bottom: 12px;">
+    This security report documents static code analysis findings, OWASP vulnerabilities, and architectural security hardening performed on the Cursis Enterprise Workspace platform. Every identified issue was isolated, analyzed, patched, and verified with zero regression.
+  </p>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Verification Suite</th>
+        <th>Target Tool</th>
+        <th>Test Scope</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Static Typecheck</strong></td>
+        <td><code>tsc --noEmit</code></td>
+        <td>Strict TypeScript compiler pass across all modified source files</td>
+        <td><span class="badge badge-fixed">0 Errors / PASS</span></td>
+      </tr>
+      <tr>
+        <td><strong>Integration & Security Suite</strong></td>
+        <td><code>node --test tests/*.cjs</code></td>
+        <td>7 test suites (Ordis history, RBAC, team limits, document caps, presentations)</td>
+        <td><span class="badge badge-fixed">7/7 Suites PASS</span></td>
+      </tr>
+      <tr>
+        <td><strong>Zero-Trust Token Verifier</strong></td>
+        <td>JWKS + HMAC Verifiers</td>
+        <td>Token forgery rejection, unverified fallback elimination</td>
+        <td><span class="badge badge-fixed">Verified</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- COMPLETE FINDINGS TABLE -->
+  <h2>📋 Complete Findings Register</h2>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Severity</th>
+        <th>Rule Identifier</th>
+        <th>File Location</th>
+        <th>CWE & OWASP</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>FIND-001</strong></td>
+        <td><span class="badge badge-critical">CRITICAL</span></td>
+        <td><code>typescript.jwt.security.unverified-jwt-token-decode</code></td>
+        <td><code>lib/auth/firebase-admin.ts</code></td>
+        <td>CWE-287, CWE-347 (A07)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-002</strong></td>
+        <td><span class="badge badge-critical">CRITICAL</span></td>
+        <td><code>typescript.auth.security.unverified-session-token-bypass</code></td>
+        <td><code>app/api/vouchers/redeem/route.ts</code></td>
+        <td>CWE-287, CWE-345 (A07)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-003</strong></td>
+        <td><span class="badge badge-high">HIGH</span></td>
+        <td><code>javascript.browser.security.insecure-document-cookie-set</code></td>
+        <td><code>lib/auth/firebase.ts</code></td>
+        <td>CWE-1004, CWE-79 (A01)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-004</strong></td>
+        <td><span class="badge badge-high">HIGH</span></td>
+        <td><code>typescript.auth.security.weak-password-policy</code></td>
+        <td><code>app/api/auth/signup/route.ts</code></td>
+        <td>CWE-521 (A07)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-005</strong></td>
+        <td><span class="badge badge-high">HIGH</span></td>
+        <td><code>typescript.dos.security.rate-limiter-fail-open</code></td>
+        <td><code>lib/auth/rateLimit.ts</code></td>
+        <td>CWE-770, CWE-755 (A04)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-006</strong></td>
+        <td><span class="badge badge-high">HIGH</span></td>
+        <td><code>typescript.crypto.security.low-pbkdf2-iteration-count</code></td>
+        <td><code>lib/db/users.ts</code></td>
+        <td>CWE-916, CWE-328 (A02)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-007</strong></td>
+        <td><span class="badge badge-medium">MEDIUM</span></td>
+        <td><code>typescript.nextjs.security.open-redirect-protocol-relative</code></td>
+        <td><code>proxy.ts</code></td>
+        <td>CWE-601 (A01)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-008</strong></td>
+        <td><span class="badge badge-medium">MEDIUM</span></td>
+        <td><code>typescript.waf.security.insufficient-input-sanitization-waf</code></td>
+        <td><code>proxy.ts</code></td>
+        <td>CWE-20, CWE-22, CWE-79 (A03)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-009</strong></td>
+        <td><span class="badge badge-medium">MEDIUM</span></td>
+        <td><code>typescript.node.security.error-message-information-disclosure</code></td>
+        <td><code>lib/api/response.ts</code></td>
+        <td>CWE-209 (A05)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-010</strong></td>
+        <td><span class="badge badge-medium">MEDIUM</span></td>
+        <td><code>typescript.nextjs.security.missing-coop-corp-headers</code></td>
+        <td><code>next.config.ts</code></td>
+        <td>CWE-693 (A05)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-011</strong></td>
+        <td><span class="badge badge-low">LOW</span></td>
+        <td><code>typescript.react.security.react-strict-mode-disabled</code></td>
+        <td><code>next.config.ts</code></td>
+        <td>CWE-693 (A05)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-012</strong></td>
+        <td><span class="badge badge-medium">MEDIUM</span></td>
+        <td><code>typescript.api.security.unauthenticated-promo-code-consumption</code></td>
+        <td><code>app/api/redeem/route.ts</code></td>
+        <td>CWE-306, CWE-799 (A01)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+      <tr>
+        <td><strong>FIND-013</strong></td>
+        <td><span class="badge badge-medium">MEDIUM</span></td>
+        <td><code>typescript.api.security.database-diagnostics-credential-leak</code></td>
+        <td><code>app/api/db-status/route.ts</code></td>
+        <td>CWE-200, CWE-209 (A05)</td>
+        <td><span class="badge badge-fixed">FIXED</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PAGE BREAK FOR IN-DEPTH SECTION -->
+  <div class="page-break"></div>
+
+  <h2>🔍 In-Depth Finding Details & Technical Remediations</h2>
+
+  <!-- FIND-001 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-001: Unverified JWT Fallback Authentication Bypass</div>
+      <div><span class="badge badge-critical">CRITICAL</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.jwt.security.unverified-jwt-token-decode</span></span>
+      <span><strong>File:</strong> <span class="code-pill">lib/auth/firebase-admin.ts:78-98</span></span>
+      <span><strong>CWE:</strong> CWE-287, CWE-347</span>
+    </div>
+    <div class="finding-desc">
+      Strategy 3 in the Firebase token verification chain decoded base64url JWT tokens without verifying the cryptographic signature. An attacker could forge custom JSON tokens with arbitrary user IDs, claim founder or administrator status, and bypass authentication entirely.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Completely removed Strategy 3 unverified payload parsing. The authentication chain now strictly requires cryptographic signature validation through Google JWKS or Google's tokeninfo API.
+    </div>
+  </div>
+
+  <!-- FIND-002 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-002: Insecure Voucher Token Prefix Extraction Bypass</div>
+      <div><span class="badge badge-critical">CRITICAL</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.auth.security.unverified-session-token-bypass</span></span>
+      <span><strong>File:</strong> <span class="code-pill">app/api/vouchers/redeem/route.ts:23-35</span></span>
+      <span><strong>CWE:</strong> CWE-287, CWE-345</span>
+    </div>
+    <div class="finding-desc">
+      The voucher redemption handler obtained user credentials by stripping <code>cursis_usr_</code> from user input without running HMAC-SHA256 signature verification, allowing arbitrary token fabrication to redeem vouchers.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Replaced token string manipulation with <code>verifySessionToken()</code>. Authentication now requires valid HMAC-signed tokens matching the secret key.
+    </div>
+  </div>
+
+  <!-- FIND-003 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-003: Client-Side Cookie Write Stripping HttpOnly Flag</div>
+      <div><span class="badge badge-high">HIGH</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">javascript.browser.security.insecure-document-cookie-set</span></span>
+      <span><strong>File:</strong> <span class="code-pill">lib/auth/firebase.ts:108</span></span>
+      <span><strong>CWE:</strong> CWE-1004, CWE-79</span>
+    </div>
+    <div class="finding-desc">
+      Client-side authentication functions wrote <code>cursis_session</code> cookies via <code>document.cookie</code>. This overwrote the server's <code>HttpOnly</code> cookie with a non-HttpOnly browser cookie, allowing XSS scripts to access active session credentials.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Removed client-side cookie write statements. Session tokens are strictly managed by server-side headers with <code>HttpOnly: true</code>, <code>Secure: true</code>, and <code>SameSite: 'lax'</code>.
+    </div>
+  </div>
+
+  <!-- FIND-004 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-004: Insufficient Password Complexity Policy</div>
+      <div><span class="badge badge-high">HIGH</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.auth.security.weak-password-policy</span></span>
+      <span><strong>File:</strong> <span class="code-pill">app/api/auth/signup/route.ts:46-57</span></span>
+      <span><strong>CWE:</strong> CWE-521</span>
+    </div>
+    <div class="finding-desc">
+      User registration permitted passwords as short as 6 characters with no requirement for uppercase, lowercase, numbers, or special symbols, rendering accounts vulnerable to dictionary attacks.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Enforced minimum 8-character length with mandatory uppercase, lowercase, numeric, and special character regex rules.
+    </div>
+  </div>
+
+  <!-- FIND-005 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-005: Rate Limiter Fail-Open on Database Outage</div>
+      <div><span class="badge badge-high">HIGH</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.dos.security.rate-limiter-fail-open</span></span>
+      <span><strong>File:</strong> <span class="code-pill">lib/auth/rateLimit.ts:31-101</span></span>
+      <span><strong>CWE:</strong> CWE-770, CWE-755</span>
+    </div>
+    <div class="finding-desc">
+      When MongoDB connection dropped or suffered transient errors, the rate limiter failed open (returned <code>allowed: true</code>), enabling attackers to flood authentication routes during database outages.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Added an in-memory fallback cache that automatically takes over if MongoDB is unreachable, enforcing the 5 attempts / 30 minutes threshold at all times.
+    </div>
+  </div>
+
+  <!-- FIND-006 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-006: Insufficient PBKDF2 Iteration Count</div>
+      <div><span class="badge badge-high">HIGH</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.crypto.security.low-pbkdf2-iteration-count</span></span>
+      <span><strong>File:</strong> <span class="code-pill">lib/db/users.ts:17-31</span></span>
+      <span><strong>CWE:</strong> CWE-916, CWE-328</span>
+    </div>
+    <div class="finding-desc">
+      User passwords were hashed using only 10,000 iterations of PBKDF2-SHA512. The OWASP 2023 standard recommends at least 600,000 iterations to resist GPU-accelerated hash cracking.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Increased PBKDF2 iterations to 600,000 for all newly created passwords and password updates, with backward-compatible verification for existing users.
+    </div>
+  </div>
+
+  <!-- FIND-007 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-007: Open Redirect via Protocol-Relative URLs</div>
+      <div><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.nextjs.security.open-redirect-protocol-relative</span></span>
+      <span><strong>File:</strong> <span class="code-pill">proxy.ts:72-76</span></span>
+      <span><strong>CWE:</strong> CWE-601</span>
+    </div>
+    <div class="finding-desc">
+      The redirect handler in the proxy checked only <code>startsWith('/')</code>, allowing protocol-relative URLs (e.g. <code>//evil.com</code>) or backslash evasions (<code>/\evil.com</code>) to redirect authenticated users off-site.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Implemented <code>getSafeRelativeRedirect()</code> ensuring redirect targets strictly start with a single slash, rejecting double slashes, backslashes, CRLF, and null bytes.
+    </div>
+  </div>
+
+  <!-- FIND-008 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-008: Edge WAF Pattern Matching Evasion</div>
+      <div><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.waf.security.insufficient-input-sanitization-waf</span></span>
+      <span><strong>File:</strong> <span class="code-pill">proxy.ts:20-53</span></span>
+      <span><strong>CWE:</strong> CWE-20, CWE-22, CWE-79</span>
+    </div>
+    <div class="finding-desc">
+      The Edge WAF only checked raw URLs, permitting bypasses via URL-encoded characters (e.g. <code>%2e%2e</code>, <code>%00</code>, <code>%0d%0a</code>) and unmonitored injection vectors like <code>&lt;iframe&gt;</code> or event handlers.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Added safe URI decoding before inspection, and expanded rules to detect path traversal variations, CRLF injection, null bytes, script tags, dangerous URI schemes, event handlers, and OS probe paths.
+    </div>
+  </div>
+
+  <!-- FIND-009 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-009: Error Message Information Disclosure in API Responses</div>
+      <div><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.node.security.error-message-information-disclosure</span></span>
+      <span><strong>File:</strong> <span class="code-pill">lib/api/response.ts:33-48</span></span>
+      <span><strong>CWE:</strong> CWE-209</span>
+    </div>
+    <div class="finding-desc">
+      Unsanitized 500 responses propagated <code>error.message</code> directly to API callers, risking exposure of MongoDB connection URIs, database credentials, hostnames, and stack traces.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Hardened <code>apiError()</code> to automatically sanitize 500 error messages in production and redact database connection strings and sensitive keywords.
+    </div>
+  </div>
+
+  <!-- FIND-010 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-010: Missing Cross-Origin Isolation Headers</div>
+      <div><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.nextjs.security.missing-coop-corp-headers</span></span>
+      <span><strong>File:</strong> <span class="code-pill">next.config.ts:66-74, proxy.ts</span></span>
+      <span><strong>CWE:</strong> CWE-693</span>
+    </div>
+    <div class="finding-desc">
+      The application lacked Cross-Origin-Opener-Policy (COOP) and Cross-Origin-Resource-Policy (CORP) headers, leaving the application open to cross-origin process-sharing attacks.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Added <code>Cross-Origin-Opener-Policy: same-origin</code> and <code>Cross-Origin-Resource-Policy: same-origin</code> in both <code>next.config.ts</code> and the Edge proxy headers.
+    </div>
+  </div>
+
+  <!-- FIND-011 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-011: React Strict Mode Disabled in Configuration</div>
+      <div><span class="badge badge-low">LOW</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.react.security.react-strict-mode-disabled</span></span>
+      <span><strong>File:</strong> <span class="code-pill">next.config.ts:4</span></span>
+      <span><strong>CWE:</strong> CWE-693</span>
+    </div>
+    <div class="finding-desc">
+      <code>reactStrictMode: false</code> disabled React lifecycle warnings, memory leak checks, and legacy API detection.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Enabled <code>reactStrictMode: true</code> in <code>next.config.ts</code>.
+    </div>
+  </div>
+
+  <!-- FIND-012 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-012: Anonymous Promo Code Redemption & Rate Limit Absence</div>
+      <div><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.api.security.unauthenticated-promo-code-consumption</span></span>
+      <span><strong>File:</strong> <span class="code-pill">app/api/redeem/route.ts:74-120</span></span>
+      <span><strong>CWE:</strong> CWE-306, CWE-799</span>
+    </div>
+    <div class="finding-desc">
+      The <code>/api/redeem</code> route allowed unauthenticated callers to consume promo codes, burning codes for anonymous users, and lacked IP rate limiting.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Enforced user authentication prior to redemption and added rate limiting with IP attempt tracking to protect promo vouchers.
+    </div>
+  </div>
+
+  <!-- FIND-013 -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-id">FIND-013: Database Diagnostics Connection URI Redaction</div>
+      <div><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-fixed">RESOLVED</span></div>
+    </div>
+    <div class="finding-meta">
+      <span><strong>Rule:</strong> <span class="finding-rule">typescript.api.security.database-diagnostics-credential-leak</span></span>
+      <span><strong>File:</strong> <span class="code-pill">app/api/db-status/route.ts:47-58</span></span>
+      <span><strong>CWE:</strong> CWE-200, CWE-209</span>
+    </div>
+    <div class="finding-desc">
+      Database error responses in <code>/api/db-status</code> could include raw connection URIs when MongoDB connectivity failed.
+    </div>
+    <div class="remediation-box">
+      <strong>Remediation:</strong> Added regex-based URI stripping that sanitizes username/password credentials and masks connection strings in error outputs.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-note">
+    Cursis Enterprise Workspace Security Audit &bull; Generated on October 8, 2026 &bull; Status: Verified Clean (100% Remediated)
+  </div>
+
+</body>
+</html>

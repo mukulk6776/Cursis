@@ -112,14 +112,22 @@ export async function redeemVoucher(
       premiumExpiresAt = new Date(baseDate.getTime() + voucher.durationDays * 24 * 60 * 60 * 1000);
     }
 
-    // 6. Perform atomic transaction-like operations
-    const redemptionId = 'vr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
-
-    // Increment redemption count
-    await voucherCol.updateOne(
-      { id: voucherId },
-      { $inc: { redemptionCount: 1 } }
+    // 6. Perform atomic redemption increment to prevent concurrent requests from double-redeeming
+    const updatedVoucher = await voucherCol.findOneAndUpdate(
+      {
+        id: voucherId,
+        isActive: true,
+        $expr: { $lt: ['$redemptionCount', '$maxRedemptions'] },
+      },
+      { $inc: { redemptionCount: 1 } },
+      { returnDocument: 'after' }
     );
+
+    if (!updatedVoucher) {
+      return { success: false, error: 'Voucher redemption limit reached or voucher no longer available' };
+    }
+
+    const redemptionId = 'vr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
 
     // Create redemption record
     await redemptionCol.insertOne({

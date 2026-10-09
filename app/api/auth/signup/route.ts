@@ -43,8 +43,32 @@ export async function POST(request: Request) {
       return apiError('Only Gmail and Microsoft email accounts (gmail.com, outlook.com, hotmail.com, live.com) are permitted to create an account.', 403);
     }
 
-    if (!password || password.length < 6) {
-      return apiError('Password must be at least 6 characters long', 400);
+    if (!password || password.length < 8) {
+      return apiError('Password must be at least 8 characters long', 400);
+    }
+
+    if (password.length > 128) {
+      return apiError('Password must not exceed 128 characters', 400);
+    }
+
+    // Common breached and dictionary passwords blacklist per NIST SP 800-63B
+    const commonBreachedPasswords = [
+      'password', 'password123', 'admin123', '12345678', '123456789', '1234567890',
+      'qwerty123', 'welcome123', 'cursis123', 'letmein123', 'iloveyou123',
+      'p@ssword1', 'p@ssword123', 'password@1', 'password@123', 'admin123456',
+      'admin@123', 'admin@1234', 'cursis@123', 'cursis@2026', 'pass@1234'
+    ];
+    if (commonBreachedPasswords.includes(password.toLowerCase())) {
+      return apiError('Password is too common or appears on breached password lists. Please choose a more secure password.', 400);
+    }
+
+    // Enforce password complexity: uppercase, lowercase, number, special character
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password);
+    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+      return apiError('Password must include uppercase, lowercase, number, and special character (!@#$%^&* etc.)', 400);
     }
 
     // Check if account already exists
@@ -103,6 +127,6 @@ export async function POST(request: Request) {
     return response;
   } catch (error: any) {
     console.error('Signup error:', error);
-    return apiError(error.message || 'Failed to create workspace account', 500);
+    return apiError('Failed to create workspace account due to an internal server error. Please try again.', 500);
   }
 }

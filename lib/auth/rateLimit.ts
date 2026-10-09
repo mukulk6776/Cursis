@@ -17,6 +17,70 @@ const RATE_LIMIT_WINDOW = 30 * 60 * 1000; // 30 minutes in milliseconds
 const MAX_ATTEMPTS = 5;
 
 /**
+ * In-memory fallback rate limiter — activated when MongoDB is unavailable.
+ * Prevents fail-open vulnerability during DB outages.
+ */
+const inMemoryRateLimits = new Map<string, { attempts: number; firstAttemptAt: number; blockedUntil?: number }>();
+
+function checkInMemoryRateLimit(ip: string): { allowed: boolean; remainingAttempts: number; resetAt?: Date; message?: string } {
+  const now = Date.now();
+  const entry = inMemoryRateLimits.get(ip);
+
+  if (!entry) {
+    return { allowed: true, remainingAttempts: MAX_ATTEMPTS - 1 };
+  }
+
+  // Check if blocked
+  if (entry.blockedUntil && entry.blockedUntil > now) {
+    return {
+      allowed: false,
+      remainingAttempts: 0,
+      resetAt: new Date(entry.blockedUntil),
+      message: `Too many attempts. Please try again after ${new Date(entry.blockedUntil).toLocaleTimeString()}.`,
+    };
+  }
+
+  // Outside window — reset
+  if (now - entry.firstAttemptAt > RATE_LIMIT_WINDOW) {
+    inMemoryRateLimits.delete(ip);
+    return { allowed: true, remainingAttempts: MAX_ATTEMPTS - 1 };
+  }
+
+  if (entry.attempts >= MAX_ATTEMPTS) {
+    const blockedUntil = entry.firstAttemptAt + RATE_LIMIT_WINDOW;
+    entry.blockedUntil = blockedUntil;
+    return {
+      allowed: false,
+      remainingAttempts: 0,
+      resetAt: new Date(blockedUntil),
+      message: `Too many attempts. Please try again after ${new Date(blockedUntil).toLocaleTimeString()}.`,
+    };
+  }
+
+  return { allowed: true, remainingAttempts: MAX_ATTEMPTS - entry.attempts - 1 };
+}
+
+function recordInMemoryAttempt(ip: string): void {
+  const now = Date.now();
+  const entry = inMemoryRateLimits.get(ip);
+
+  if (!entry || now - entry.firstAttemptAt > RATE_LIMIT_WINDOW) {
+    inMemoryRateLimits.set(ip, { attempts: 1, firstAttemptAt: now });
+  } else {
+    entry.attempts++;
+  }
+
+  // Periodic cleanup: purge expired entries every 100 calls
+  if (inMemoryRateLimits.size > 100) {
+    for (const [key, val] of inMemoryRateLimits) {
+      if (now - val.firstAttemptAt > RATE_LIMIT_WINDOW) {
+        inMemoryRateLimits.delete(key);
+      }
+    }
+  }
+}
+
+/**
  * Check if an IP address is rate limited
  * Returns: { allowed: boolean, remainingAttempts: number, resetAt?: Date }
  */
@@ -29,11 +93,8 @@ export async function checkRateLimit(ip: string): Promise<{
   try {
     const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
     if (!rateLimits) {
-      // Fail open if database is unavailable
-      return {
-        allowed: true,
-        remainingAttempts: MAX_ATTEMPTS,
-      };
+      // SECURITY FIX: Fall back to in-memory rate limiter instead of failing open
+      return checkInMemoryRateLimit(ip);
     }
 
     const now = new Date();
@@ -102,11 +163,8 @@ export async function checkRateLimit(ip: string): Promise<{
     };
   } catch (error) {
     console.error('Rate limit check error:', error);
-    // Fail open - allow the request if rate limiting system fails
-    return {
-      allowed: true,
-      remainingAttempts: MAX_ATTEMPTS,
-    };
+    // SECURITY FIX: Fall back to in-memory rate limiter instead of failing open
+    return checkInMemoryRateLimit(ip);
   }
 }
 
@@ -116,7 +174,10 @@ export async function checkRateLimit(ip: string): Promise<{
 export async function recordAttempt(ip: string): Promise<void> {
   try {
     const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
-    if (!rateLimits) return; // Silently fail if database unavailable
+    if (!rateLimits) {
+      recordInMemoryAttempt(ip); // SECURITY FIX: Fall back to in-memory
+      return;
+    }
 
     const now = new Date();
     const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW);
@@ -156,7 +217,8 @@ export async function recordAttempt(ip: string): Promise<void> {
     }
   } catch (error) {
     console.error('Record attempt error:', error);
-    // Don't throw - logging failure shouldn't block auth
+    // SECURITY FIX: Fall back to in-memory instead of silently failing
+    recordInMemoryAttempt(ip);
   }
 }
 
@@ -164,9 +226,11 @@ export async function recordAttempt(ip: string): Promise<void> {
  * Clear rate limit for an IP (e.g., after successful login)
  */
 export async function clearRateLimit(ip: string): Promise<void> {
+  // Always clear in-memory fallback
+  inMemoryRateLimits.delete(ip);
   try {
     const rateLimits = await getCollection<RateLimitEntry>('rate_limits');
-    if (!rateLimits) return; // Silently fail if database unavailable
+    if (!rateLimits) return;
 
     await rateLimits.deleteOne({ ip });
   } catch (error) {

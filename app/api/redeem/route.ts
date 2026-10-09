@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { getAuthenticatedUser } from '@/lib/auth/session';
+import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
 
 // Persistent in-memory fallback for redeemed codes
 const inMemoryRedeemedCodes = new Set<string>();
@@ -67,12 +68,48 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, redeemedCodes: codes });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to retrieve redeemed codes' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
+    // 1. Enforce rate limiting to prevent brute-force attacks on promo codes
+    const clientIP = getClientIP(request);
+    const rateCheck = await checkRateLimit(clientIP);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: rateCheck.message || 'Too many redemption attempts. Please try again in 30 minutes.',
+        },
+        { status: 429 }
+      );
+    }
+
+    // 2. Enforce authentication — codes cannot be consumed anonymously
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      await recordAttempt(clientIP);
+      return NextResponse.json(
+        { success: false, message: 'Authentication required. Please sign in to redeem a promo code.' },
+        { status: 401 }
+      );
+    }
+
+    // Per-user throttling to prevent user-level brute force attacks
+    const userRateKey = `user:${authUser.uid}`;
+    const userRateCheck = await checkRateLimit(userRateKey);
+    if (!userRateCheck.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: userRateCheck.message || 'Too many redemption attempts for this account. Please try again later.',
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const rawCode = body.code;
 
@@ -85,7 +122,7 @@ export async function POST(request: Request) {
 
     const code = rawCode.trim().toUpperCase();
 
-    // 1. Check if already redeemed in in-memory store
+    // 3. Check if already redeemed in in-memory store
     if (inMemoryRedeemedCodes.has(code)) {
       return NextResponse.json(
         {
@@ -97,7 +134,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Check MongoDB collection 'redeemed_codes'
+    // 4. Check MongoDB collection 'redeemed_codes'
     const db = await getDb();
     if (db) {
       try {
@@ -118,8 +155,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Validate against authorized vouchers catalogue or single-use pattern
+    // 5. Validate against authorized vouchers catalogue or single-use pattern
     if (!isValidCodeFormat(code)) {
+      await recordAttempt(clientIP);
+      await recordAttempt(userRateKey);
       return NextResponse.json(
         {
           success: false,
@@ -136,13 +175,21 @@ export async function POST(request: Request) {
       'Unlimited Multi-Agent Execution',
     ];
 
-    // 4. Authenticate BEFORE consuming the code — prevents burning codes for anonymous users
-    const authUser = await getAuthenticatedUser(request);
-    const userId = authUser?.uid || 'anonymous';
-    const email = authUser?.email || 'user';
-    const workspaceId = authUser?.workspaceId || 'default';
+    const userId = authUser.uid;
+    const email = authUser.email;
+    const workspaceId = authUser.workspaceId || 'default';
 
-    // 5. Mark code as redeemed permanently (after auth check)
+    // 6. Mark code as redeemed permanently (atomic check)
+    if (inMemoryRedeemedCodes.has(code)) {
+      return NextResponse.json(
+        {
+          success: false,
+          alreadyRedeemed: true,
+          message: `Code "${code}" has already been redeemed and can only be used once.`,
+        },
+        { status: 400 }
+      );
+    }
     inMemoryRedeemedCodes.add(code);
 
     if (db) {
@@ -157,16 +204,31 @@ export async function POST(request: Request) {
         });
 
         // Normalize user planTier to standard if user is logged in
-        if (authUser?.uid) {
+        if (authUser.uid) {
           await db.collection('users').updateOne(
             { uid: authUser.uid },
             { $set: { planTier: 'standard', updatedAt: new Date().toISOString() } }
           );
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err?.code === 11000) {
+          inMemoryRedeemedCodes.add(code);
+          return NextResponse.json(
+            {
+              success: false,
+              alreadyRedeemed: true,
+              message: `Code "${code}" has already been redeemed and can only be used once.`,
+            },
+            { status: 400 }
+          );
+        }
         console.warn('Mongo insert failed:', err);
       }
     }
+
+    // Clear rate limits on successful redemption
+    await clearRateLimit(clientIP);
+    await clearRateLimit(userRateKey);
 
     return NextResponse.json({
       success: true,
@@ -174,8 +236,9 @@ export async function POST(request: Request) {
       perks,
     });
   } catch (error: any) {
+    console.error('Redeem error:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Failed to redeem code' },
+      { success: false, message: 'Failed to redeem code due to an internal server error.' },
       { status: 500 }
     );
   }

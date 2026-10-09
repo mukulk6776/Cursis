@@ -31,7 +31,7 @@ export default function CreatorsSection() {
     <section className="lp-section" id="creators">
       <div className="lp-creators-container">
         <div style={{ textAlign: 'left', marginBottom: '32px' }}>
-          <div className="lp-section-label">Media &amp; Creators</div>
+          <div className="lp-section-label">Media & Creators</div>
           <h2 className="lp-section-title">Studio workflows for modern creators.</h2>
           <p className="lp-section-subtitle" style={{ margin: '8px 0 0' }}>
             Plan scripts, manage video assets, and coordinate reviews in one clean production pipeline.

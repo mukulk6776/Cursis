@@ -3,7 +3,7 @@ export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { findUserByEmail, registerUser, verifyPassword } from '@/lib/db/users';
+import { findUserByEmail, registerUser, verifyPasswordResult, upgradePasswordHash } from '@/lib/db/users';
 import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
@@ -57,11 +57,18 @@ export async function POST(request: Request) {
     }
 
     // Verify stored password hash
-    const isValid = verifyPassword(password, user.salt, user.passwordHash);
-    if (!isValid) {
+    const authResult = verifyPasswordResult(password, user.salt, user.passwordHash);
+    if (!authResult.valid) {
       // Record failed attempt
       await recordAttempt(clientIP);
       return apiError('Incorrect email or password. Please verify your credentials.', 401);
+    }
+
+    // Transparently upgrade legacy iteration hashes on successful login
+    if (authResult.needsRehash) {
+      await upgradePasswordHash(user.email, password).catch((err) => {
+        console.warn('Password rehash upgrade notice:', err);
+      });
     }
 
     // Clear rate limit on successful login
@@ -103,6 +110,6 @@ export async function POST(request: Request) {
     return response;
   } catch (error: any) {
     console.error('Login error:', error);
-    return apiError(error.message || 'Authentication failed', 500);
+    return apiError('Authentication failed due to an internal server error. Please try again.', 500);
   }
 }

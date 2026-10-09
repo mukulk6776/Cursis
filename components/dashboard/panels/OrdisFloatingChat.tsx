@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatChatMarkdown } from '@/lib/dashboard/data';
 import ChatActionCardView from '@/components/dashboard/chat/ChatActionCardView';
@@ -775,7 +776,12 @@ function DisabledOrdisFloatingChat() {
  )}
 
  <div
- dangerouslySetInnerHTML={{ __html: formattedText }}
+ dangerouslySetInnerHTML={{
+   __html: DOMPurify.sanitize(formattedText, {
+     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'code', 'pre', 'ul', 'ol', 'li'],
+     ALLOWED_ATTR: ['href', 'target', 'class']
+   })
+ }}
  style={{ wordBreak: 'break-word' }}
  />
 

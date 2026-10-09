@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import {
   ArrowUp,
   Check,
@@ -34,7 +35,10 @@ function OrdisMark({ size = 18 }: { size?: number }) {
 function messagePlainText(text: string) {
   if (typeof document === 'undefined') return text.replace(/<[^>]*>?/gm, '').trim();
   const element = document.createElement('div');
-  element.innerHTML = formatChatMarkdown(text);
+  element.innerHTML = DOMPurify.sanitize(formatChatMarkdown(text), {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'code', 'pre'],
+    ALLOWED_ATTR: ['href']
+  });
   return (element.textContent || '').replace(/\s+/g, ' ').trim();
 }
 

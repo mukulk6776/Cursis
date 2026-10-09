@@ -34,24 +34,21 @@ export async function GET(request: Request) {
     await client.connect();
     const db = client.db(process.env.MONGODB_DB_NAME || 'cursis');
     await db.command({ ping: 1 });
-    const cols = await db.listCollections().toArray();
 
     return NextResponse.json({
       success: true,
-      mongoConnected: true,
-      collections: cols.map((c) => c.name),
-      // Redact credentials from cluster hostname
-      cluster: uri.split('@')[1]?.split('/')[0] || 'configured',
-      dbName: db.databaseName,
+      status: 'healthy',
+      database: 'connected',
     });
   } catch (err: any) {
+    console.error('Database health check failure:', err?.message || err);
+
     return NextResponse.json(
       {
         success: false,
-        mongoConnected: false,
-        errorName: err.name,
-        errorMessage: err.message,
-        errorCode: err.code,
+        status: 'unhealthy',
+        database: 'disconnected',
+        error: 'Database connection check failed',
       },
       { status: 503 }
     );

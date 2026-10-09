@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findVoucherByCode, redeemVoucher } from '@/lib/db/vouchers';
-import { getUserProfile } from '@/lib/db/users';
+import { verifySessionToken } from '@/lib/auth/token';
 import { checkRateLimit, recordAttempt, getClientIP } from '@/lib/auth/rateLimit';
 
 export async function POST(req: NextRequest) {
@@ -19,24 +19,29 @@ export async function POST(req: NextRequest) {
     // Record this attempt
     await recordAttempt(ip);
 
-    // Get user session
+    // SECURITY FIX: Properly verify the session token with HMAC signature check
+    let sessionToken: string | undefined;
     const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    if (authHeader?.startsWith('Bearer ')) {
+      sessionToken = authHeader.substring(7);
+    }
+    if (!sessionToken) {
+      const cookieHeader = req.headers.get('cookie');
+      const match = cookieHeader?.match(/cursis_session=([^;]+)/);
+      if (match) sessionToken = decodeURIComponent(match[1]);
+    }
 
-    if (!token) {
+    if (!sessionToken) {
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    // Extract user from token (simplified - should match your auth system)
-    const userId = token.replace('cursis_usr_', '');
-    const user = await getUserProfile(userId);
-
-    if (!user) {
+    const verified = verifySessionToken(sessionToken);
+    if (!verified) {
       return NextResponse.json(
-        { success: false, error: 'User not found' },
+        { success: false, error: 'Invalid or expired session' },
         { status: 401 }
       );
     }
@@ -63,7 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Redeem voucher
-    const result = await redeemVoucher(voucher.id, user.uid || user.id, user.email);
+    const result = await redeemVoucher(voucher.id, verified.uid, verified.email);
 
     if (!result.success) {
       return NextResponse.json(

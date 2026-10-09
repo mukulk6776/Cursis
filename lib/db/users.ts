@@ -11,21 +11,81 @@ export function generateSalt(): string {
   return crypto.randomBytes(16).toString('hex');
 }
 
+// OWASP recommendation for PBKDF2-HMAC-SHA512 is 210,000 iterations
+const PBKDF2_ITERATIONS = 210_000;
+const PBKDF2_LEGACY_ITERATIONS = 10_000; // Previous iteration count for backward-compat verification
+
 /**
- * Hash password using PBKDF2 with SHA-512
+ * Hash password using PBKDF2 with SHA-512 (210,000 iterations per OWASP recommendations for SHA-512)
  */
 export function hashPassword(password: string, salt: string): string {
-  return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 64, 'sha512').toString('hex');
 }
 
 /**
- * Secure constant-time password verification
+ * Secure constant-time password verification returning validation and rehash migration status.
+ */
+export function verifyPasswordResult(password: string, salt: string, expectedHash: string): { valid: boolean; needsRehash: boolean } {
+  try {
+    // 1. Current iteration count (210,000 iterations for SHA-512)
+    const hash = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 64, 'sha512').toString('hex');
+    if (hash.length === expectedHash.length && crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(expectedHash, 'hex'))) {
+      return { valid: true, needsRehash: false };
+    }
+
+    // 2. Previously upgraded 600,000 iteration hashes
+    const hash600k = crypto.pbkdf2Sync(password, salt, 600_000, 64, 'sha512').toString('hex');
+    if (hash600k.length === expectedHash.length && crypto.timingSafeEqual(Buffer.from(hash600k, 'hex'), Buffer.from(expectedHash, 'hex'))) {
+      return { valid: true, needsRehash: false };
+    }
+
+    // 3. Fall back to legacy 10,000 iteration count for existing accounts (triggers transparent upgrade)
+    const legacyHash = crypto.pbkdf2Sync(password, salt, PBKDF2_LEGACY_ITERATIONS, 64, 'sha512').toString('hex');
+    if (legacyHash.length === expectedHash.length && crypto.timingSafeEqual(Buffer.from(legacyHash, 'hex'), Buffer.from(expectedHash, 'hex'))) {
+      return { valid: true, needsRehash: true };
+    }
+
+    return { valid: false, needsRehash: false };
+  } catch {
+    return { valid: false, needsRehash: false };
+  }
+}
+
+/**
+ * Secure constant-time password verification (boolean helper).
  */
 export function verifyPassword(password: string, salt: string, expectedHash: string): boolean {
+  return verifyPasswordResult(password, salt, expectedHash).valid;
+}
+
+/**
+ * Transparently upgrade user's legacy password hash to modern iteration count upon successful login.
+ */
+export async function upgradePasswordHash(email: string, password: string): Promise<boolean> {
   try {
-    const hash = hashPassword(password, salt);
-    return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(expectedHash, 'hex'));
-  } catch {
+    const cleanEmail = email.trim().toLowerCase();
+    const newSalt = generateSalt();
+    const newHash = hashPassword(password, newSalt);
+
+    // Update in-memory store
+    for (const u of inMemoryStore.users.values()) {
+      if (u.email.toLowerCase() === cleanEmail) {
+        u.salt = newSalt;
+        u.passwordHash = newHash;
+      }
+    }
+
+    // Update MongoDB
+    const col = await getCollection<UserProfile>('users');
+    if (col) {
+      await col.updateOne(
+        { email: cleanEmail },
+        { $set: { salt: newSalt, passwordHash: newHash, lastPasswordUpgradeAt: new Date().toISOString() } }
+      );
+    }
+    return true;
+  } catch (err) {
+    console.warn('upgradePasswordHash notice:', err);
     return false;
   }
 }
@@ -66,9 +126,8 @@ export async function findUserByEmail(email: string): Promise<UserProfile | null
   try {
     const col = await getCollection<UserProfile>('users');
     if (col) {
-      // Escape special regex characters in user input to prevent ReDoS
-      const escapedEmail = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const doc = await col.findOne({ email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') } });
+      // Direct equality check - email is already normalized to lowercase
+      const doc = await col.findOne({ email: normalized });
       if (doc) {
         const sanitized = sanitizeFounderIntegrity(doc);
         inMemoryStore.users.set(sanitized.uid || sanitized.id, sanitized);
