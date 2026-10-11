@@ -17,12 +17,12 @@ Successfully removed the "Redeem Voucher Code" button and added profile picture 
 - ✅ Profile photo display with fallback to avatar initials
 - ✅ Camera icon button overlay (only visible to the profile owner)
 - ✅ File input with image validation
-- ✅ Firebase Storage integration for photo storage
-- ✅ Firebase Auth profile update
-- ✅ Database sync via API
+- ✅ Seamless client-side HTML5 Canvas image optimization & compression (400x400 square)
+- ✅ Zero-dependency storage (persists to MongoDB & active user session)
+- ✅ Immediate reactive UI update without hard page refresh
+- ✅ Database sync via authenticated `/api/auth/me` PATCH endpoint
 - ✅ Loading spinner during upload
 - ✅ Hover effect on upload button
-- ✅ Auto page refresh after successful upload
 
 **Validation Rules**:
 - Only image files accepted (`image/*`)
@@ -32,13 +32,12 @@ Successfully removed the "Redeem Voucher Code" button and added profile picture 
 **Upload Flow**:
 1. User clicks camera icon on their profile picture
 2. File picker opens (filtered to images only)
-3. File is validated (type and size)
-4. Image uploaded to Firebase Storage at `profile-photos/{userId}/{timestamp}.{ext}`
-5. Download URL retrieved
-6. Firebase Auth profile updated with `photoURL`
-7. Database updated via `/api/auth/me` PATCH endpoint
-8. Success toast shown
-9. Page refreshes to display new photo
+3. File is validated (type and size <= 5MB)
+4. Image is processed and compressed via HTML5 `<canvas>` to a 400×400 square JPEG data URL (~25-40KB)
+5. Updated via authenticated `/api/auth/me` PATCH endpoint with session cookie & Bearer token
+6. User profile in MongoDB and in-memory store updated
+7. React state in `DashboardContext` updates instantly (Profile Panel, Topbar, Employee list)
+8. Success toast shown: "Profile photo updated successfully"
 
 ### 3. Added API Endpoint for Profile Updates
 **File**: `app/api/auth/me/route.ts`

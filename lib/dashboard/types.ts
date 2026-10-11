@@ -106,6 +106,8 @@ export interface Employee {
   joinedAt?: string;
   invitedBy?: string | null;
   planTier?: 'standard';
+  photoURL?: string | null;
+  avatar?: string | null;
 }
 
 export interface Project {

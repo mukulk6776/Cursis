@@ -193,7 +193,22 @@ export default function Topbar() {
  style={{ cursor: 'pointer', position: 'relative' }}
  title={`${user.name} - Account Options`}
  >
+ {user.photoURL || user.avatar ? (
+ <img
+ src={(user.photoURL || user.avatar)!}
+ alt={user.name}
+ style={{
+ width: '32px',
+ height: '32px',
+ borderRadius: '50%',
+ objectFit: 'cover',
+ border: '1.5px solid var(--border-color)',
+ display: 'block',
+ }}
+ />
+ ) : (
  <div className="topbar-avatar" style={{ background: user.color }}>{user.initials}</div>
+ )}
 
  {userDropdownOpen && (
  <div

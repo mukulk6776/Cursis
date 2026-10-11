@@ -2,8 +2,54 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getAuth, updateProfile } from 'firebase/auth';
+import { getFirebaseAuth } from '@/lib/auth/firebase';
+import { updateProfile } from 'firebase/auth';
+
+const processAndCompressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.onload = (e) => {
+      const src = e.target?.result;
+      if (typeof src !== 'string') {
+        reject(new Error('Invalid image file'));
+        return;
+      }
+      const img = new Image();
+      img.onerror = () => reject(new Error('Failed to decode image'));
+      img.onload = () => {
+        try {
+          const maxDim = 400;
+          const minSide = Math.min(img.width, img.height);
+          const startX = (img.width - minSide) / 2;
+          const startY = (img.height - minSide) / 2;
+
+          const targetSize = Math.min(minSide, maxDim);
+          const canvas = document.createElement('canvas');
+          canvas.width = targetSize;
+          canvas.height = targetSize;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(src);
+            return;
+          }
+
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, startX, startY, minSide, minSide, 0, 0, targetSize, targetSize);
+
+          const compressed = canvas.toDataURL('image/jpeg', 0.88);
+          resolve(compressed);
+        } catch {
+          resolve(src);
+        }
+      };
+      img.src = src;
+    };
+    reader.readAsDataURL(file);
+  });
+};
 
 export default function ProfilePanel() {
  const {
@@ -17,6 +63,7 @@ export default function ProfilePanel() {
  removeEmployee,
  openModal,
  showToast,
+ updateUserPhoto,
  } = useDashboard();
 
  const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -28,7 +75,7 @@ export default function ProfilePanel() {
 
  // Validate file type
  if (!file.type.startsWith('image/')) {
- showToast('Please select an image file');
+ showToast('Please select an image file (PNG, JPG, WebP, GIF)');
  return;
  }
 
@@ -41,54 +88,24 @@ export default function ProfilePanel() {
  try {
  setUploadingPhoto(true);
 
- // Get Firebase services
- const auth = getAuth();
- const storage = getStorage();
- const currentUser = auth.currentUser;
+ // Process and compress image to crisp 400x400 avatar data URL
+ const compressedDataUrl = await processAndCompressImage(file);
 
- if (!currentUser) {
- showToast('Please sign in to upload a photo');
- return;
+ // Save via Cursis authenticated API & update context state immediately
+ await updateUserPhoto(compressedDataUrl);
+
+ // Best-effort sync with client Firebase Auth if active session exists
+ try {
+ const activeAuth = getFirebaseAuth();
+ if (activeAuth && activeAuth.currentUser) {
+ updateProfile(activeAuth.currentUser, { photoURL: compressedDataUrl }).catch(() => {});
  }
-
- // Create a unique filename
- const fileExtension = file.name.split('.').pop();
- const fileName = `profile-photos/${currentUser.uid}/${Date.now()}.${fileExtension}`;
- const storageRef = ref(storage, fileName);
-
- // Upload file
- await uploadBytes(storageRef, file);
-
- // Get download URL
- const downloadURL = await getDownloadURL(storageRef);
-
- // Update user profile in Firebase Auth
- await updateProfile(currentUser, {
- photoURL: downloadURL,
- });
-
- // Update user profile in database via API
- const response = await fetch('/api/auth/me', {
- method: 'PATCH',
- headers: {
- 'Content-Type': 'application/json',
- },
- body: JSON.stringify({
- photoURL: downloadURL,
- }),
- });
-
- if (!response.ok) {
- throw new Error('Failed to update profile');
- }
+ } catch {}
 
  showToast('Profile photo updated successfully');
-
- // Refresh the page to show new photo
- window.location.reload();
- } catch (error) {
+ } catch (error: any) {
  console.error('Error uploading photo:', error);
- showToast('Failed to upload photo. Please try again.');
+ showToast(error?.message || 'Failed to upload photo. Please try again.');
  } finally {
  setUploadingPhoto(false);
  if (fileInputRef.current) {
@@ -116,6 +133,8 @@ export default function ProfilePanel() {
  const activeTasks = empTasks.filter((t) => t.status !== 'completed');
  const doneTasks = empTasks.filter((t) => t.status === 'completed');
  const empProjects = projects.filter((p) => p.team.includes(emp.id));
+ const isCurrentUser = emp.id === user.id || (Boolean(emp.email && user.email) && emp.email?.toLowerCase() === user.email?.toLowerCase());
+ const displayPhoto = isCurrentUser ? (user.photoURL || emp.photoURL || emp.avatar) : (emp.photoURL || emp.avatar);
 
  return (
  <>
@@ -173,9 +192,9 @@ export default function ProfilePanel() {
  {/* Header Avatar & Info */}
  <div style={{ textAlign: 'center', marginBottom: 'var(--sp-5)' }}>
  <div style={{ position: 'relative', display: 'inline-block', marginBottom: 'var(--sp-3)' }}>
- {user.photoURL ? (
+ {displayPhoto ? (
  <img
- src={user.photoURL}
+ src={displayPhoto}
  alt={emp.name}
  style={{
  width: '80px',
@@ -196,7 +215,7 @@ export default function ProfilePanel() {
  )}
 
  {/* Upload button overlay (only for current user) */}
- {(emp.id === user.id || emp.email === user.email) && (
+ {isCurrentUser && (
  <>
  <input
  ref={fileInputRef}

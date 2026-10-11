@@ -272,6 +272,7 @@ interface DashboardContextType {
  getCompletedMeetings: () => Meeting[];
  updateOrgSettings: (updates: Partial<OrgSettings>) => void;
  toggleAgent: (id: string) => void;
+ updateUserPhoto: (photoURL: string) => Promise<boolean>;
  signOut: () => Promise<void>;
 }
 
@@ -698,6 +699,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                     joinedAt: u.createdAt ? u.createdAt.split('T')[0] : (u.joinedAt || new Date().toISOString().split('T')[0]),
                     invitedBy: u.invitedBy || null,
                     planTier: tier,
+                    photoURL: u.photoURL || u.avatar || null,
+                    avatar: u.photoURL || u.avatar || null,
                   };
                 });
 
@@ -952,6 +955,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               departmentId: targetIsFounder ? 'dept_leadership' : (prevEmp.departmentId === 'dept_leadership' ? 'dept_engineering' : (prevEmp.departmentId || 'dept_engineering')),
               workspaceRole: targetIsFounder ? 'owner' : (prevEmp.workspaceRole === 'owner' ? 'member' : (prevEmp.workspaceRole || 'member')),
               planTier: prevEmp.planTier || userPlanTier,
+              photoURL: activeUser.photoURL || null,
+              avatar: activeUser.photoURL || null,
             };
             return updated;
           } else {
@@ -973,6 +978,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 skills: userSkills,
                 joinedAt: new Date().toISOString().split('T')[0],
                 planTier: userPlanTier,
+                photoURL: activeUser.photoURL || null,
+                avatar: activeUser.photoURL || null,
               },
               ...cleanPrev,
             ];
@@ -1017,6 +1024,47 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('focus', handleFocus);
     };
   }, [activeWorkspaceId]);
+
+  const updateUserPhoto = async (photoURL: string): Promise<boolean> => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+      const res = await fetch('/api/auth/me', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ photoURL }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update profile photo');
+      }
+
+      const updatedUrl = data.photoURL || photoURL;
+
+      setUser((prev) => ({
+        ...prev,
+        avatar: updatedUrl,
+        photoURL: updatedUrl,
+      }));
+
+      setEmployees((prev) =>
+        prev.map((e) =>
+          e.id === user.id || (e.email && user.email && e.email.toLowerCase() === user.email.toLowerCase())
+            ? { ...e, avatar: updatedUrl, photoURL: updatedUrl }
+            : e
+        )
+      );
+
+      return true;
+    } catch (err: any) {
+      console.error('Update photo error:', err);
+      throw err;
+    }
+  };
 
  const handleSignOut = async () => {
  showToast('Signing out of workspace...');
@@ -3316,6 +3364,7 @@ teamSettings,
  getCompletedMeetings,
  updateOrgSettings,
  toggleAgent,
+ updateUserPhoto,
  signOut: handleSignOut,
  }}
  >
