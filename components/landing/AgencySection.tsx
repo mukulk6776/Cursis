@@ -94,10 +94,10 @@ export default function AgencySection() {
   return (
     <section className="lp-section" id="agency">
       <div className="lp-agency-section">
-        <div style={{ textAlign: 'left', marginBottom: '32px' }}>
+        <div className="lp-section-header" style={{ marginBottom: '40px' }}>
           <div className="lp-section-label">Solutions Studio</div>
           <h2 className="lp-section-title">Custom engineering for your team.</h2>
-          <p className="lp-section-subtitle" style={{ margin: '8px 0 0' }}>
+          <p className="lp-section-subtitle">
             Need custom integrations, automated workflows, or specialized features? Our team can build and deploy them directly into your workspace.
           </p>
         </div>
