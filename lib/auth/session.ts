@@ -99,6 +99,8 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
         const skills = isFounder ? ['Founder & CEO', 'Leadership', 'Strategy'] : (storedUser?.skills || ['General']);
         const planTier = storedUser?.planTier || 'standard';
 
+        const activePhoto = storedUser?.photoURL || verified.photoURL;
+
         // Auto-provision user in store if not present
         if (!inMemoryStore.users.has(uid)) {
           inMemoryStore.users.set(uid, {
@@ -106,7 +108,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
             uid,
             email,
             displayName,
-            photoURL: verified.photoURL,
+            photoURL: activePhoto,
             role,
             title,
             department,
@@ -128,7 +130,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
           displayName,
           role,
           workspaceId,
-          photoURL: verified.photoURL,
+          photoURL: activePhoto,
           title,
           department,
           skills,

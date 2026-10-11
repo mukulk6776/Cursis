@@ -1,5 +1,7 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
 import { updateUser } from '@/lib/db/users';
+import { createSessionToken } from '@/lib/auth/session';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   try {
@@ -58,9 +60,35 @@ export async function PATCH(request: Request) {
     // Update user in database
     await updateUser(auth.user.uid, { photoURL: sanitizedPhotoURL });
 
+    // Generate updated session token with the new photoURL
+    const updatedSessionToken = createSessionToken({
+      uid: auth.user.uid,
+      email: auth.user.email,
+      displayName: auth.user.displayName,
+      photoURL: sanitizedPhotoURL,
+      role: auth.user.role,
+      workspaceId: auth.user.workspaceId,
+      createdAt: Date.now(),
+    });
+
+    // Refresh HTTP-only session cookie so subsequent reloads retain photoURL
+    try {
+      const cookieStore = await cookies();
+      cookieStore.set('cursis_session', updatedSessionToken, {
+        maxAge: 60 * 60 * 24 * 7,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        sameSite: 'lax',
+      });
+    } catch (cookieErr) {
+      console.warn('Session cookie update notice:', cookieErr);
+    }
+
     return apiSuccess({
       message: sanitizedPhotoURL ? 'Profile photo updated successfully' : 'Profile photo removed successfully',
       photoURL: sanitizedPhotoURL || null,
+      token: updatedSessionToken,
     });
   } catch (error: any) {
     console.error('Update profile photo error:', error);

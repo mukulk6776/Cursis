@@ -888,16 +888,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const userDeptId = isFounder ? 'dept_leadership' : ('dept_' + userDept.toLowerCase().replace(/\s+/g, '_'));
         const userSkills = isFounder ? ['Strategy', 'Leadership', 'Architecture'] : (sessUser.skills || ['General']);
 
-        const userPlanTier = 'standard';
+        const userPlanTier = sessUser.planTier || 'standard';
+
+        const localCachedPhoto = typeof window !== 'undefined' ? localStorage.getItem(`cursis_user_photo_${sessUser.email}`) : null;
+        const resolvedPhotoURL = sessUser.photoURL || localCachedPhoto || null;
+        if (typeof window !== 'undefined' && resolvedPhotoURL && sessUser.email) {
+          try {
+            localStorage.setItem(`cursis_user_photo_${sessUser.email}`, resolvedPhotoURL);
+          } catch {}
+        }
+
         const activeUser: User = {
           id: sessUser.uid || 'u1',
           name: displayName,
           email: sessUser.email,
           initials,
           role: userRoleTitle,
-          avatar: sessUser.photoURL || null,
+          avatar: resolvedPhotoURL,
           color: isFounder ? '#0f4cff' : '#f59e0b',
-          photoURL: sessUser.photoURL,
+          photoURL: resolvedPhotoURL,
           planTier: userPlanTier,
           workspaceRole: userWorkspaceRole,
         };
@@ -1044,6 +1053,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
 
       const updatedUrl = data.photoURL || photoURL;
+
+      if (typeof window !== 'undefined') {
+        try {
+          if (data.token) {
+            localStorage.setItem('cursis_token', data.token);
+          }
+          if (user.email) {
+            localStorage.setItem(`cursis_user_photo_${user.email}`, updatedUrl);
+          }
+        } catch {}
+      }
 
       setUser((prev) => ({
         ...prev,

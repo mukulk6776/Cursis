@@ -340,11 +340,24 @@ export async function updateUserProfile(uid: string, updates: Partial<UserProfil
   };
 
   inMemoryStore.users.set(uid, updated);
+  if (existing.email) {
+    inMemoryStore.users.set(existing.email.toLowerCase(), updated);
+  }
+  if (existing.id && existing.id !== uid) {
+    inMemoryStore.users.set(existing.id, updated);
+  }
+  if (updated.uid && updated.uid !== uid) {
+    inMemoryStore.users.set(updated.uid, updated);
+  }
 
   try {
     const col = await getCollection<UserProfile>('users');
     if (col) {
-      await col.updateOne({ uid }, { $set: updated }, { upsert: true });
+      await col.updateOne(
+        { $or: [{ uid }, { id: uid }, { email: existing.email.toLowerCase() }] },
+        { $set: updated },
+        { upsert: true }
+      );
     }
   } catch (e) {
     console.warn('MongoDB updateUserProfile notice:', e);

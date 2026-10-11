@@ -17,8 +17,11 @@ export async function GET(request: Request) {
       return apiError('Unauthorized', 401);
     }
     const profile = await findUserByEmail(user.email);
+    const resolvedPhoto = profile?.photoURL || user.photoURL;
     const enrichedUser = {
       ...user,
+      photoURL: resolvedPhoto,
+      avatar: resolvedPhoto,
       workspaceId: profile?.activeWorkspaceId || profile?.workspaceIds?.[0] || user.workspaceId,
       title: profile?.title || user.title || 'Team Member',
       department: profile?.department || user.department || 'Engineering',
