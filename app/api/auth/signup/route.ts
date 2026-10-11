@@ -104,12 +104,15 @@ export async function POST(request: Request) {
     const token = createSessionToken(sessionPayload);
     const maxAgeSeconds = 60 * 60 * 24 * 7; // 7 days
 
+    const host = request.headers.get('host') || '';
+    const isCursisDomain = host.includes('cursis.in');
     const cookieOptions = {
       maxAge: maxAgeSeconds,
       httpOnly: true,  // ✅ SECURITY FIX: Prevent XSS access to session cookie
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'lax' as const,
+      ...(isCursisDomain ? { domain: '.cursis.in' } : {}),
     };
 
     try {

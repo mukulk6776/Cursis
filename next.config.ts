@@ -82,6 +82,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/__/auth/:path*',
+        destination: 'https://cursis-265b3.firebaseapp.com/__/auth/:path*',
+      },
+    ];
+  },
   async redirects() {
     return [
       {

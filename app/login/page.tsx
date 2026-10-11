@@ -44,7 +44,7 @@ export default function LoginPage() {
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get('redirect');
       if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-        return redirect.includes('?') ? `${redirect}&setup=true` : `${redirect}?setup=true`;
+        return redirect;
       }
     }
     return '/dashboard?setup=true';
@@ -62,7 +62,6 @@ export default function LoginPage() {
       if (authResult.idToken && authResult.idToken.startsWith('cursis_usr_')) {
         try {
           localStorage.setItem('cursis_token', authResult.idToken);
-          document.cookie = `cursis_session=${encodeURIComponent(authResult.idToken)}; path=/; max-age=604800; SameSite=Lax`;
           sessionStorage.setItem('cursis_show_workspace_setup', 'true');
           localStorage.setItem('cursis_show_workspace_setup', 'true');
         } catch {}
@@ -97,7 +96,6 @@ export default function LoginPage() {
 
       try {
         localStorage.setItem('cursis_token', token);
-        document.cookie = `cursis_session=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
         sessionStorage.setItem('cursis_show_workspace_setup', 'true');
         localStorage.setItem('cursis_show_workspace_setup', 'true');
       } catch {}

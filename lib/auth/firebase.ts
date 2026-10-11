@@ -8,6 +8,7 @@ import {
   GoogleAuthProvider,
   signOut,
   Auth,
+  onAuthStateChanged,
   type User as FirebaseUser,
 } from "firebase/auth";
 
@@ -217,9 +218,46 @@ export async function handleGoogleRedirectResult(): Promise<AuthResult | null> {
   const activeAuth = getFirebaseAuth();
   if (isFirebaseConfigured && activeAuth) {
     try {
-      const result = await getRedirectResult(activeAuth);
+      // 1. Try getRedirectResult first
+      const result = await getRedirectResult(activeAuth).catch((err) => {
+        console.warn("getRedirectResult notice:", err);
+        return null;
+      });
       if (result?.user) {
         const user = result.user;
+        const idToken = await user.getIdToken();
+        return {
+          uid: user.uid,
+          email: user.email || "google-user@cursis.ai",
+          displayName: user.displayName || "Google User",
+          idToken,
+          photoURL: user.photoURL,
+        };
+      }
+
+      // 2. Fallback: Check if activeAuth.currentUser is already populated
+      if (activeAuth.currentUser) {
+        const user = activeAuth.currentUser;
+        const idToken = await user.getIdToken();
+        return {
+          uid: user.uid,
+          email: user.email || "google-user@cursis.ai",
+          displayName: user.displayName || "Google User",
+          idToken,
+          photoURL: user.photoURL,
+        };
+      }
+
+      // 3. Fallback: Wait briefly for onAuthStateChanged in case credential hydration is in progress
+      const user = await new Promise<FirebaseUser | null>((resolve) => {
+        const unsubscribe = onAuthStateChanged(activeAuth, (u) => {
+          unsubscribe();
+          resolve(u);
+        });
+        setTimeout(() => resolve(null), 1000);
+      });
+
+      if (user) {
         const idToken = await user.getIdToken();
         return {
           uid: user.uid,

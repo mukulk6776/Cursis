@@ -133,12 +133,15 @@ export async function POST(request: Request) {
       planTier: existing?.planTier || 'standard',
     }).catch(() => {});
 
+    const host = request.headers.get('host') || '';
+    const isCursisDomain = host.includes('cursis.in');
     const cookieOptions = {
       maxAge: maxAgeSeconds,
       httpOnly: true,  // ✅ SECURITY FIX: Prevent XSS access to session cookie
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'lax' as const,
+      ...(isCursisDomain ? { domain: '.cursis.in' } : {}),
     };
 
     try {
@@ -160,15 +163,23 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  const host = request?.headers?.get('host') || '';
+  const isCursisDomain = host.includes('cursis.in');
+  const deleteCookieOptions = {
+    maxAge: 0,
+    path: '/',
+    expires: new Date(0),
+    ...(isCursisDomain ? { domain: '.cursis.in' } : {}),
+  };
   try {
     const cookieStore = await cookies();
     cookieStore.delete('cursis_session');
-    cookieStore.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
+    cookieStore.set('cursis_session', '', deleteCookieOptions);
   } catch {}
 
   const response = apiSuccess({ message: 'Session terminated successfully' });
   response.cookies.delete('cursis_session');
-  response.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
+  response.cookies.set('cursis_session', '', deleteCookieOptions);
   return response;
 }
