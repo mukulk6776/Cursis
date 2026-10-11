@@ -2341,7 +2341,17 @@ body.lp-body,
 .lp-creators-card {
   padding: 28px;
 }
+.lp-card-subhead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
 .lp-card-tag-tano {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: 'Inter Tight', sans-serif;
   font-size: 13px;
   font-weight: 900;
@@ -2352,6 +2362,7 @@ body.lp-body,
   border-radius: 9999px;
   box-shadow: 2px 2px 0 0 #0A0A0A;
   padding: 4px 12px;
+  line-height: 1.2;
 }
 .lp-card-hint {
   font-size: 12px;
