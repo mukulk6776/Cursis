@@ -270,3 +270,69 @@ export async function cleanupOldRateLimits(): Promise<void> {
     console.error('Cleanup rate limits error:', error);
   }
 }
+
+/**
+ * Link preview specific rate limiting (20 requests per minute per user)
+ */
+interface LinkPreviewRateLimitEntry {
+  userId: string;
+  count: number;
+  windowStart: Date;
+}
+
+const LINK_PREVIEW_WINDOW = 60 * 1000; // 1 minute
+const LINK_PREVIEW_MAX_REQUESTS = 20;
+
+const inMemoryLinkPreviewLimits = new Map<string, { count: number; windowStart: number }>();
+
+export async function checkLinkPreviewRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number }> {
+  try {
+    const rateLimits = await getCollection<LinkPreviewRateLimitEntry>('link_preview_rate_limits');
+    if (!rateLimits) {
+      // In-memory fallback
+      const now = Date.now();
+      const entry = inMemoryLinkPreviewLimits.get(userId);
+
+      if (!entry || now - entry.windowStart > LINK_PREVIEW_WINDOW) {
+        inMemoryLinkPreviewLimits.set(userId, { count: 1, windowStart: now });
+        return { allowed: true, remaining: LINK_PREVIEW_MAX_REQUESTS - 1 };
+      }
+
+      if (entry.count >= LINK_PREVIEW_MAX_REQUESTS) {
+        return { allowed: false, remaining: 0 };
+      }
+
+      entry.count++;
+      return { allowed: true, remaining: LINK_PREVIEW_MAX_REQUESTS - entry.count };
+    }
+
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - LINK_PREVIEW_WINDOW);
+
+    const entry = await rateLimits.findOne({ userId });
+
+    if (!entry || entry.windowStart < windowStart) {
+      await rateLimits.updateOne(
+        { userId },
+        { $set: { count: 1, windowStart: now } },
+        { upsert: true }
+      );
+      return { allowed: true, remaining: LINK_PREVIEW_MAX_REQUESTS - 1 };
+    }
+
+    if (entry.count >= LINK_PREVIEW_MAX_REQUESTS) {
+      return { allowed: false, remaining: 0 };
+    }
+
+    await rateLimits.updateOne(
+      { userId },
+      { $inc: { count: 1 } }
+    );
+
+    return { allowed: true, remaining: LINK_PREVIEW_MAX_REQUESTS - entry.count - 1 };
+  } catch (error) {
+    console.error('Link preview rate limit check error:', error);
+    // Fail open for link previews (non-critical feature)
+    return { allowed: true, remaining: LINK_PREVIEW_MAX_REQUESTS };
+  }
+}

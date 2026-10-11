@@ -56,3 +56,9 @@ test_*.mjs
 *.pdf
 cursis_explanation.html
 Screenshot*.png
+
+# ads & motion graphics
+ads/
+cursis_motion_ad.html
+remotion/
+scratch/

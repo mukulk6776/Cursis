@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { MsgChannel, DirectMessage, TeamMessage } from '@/lib/dashboard/types';
+import LinkPreviewCard from '@/components/dashboard/LinkPreviewCard';
+import { detectFirstUrl, isUrlSafeForPreview } from '@/lib/link-preview/url-detector';
 
 export default function MessagesPage() {
  const {
@@ -108,16 +110,61 @@ export default function MessagesPage() {
  };
  };
 
+ const fetchLinkPreview = async (url: string, messageId: string) => {
+ try {
+ const response = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+ const data = await response.json();
+
+ if (response.ok && data.success) {
+ // Update the message with the preview data
+ setChannelMessages((prev) => ({
+ ...prev,
+ [activeChannelId]: (prev[activeChannelId] || []).map((m) =>
+ m.id === messageId
+ ? { ...m, linkPreview: data.data, linkPreviewLoading: false }
+ : m
+ ),
+ }));
+ } else {
+ // Remove loading state on error
+ setChannelMessages((prev) => ({
+ ...prev,
+ [activeChannelId]: (prev[activeChannelId] || []).map((m) =>
+ m.id === messageId
+ ? { ...m, linkPreview: null, linkPreviewLoading: false }
+ : m
+ ),
+ }));
+ }
+ } catch (error) {
+ console.error('Failed to fetch link preview:', error);
+ // Remove loading state on error
+ setChannelMessages((prev) => ({
+ ...prev,
+ [activeChannelId]: (prev[activeChannelId] || []).map((m) =>
+ m.id === messageId
+ ? { ...m, linkPreview: null, linkPreviewLoading: false }
+ : m
+ ),
+ }));
+ }
+ };
+
  const handleSendMessage = () => {
  if (!composeText.trim()) return;
+
+ const messageText = composeText.trim();
+ const detectedUrl = detectFirstUrl(messageText);
 
  const newMsg: TeamMessage = {
  id: 'msg_' + Date.now(),
  user: user.id || 'u1',
- text: composeText.trim(),
+ text: messageText,
  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
  threads: [],
  attachments: [],
+ linkPreview: null,
+ linkPreviewLoading: detectedUrl && isUrlSafeForPreview(detectedUrl) ? true : false,
  };
 
  setChannelMessages((prev) => ({
@@ -127,6 +174,11 @@ export default function MessagesPage() {
 
  setComposeText('');
  showToast('Message sent');
+
+ // Fetch link preview if URL detected
+ if (detectedUrl && isUrlSafeForPreview(detectedUrl)) {
+ fetchLinkPreview(detectedUrl, newMsg.id);
+ }
  };
 
  const handleSendThreadReply = (parentMsgId: string) => {
@@ -543,6 +595,24 @@ export default function MessagesPage() {
  >
  {msg.text}
  </div>
+
+ {/* Link Preview */}
+ {msg.linkPreviewLoading && (
+ <LinkPreviewCard
+ preview={{
+ url: '',
+ title: '',
+ description: '',
+ image: null,
+ siteName: '',
+ favicon: null,
+ }}
+ loading={true}
+ />
+ )}
+ {msg.linkPreview && !msg.linkPreviewLoading && (
+ <LinkPreviewCard preview={msg.linkPreview} />
+ )}
 
  {/* Actionable Task Candidate Banner */}
  {msg.isTaskCandidate && msg.proposedTask && (

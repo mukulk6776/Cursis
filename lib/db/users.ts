@@ -352,3 +352,10 @@ export async function updateUserProfile(uid: string, updates: Partial<UserProfil
 
   return updated;
 }
+
+/**
+ * Update specific user fields (alias for updateUserProfile)
+ */
+export async function updateUser(uid: string, updates: Partial<UserProfile>): Promise<UserProfile | null> {
+  return updateUserProfile(uid, updates);
+}

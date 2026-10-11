@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getAuth, updateProfile } from 'firebase/auth';
 
 export default function ProfilePanel() {
  const {
@@ -14,7 +16,86 @@ export default function ProfilePanel() {
  signOut,
  removeEmployee,
  openModal,
+ showToast,
  } = useDashboard();
+
+ const [uploadingPhoto, setUploadingPhoto] = useState(false);
+ const fileInputRef = useRef<HTMLInputElement>(null);
+
+ const handleProfilePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+ const file = event.target.files?.[0];
+ if (!file) return;
+
+ // Validate file type
+ if (!file.type.startsWith('image/')) {
+ showToast('Please select an image file');
+ return;
+ }
+
+ // Validate file size (max 5MB)
+ if (file.size > 5 * 1024 * 1024) {
+ showToast('Image size must be less than 5MB');
+ return;
+ }
+
+ try {
+ setUploadingPhoto(true);
+
+ // Get Firebase services
+ const auth = getAuth();
+ const storage = getStorage();
+ const currentUser = auth.currentUser;
+
+ if (!currentUser) {
+ showToast('Please sign in to upload a photo');
+ return;
+ }
+
+ // Create a unique filename
+ const fileExtension = file.name.split('.').pop();
+ const fileName = `profile-photos/${currentUser.uid}/${Date.now()}.${fileExtension}`;
+ const storageRef = ref(storage, fileName);
+
+ // Upload file
+ await uploadBytes(storageRef, file);
+
+ // Get download URL
+ const downloadURL = await getDownloadURL(storageRef);
+
+ // Update user profile in Firebase Auth
+ await updateProfile(currentUser, {
+ photoURL: downloadURL,
+ });
+
+ // Update user profile in database via API
+ const response = await fetch('/api/auth/me', {
+ method: 'PATCH',
+ headers: {
+ 'Content-Type': 'application/json',
+ },
+ body: JSON.stringify({
+ photoURL: downloadURL,
+ }),
+ });
+
+ if (!response.ok) {
+ throw new Error('Failed to update profile');
+ }
+
+ showToast('Profile photo updated successfully');
+
+ // Refresh the page to show new photo
+ window.location.reload();
+ } catch (error) {
+ console.error('Error uploading photo:', error);
+ showToast('Failed to upload photo. Please try again.');
+ } finally {
+ setUploadingPhoto(false);
+ if (fileInputRef.current) {
+ fileInputRef.current.value = '';
+ }
+ }
+ };
 
  useEffect(() => {
  const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,11 +172,89 @@ export default function ProfilePanel() {
  <div className="profile-panel-body">
  {/* Header Avatar & Info */}
  <div style={{ textAlign: 'center', marginBottom: 'var(--sp-5)' }}>
+ <div style={{ position: 'relative', display: 'inline-block', marginBottom: 'var(--sp-3)' }}>
+ {user.photoURL ? (
+ <img
+ src={user.photoURL}
+ alt={emp.name}
+ style={{
+ width: '80px',
+ height: '80px',
+ borderRadius: '50%',
+ objectFit: 'cover',
+ border: '3px solid var(--c-white)',
+ boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+ }}
+ />
+ ) : (
  <div
  className="avatar avatar-2xl"
- style={{ background: emp.color, margin: '0 auto var(--sp-3)' }}
+ style={{ background: emp.color }}
  >
  {emp.initials}
+ </div>
+ )}
+
+ {/* Upload button overlay (only for current user) */}
+ {(emp.id === user.id || emp.email === user.email) && (
+ <>
+ <input
+ ref={fileInputRef}
+ type="file"
+ accept="image/*"
+ onChange={handleProfilePhotoUpload}
+ style={{ display: 'none' }}
+ />
+ <button
+ onClick={() => fileInputRef.current?.click()}
+ disabled={uploadingPhoto}
+ style={{
+ position: 'absolute',
+ bottom: '0',
+ right: '0',
+ width: '32px',
+ height: '32px',
+ borderRadius: '50%',
+ background: 'var(--c-primary)',
+ color: 'white',
+ border: '2px solid var(--c-white)',
+ cursor: uploadingPhoto ? 'not-allowed' : 'pointer',
+ display: 'flex',
+ alignItems: 'center',
+ justifyContent: 'center',
+ boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+ transition: 'transform 0.2s ease',
+ }}
+ onMouseEnter={(e) => {
+ if (!uploadingPhoto) {
+ e.currentTarget.style.transform = 'scale(1.1)';
+ }
+ }}
+ onMouseLeave={(e) => {
+ e.currentTarget.style.transform = 'scale(1)';
+ }}
+ title="Upload profile photo"
+ >
+ {uploadingPhoto ? (
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+ <circle cx="12" cy="12" r="10" strokeOpacity="0.3" />
+ <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+ </svg>
+ ) : (
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+ <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+ <circle cx="12" cy="13" r="4" />
+ </svg>
+ )}
+ </button>
+ <style>{`
+ @keyframes spin {
+ from { transform: rotate(0deg); }
+ to { transform: rotate(360deg); }
+ }
+ `}</style>
+ </>
+ )}
  </div>
  <h3 style={{ margin: 0 }}>{emp.name}</h3>
  <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-sm)', marginTop: '4px' }}>

@@ -301,6 +301,15 @@ export interface TeamMessage {
     deadline: string;
   };
   isVoiceNote?: boolean;
+  linkPreview?: {
+    url: string;
+    title: string;
+    description: string;
+    image: string | null;
+    siteName: string;
+    favicon: string | null;
+  } | null;
+  linkPreviewLoading?: boolean;
 }
 
 // ---- Documents & Paperwork Engine Types ----
