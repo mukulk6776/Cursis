@@ -32,6 +32,10 @@ export default function ToastContainer() {
 
   return (
     <div
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+      aria-atomic="true"
       style={{
         position: 'fixed',
         bottom: '24px',
@@ -54,6 +58,7 @@ export default function ToastContainer() {
           return (
             <motion.div
               key={t.id}
+              role={toastType === 'error' ? 'alert' : 'status'}
               layout
               initial={{ opacity: 0, x: -40, scale: 0.92 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}

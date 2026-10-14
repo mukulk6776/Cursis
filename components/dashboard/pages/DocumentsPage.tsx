@@ -19,6 +19,18 @@ const DOCUMENT_CATEGORIES = [
   { id: 'design', label: 'Design & Creative' },
 ];
 
+function parseBytes(sizeStr?: string): number {
+  if (!sizeStr) return 0;
+  const match = sizeStr.trim().match(/^([\d.]+)\s*(b|kb|mb|gb)?/i);
+  if (!match) return 0;
+  const val = parseFloat(match[1]) || 0;
+  const unit = (match[2] || 'kb').toLowerCase();
+  if (unit === 'b') return val;
+  if (unit === 'mb') return val * 1024 * 1024;
+  if (unit === 'gb') return val * 1024 * 1024 * 1024;
+  return val * 1024;
+}
+
 export default function DocumentsPage() {
   const {
     documents,
@@ -26,6 +38,7 @@ export default function DocumentsPage() {
     updateDocument,
     deleteDocument,
     user,
+    activeWorkspace,
     showToast,
     addAuditEntry,
   } = useDashboard();
@@ -60,7 +73,7 @@ export default function DocumentsPage() {
   const [editTags, setEditTags] = useState('');
   const [editContent, setEditContent] = useState('');
 
-  // Role-Based Access Control (RBAC): Only Workspace Owners can add and remove documents
+  // Role-Based Access Control (RBAC): Workspace Owners, Admins, and Managers have management permissions
   const isOwner =
     isFounderEmail(user.email) ||
     user.workspaceRole === 'owner' ||
@@ -69,20 +82,34 @@ export default function DocumentsPage() {
     user.role?.toLowerCase().includes('ceo') ||
     user.id === 'u_owner';
 
+  const isAdmin =
+    isOwner ||
+    user.workspaceRole === 'admin' ||
+    user.role?.toLowerCase().includes('admin') ||
+    user.role?.toLowerCase().includes('manager');
+
   const role = isOwner ? 'owner' : (user.workspaceRole || 'member');
-  const canManage = isOwner;
-  const canAdd = isOwner;
-  const canDelete = isOwner;
+  const canManage = isOwner || isAdmin;
+  const canAdd = isOwner || isAdmin;
+  const canDelete = isOwner || isAdmin;
 
   // File Upload Handler with Validation Rules
   const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCreateFileError('');
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setCreateFileName('');
+      setCreateFileType('');
+      setCreateFileSize('');
+      return;
+    }
 
     // 1. File Size Validation (<= 5MB)
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setCreateFileError(`File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum limit of 5MB.`);
+      setCreateFileName('');
+      setCreateFileType('');
+      setCreateFileSize('');
       return;
     }
 
@@ -90,6 +117,9 @@ export default function DocumentsPage() {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
       setCreateFileError(`.${ext} is not supported. Allowed extensions: ${ALLOWED_EXTENSIONS.join(', ')}`);
+      setCreateFileName('');
+      setCreateFileType('');
+      setCreateFileSize('');
       return;
     }
 
@@ -108,7 +138,12 @@ export default function DocumentsPage() {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canAdd) {
-      showToast('Permission Denied: Only Workspace Owners have permission to add documents.');
+      showToast('Permission Denied: Only Workspace Owners and Admins have permission to add documents.');
+      return;
+    }
+
+    if (createFileError) {
+      showToast('Please fix file errors before publishing.');
       return;
     }
 
@@ -126,21 +161,26 @@ export default function DocumentsPage() {
       ? createCategory as 'proposal' | 'knowledge' | 'contract' | 'design' | 'hr' | 'technical' | 'generated'
       : 'knowledge';
 
+    const hasAttachment = Boolean(createFileName);
+    const calculatedSize = hasAttachment
+      ? (createFileSize || '0 KB')
+      : (createContent.trim().length > 0 ? `${Math.round(createContent.trim().length / 1024) || 1} KB` : '0 KB');
+    const calculatedType = hasAttachment
+      ? (createFileType || 'txt')
+      : (createContent.trim() ? 'md' : 'txt');
+
     addDocument({
       name: createTitle.trim(),
       type: validType,
-      size: createFileSize || '840 KB',
+      size: calculatedSize,
       author: user.name,
-      project: 'p1',
+      project: activeWorkspace?.id || 'ws_default',
       tags: parsedTags.length > 0 ? parsedTags : [createCategory, 'Workspace'],
-      aiSummary: createDescription.trim() || 'Internal document uploaded to workspace repository.',
-      keyClauses: createContent.trim() ? createContent.split('\n').filter(Boolean) : [
-        'Governance & compliance verified',
-        'Standard operational clauses active',
-      ],
-      esignStatus: validType === 'contract' ? 'pending' : null,
-      fileType: createFileType || 'pdf',
-      fileSize: createFileSize || '840 KB',
+      aiSummary: createDescription.trim() || 'Internal document record in workspace repository.',
+      keyClauses: createContent.trim() ? createContent.split('\n').map((s) => s.trim()).filter(Boolean) : [],
+      esignStatus: null,
+      fileType: calculatedType,
+      fileSize: calculatedSize,
       category: createCategory,
       content: createContent,
       updated: new Date().toLocaleDateString(),
@@ -200,10 +240,45 @@ export default function DocumentsPage() {
     setEditingDoc(null);
   };
 
+  const handleDownloadDocument = (doc: DocumentItem) => {
+    try {
+      if (doc.fileUrl && doc.fileUrl.startsWith('http')) {
+        const link = document.createElement('a');
+        link.href = doc.fileUrl;
+        link.download = doc.name || 'document';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        const content = doc.content || `${doc.name}\n\nSummary:\n${doc.aiSummary || ''}\n\nKey Specifications:\n${(doc.keyClauses || []).join('\n')}`;
+        const rawExt = (doc.fileType || 'txt').toLowerCase();
+        // Fallback downloads contain text content; do not append binary extensions like .pdf/.docx
+        const isBinaryExt = ['pdf', 'docx', 'xlsx', 'pptx', 'zip', 'png', 'jpg', 'jpeg'].includes(rawExt);
+        const ext = isBinaryExt ? 'txt' : (rawExt === 'json' ? 'json' : rawExt === 'csv' ? 'csv' : rawExt === 'md' ? 'md' : 'txt');
+        const mimeType = ext === 'json' ? 'application/json' : ext === 'csv' ? 'text/csv' : ext === 'md' ? 'text/markdown' : 'text/plain';
+        const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const baseName = doc.name.replace(/\.[^/.]+$/, '');
+        link.download = `${baseName}.${ext}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+      showToast(`Downloaded "${doc.name}"`);
+      addAuditEntry(user.name, 'document.downloaded', doc.name, 'Downloaded file');
+    } catch (e: any) {
+      showToast('Failed to download document: ' + (e.message || 'Unknown error'));
+    }
+  };
+
   const handleDeleteConfirm = () => {
     if (!deletingDoc) return;
     if (!canDelete) {
-      showToast('Permission Denied: Only Workspace Owners have permission to delete documents.');
+      showToast('Permission Denied: Only Workspace Owners and Admins have permission to delete documents.');
       return;
     }
     deleteDocument(deletingDoc.id);
@@ -242,7 +317,7 @@ export default function DocumentsPage() {
           return dateA - dateB;
         }
         if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
-        if (sortBy === 'size_desc') return (parseFloat(b.size || '0') || 0) - (parseFloat(a.size || '0') || 0);
+        if (sortBy === 'size_desc') return parseBytes(b.fileSize || b.size) - parseBytes(a.fileSize || a.size);
         return 0;
       });
   }, [documents, activeCategory, searchQuery, sortBy]);
@@ -545,18 +620,24 @@ export default function DocumentsPage() {
                   </span>
                 </div>
 
-                <h3
-                  style={{
-                    fontSize: 'var(--fs-sm)',
-                    fontWeight: 800,
-                    margin: '0 0 6px 0',
-                    lineHeight: 1.4,
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => setPreviewDoc(doc)}
-                >
-                  {doc.name}
+                <h3 style={{ margin: '0 0 6px 0', lineHeight: 1.4 }}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDoc(doc)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      font: 'inherit',
+                      fontSize: 'var(--fs-sm)',
+                      fontWeight: 800,
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                  >
+                    {doc.name}
+                  </button>
                 </h3>
 
                 <p
@@ -619,6 +700,15 @@ export default function DocumentsPage() {
                   >
                     View
                   </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    style={{ fontSize: '11px', padding: '3px 8px' }}
+                    onClick={() => handleDownloadDocument(doc)}
+                    title="Download Document"
+                  >
+                    Download
+                  </button>
                   {canManage && (
                     <button
                       type="button"
@@ -669,12 +759,13 @@ export default function DocumentsPage() {
                   className="table-row-hover"
                 >
                   <td style={{ padding: '10px 14px', fontWeight: 700 }}>
-                    <div
-                      style={{ cursor: 'pointer', color: '#0f4cff' }}
+                    <button
+                      type="button"
+                      style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontWeight: 700, cursor: 'pointer', color: '#0f4cff', textAlign: 'left' }}
                       onClick={() => setPreviewDoc(doc)}
                     >
                       {doc.name}
-                    </div>
+                    </button>
                     {doc.tags && doc.tags.length > 0 && (
                       <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                         {doc.tags.join(', ')}
@@ -703,6 +794,15 @@ export default function DocumentsPage() {
                         onClick={() => setPreviewDoc(doc)}
                       >
                         Preview
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: '11px', padding: '2px 8px' }}
+                        onClick={() => handleDownloadDocument(doc)}
+                        title="Download Document"
+                      >
+                        Download
                       </button>
                       {canManage && (
                         <button
@@ -892,10 +992,7 @@ export default function DocumentsPage() {
                   <button
                     type="button"
                     className="btn btn-primary btn-sm"
-                    onClick={() => {
-                      showToast(`Downloaded "${previewDoc.name}" (${previewDoc.size})`);
-                      addAuditEntry(user.name, 'document.downloaded', previewDoc.name, 'Downloaded file');
-                    }}
+                    onClick={() => handleDownloadDocument(previewDoc)}
                   >
                     Download Document
                   </button>

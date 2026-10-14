@@ -1,5 +1,6 @@
 import { eventBus, CursisEvent } from '@/lib/realtime/event-bus';
 import { getAuthenticatedUser } from '@/lib/auth/session';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -23,8 +24,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const workspaceId = searchParams.get('workspaceId');
 
-  if (!workspaceId) {
-    return new Response('Missing workspaceId parameter', { status: 400 });
+  if (!workspaceId || workspaceId === '*' || workspaceId.includes('*')) {
+    return new Response('Invalid or missing workspaceId parameter', { status: 400 });
+  }
+
+  // Enforce workspace tenant access
+  const wsAuth = await authorizeWorkspaceAccess(request, workspaceId);
+  if (wsAuth.errorResponse) {
+    return new Response('Forbidden', { status: 403 });
   }
 
   // Check for reconnection: send missed events
@@ -53,7 +60,11 @@ export async function GET(request: Request) {
         let foundLastEvent = false;
         for (const evt of missedEvents.reverse()) {
           if (foundLastEvent) {
-            controller.enqueue(encoder.encode(formatSSE(evt)));
+            const targetUid = evt.payload?.userId || evt.payload?.uid;
+            const targetEmail = evt.payload?.userEmail || evt.payload?.email;
+            if ((!targetUid || targetUid === authUser.uid) && (!targetEmail || targetEmail.toLowerCase() === authUser.email.toLowerCase())) {
+              controller.enqueue(encoder.encode(formatSSE(evt)));
+            }
           }
           if (evt.id === lastEventId) {
             foundLastEvent = true;
@@ -64,6 +75,10 @@ export async function GET(request: Request) {
       // Subscribe to workspace events
       const subscriptionId = eventBus.subscribe(workspaceId, '*', (event) => {
         try {
+          const targetUid = event.payload?.userId || event.payload?.uid;
+          const targetEmail = event.payload?.userEmail || event.payload?.email;
+          if (targetUid && targetUid !== authUser.uid) return;
+          if (targetEmail && targetEmail.toLowerCase() !== authUser.email.toLowerCase()) return;
           controller.enqueue(encoder.encode(formatSSE(event)));
         } catch {
           // Client disconnected

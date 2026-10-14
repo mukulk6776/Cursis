@@ -13,3 +13,12 @@ Disallow: /admin/
 
 # Crawl-delay (optional, for aggressive bots)
 Crawl-delay: 1
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /

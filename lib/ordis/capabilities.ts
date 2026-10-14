@@ -55,7 +55,8 @@ export const capabilities: Record<string, Capability> = {
   search_workspace: capability('search', 'GET', 'home', 'Search workspace using q.', ['q']),
 };
 
-export const pages: DashboardPageType[] = ['home', 'ordis', 'tasks', 'projects', 'team', 'departments', 'calendar', 'meetings', 'analytics', 'workspace', 'automations', 'documents', 'messages', 'integrations', 'settings'];
+export const pages: DashboardPageType[] = ['home', 'ordis', 'tasks', 'projects', 'team', 'departments', 'calendar', 'meetings', 'analytics', 'workspace', 'automations', 'documents', 'integrations', 'settings'];
+
 
 export function validateAction(operation: string, input: Record<string, unknown>): string | null {
   const spec = Object.hasOwn(capabilities, operation) ? capabilities[operation] : undefined;

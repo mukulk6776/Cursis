@@ -48,7 +48,7 @@ const jsonLd = {
   author: {
     '@type': 'Organization',
     name: 'Cursis Inc.',
-    location: 'Bengaluru, Karnataka, India',
+    location: 'Delhi, India',
   },
 };
 

@@ -13,9 +13,7 @@ import {
 import { isFounderEmail } from '@/lib/auth/founder';
 import { ensureWorkspaceExists } from './workspaces';
 import { getWorkspaceTeam } from './team';
-import { Resend } from 'resend';
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+import { sendWorkspaceInvitationEmail } from '@/lib/email/notifications';
 
 // In-memory fallback map for invitations
 export const inMemoryInvitations = new Map<string, WorkspaceInvitation>();
@@ -60,11 +58,13 @@ export async function isWorkspaceAdminOrOwner(workspaceId: string, user: ActingU
     }
   } catch {}
 
-  // Check user profile role
-  if (user.role === 'owner' || user.role === 'admin') {
+  // Check in-memory memberships
+  const memMem = inMemoryMemberships.get(`${workspaceId}_${user.uid}`);
+  if (memMem && (memMem.role === 'owner' || memMem.role === 'admin')) {
     return true;
   }
 
+  // Do not allow global user.role to bypass workspace-specific membership
   return false;
 }
 
@@ -300,32 +300,16 @@ export async function createTeamInvitation(params: {
   }
 
   // 9. Dispatch Email if Resend configured
-  if (resend) {
-    const host = reqHost || 'localhost:3000';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const inviteLink = `${protocol}://${host}/dashboard?invited=true`;
-
-    resend.emails
-      .send({
-        from: 'Cursis <onboarding@resend.dev>',
-        to: cleanInviteEmail,
-        subject: `You've been invited to join ${wsName} on Cursis`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-            <h2 style="color: #0f4cff;">You've been invited to ${wsName}!</h2>
-            <p>Hi ${registeredUser.displayName || 'there'},</p>
-            <p><strong>${inviterUser.displayName || 'Workspace Admin'}</strong> has invited you to join <strong>${wsName}</strong> as a <strong>${assignedRole === 'admin' ? 'Workspace Admin' : 'Team Member'}</strong>.</p>
-            <p>Open your Cursis dashboard to accept or decline the invitation:</p>
-            <div style="margin: 30px 0;">
-              <a href="${inviteLink}" style="background-color: #0f4cff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">View Invitation</a>
-            </div>
-            <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
-            <p style="font-size: 12px; color: #999;">If you were not expecting this invitation, you can safely ignore this email.</p>
-          </div>
-        `,
-      })
-      .catch((err) => console.warn('Resend email notice:', err?.message));
-  }
+  sendWorkspaceInvitationEmail({
+    to: cleanInviteEmail,
+    workspaceName: wsName,
+    recipientName: registeredUser.displayName,
+    inviterName: inviterUser.displayName,
+    assignedRole,
+    reqHost,
+  }).catch((err) => {
+    console.warn('Workspace invitation email dispatch exception:', err);
+  });
 
   return invitation;
 }
@@ -334,24 +318,24 @@ export async function createTeamInvitation(params: {
  * Gets all pending invitations for a given workspace (powers Pending Invites tab).
  */
 export async function getWorkspaceInvitations(workspaceId: string): Promise<WorkspaceInvitation[]> {
+  const nowIso = new Date().toISOString();
   try {
     const invCol = await getCollection<WorkspaceInvitation>('invitations');
     if (invCol) {
       const docs = await invCol
-        .find({ workspaceId, status: 'pending' })
+        .find({ workspaceId, status: 'pending', expiresAt: { $gt: nowIso } })
         .sort({ createdAt: -1 })
         .toArray();
-      if (docs.length > 0) {
-        docs.forEach((inv) => inMemoryInvitations.set(inv.id, inv));
-        return docs;
-      }
+      docs.forEach((inv) => inMemoryInvitations.set(inv.id, inv));
+      return docs;
     }
   } catch (e) {
     console.warn('MongoDB getWorkspaceInvitations notice:', e);
   }
 
+  const now = new Date();
   return Array.from(inMemoryInvitations.values()).filter(
-    (inv) => inv.workspaceId === workspaceId && inv.status === 'pending'
+    (inv) => inv.workspaceId === workspaceId && inv.status === 'pending' && new Date(inv.expiresAt) > now
   );
 }
 
@@ -412,45 +396,88 @@ export async function acceptWorkspaceInvitation(
   invitationId: string,
   actingUser: ActingUser
 ): Promise<{ success: boolean; workspaceId: string; role: UserRole }> {
+  const now = new Date().toISOString();
   let invitation: WorkspaceInvitation | null = null;
+  let mongoAvailable = false;
 
   try {
     const invCol = await getCollection<WorkspaceInvitation>('invitations');
     if (invCol) {
-      invitation = await invCol.findOne({ id: invitationId });
+      mongoAvailable = true;
+      const claimed = await invCol.findOneAndUpdate(
+        {
+          id: invitationId,
+          status: 'pending',
+          expiresAt: { $gt: now },
+        },
+        { $set: { status: 'accepted', respondedAt: now } },
+        { returnDocument: 'before' }
+      );
+      if (claimed) {
+        invitation = claimed;
+      }
     }
   } catch (e) {
-    console.warn('MongoDB find invitation error:', e);
+    console.warn('MongoDB atomic claim invitation error:', e);
+  }
+
+  // If MongoDB was available, an empty claim result is authoritative.
+  // Never fall back to stale in-memory invitation when MongoDB returned null.
+  if (!invitation && !mongoAvailable) {
+    const memInv = inMemoryInvitations.get(invitationId);
+    if (memInv) {
+      if (memInv.status !== 'pending' || new Date() > new Date(memInv.expiresAt)) {
+        const err: any = new Error('Invitation not found, expired, or already accepted.');
+        err.statusCode = 400;
+        throw err;
+      }
+
+      // Check recipient before claiming in memory
+      const matchesUid = memInv.inviteeUserId === actingUser.uid;
+      const matchesEmail = memInv.email.toLowerCase() === actingUser.email.toLowerCase();
+      if (!matchesUid && !matchesEmail) {
+        const err: any = new Error('Forbidden: Only the invited recipient can accept this invitation.');
+        err.statusCode = 403;
+        throw err;
+      }
+
+      // Check capacity before claiming in memory
+      const currentTeam = await getWorkspaceTeam(memInv.workspaceId);
+      const isAlreadyMember = currentTeam.some(
+        (m) => m.id === actingUser.uid || m.uid === actingUser.uid || (m.email && m.email.toLowerCase() === actingUser.email.toLowerCase())
+      );
+      if (!isAlreadyMember && currentTeam.length >= MAX_TEAM_MEMBERS) {
+        const err: any = new Error(
+          `This workspace has reached its maximum capacity of ${MAX_TEAM_MEMBERS} members. Please contact the workspace owner.`
+        );
+        err.statusCode = 400;
+        throw err;
+      }
+
+      memInv.status = 'accepted';
+      memInv.respondedAt = now;
+      invitation = memInv;
+    }
   }
 
   if (!invitation) {
-    invitation = inMemoryInvitations.get(invitationId) || null;
-  }
-
-  if (!invitation) {
-    const err: any = new Error('Invitation not found.');
-    err.statusCode = 404;
-    throw err;
-  }
-
-  if (invitation.status !== 'pending') {
-    const err: any = new Error(`Invitation is no longer pending (current status: ${invitation.status}).`);
+    const err: any = new Error('Invitation not found, expired, or already accepted.');
     err.statusCode = 400;
     throw err;
   }
 
-  // Expiration check
-  if (new Date() > new Date(invitation.expiresAt)) {
-    const err: any = new Error('Invitation has expired.');
-    err.statusCode = 400;
-    throw err;
-  }
-
-  // STRICT AUTHORIZATION: Only the invited user can accept!
+  // STRICT AUTHORIZATION: For MongoDB-claimed invitations, verify recipient and capacity; revert Mongo if invalid
   const matchesUid = invitation.inviteeUserId === actingUser.uid;
   const matchesEmail = invitation.email.toLowerCase() === actingUser.email.toLowerCase();
 
   if (!matchesUid && !matchesEmail) {
+    // Revert atomic claim
+    try {
+      const invCol = await getCollection<WorkspaceInvitation>('invitations');
+      if (invCol) {
+        await invCol.updateOne({ id: invitationId }, { $set: { status: 'pending' }, $unset: { respondedAt: '' } });
+      }
+    } catch {}
     const err: any = new Error('Forbidden: Only the invited recipient can accept this invitation.');
     err.statusCode = 403;
     throw err;
@@ -464,6 +491,13 @@ export async function acceptWorkspaceInvitation(
     (m) => m.id === actingUser.uid || m.uid === actingUser.uid || (m.email && m.email.toLowerCase() === actingUser.email.toLowerCase())
   );
   if (!isAlreadyMember && currentTeam.length >= MAX_TEAM_MEMBERS) {
+    // Revert atomic claim
+    try {
+      const invCol = await getCollection<WorkspaceInvitation>('invitations');
+      if (invCol) {
+        await invCol.updateOne({ id: invitationId }, { $set: { status: 'pending' }, $unset: { respondedAt: '' } });
+      }
+    } catch {}
     const err: any = new Error(
       `This workspace has reached its maximum capacity of ${MAX_TEAM_MEMBERS} members. Please contact the workspace owner.`
     );
@@ -472,7 +506,6 @@ export async function acceptWorkspaceInvitation(
   }
 
   const role: UserRole = (invitation.workspaceRole as UserRole) || 'member';
-  const now = new Date().toISOString();
   const membershipId = `mem_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
   // Ensure workspace document exists in workspaces collection

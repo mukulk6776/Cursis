@@ -235,87 +235,118 @@ export default function CommandPalette() {
  if (e.target === e.currentTarget) closeCommandPalette();
  }}
  >
- <div className="command-palette" onKeyDown={handleKeyDown}>
- <div className="command-palette-input-wrapper">
- <span className="command-palette-icon" style={{ display: 'flex', alignItems: 'center' }}>
- <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
- <circle cx="11" cy="11" r="8" />
- <line x1="21" y1="21" x2="16.65" y2="16.65" />
- </svg>
- </span>
- <input
- ref={inputRef}
- className="command-palette-input"
- id="command-palette-input"
- placeholder="Search tasks, docs, projects, people, or agency solutions..."
- autoComplete="off"
- value={query}
- onChange={(e) => {
- setQuery(e.target.value);
- setSelectedIndex(0);
- }}
- />
- <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', fontWeight: 'var(--fw-bold)' }}>
- ESC
- </span>
- </div>
+    <div
+      className="command-palette"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Command Palette"
+      onKeyDown={handleKeyDown}
+    >
+      <div className="command-palette-input-wrapper">
+        <span className="command-palette-icon" style={{ display: 'flex', alignItems: 'center' }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </span>
+        <input
+          ref={inputRef}
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="command-palette-results"
+          aria-autocomplete="list"
+          aria-label="Search commands"
+          className="command-palette-input"
+          id="command-palette-input"
+          placeholder="Search tasks, docs, projects, people, or agency solutions..."
+          autoComplete="off"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setSelectedIndex(0);
+          }}
+        />
+        <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', fontWeight: 'var(--fw-bold)' }}>
+          ESC
+        </span>
+      </div>
 
- <div className="command-palette-results">
- {filtered.length === 0 ? (
- <div style={{ padding: 'var(--sp-6)', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--fs-sm)' }}>
- No commands matching &quot;{query}&quot;
- </div>
- ) : (
- <>
- {quickActions.length > 0 && (
- <>
- <div className="command-group-label">Quick Actions</div>
- {quickActions.map((item) => {
- const globalIdx = filtered.indexOf(item);
- const isSel = globalIdx === selectedIndex;
- return (
- <div
- key={item.id}
- className={`command-item ${isSel ? 'selected' : ''}`}
- onClick={() => executeAction(item)}
- onMouseEnter={() => setSelectedIndex(globalIdx)}
- >
- <div className="command-item-icon">{item.icon}</div>
- <span className="command-item-text">{item.text}</span>
- {item.shortcut && (
- <span className="command-item-shortcut">{item.shortcut}</span>
- )}
- </div>
- );
- })}
- </>
- )}
+      <div className="command-palette-results" id="command-palette-results" role="listbox" aria-label="Commands">
+        {filtered.length === 0 ? (
+          <div style={{ padding: 'var(--sp-6)', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--fs-sm)' }}>
+            No commands matching &quot;{query}&quot;
+          </div>
+        ) : (
+          <>
+            {quickActions.length > 0 && (
+              <>
+                <div className="command-group-label" role="presentation">Quick Actions</div>
+                {quickActions.map((item) => {
+                  const globalIdx = filtered.indexOf(item);
+                  const isSel = globalIdx === selectedIndex;
+                  return (
+                    <div
+                      key={item.id}
+                      id={`command-item-${item.id}`}
+                      role="option"
+                      aria-selected={isSel}
+                      tabIndex={0}
+                      className={`command-item ${isSel ? 'selected' : ''}`}
+                      onClick={() => executeAction(item)}
+                      onMouseEnter={() => setSelectedIndex(globalIdx)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          executeAction(item);
+                        }
+                      }}
+                    >
+                      <div className="command-item-icon">{item.icon}</div>
+                      <span className="command-item-text">{item.text}</span>
+                      {item.shortcut && (
+                        <span className="command-item-shortcut">{item.shortcut}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </>
+            )}
 
- {navActions.length > 0 && (
- <>
- <div className="command-group-label" style={{ marginTop: quickActions.length > 0 ? 'var(--sp-2)' : 0 }}>
- Navigate
- </div>
- {navActions.map((item) => {
- const globalIdx = filtered.indexOf(item);
- const isSel = globalIdx === selectedIndex;
- return (
- <div
- key={item.id}
- className={`command-item ${isSel ? 'selected' : ''}`}
- onClick={() => executeAction(item)}
- onMouseEnter={() => setSelectedIndex(globalIdx)}
- >
- <div className="command-item-icon">{item.icon}</div>
- <span className="command-item-text">{item.text}</span>
- </div>
- );
- })}
- </>
- )}
- </>
- )}
- </div>
+            {navActions.length > 0 && (
+              <>
+                <div className="command-group-label" role="presentation" style={{ marginTop: quickActions.length > 0 ? 'var(--sp-2)' : 0 }}>
+                  Navigate
+                </div>
+                {navActions.map((item) => {
+                  const globalIdx = filtered.indexOf(item);
+                  const isSel = globalIdx === selectedIndex;
+                  return (
+                    <div
+                      key={item.id}
+                      id={`command-item-${item.id}`}
+                      role="option"
+                      aria-selected={isSel}
+                      tabIndex={0}
+                      className={`command-item ${isSel ? 'selected' : ''}`}
+                      onClick={() => executeAction(item)}
+                      onMouseEnter={() => setSelectedIndex(globalIdx)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          executeAction(item);
+                        }
+                      }}
+                    >
+                      <div className="command-item-icon">{item.icon}</div>
+                      <span className="command-item-text">{item.text}</span>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </>
+        )}
+      </div>
 
  <div className="command-palette-footer">
  <span>↑↓ Navigate</span>

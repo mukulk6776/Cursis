@@ -131,7 +131,11 @@ export async function PATCH(request: Request) {
     if (body.content !== undefined) updates.content = body.content;
     if (body.category !== undefined) updates.category = body.category;
     if (body.tags !== undefined) updates.tags = Array.isArray(body.tags) ? body.tags : [];
-    if (body.summary !== undefined) updates.summary = body.summary;
+    if (body.summary !== undefined || body.aiSummary !== undefined) {
+      updates.summary = body.summary !== undefined ? body.summary : body.aiSummary;
+    }
+    if (body.version !== undefined) updates.version = body.version;
+    if (Array.isArray(body.versions)) updates.versions = body.versions;
     if (body.fileUrl !== undefined) updates.fileUrl = body.fileUrl;
     if (body.fileType !== undefined) updates.fileType = body.fileType.replace(/^\./, '').toLowerCase();
     if (body.fileSize !== undefined) updates.fileSize = String(body.fileSize);

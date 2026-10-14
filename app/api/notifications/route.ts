@@ -40,10 +40,12 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
 
     if (body.action === 'mark_all_read' || body.action === 'read_all') {
-      // You can only mark your own notifications read
+      const workspaceId = body.workspaceId || authUser.workspaceId || undefined;
+      // You can only mark your own notifications read or workspace broadcasts
       await markAllNotificationsRead({
         userId: authUser.uid,
         userEmail: authUser.email,
+        workspaceId,
       });
       return apiSuccess({ message: 'All notifications marked as read' });
     }
@@ -64,6 +66,14 @@ export async function POST(request: Request) {
         if (workspaceId !== 'ws_public') {
           const roleAuth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
           if (roleAuth.errorResponse) return apiError('Only admins can create notifications for other users', 403);
+
+          const { isWorkspaceMember } = await import('@/lib/auth/rbac');
+          if (targetUserId) {
+            const isMember = await isWorkspaceMember(targetUserId, workspaceId);
+            if (!isMember) {
+              return apiError('Target user is not a member of this workspace', 400);
+            }
+          }
         } else {
           return apiError('Cannot create public notifications for other users', 403);
         }

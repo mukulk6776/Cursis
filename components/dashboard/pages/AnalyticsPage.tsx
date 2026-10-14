@@ -9,7 +9,67 @@ export default function AnalyticsPage() {
   const [timeHorizon, setTimeHorizon] = useState('Last 30 Days (Sprint Cycle)');
   const [deptScope, setDeptScope] = useState('All Organization');
 
+  const [generatedReport, setGeneratedReport] = useState<string | null>(null);
+
   const completed = tasks.filter((t) => t.status === 'completed').length;
+
+
+  const exportCsv = () => {
+    try {
+      const rows = [
+        ['Metric', 'Value', 'Scope', 'Time Horizon'],
+        ['Total Tasks', String(tasks.length), deptScope, timeHorizon],
+        ['Completed Tasks', String(completed), deptScope, timeHorizon],
+        ['Overdue Tasks', String(overdue), deptScope, timeHorizon],
+        ['Active Projects', String(projects.length), deptScope, timeHorizon],
+        ['Average Progress', `${avgProgress}%`, deptScope, timeHorizon],
+        ['Pipeline Value', `$${pipelineValue.toLocaleString()}`, deptScope, timeHorizon],
+        [],
+        ['Task Name', 'Status', 'Assignee', 'Deadline', 'Project'],
+        ...tasks.map((t) => [
+          `"${(t.name || '').replace(/"/g, '""')}"`,
+          t.status,
+          employees.find((e) => e.id === t.assignee)?.name || t.assignee || 'Unassigned',
+          t.deadline || '',
+          projects.find((p) => p.id === t.project)?.name || t.project || '',
+        ]),
+      ];
+      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((e) => e.join(',')).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `cursis_analytics_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Analytics CSV report downloaded');
+    } catch {
+      showToast('Failed to export CSV');
+    }
+  };
+
+  const exportPdf = () => {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  };
+
+  const savePreset = () => {
+    const preset = { metricGroup, timeHorizon, deptScope, savedAt: new Date().toISOString() };
+    try {
+      const existingRaw = localStorage.getItem('cursis_analytics_presets');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      existing.push(preset);
+      localStorage.setItem('cursis_analytics_presets', JSON.stringify(existing));
+    } catch {}
+    showToast(`Preset saved for ${metricGroup}`);
+  };
+
+  const generateReport = () => {
+    const summary = `${metricGroup} analysis over ${timeHorizon} for ${deptScope}: ${completed} tasks completed out of ${tasks.length} tracked. Pipeline value at $${pipelineValue.toLocaleString()}.`;
+    setGeneratedReport(summary);
+    showToast(`Report generated for ${metricGroup}`);
+  };
   const overdue = tasks.filter(
     (t) => t.status !== 'completed' && t.deadline && new Date(t.deadline).getTime() < Date.now()
   ).length;
@@ -73,7 +133,7 @@ export default function AnalyticsPage() {
           <button
             type="button"
             className="btn btn-secondary btn-sm"
-            onClick={() => showToast('Exporting PDF report...')}
+            onClick={exportPdf}
             style={{ fontWeight: 600 }}
           >
             Export PDF
@@ -81,7 +141,7 @@ export default function AnalyticsPage() {
           <button
             type="button"
             className="btn btn-secondary btn-sm"
-            onClick={() => showToast('Exporting CSV telemetry data...')}
+            onClick={exportCsv}
             style={{ fontWeight: 600 }}
           >
             Export CSV
@@ -408,19 +468,36 @@ export default function AnalyticsPage() {
             <button
               type="button"
               className="btn btn-secondary btn-sm"
-              onClick={() => showToast('Report preset saved')}
+              onClick={savePreset}
             >
               Save Preset
             </button>
             <button
               type="button"
               className="btn btn-primary btn-sm"
-              onClick={() => showToast(`Generated report for ${metricGroup}`)}
+              onClick={generateReport}
               style={{ fontWeight: 700 }}
             >
               Generate Report
             </button>
           </div>
+
+          {generatedReport && (
+            <div
+              style={{
+                marginTop: '16px',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                background: 'var(--c-brand-bg, #FFF3EB)',
+                border: '1px solid var(--c-brand, #FF5500)',
+                color: 'var(--text-primary)',
+                fontSize: '13px',
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>Generated Report:</strong> {generatedReport}
+            </div>
+          )}
         </div>
       </div>
     </div>

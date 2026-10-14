@@ -64,10 +64,15 @@ export default function LandingNav() {
   }, [mobileOpen]);
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
-    e.preventDefault();
-    setMobileOpen(false);
-    const element = document.querySelector(targetId);
+    // Preserve modified clicks (Ctrl, Cmd, Shift, Alt, middle-click)
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      return;
+    }
+    const cleanSelector = targetId.startsWith('/') ? targetId.slice(1) : targetId;
+    const element = document.querySelector(cleanSelector);
     if (element) {
+      e.preventDefault();
+      setMobileOpen(false);
       const navOffset = 90;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - navOffset;
@@ -75,6 +80,8 @@ export default function LandingNav() {
         top: offsetPosition,
         behavior: 'smooth',
       });
+    } else {
+      setMobileOpen(false);
     }
   };
 
@@ -133,16 +140,16 @@ export default function LandingNav() {
         {/* Links drawer */}
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           {[
-            { href: '#features', label: 'Features', isAnchor: true },
-            { href: '#connected', label: 'Workflow', isAnchor: true },
-            { href: '#ordis', label: 'Ordis AI', isAnchor: true },
-            { href: '#modules', label: 'Modules', isAnchor: true },
-            { href: '#creators', label: 'Creators', isAnchor: true },
+            { href: '/#features', selector: '#features', label: 'Features' },
+            { href: '/#connected', selector: '#connected', label: 'Workflow' },
+            { href: '/#ordis', selector: '#ordis', label: 'Ordis AI' },
+            { href: '/#modules', selector: '#modules', label: 'Modules' },
+            { href: '/#creators', selector: '#creators', label: 'Creators' },
           ].map((item, i) => (
             <motion.a
               key={item.href}
               href={item.href}
-              onClick={(e) => handleAnchorClick(e, item.href)}
+              onClick={(e) => handleAnchorClick(e, item.selector)}
               className="lp-nav-link"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}

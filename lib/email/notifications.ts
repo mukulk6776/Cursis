@@ -3,6 +3,17 @@ import { Resend } from 'resend';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const ADMIN_EMAIL = 'cursis.in@gmail.com';
+export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Cursis <onboarding@resend.dev>';
+
+export function escapeHtml(str?: string | null): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 interface CustomClientWorkspaceData {
   workspaceId: string;
@@ -27,6 +38,15 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
   }
 
   try {
+    const safeWsId = escapeHtml(data.workspaceId);
+    const safeWsName = escapeHtml(data.workspaceName);
+    const safeTier = escapeHtml(data.tier || 'free');
+    const safeIndustry = escapeHtml(data.industry);
+    const safeTeamSize = escapeHtml(data.teamSize);
+    const safeOwnerId = escapeHtml(data.ownerUserId);
+    const safeOwnerName = escapeHtml(data.ownerName);
+    const safeOwnerEmail = escapeHtml(data.ownerEmail);
+
     const emailContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <h2 style="color: #0f4cff; border-bottom: 2px solid #0f4cff; padding-bottom: 10px;">
@@ -38,34 +58,34 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 8px 0; font-weight: bold; width: 150px;">Workspace ID:</td>
-              <td style="padding: 8px 0;">${data.workspaceId}</td>
+              <td style="padding: 8px 0;">${safeWsId}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; font-weight: bold;">Workspace Name:</td>
-              <td style="padding: 8px 0;">${data.workspaceName}</td>
+              <td style="padding: 8px 0;">${safeWsName}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; font-weight: bold;">Tier:</td>
-              <td style="padding: 8px 0;">${data.tier || 'free'}</td>
+              <td style="padding: 8px 0;">${safeTier}</td>
             </tr>
             ${data.industry ? `
             <tr>
               <td style="padding: 8px 0; font-weight: bold;">Industry:</td>
-              <td style="padding: 8px 0;">${data.industry}</td>
+              <td style="padding: 8px 0;">${safeIndustry}</td>
             </tr>
             ` : ''}
             ${data.teamSize ? `
             <tr>
               <td style="padding: 8px 0; font-weight: bold;">Team Size:</td>
-              <td style="padding: 8px 0;">${data.teamSize}</td>
+              <td style="padding: 8px 0;">${safeTeamSize}</td>
             </tr>
             ` : ''}
             <tr>
               <td style="padding: 8px 0; font-weight: bold;">Created At:</td>
-              <td style="padding: 8px 0;">${new Date(data.createdAt).toLocaleString('en-US', {
+              <td style="padding: 8px 0;">${escapeHtml(new Date(data.createdAt).toLocaleString('en-US', {
                 dateStyle: 'medium',
                 timeStyle: 'short'
-              })}</td>
+              }))}</td>
             </tr>
           </table>
         </div>
@@ -75,18 +95,18 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 8px 0; font-weight: bold; width: 150px;">User ID:</td>
-              <td style="padding: 8px 0;">${data.ownerUserId}</td>
+              <td style="padding: 8px 0;">${safeOwnerId}</td>
             </tr>
             ${data.ownerName ? `
             <tr>
               <td style="padding: 8px 0; font-weight: bold;">Name:</td>
-              <td style="padding: 8px 0;">${data.ownerName}</td>
+              <td style="padding: 8px 0;">${safeOwnerName}</td>
             </tr>
             ` : ''}
             ${data.ownerEmail ? `
             <tr>
               <td style="padding: 8px 0; font-weight: bold;">Email:</td>
-              <td style="padding: 8px 0;"><a href="mailto:${data.ownerEmail}" style="color: #0f4cff;">${data.ownerEmail}</a></td>
+              <td style="padding: 8px 0;"><a href="mailto:${safeOwnerEmail}" style="color: #0f4cff;">${safeOwnerEmail}</a></td>
             </tr>
             ` : ''}
           </table>
@@ -96,7 +116,7 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
         <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0; color: #333;">Selected Features</h3>
           <ul style="margin: 0; padding-left: 20px;">
-            ${data.features.map(feature => `<li style="padding: 4px 0;">${feature}</li>`).join('')}
+            ${data.features.map(feature => `<li style="padding: 4px 0;">${escapeHtml(feature)}</li>`).join('')}
           </ul>
         </div>
         ` : ''}
@@ -109,17 +129,21 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
       </div>
     `;
 
-    await resend.emails.send({
-      from: 'Cursis <onboarding@resend.dev>',
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: `🚀 New Custom Client Workspace: ${data.workspaceName}`,
       html: emailContent,
     });
 
+    if (error) {
+      console.error('❌ Resend API returned error for admin notification:', error);
+      return;
+    }
+
     console.log(`✅ Admin notification email sent for workspace: ${data.workspaceId}`);
   } catch (error) {
     console.error('❌ Failed to send admin notification email:', error);
-    // Don't throw - we don't want workspace creation to fail if email fails
   }
 }
 
@@ -137,18 +161,22 @@ export async function sendWorkspaceWelcomeEmail(
   }
 
   try {
-    await resend.emails.send({
-      from: 'Cursis <onboarding@resend.dev>',
+    const safeWsName = escapeHtml(workspaceName);
+    const safeOwner = escapeHtml(ownerName || 'there');
+    const safeAppUrl = escapeHtml(process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in');
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to: email,
       subject: `Welcome to ${workspaceName} on Cursis!`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-          <h2 style="color: #0f4cff;">Welcome to ${workspaceName}! 🎉</h2>
-          <p>Hi ${ownerName || 'there'},</p>
-          <p>Your workspace <strong>${workspaceName}</strong> has been successfully created on Cursis!</p>
+          <h2 style="color: #0f4cff;">Welcome to ${safeWsName}! 🎉</h2>
+          <p>Hi ${safeOwner},</p>
+          <p>Your workspace <strong>${safeWsName}</strong> has been successfully created on Cursis!</p>
           <p>You can now start inviting team members, managing projects, and leveraging the power of AI-assisted workflows.</p>
           <div style="margin: 30px 0;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in'}/dashboard"
+            <a href="${safeAppUrl}/dashboard"
                style="background-color: #0f4cff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
               Go to Dashboard
             </a>
@@ -160,7 +188,76 @@ export async function sendWorkspaceWelcomeEmail(
         </div>
       `,
     });
+
+    if (error) {
+      console.error('Resend error sending welcome email:', error);
+    }
   } catch (error) {
     console.error('Failed to send welcome email:', error);
   }
 }
+
+/**
+ * Sends an invitation email to a prospective or registered team member
+ */
+export async function sendWorkspaceInvitationEmail({
+  to,
+  workspaceName,
+  recipientName,
+  inviterName,
+  assignedRole,
+  reqHost,
+}: {
+  to: string;
+  workspaceName: string;
+  recipientName?: string;
+  inviterName?: string;
+  assignedRole?: string;
+  reqHost?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  if (!resend) {
+    return { success: false, error: 'Resend API key not configured' };
+  }
+
+  try {
+    const safeWsName = escapeHtml(workspaceName);
+    const safeRecipient = escapeHtml(recipientName || 'there');
+    const safeInviter = escapeHtml(inviterName || 'Workspace Admin');
+    const safeRole = assignedRole === 'admin' ? 'Workspace Admin' : 'Team Member';
+
+    const cleanHost = reqHost ? reqHost.replace(/[^a-zA-Z0-9.:-]/g, '') : 'localhost:3000';
+    const protocol = cleanHost.includes('localhost') ? 'http' : 'https';
+    const inviteLink = `${protocol}://${cleanHost}/dashboard?invited=true`;
+    const safeInviteLink = escapeHtml(inviteLink);
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `You've been invited to join ${safeWsName} on Cursis`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <h2 style="color: #0f4cff;">You've been invited to ${safeWsName}!</h2>
+          <p>Hi ${safeRecipient},</p>
+          <p><strong>${safeInviter}</strong> has invited you to join <strong>${safeWsName}</strong> as a <strong>${safeRole}</strong>.</p>
+          <p>Open your Cursis dashboard to accept or decline the invitation:</p>
+          <div style="margin: 30px 0;">
+            <a href="${safeInviteLink}" style="background-color: #0f4cff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">View Invitation</a>
+          </div>
+          <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
+          <p style="font-size: 12px; color: #999;">If you were not expecting this invitation, you can safely ignore this email.</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.warn('❌ Resend API returned error for invitation:', error);
+      return { success: false, error: error.message || 'Resend delivery error' };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.warn('❌ Failed to dispatch invitation email:', err?.message);
+    return { success: false, error: err?.message || 'Email dispatch exception' };
+  }
+}
+

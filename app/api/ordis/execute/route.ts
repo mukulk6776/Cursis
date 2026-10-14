@@ -1,4 +1,5 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getTasks, createTask } from '@/lib/db/tasks';
 import { createProject } from '@/lib/db/projects';
 import { getCollection } from '@/lib/mongodb';
@@ -17,7 +18,10 @@ export async function POST(request: Request) {
  return apiError('Command or prompt text is required', 400);
  }
 
- const workspaceId = body.workspaceId || authUser.workspaceId || 'ws_cursis_main';
+ const rawWorkspaceId = body.workspaceId || '';
+ const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+ if (wsAuth.errorResponse) return wsAuth.errorResponse;
+ const workspaceId = wsAuth.workspaceId;
  const lower = text.toLowerCase().trim();
 
  let actionExecuted = 'general_query';

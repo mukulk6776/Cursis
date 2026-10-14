@@ -63,7 +63,7 @@ export default function NotificationPanel() {
           zIndex: 998,
         }}
       />
-      <div className="notif-panel open" id="notif-panel" style={{ zIndex: 999 }}>
+      <div className="notif-panel open" id="notif-panel" role="dialog" aria-modal="true" aria-label="Notifications" style={{ zIndex: 999 }}>
         <div className="notif-panel-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <h3 style={{ fontSize: 'var(--fs-lg)', margin: 0 }}>Notifications</h3>
@@ -106,7 +106,7 @@ export default function NotificationPanel() {
           </div>
         </div>
 
-        <div className="notif-panel-body">
+        <div className="notif-panel-body" role="list" aria-label="Notification list">
           {notifications.length === 0 ? (
             <div style={{ padding: 'var(--sp-8)', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 'var(--fs-sm)' }}>
               No notifications yet.
@@ -118,18 +118,28 @@ export default function NotificationPanel() {
               const isPending = isInvite && (!inviteStatus || inviteStatus === 'pending');
               const isActing = actingInvId === n.referenceId;
 
+              const handleItemClick = () => {
+                if (isInvite) return;
+                if (n.type === 'task') setCurrentPage('tasks');
+                else if (n.type === 'meeting') setCurrentPage('meetings');
+                else if (n.type === 'project') setCurrentPage('projects');
+                else if (n.type === 'team') setCurrentPage('team');
+                else if (n.type === 'ai') setCurrentPage('ordis');
+                closeNotifications();
+              };
+
               return (
                 <div
                   key={n.id}
+                  role="listitem"
+                  tabIndex={isInvite ? undefined : 0}
                   className={`notif-item ${n.read ? '' : 'unread'}`}
-                  onClick={() => {
-                    if (isInvite) return;
-                    if (n.type === 'task') setCurrentPage('tasks');
-                    else if (n.type === 'meeting') setCurrentPage('meetings');
-                    else if (n.type === 'project') setCurrentPage('projects');
-                    else if (n.type === 'team') setCurrentPage('team');
-                    else if (n.type === 'ai') setCurrentPage('ordis');
-                    closeNotifications();
+                  onClick={handleItemClick}
+                  onKeyDown={(e) => {
+                    if (!isInvite && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      handleItemClick();
+                    }
                   }}
                   style={{
                     cursor: isInvite ? 'default' : 'pointer',

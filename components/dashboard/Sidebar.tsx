@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { DashboardPageType } from '@/lib/dashboard/types';
 
@@ -23,14 +23,37 @@ export default function Sidebar() {
   const activeTasksCount = tasks.filter((t) => t.status !== 'completed').length;
   const upcomingMeetingsCount = meetings.filter((m) => m.status !== 'completed').length;
 
+  const btnResetStyle: React.CSSProperties = {
+    width: '100%',
+    background: 'none',
+    border: '1px solid transparent',
+    textAlign: 'left',
+    font: 'inherit',
+    cursor: 'pointer',
+  };
+
   return (
     <aside
       className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${mobileSidebarOpen ? 'mobile-open' : ''}`}
       id="sidebar"
+      aria-label="Sidebar navigation"
     >
       {/* Sidebar Header */}
       <div className="sidebar-header">
-        <div className="sidebar-logo" onClick={() => handleNav('home')} style={{ cursor: 'pointer' }}>
+        <div
+          className="sidebar-logo"
+          role="button"
+          tabIndex={0}
+          aria-label="Cursis Home"
+          onClick={() => handleNav('home')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleNav('home');
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        >
           <svg className="sidebar-logo-icon" viewBox="0 0 1024 1024" fill="none" width="28" height="28" style={{ borderRadius: '8px', overflow: 'hidden' }}>
             <defs>
               <clipPath id="rounded-logo-sidebar">
@@ -62,8 +85,10 @@ export default function Sidebar() {
 
         <button
           className="sidebar-collapse-btn"
+          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           onClick={() => setSidebarCollapsed((prev) => !prev)}
+          type="button"
         >
           {sidebarCollapsed ? (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -78,12 +103,15 @@ export default function Sidebar() {
       </div>
 
       {/* Core Navigation Items */}
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="Main Navigation">
         {/* Home / Overview */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'home' ? 'active' : ''}`}
           onClick={() => handleNav('home')}
+          aria-current={currentPage === 'home' ? 'page' : undefined}
           title="Overview"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -92,13 +120,16 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Overview</span>
-        </div>
+        </button>
 
         {/* ORDIS AI (Centerpiece) */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ordis-item ${currentPage === 'ordis' ? 'active' : ''}`}
           onClick={() => handleNav('ordis')}
+          aria-current={currentPage === 'ordis' ? 'page' : undefined}
           title="Ordis Workspace Copilot"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <span
@@ -164,16 +195,19 @@ export default function Sidebar() {
               AI
             </span>
           )}
-        </div>
+        </button>
 
         <div className="sidebar-divider" />
         {!sidebarCollapsed && <div className="sidebar-section-title">Core Workspace</div>}
 
         {/* Tasks */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'tasks' ? 'active' : ''}`}
           onClick={() => handleNav('tasks')}
+          aria-current={currentPage === 'tasks' ? 'page' : undefined}
           title="Tasks"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -183,13 +217,16 @@ export default function Sidebar() {
           </span>
           <span className="sidebar-item-text">Tasks</span>
           {activeTasksCount > 0 && <span className="sidebar-item-badge">{activeTasksCount}</span>}
-        </div>
+        </button>
 
         {/* Projects */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'projects' ? 'active' : ''}`}
           onClick={() => handleNav('projects')}
+          aria-current={currentPage === 'projects' ? 'page' : undefined}
           title="Projects"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -200,13 +237,16 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Projects</span>
-        </div>
+        </button>
 
         {/* Team */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'team' ? 'active' : ''}`}
           onClick={() => handleNav('team')}
+          aria-current={currentPage === 'team' ? 'page' : undefined}
           title="Team Management"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -217,13 +257,16 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Team ({employees.length})</span>
-        </div>
+        </button>
 
         {/* Calendar */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'calendar' ? 'active' : ''}`}
           onClick={() => handleNav('calendar')}
+          aria-current={currentPage === 'calendar' ? 'page' : undefined}
           title="Calendar"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -234,13 +277,16 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Calendar</span>
-        </div>
+        </button>
 
         {/* Meetings */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'meetings' ? 'active' : ''}`}
           onClick={() => handleNav('meetings')}
+          aria-current={currentPage === 'meetings' ? 'page' : undefined}
           title="Meetings"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -250,18 +296,19 @@ export default function Sidebar() {
           </span>
           <span className="sidebar-item-text">Meetings</span>
           {upcomingMeetingsCount > 0 && <span className="sidebar-item-badge">{upcomingMeetingsCount}</span>}
-        </div>
-
+        </button>
 
         <div className="sidebar-divider" />
         {!sidebarCollapsed && <div className="sidebar-section-title">Operations</div>}
 
-
         {/* Departments Management */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'departments' ? 'active' : ''}`}
           onClick={() => handleNav('departments')}
+          aria-current={currentPage === 'departments' ? 'page' : undefined}
           title="Department Management"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -270,13 +317,16 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Departments</span>
-        </div>
+        </button>
 
         {/* Documents Management */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'documents' ? 'active' : ''}`}
           onClick={() => handleNav('documents')}
+          aria-current={currentPage === 'documents' ? 'page' : undefined}
           title="Document Management"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -287,13 +337,16 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Documents</span>
-        </div>
+        </button>
 
         {/* Analytics */}
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'analytics' ? 'active' : ''}`}
           onClick={() => handleNav('analytics')}
+          aria-current={currentPage === 'analytics' ? 'page' : undefined}
           title="Analytics"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -303,15 +356,18 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Analytics</span>
-        </div>
+        </button>
       </nav>
 
       {/* Sidebar Footer: Settings */}
       <div className="sidebar-footer">
-        <div
+        <button
+          type="button"
           className={`sidebar-item ${currentPage === 'settings' ? 'active' : ''}`}
           onClick={() => handleNav('settings')}
+          aria-current={currentPage === 'settings' ? 'page' : undefined}
           title="Settings"
+          style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -320,7 +376,7 @@ export default function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-item-text">Settings</span>
-        </div>
+        </button>
       </div>
     </aside>
   );

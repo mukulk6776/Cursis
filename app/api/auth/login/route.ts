@@ -3,7 +3,7 @@ export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { findUserByEmail, registerUser, verifyPasswordResult, upgradePasswordHash } from '@/lib/db/users';
+import { findUserByEmail, registerUser, verifyPasswordResultAsync, upgradePasswordHash } from '@/lib/db/users';
 import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
 
     // Credentials Validation
     if (!email || !email.includes('@')) {
+      await recordAttempt(clientIP);
       return apiError('Please enter a valid email address', 400);
     }
 
@@ -37,30 +38,46 @@ export async function POST(request: Request) {
     const allowedDomains = ['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com'];
     const emailDomain = email.split('@')[1];
     if (!allowedDomains.includes(emailDomain)) {
+      await recordAttempt(clientIP);
       return apiError('Only Gmail and Microsoft email accounts (gmail.com, outlook.com, hotmail.com, live.com) are permitted to sign in.', 403);
     }
 
     if (!password) {
+      await recordAttempt(clientIP);
       return apiError('Please enter your password', 400);
+    }
+
+    const userRateKey = `${clientIP}_${email}`;
+    const accountCheck = await checkRateLimit(userRateKey);
+    if (!accountCheck.allowed) {
+      return apiError(
+        accountCheck.message || 'Too many login attempts for this account. Please try again later.',
+        429,
+        { resetAt: accountCheck.resetAt?.toISOString() }
+      );
     }
 
     const user = await findUserByEmail(email);
 
     if (!user) {
-      // Do not auto-create accounts on login — direct to signup
-      return apiError('No account found with this email. Please sign up first.', 401);
+      await recordAttempt(clientIP);
+      await recordAttempt(userRateKey);
+      return apiError('Incorrect email or password. Please verify your credentials.', 401);
     }
 
     // Block password login for OAuth-only accounts (no password hash set)
     if (!user.passwordHash || !user.salt) {
+      await recordAttempt(clientIP);
+      await recordAttempt(userRateKey);
       return apiError('This account was created with Google sign-in. Please use the Google button to sign in.', 401);
     }
 
-    // Verify stored password hash
-    const authResult = verifyPasswordResult(password, user.salt, user.passwordHash);
+    // Verify stored password hash asynchronously to prevent event-loop starvation
+    const authResult = await verifyPasswordResultAsync(password, user.salt, user.passwordHash);
     if (!authResult.valid) {
       // Record failed attempt
       await recordAttempt(clientIP);
+      await recordAttempt(userRateKey);
       return apiError('Incorrect email or password. Please verify your credentials.', 401);
     }
 
@@ -73,6 +90,7 @@ export async function POST(request: Request) {
 
     // Clear rate limit on successful login
     await clearRateLimit(clientIP);
+    await clearRateLimit(userRateKey);
 
     const sessionPayload = {
       uid: user.uid,

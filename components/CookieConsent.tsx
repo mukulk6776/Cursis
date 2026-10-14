@@ -4,6 +4,23 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Cookie } from 'lucide-react';
 
+function safeGetStorage(key: string): string | null {
+  try {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetStorage(key: string, value: string): void {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  } catch {}
+}
+
 export default function CookieConsent() {
   const [showBanner, setShowBanner] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
@@ -13,43 +30,116 @@ export default function CookieConsent() {
   const [analytics, setAnalytics] = useState(false);
 
   useEffect(() => {
+    // Check DNT/GPC signals
+    const dntSignal = typeof navigator !== 'undefined' && (
+      navigator.doNotTrack === '1' ||
+      (window as any).doNotTrack === '1' ||
+      (navigator as any).globalPrivacyControl === true
+    );
+
     // Check if user has already made a choice
-    const consent = localStorage.getItem('cursis_cookie_consent');
+    const consent = safeGetStorage('cursis_cookie_consent');
+    let timer: NodeJS.Timeout | null = null;
+
     if (!consent) {
+      if (dntSignal) {
+        setFunctional(false);
+        setAnalytics(false);
+      }
       // Delay showing banner by 1 second for better UX
-      setTimeout(() => setShowBanner(true), 1000);
+      timer = setTimeout(() => setShowBanner(true), 1000);
     } else {
       // Load saved preferences
       try {
         const saved = JSON.parse(consent);
-        setFunctional(saved.functional ?? true);
+        setFunctional(saved.functional ?? (dntSignal ? false : true));
         setAnalytics(saved.analytics ?? false);
-      } catch {}
+      } catch {
+        // Corrupt JSON: reset and show banner
+        timer = setTimeout(() => setShowBanner(true), 1000);
+      }
     }
+
+    const handleOpenPreferences = () => {
+      setShowBanner(true);
+      setShowPreferences(true);
+    };
+
+    window.addEventListener('cursis_open_cookie_preferences', handleOpenPreferences);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener('cursis_open_cookie_preferences', handleOpenPreferences);
+    };
   }, []);
 
   const handleAcceptAll = () => {
     const consent = { essential: true, functional: true, analytics: true, timestamp: new Date().toISOString() };
-    localStorage.setItem('cursis_cookie_consent', JSON.stringify(consent));
+    safeSetStorage('cursis_cookie_consent', JSON.stringify(consent));
+    window.dispatchEvent(new CustomEvent('cursis_cookie_consent_updated', { detail: consent }));
     setShowBanner(false);
     setShowPreferences(false);
   };
 
   const handleRejectOptional = () => {
     const consent = { essential: true, functional: false, analytics: false, timestamp: new Date().toISOString() };
-    localStorage.setItem('cursis_cookie_consent', JSON.stringify(consent));
+    safeSetStorage('cursis_cookie_consent', JSON.stringify(consent));
+    window.dispatchEvent(new CustomEvent('cursis_cookie_consent_updated', { detail: consent }));
     setShowBanner(false);
     setShowPreferences(false);
   };
 
   const handleSavePreferences = () => {
     const consent = { essential: true, functional, analytics, timestamp: new Date().toISOString() };
-    localStorage.setItem('cursis_cookie_consent', JSON.stringify(consent));
+    safeSetStorage('cursis_cookie_consent', JSON.stringify(consent));
+    window.dispatchEvent(new CustomEvent('cursis_cookie_consent_updated', { detail: consent }));
     setShowBanner(false);
     setShowPreferences(false);
   };
 
-  if (!showBanner) return null;
+  if (!showBanner) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setShowBanner(true);
+          setShowPreferences(true);
+        }}
+        aria-label="Manage Cookie Preferences"
+        style={{
+          position: 'fixed',
+          bottom: '16px',
+          left: '16px',
+          zIndex: 9998,
+          background: 'rgba(15, 23, 42, 0.85)',
+          color: '#e2e8f0',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          borderRadius: '20px',
+          padding: '6px 12px',
+          fontSize: '11px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          backdropFilter: 'blur(8px)',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+          transition: 'transform 0.15s ease, background 0.15s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(15, 23, 42, 1)';
+          e.currentTarget.style.transform = 'translateY(-1px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(15, 23, 42, 0.85)';
+          e.currentTarget.style.transform = 'translateY(0)';
+        }}
+      >
+        <Cookie size={13} color="#94a3b8" />
+        <span>Cookie Preferences</span>
+      </button>
+    );
+  }
 
   return (
     <>

@@ -23,7 +23,7 @@ export default function WorkspacePage() {
  const [dealModalOpen, setDealModalOpen] = useState(false);
  const [dealTitle, setDealTitle] = useState('');
  const [dealClient, setDealClient] = useState('');
- const [dealValue, setDealValue] = useState('$50,000');
+ const [dealValue, setDealValue] = useState('');
  const [dealStage, setDealStage] = useState('stage_qual');
  const [dealEmail, setDealEmail] = useState('');
 
@@ -32,7 +32,7 @@ export default function WorkspacePage() {
  const [contactName, setContactName] = useState('');
  const [contactCompany, setContactCompany] = useState('');
  const [contactEmail, setContactEmail] = useState('');
- const [contactPhone, setContactPhone] = useState('+1-555-0199');
+ const [contactPhone, setContactPhone] = useState('');
  const [contactRole, setContactRole] = useState('Decision Maker');
 
 
@@ -418,11 +418,13 @@ export default function WorkspacePage() {
  <label className="input-label">Value</label>
  <input
  className="input"
+ placeholder="e.g. $50,000"
  value={dealValue}
  onChange={(e) => setDealValue(e.target.value)}
  required
  />
  </div>
+
  </div>
  <div className="input-group">
  <label className="input-label">Stage</label>

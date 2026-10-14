@@ -5,6 +5,11 @@ export interface DecodedFirebaseToken {
   email: string;
   name: string;
   picture?: string;
+  email_verified?: boolean;
+  firebase?: {
+    sign_in_provider?: string;
+    [key: string]: any;
+  };
 }
 
 let remoteJWKS: ReturnType<typeof jose.createRemoteJWKSet> | null = null;
@@ -47,9 +52,11 @@ export async function verifyFirebaseIdToken(token: string): Promise<DecodedFireb
     const email = String(payload.email || '').trim().toLowerCase();
     const name = String(payload.name || payload.displayName || email.split('@')[0] || 'Cursis User').trim();
     const picture = (payload.picture || payload.photoURL) as string | undefined;
+    const email_verified = payload.email_verified === true;
+    const firebase = (payload.firebase as any) || undefined;
 
     if (uid) {
-      return { uid, email, name, picture };
+      return { uid, email, name, picture, email_verified, firebase };
     }
   } catch (jwksErr) {
     // Continue to next verification strategy
@@ -72,9 +79,11 @@ export async function verifyFirebaseIdToken(token: string): Promise<DecodedFireb
       const email = String(data.email || '').trim().toLowerCase();
       const name = String(data.name || email.split('@')[0] || 'Cursis User').trim();
       const picture = data.picture as string | undefined;
+      const email_verified = data.email_verified === 'true' || data.email_verified === true;
+      const firebase = data.firebase || (data.sub ? { sign_in_provider: 'google.com' } : undefined);
 
       if (uid) {
-        return { uid, email, name, picture };
+        return { uid, email, name, picture, email_verified, firebase };
       }
     }
   } catch (tokenInfoErr) {

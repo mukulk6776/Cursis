@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const body = await request.json().catch(() => ({}));
+    const wsAuth = await authorizeWorkspaceAccess(request, body.workspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const workspaceId = wsAuth.workspaceId;
 
     if (!body.prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });

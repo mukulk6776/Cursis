@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: 'https://cursis.in/data-deletion',
+  },
 };
 
 export default function DataDeletionPage() {
@@ -84,9 +87,9 @@ export default function DataDeletionPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginTop: '12px' }}>
           <div style={{ padding: '18px', background: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '10px', boxShadow: '2px 2px 0 0 #0A0A0A' }}>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0A0A0A', marginBottom: '6px' }}>Option A: In-App Self-Service</div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0A0A0A', marginBottom: '6px' }}>Option A: In-App Support Ticket</div>
             <p style={{ fontSize: '13px', color: '#525252', margin: 0, lineHeight: 1.6 }}>
-              Log into your Cursis dashboard, navigate to <strong>Settings &gt; Organization &gt; Security &amp; Data Deletion</strong>, and click <em>Request Data Purge</em>.
+              Log into your Cursis dashboard, navigate to <strong>Settings</strong>, and send a message or request directly via support with your user ID and workspace ID.
             </p>
           </div>
 

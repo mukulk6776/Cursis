@@ -1,22 +1,20 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const body = await request.json().catch(() => ({}));
+    const rawWorkspaceId = body.workspaceId || '';
 
-    const body = await request.json();
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     if (!body.name || !body.company || !body.email) {
-      return NextResponse.json({ error: 'Lead name, company, and email are required' }, { status: 400 });
+      return apiError('Lead name, company, and email are required', 400);
     }
 
-    const result = await OrdisEngine.prepareInboundLeadWork(workspaceId, {
+    const result = await OrdisEngine.prepareInboundLeadWork(wsAuth.workspaceId, {
       name: body.name,
       company: body.company,
       email: body.email,
@@ -24,8 +22,8 @@ export async function POST(request: Request) {
       requirements: body.requirements,
     });
 
-    return NextResponse.json({ success: true, ...result });
+    return apiSuccess({ ...result });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

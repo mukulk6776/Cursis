@@ -101,19 +101,20 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
 
         const activePhoto = storedUser?.photoURL || verified.photoURL;
 
-        // Auto-provision user in store if not present
+        // Auto-provision user in store if not present (only with personal workspace ws_${uid})
         if (!inMemoryStore.users.has(uid)) {
+          const personalWsId = `ws_${uid}`;
           inMemoryStore.users.set(uid, {
             id: uid,
             uid,
             email,
             displayName,
             photoURL: activePhoto,
-            role,
+            role: isFounder ? 'owner' : 'member',
             title,
             department,
-            workspaceIds: [workspaceId],
-            activeWorkspaceId: workspaceId,
+            workspaceIds: [personalWsId],
+            activeWorkspaceId: personalWsId,
             skills,
             planTier,
             onboardingStatus: 'completed',

@@ -8,24 +8,31 @@ import { ObjectId } from 'mongodb';
 
 export interface Workspace {
   _id?: ObjectId;
+  id: string;
   workspaceId: string;
   name: string;
   slug: string; // URL-friendly unique identifier
   ownerId: string;
+  memberCount: number;
+  tier: 'free' | 'paid';
   members: Array<{
     userId: string;
     email: string;
     role: 'owner' | 'admin' | 'member';
-    joinedAt: Date;
+    joinedAt: string;
   }>;
   settings: {
     theme?: 'light' | 'dark';
     timezone?: string;
     language?: string;
     notifications?: boolean;
+    ambientMonitoring?: boolean;
+    approvalRequiredForActions?: boolean;
+    simulationMode?: boolean;
+    riskTolerance?: 'low' | 'medium' | 'high';
   };
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**
@@ -65,29 +72,46 @@ export async function createWorkspace(data: {
   }
 
   const workspaceId = `ws_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  const now = new Date().toISOString();
 
   const workspace: Workspace = {
+    id: workspaceId,
     workspaceId,
     name: data.name,
     slug,
     ownerId: data.ownerId,
+    memberCount: 1,
+    tier: 'free',
     members: [
       {
         userId: data.ownerId,
         email: data.ownerEmail,
         role: 'owner',
-        joinedAt: new Date(),
+        joinedAt: now,
       },
     ],
     settings: {
       theme: 'light',
       notifications: true,
     },
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
   };
 
   await workspaces.insertOne(workspace);
+
+  // Sync to canonical memberships collection
+  try {
+    const memCol = await getCollection<any>('workspace_memberships');
+    if (memCol) {
+      await memCol.updateOne(
+        { workspaceId, userId: data.ownerId },
+        { $set: { id: `mem_${workspaceId}_${data.ownerId}`, workspaceId, userId: data.ownerId, role: 'owner', createdAt: now } },
+        { upsert: true }
+      );
+    }
+  } catch {}
+
   return workspace;
 }
 
@@ -98,9 +122,9 @@ export async function getWorkspace(identifier: string): Promise<Workspace | null
   const workspaces = await getCollection<Workspace>('workspaces');
   if (!workspaces) return null;
 
-  // Try finding by slug first, then by workspaceId
+  // Try finding by slug, workspaceId, or id
   const workspace = await workspaces.findOne({
-    $or: [{ slug: identifier }, { workspaceId: identifier }],
+    $or: [{ slug: identifier }, { workspaceId: identifier }, { id: identifier }],
   });
 
   return workspace;
@@ -115,7 +139,10 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
 
   const userWorkspaces = await workspaces
     .find({
-      'members.userId': userId,
+      $or: [
+        { 'members.userId': userId },
+        { ownerId: userId },
+      ],
     })
     .sort({ updatedAt: -1 })
     .toArray();
@@ -133,9 +160,10 @@ export async function updateWorkspace(
   const workspaces = await getCollection<Workspace>('workspaces');
   if (!workspaces) return null;
 
+  const now = new Date().toISOString();
   const updateData: any = {
     ...updates,
-    updatedAt: new Date(),
+    updatedAt: now,
   };
 
   // If name is being updated, regenerate slug
@@ -152,7 +180,7 @@ export async function updateWorkspace(
   }
 
   const result = await workspaces.findOneAndUpdate(
-    { $or: [{ slug: identifier }, { workspaceId: identifier }] },
+    { $or: [{ slug: identifier }, { workspaceId: identifier }, { id: identifier }] },
     { $set: updateData },
     { returnDocument: 'after' }
   );
@@ -174,18 +202,31 @@ export async function addWorkspaceMember(
   const workspaces = await getCollection<Workspace>('workspaces');
   if (!workspaces) return false;
 
+  const now = new Date().toISOString();
   const result = await workspaces.updateOne(
-    { workspaceId },
+    { $or: [{ workspaceId }, { id: workspaceId }] },
     {
       $push: {
         members: {
           ...member,
-          joinedAt: new Date(),
+          joinedAt: now,
         },
       },
-      $set: { updatedAt: new Date() },
+      $inc: { memberCount: 1 },
+      $set: { updatedAt: now },
     }
   );
+
+  try {
+    const memCol = await getCollection<any>('workspace_memberships');
+    if (memCol) {
+      await memCol.updateOne(
+        { workspaceId, userId: member.userId },
+        { $set: { id: `mem_${workspaceId}_${member.userId}`, workspaceId, userId: member.userId, role: member.role, createdAt: now } },
+        { upsert: true }
+      );
+    }
+  } catch {}
 
   return result.modifiedCount > 0;
 }
@@ -200,15 +241,24 @@ export async function removeWorkspaceMember(
   const workspaces = await getCollection<Workspace>('workspaces');
   if (!workspaces) return false;
 
+  const now = new Date().toISOString();
   const result = await workspaces.updateOne(
-    { workspaceId },
+    { $or: [{ workspaceId }, { id: workspaceId }] },
     {
       $pull: {
         members: { userId },
       },
-      $set: { updatedAt: new Date() },
+      $inc: { memberCount: -1 },
+      $set: { updatedAt: now },
     }
   );
+
+  try {
+    const memCol = await getCollection<any>('workspace_memberships');
+    if (memCol) {
+      await memCol.deleteOne({ workspaceId, userId });
+    }
+  } catch {}
 
   return result.modifiedCount > 0;
 }

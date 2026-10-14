@@ -79,9 +79,19 @@ export default function OrdisPage() {
   // Resizable sidebar state
   const [sidebarWidth, setSidebarWidth] = useState(260);
   const [isResizing, setIsResizing] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   const searchRef = useRef<HTMLInputElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  // Subscribe to responsive desktop media state
+  useEffect(() => {
+    const updateMedia = () => setIsDesktop(typeof window !== 'undefined' && window.innerWidth > 860);
+    updateMedia();
+    window.addEventListener('resize', updateMedia);
+    return () => window.removeEventListener('resize', updateMedia);
+  }, []);
 
   // Restore saved sidebar state from localStorage if available
   useEffect(() => {
@@ -97,12 +107,13 @@ export default function OrdisPage() {
     } catch {}
   }, []);
 
-  // Handle resize drag
+  // Handle resize drag with accurate panel left offset
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
       e.preventDefault();
-      const newWidth = Math.max(220, Math.min(480, e.clientX));
+      const leftOffset = sidebarRef.current ? sidebarRef.current.getBoundingClientRect().left : 0;
+      const newWidth = Math.max(220, Math.min(480, e.clientX - leftOffset));
       setSidebarWidth(newWidth);
     };
 
@@ -129,6 +140,7 @@ export default function OrdisPage() {
       document.body.style.userSelect = '';
     };
   }, [isResizing, sidebarWidth]);
+
 
   const toggleSidebar = () => {
     if (typeof window !== 'undefined' && window.innerWidth <= 860) {
@@ -194,16 +206,25 @@ export default function OrdisPage() {
 
       {/* Left Sidebar (ChatGPT Minimal Style) */}
       <aside
+        ref={sidebarRef}
         id="ordis-history"
         className={`ordis-sidebar ${sidebarCollapsed ? 'is-collapsed' : ''} ${
           mobileDrawerOpen ? 'mobile-open' : ''
         }`}
-        style={{ width: sidebarCollapsed ? 0 : `${sidebarWidth}px`, flex: sidebarCollapsed ? '0 0 0' : `0 0 ${sidebarWidth}px` }}
+        style={{
+          width: sidebarCollapsed ? 0 : `${sidebarWidth}px`,
+          flex: sidebarCollapsed ? '0 0 0' : `0 0 ${sidebarWidth}px`,
+          visibility: sidebarCollapsed ? 'hidden' : 'visible',
+          pointerEvents: sidebarCollapsed ? 'none' : 'auto',
+        }}
+        aria-hidden={sidebarCollapsed || (!isDesktop && !mobileDrawerOpen)}
+        inert={sidebarCollapsed || (!isDesktop && !mobileDrawerOpen) ? true : undefined}
         aria-label="Ordis conversation history"
         onKeyDown={(event) => {
           if (event.key === 'Escape') closeMobileDrawer();
         }}
       >
+
         {/* Sidebar Header */}
         <div className="ordis-sidebar-top">
           <div className="ordis-sidebar-brand">
@@ -398,8 +419,9 @@ export default function OrdisPage() {
       </aside>
 
       {/* Resize Handle */}
-      {!sidebarCollapsed && typeof window !== 'undefined' && window.innerWidth > 860 && (
+      {!sidebarCollapsed && isDesktop && (
         <div
+
           ref={resizeRef}
           className="ordis-resize-handle"
           onMouseDown={() => setIsResizing(true)}

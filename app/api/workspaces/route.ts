@@ -1,4 +1,5 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getUserWorkspaces, createWorkspace, updateWorkspace } from '@/lib/db/workspaces';
 import { generateWorkspaceAbbreviation } from '@/lib/dashboard/data';
 
@@ -63,8 +64,11 @@ export async function PATCH(request: Request) {
         ? rawId
         : ((authUser as any).workspaceId || `ws_${authUser.uid}`);
 
+    const wsAuth = await authorizeWorkspaceAccess(request, targetWsId, ['owner', 'admin']);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
     const name = body.name ? String(body.name).trim() : undefined;
-    if (!name && !body.tagline && !body.settings && !body.industry && !body.accentColor) {
+    if (!name && !body.tagline && !body.settings && !body.industry && !body.accentColor && !body.securityPolicies) {
       return apiError('At least one workspace attribute must be updated', 400);
     }
 
@@ -77,6 +81,10 @@ export async function PATCH(request: Request) {
     if (body.industry !== undefined) updates.industry = body.industry;
     if (body.teamSize !== undefined) updates.teamSize = body.teamSize;
     if (body.settings) updates.settings = body.settings;
+    if (body.securityPolicies) {
+      updates.securityPolicies = body.securityPolicies;
+      updates.settings = { ...(updates.settings || {}), securityPolicies: body.securityPolicies };
+    }
     if (body.accentColor) updates.color = body.accentColor;
 
     const updated = await updateWorkspace(targetWsId, updates);

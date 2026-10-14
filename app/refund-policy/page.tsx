@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: 'https://cursis.in/refund-policy',
+  },
 };
 
 export default function RefundPolicyPage() {
@@ -44,7 +47,7 @@ export default function RefundPolicyPage() {
           2. Subscription Cancellation
         </h2>
         <p style={{ margin: '0 0 12px 0' }}>
-          You may cancel your subscription at any time via your Workspace Settings &gt; Billing section. Upon cancellation:
+          You may cancel your subscription at any time by contacting our billing team at <a href="mailto:billing@cursis.in" style={{ color: '#0F4CFF', fontWeight: 700 }}>billing@cursis.in</a>. Upon cancellation:
         </p>
         <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <li>You retain full access to premium features until the end of your active billing period.</li>

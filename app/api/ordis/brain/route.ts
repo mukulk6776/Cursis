@@ -1,47 +1,43 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 
 export async function GET(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
+    const rawWorkspaceId = searchParams.get('workspaceId') || '';
 
-    const memories = await OrdisEngine.getCompanyBrain(workspaceId);
-    return NextResponse.json({ memories });
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+    const memories = await OrdisEngine.getCompanyBrain(wsAuth.workspaceId);
+    return apiSuccess({ memories });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const body = await request.json().catch(() => ({}));
+    const rawWorkspaceId = body.workspaceId || '';
 
-    const body = await request.json();
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     if (!body.category || !body.key || !body.value) {
-      return NextResponse.json({ error: 'category, key, and value are required' }, { status: 400 });
+      return apiError('category, key, and value are required', 400);
     }
 
-    const memory = await OrdisEngine.addCompanyBrainKnowledge(workspaceId, {
+    const memory = await OrdisEngine.addCompanyBrainKnowledge(wsAuth.workspaceId, {
       category: body.category,
       key: body.key,
       value: body.value,
       confidence: body.confidence,
     });
 
-    return NextResponse.json({ success: true, memory }, { status: 201 });
+    return apiSuccess({ memory }, 201);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

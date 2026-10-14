@@ -88,8 +88,8 @@ export default function ModulesSection() {
     },
     {
       num: '08',
-      name: 'Messages',
-      desc: 'Chat in organized channels and direct messages right next to your work.',
+      name: 'Automations',
+      desc: 'Build real-time event-driven rules and integrations to trigger actions across your tools.',
       featured: false,
     },
     {

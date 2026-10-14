@@ -22,8 +22,8 @@ export async function getUserWorkspaceRole(userId: string, workspaceId: string, 
     return 'owner';
   }
 
-  // 1. Direct personal or default workspace matching
-  if (cleanWsId === `ws_${cleanUid}` || !cleanWsId || cleanWsId === 'ws_default' || cleanWsId === 'ws_public') {
+  // 1. Direct personal workspace matching (only user's own personal workspace)
+  if (cleanWsId === `ws_${cleanUid}` || (!cleanWsId && cleanUid)) {
     return 'owner';
   }
 
@@ -80,9 +80,8 @@ export async function getUserWorkspaceRole(userId: string, workspaceId: string, 
   const memUser = inMemoryStore.users.get(cleanUid);
   if (memUser) {
     if (isFounderEmail(memUser.email)) return 'owner';
-    if (memUser.role === 'owner') return 'owner';
     if (Array.isArray(memUser.workspaceIds) && memUser.workspaceIds.includes(cleanWsId)) {
-      return (memUser.role as UserRole) || 'member';
+      return 'member';
     }
   }
 
@@ -93,9 +92,8 @@ export async function getUserWorkspaceRole(userId: string, workspaceId: string, 
       const uDoc = await userCol.findOne({ $or: [{ id: cleanUid }, { uid: cleanUid }] });
       if (uDoc) {
         if (isFounderEmail(uDoc.email)) return 'owner';
-        if (uDoc.role === 'owner') return 'owner';
         if (Array.isArray(uDoc.workspaceIds) && uDoc.workspaceIds.includes(cleanWsId)) {
-          return (uDoc.role as UserRole) || 'member';
+          return 'member';
         }
       }
     }
@@ -115,12 +113,14 @@ export async function isWorkspaceMember(userId: string, workspaceId: string, ema
 export interface WorkspaceAuthResult {
   user: AuthenticatedUser;
   role: UserRole;
+  workspaceId: string;
   errorResponse: null;
 }
 
 export interface WorkspaceAuthError {
   user: null;
   role: null;
+  workspaceId: null;
   errorResponse: NextResponse;
 }
 
@@ -129,7 +129,7 @@ export interface WorkspaceAuthError {
  */
 export async function authorizeWorkspaceAccess(
   request: Request,
-  workspaceId: string,
+  workspaceId?: string,
   requiredRoles?: UserRole[]
 ): Promise<WorkspaceAuthResult | WorkspaceAuthError> {
   const authUser = await getAuthenticatedUser(request);
@@ -137,16 +137,8 @@ export async function authorizeWorkspaceAccess(
     return {
       user: null,
       role: null,
+      workspaceId: null,
       errorResponse: apiError('Unauthorized: A valid session or token is required.', 401),
-    };
-  }
-
-  // Sovereign Founder is ALWAYS Owner with full access
-  if (isFounderEmail(authUser.email)) {
-    return {
-      user: authUser,
-      role: 'owner',
-      errorResponse: null,
     };
   }
 
@@ -156,15 +148,23 @@ export async function authorizeWorkspaceAccess(
       ? cleanWsId
       : authUser.workspaceId || `ws_${authUser.uid}`;
 
-  let role = await getUserWorkspaceRole(authUser.uid, effectiveWsId, authUser.email);
-  if (!role && authUser.role === 'owner') {
-    role = 'owner';
+  // Sovereign Founder is ALWAYS Owner with full access
+  if (isFounderEmail(authUser.email)) {
+    return {
+      user: authUser,
+      role: 'owner',
+      workspaceId: effectiveWsId,
+      errorResponse: null,
+    };
   }
+
+  const role = await getUserWorkspaceRole(authUser.uid, effectiveWsId, authUser.email);
 
   if (!role) {
     return {
       user: null,
       role: null,
+      workspaceId: null,
       errorResponse: apiError('Forbidden: You are not a member of this workspace.', 403),
     };
   }
@@ -173,6 +173,7 @@ export async function authorizeWorkspaceAccess(
     return {
       user: null,
       role: null,
+      workspaceId: null,
       errorResponse: apiError(
         `Forbidden: Insufficient permissions in this workspace. Required: ${requiredRoles.join(' or ')}.`,
         403
@@ -183,6 +184,7 @@ export async function authorizeWorkspaceAccess(
   return {
     user: authUser,
     role,
+    workspaceId: effectiveWsId,
     errorResponse: null,
   };
 }

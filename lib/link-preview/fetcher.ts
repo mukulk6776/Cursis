@@ -1,9 +1,9 @@
-import ogs from 'ogs';
+import * as cheerio from 'cheerio';
 import { URL } from 'url';
 import dns from 'dns';
 import { promisify } from 'util';
 
-const dnsLookup = promisify(dns.lookup);
+const dnsResolve = promisify(dns.resolve);
 
 export interface LinkPreviewData {
   url: string;
@@ -16,23 +16,47 @@ export interface LinkPreviewData {
 
 // SSRF Protection: Block private/internal IP ranges
 const BLOCKED_IP_PATTERNS = [
-  /^127\./,           // Loopback
-  /^10\./,            // Private Class A
+  /^127\./,                          // Loopback
+  /^10\./,                           // Private Class A
   /^172\.(1[6-9]|2[0-9]|3[0-1])\./,  // Private Class B
-  /^192\.168\./,      // Private Class C
-  /^169\.254\./,      // Link-local
-  /^::1$/,            // IPv6 loopback
-  /^fe80:/,           // IPv6 link-local
-  /^fc00:/,           // IPv6 private
-  /^fd00:/,           // IPv6 private
+  /^192\.168\./,                     // Private Class C
+  /^169\.254\./,                     // Link-local
+  /^100\.(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7])\./, // Carrier-grade NAT
+  /^192\.0\.2\./,                    // TEST-NET-1
+  /^198\.51\.100\./,                 // TEST-NET-2
+  /^203\.0\.113\./,                  // TEST-NET-3
+  /^224\./,                          // Multicast
+  /^240\./,                          // Reserved
+  /^255\.255\.255\.255$/,            // Broadcast
+  /^::1$/i,                          // IPv6 loopback
+  /^::$/i,                           // IPv6 unspecified
+  /^fe80:/i,                         // IPv6 link-local
+  /^fc00:/i,                         // IPv6 private (ULA)
+  /^fd00:/i,                         // IPv6 private (ULA)
+  /^::ffff:127\./i,                  // IPv4-mapped IPv6 loopback
+  /^::ffff:10\./i,                   // IPv4-mapped IPv6 private
+  /^::ffff:172\./i,
+  /^::ffff:192\.168\./i,
+  /^::ffff:169\.254\./i,
+  /^::ffff:0\./i,
 ];
 
 const BLOCKED_HOSTNAMES = [
   'localhost',
   '0.0.0.0',
   'metadata.google.internal',  // GCP metadata
-  '169.254.169.254',            // AWS/Azure metadata
+  '169.254.169.254',           // AWS/Azure/GCP metadata
+  'instance-data',
 ];
+
+export function isIpBlocked(ip: string): boolean {
+  for (const pattern of BLOCKED_IP_PATTERNS) {
+    if (pattern.test(ip)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export function isValidUrl(url: string): boolean {
   try {
@@ -43,9 +67,19 @@ export function isValidUrl(url: string): boolean {
       return false;
     }
 
+    // Reject userinfo/credentials in URL
+    if (parsed.username || parsed.password) {
+      return false;
+    }
+
     // Block localhost and private hostnames
     const hostname = parsed.hostname.toLowerCase();
     if (BLOCKED_HOSTNAMES.includes(hostname)) {
+      return false;
+    }
+
+    // Direct IP check if hostname is an IP address
+    if (isIpBlocked(hostname)) {
       return false;
     }
 
@@ -55,28 +89,57 @@ export function isValidUrl(url: string): boolean {
   }
 }
 
-async function isBlockedIP(hostname: string): Promise<boolean> {
-  try {
-    const { address } = await dnsLookup(hostname);
+async function validateHostnameIPs(hostname: string): Promise<void> {
+  // Check if hostname itself matches blocked hostnames
+  if (BLOCKED_HOSTNAMES.includes(hostname.toLowerCase())) {
+    throw new Error('SSRF: Hostname is blocked');
+  }
 
-    // Check if IP matches any blocked pattern
-    for (const pattern of BLOCKED_IP_PATTERNS) {
-      if (pattern.test(address)) {
-        return true;
-      }
+  // Direct IP check
+  if (isIpBlocked(hostname)) {
+    throw new Error('SSRF: Access to private IP is blocked');
+  }
+
+  try {
+    // Resolve both IPv4 and IPv6 addresses
+    const addresses: string[] = [];
+    try {
+      const aRecords = await dnsResolve(hostname, 'A');
+      addresses.push(...aRecords);
+    } catch {
+      // Ignore if no A record
     }
 
-    return false;
-  } catch {
-    // If DNS lookup fails, block the request
-    return true;
+    try {
+      const aaaaRecords = await dnsResolve(hostname, 'AAAA');
+      addresses.push(...aaaaRecords);
+    } catch {
+      // Ignore if no AAAA record
+    }
+
+    if (addresses.length === 0) {
+      // If direct DNS resolution had no records, try lookup
+      const lookup = promisify(dns.lookup);
+      const res = await lookup(hostname);
+      addresses.push(res.address);
+    }
+
+    for (const address of addresses) {
+      if (isIpBlocked(address)) {
+        throw new Error(`SSRF: Resolved IP address ${address} is blocked`);
+      }
+    }
+  } catch (error: any) {
+    if (error.message?.includes('SSRF:')) {
+      throw error;
+    }
+    throw new Error(`SSRF: DNS resolution failed for hostname ${hostname}`);
   }
 }
 
 export function normalizeUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    // Remove trailing slashes, fragments, and normalize
     parsed.hash = '';
     let normalized = parsed.toString();
     if (normalized.endsWith('/')) {
@@ -89,11 +152,10 @@ export function normalizeUrl(url: string): string {
 }
 
 function resolveRelativeUrl(base: string, relative: string | undefined): string | null {
-  if (!relative) return null;
+  if (!relative || typeof relative !== 'string') return null;
   try {
-    const resolved = new URL(relative, base);
-    // Only allow https images
-    if (resolved.protocol !== 'https:') {
+    const resolved = new URL(relative.trim(), base);
+    if (!['http:', 'https:'].includes(resolved.protocol)) {
       return null;
     }
     return resolved.toString();
@@ -103,92 +165,156 @@ function resolveRelativeUrl(base: string, relative: string | undefined): string 
 }
 
 export async function getLinkPreview(url: string): Promise<LinkPreviewData> {
-  const parsed = new URL(url);
-
-  // SSRF Protection: Check if hostname resolves to blocked IP
-  if (await isBlockedIP(parsed.hostname)) {
-    throw new Error('SSRF: Access to this IP address is blocked');
-  }
+  let currentUrl = url;
+  let redirects = 0;
+  const maxRedirects = 3;
+  let responseText = '';
+  let finalUrlObj = new URL(currentUrl);
 
   try {
-    const result = await ogs({
-      url,
-      timeout: 5000,              // 5 second timeout
-      followRedirect: true,
-      maxRedirects: 3,            // Limit redirects
-      retry: 0,
-      headers: {
-        'User-Agent': 'Cursis-LinkPreview/1.0 (+https://cursis.in)',
-      },
-      // Size limit handled by ogs internally
-      fetchOptions: {
-        size: 2 * 1024 * 1024,    // 2 MB limit
-      },
-    });
+    while (redirects <= maxRedirects) {
+      finalUrlObj = new URL(currentUrl);
+      if (!isValidUrl(currentUrl)) {
+        throw new Error('SSRF: Invalid or blocked URL target');
+      }
 
-    // After redirect, check if final URL is safe
-    if (result.response?.url) {
-      const finalUrl = new URL(result.response.url);
-      if (await isBlockedIP(finalUrl.hostname)) {
-        throw new Error('SSRF: Redirect to blocked IP address detected');
+      await validateHostnameIPs(finalUrlObj.hostname);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const res = await fetch(currentUrl, {
+          method: 'GET',
+          redirect: 'manual',
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Cursis-LinkPreview/1.0 (+https://cursis.in)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+
+        // Handle redirect
+        if ([301, 302, 303, 307, 308].includes(res.status)) {
+          const location = res.headers.get('location');
+          if (!location) {
+            throw new Error('Redirect missing Location header');
+          }
+          currentUrl = new URL(location, currentUrl).toString();
+          redirects++;
+          continue;
+        }
+
+        if (!res.ok) {
+          throw new Error(`HTTP fetch failed with status ${res.status}`);
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('text/html') && !contentType.includes('application/xhtml+xml')) {
+          // Not HTML, return minimal preview
+          return {
+            url: currentUrl,
+            title: finalUrlObj.hostname,
+            description: '',
+            image: null,
+            siteName: finalUrlObj.hostname,
+            favicon: `${finalUrlObj.protocol}//${finalUrlObj.hostname}/favicon.ico`,
+          };
+        }
+
+        // Read max 2MB safely
+        const reader = res.body?.getReader();
+        if (!reader) {
+          responseText = await res.text();
+        } else {
+          const chunks: Uint8Array[] = [];
+          let totalSize = 0;
+          const maxSize = 2 * 1024 * 1024; // 2MB
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (value) {
+              chunks.push(value);
+              totalSize += value.byteLength;
+              if (totalSize >= maxSize) {
+                await reader.cancel();
+                break;
+              }
+            }
+          }
+          const totalBuffer = new Uint8Array(totalSize);
+          let offset = 0;
+          for (const chunk of chunks) {
+            totalBuffer.set(chunk, offset);
+            offset += chunk.byteLength;
+          }
+          responseText = new TextDecoder('utf-8').decode(totalBuffer);
+        }
+        break;
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
 
-    const ogData = result.result;
-    const siteName = ogData.ogSiteName || parsed.hostname;
-
-    // Extract title (priority: og:title > twitter:title > <title>)
-    const title = ogData.ogTitle ||
-                  ogData.twitterTitle ||
-                  (ogData as any).dcTitle ||
-                  siteName;
-
-    // Extract description
-    const description = ogData.ogDescription ||
-                       ogData.twitterDescription ||
-                       (ogData as any).dcDescription ||
-                       '';
-
-    // Extract image (priority: og:image > twitter:image)
-    let image: string | null = null;
-    const ogImage = ogData.ogImage?.[0]?.url || ogData.ogImage;
-    const twitterImage = ogData.twitterImage?.[0]?.url || ogData.twitterImage;
-    const rawImage = ogImage || twitterImage;
-
-    if (rawImage) {
-      image = resolveRelativeUrl(url, rawImage as string);
+    if (redirects > maxRedirects) {
+      throw new Error('Too many redirects');
     }
 
-    // Extract favicon
-    let favicon: string | null = null;
-    const faviconUrl = ogData.favicon;
-    if (faviconUrl) {
-      favicon = resolveRelativeUrl(url, faviconUrl as string);
-    } else {
-      // Fallback to /favicon.ico
-      favicon = `${parsed.protocol}//${parsed.hostname}/favicon.ico`;
-    }
+    // Parse HTML using cheerio
+    const $ = cheerio.load(responseText);
+    const siteName = $('meta[property="og:site_name"]').attr('content')?.trim() || finalUrlObj.hostname;
+
+    const title =
+      $('meta[property="og:title"]').attr('content')?.trim() ||
+      $('meta[name="twitter:title"]').attr('content')?.trim() ||
+      $('title').text().trim() ||
+      siteName;
+
+    const description =
+      $('meta[property="og:description"]').attr('content')?.trim() ||
+      $('meta[name="twitter:description"]').attr('content')?.trim() ||
+      $('meta[name="description"]').attr('content')?.trim() ||
+      '';
+
+    const rawImage =
+      $('meta[property="og:image"]').attr('content')?.trim() ||
+      $('meta[name="twitter:image"]').attr('content')?.trim() ||
+      $('meta[name="twitter:image:src"]').attr('content')?.trim();
+
+    const image = rawImage ? resolveRelativeUrl(currentUrl, rawImage) : null;
+
+    const rawFavicon =
+      $('link[rel="icon"]').attr('href')?.trim() ||
+      $('link[rel="shortcut icon"]').attr('href')?.trim() ||
+      $('link[rel="apple-touch-icon"]').attr('href')?.trim();
+
+    const favicon = rawFavicon
+      ? resolveRelativeUrl(currentUrl, rawFavicon)
+      : `${finalUrlObj.protocol}//${finalUrlObj.hostname}/favicon.ico`;
 
     return {
       url,
-      title: title?.substring(0, 200) || siteName,
-      description: description?.substring(0, 300) || '',
+      title: title.substring(0, 200),
+      description: description.substring(0, 300),
       image,
       siteName,
       favicon,
     };
-
   } catch (error: any) {
-    // If fetch fails, return minimal preview
-    console.error('Link preview fetch error:', error);
+    // If it's an SSRF violation, rethrow so API returns 403
+    if (error.message?.includes('SSRF:')) {
+      throw error;
+    }
 
+    // Fallback minimal preview for unreachable or parsing errors
     return {
       url,
-      title: parsed.hostname,
+      title: finalUrlObj.hostname || url,
       description: '',
       image: null,
-      siteName: parsed.hostname,
-      favicon: `${parsed.protocol}//${parsed.hostname}/favicon.ico`,
+      siteName: finalUrlObj.hostname || url,
+      favicon: `${finalUrlObj.protocol}//${finalUrlObj.hostname}/favicon.ico`,
     };
   }
 }

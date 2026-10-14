@@ -7,10 +7,8 @@ export async function getProjects(workspaceId: string): Promise<Project[]> {
     const col = await getCollection<Project>('projects');
     if (col) {
       const docs = await col.find({ workspaceId }).sort({ createdAt: -1 }).toArray();
-      if (docs.length > 0) {
-        docs.forEach((p) => inMemoryStore.projects.set(p.id, p));
-        return docs;
-      }
+      docs.forEach((p) => inMemoryStore.projects.set(p.id, p));
+      return docs;
     }
   } catch (e) {
     console.warn('MongoDB getProjects notice:', e);
@@ -21,14 +19,19 @@ export async function getProjects(workspaceId: string): Promise<Project[]> {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export async function getProjectById(id: string): Promise<Project | null> {
+export async function getProjectById(id: string, workspaceId?: string): Promise<Project | null> {
   const project = inMemoryStore.projects.get(id);
-  if (project) return project;
+  if (project) {
+    if (workspaceId && project.workspaceId !== workspaceId) return null;
+    return project;
+  }
 
   try {
     const col = await getCollection<Project>('projects');
     if (col) {
-      const found = await col.findOne({ id });
+      const query: any = { id };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const found = await col.findOne(query);
       if (found) {
         inMemoryStore.projects.set(id, found);
         return found;
@@ -38,6 +41,7 @@ export async function getProjectById(id: string): Promise<Project | null> {
 
   return null;
 }
+
 
 export async function createProject(workspaceId: string, data: Partial<Project>): Promise<Project> {
   const id = `prj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;

@@ -133,6 +133,7 @@ export interface Task {
   priority: TaskPriority;
   assigneeId?: string;
   assigneeName?: string;
+  assignees?: string[];
   creatorId: string;
   createdBy?: string;
   dueDate: string;
@@ -267,6 +268,7 @@ export interface DocumentItem {
   authorId: string;
   authorName: string;
   version: number;
+  versions?: { v: number; date: string; author: string }[];
   isCompanyBrainResource?: boolean; // Ingested for Ordis memory
   summary?: string;
   fileUrl?: string;
@@ -371,6 +373,21 @@ export interface Deal {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Contact {
+  id: string;
+  workspaceId: string;
+  name: string;
+  company: string;
+  email: string;
+  phone?: string;
+  role: string;
+  status: string;
+  notes?: string;
+  lastContact: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 // ==========================================
@@ -584,9 +601,14 @@ export interface ExternalIntegration {
   config: {
     webhookUrl?: string;
     apiKeyMasked?: string;
+    apiKey?: string;
+    secret?: string;
     targetAccount?: string;
     syncEnabled?: boolean;
     preApprovedActions?: string[]; // e.g. ["send_invoice", "sync_crm", "send_docusign"]
+    token?: string;
+    apiEndpoint?: string;
+    url?: string;
   };
   lastSyncedAt?: string;
   createdAt: string;

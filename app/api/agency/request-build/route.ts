@@ -1,31 +1,42 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { apiSuccess, apiError } from '@/lib/api/response';
 import { createCustomBuildRequest } from '@/lib/db/agency';
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const body = await request.json().catch(() => ({}));
+    const rawWsId = body.workspaceId || '';
+
+    const auth = await authorizeWorkspaceAccess(request, rawWsId);
+    let workspaceId = 'ws_public_inquiry';
+    let userEmail = '';
+
+    if (!auth.errorResponse && auth.user) {
+      workspaceId = rawWsId && rawWsId !== 'ws_default' && rawWsId !== 'ws_public'
+        ? rawWsId
+        : auth.user.workspaceId || `ws_${auth.user.uid}`;
+      userEmail = auth.user.email || '';
     }
 
-    const body = await request.json();
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const companyName = (body.companyName || body.company || body.name || '').trim();
+    const contactEmail = (body.contactEmail || body.email || userEmail || '').trim();
+    const requestedService = (body.requestedService || body.solutionType || body.service || '').trim();
 
-    if (!body.companyName || !body.contactEmail || !body.requestedService) {
-      return NextResponse.json({ error: 'Company name, contact email, and requested service are required' }, { status: 400 });
+    if (!companyName || !contactEmail || !requestedService) {
+      return apiError('Company name / your name, contact email, and requested service are required', 400);
     }
 
     const customRequest = await createCustomBuildRequest(workspaceId, {
-      companyName: body.companyName,
-      contactEmail: body.contactEmail,
-      requestedService: body.requestedService,
+      companyName,
+      contactEmail,
+      requestedService,
       budgetRange: body.budgetRange || '₹3,50,000 - ₹5,00,000',
       requirements: body.requirements || 'Custom autonomous AI agents and deep workspace integrations.',
     });
 
-    return NextResponse.json({ success: true, request: customRequest }, { status: 201 });
+    return apiSuccess({ request: customRequest }, 201);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }
+

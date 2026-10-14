@@ -103,6 +103,9 @@ export default function InviteModal() {
       <div
         className="modal open"
         id="invite-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="invite-modal-title"
         style={{
           position: 'fixed',
           top: '50%',
@@ -131,7 +134,7 @@ export default function InviteModal() {
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 'var(--fw-bold)' }}>
+              <h3 id="invite-modal-title" style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 'var(--fw-bold)' }}>
                 Invite to Workspace
               </h3>
               <span
@@ -156,7 +159,7 @@ export default function InviteModal() {
             type="button"
             className="btn btn-ghost btn-sm"
             onClick={handleClose}
-            aria-label="Close"
+            aria-label="Close modal"
             style={{ padding: '4px 8px' }}
           >
             ✕
@@ -199,6 +202,8 @@ export default function InviteModal() {
 
           {errorMsg && (
             <div
+              role="alert"
+              aria-live="assertive"
               style={{
                 marginBottom: 'var(--sp-4)',
                 padding: 'var(--sp-3)',
@@ -216,6 +221,7 @@ export default function InviteModal() {
 
           <div style={{ marginBottom: 'var(--sp-4)' }}>
             <label
+              htmlFor="invite-modal-email-input"
               style={{
                 display: 'block',
                 fontSize: 'var(--fs-xs)',
@@ -227,6 +233,7 @@ export default function InviteModal() {
               Email Address <span style={{ color: 'var(--c-brand)' }}>*</span>
             </label>
             <input
+              id="invite-modal-email-input"
               type="email"
               required
               className="input"
@@ -245,6 +252,7 @@ export default function InviteModal() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-3)', marginBottom: 'var(--sp-4)' }}>
             <div>
               <label
+                htmlFor="invite-modal-role-select"
                 style={{
                   display: 'block',
                   fontSize: 'var(--fs-xs)',
@@ -256,6 +264,7 @@ export default function InviteModal() {
                 Assigned Role
               </label>
               <select
+                id="invite-modal-role-select"
                 className="input select"
                 value={role}
                 onChange={(e) => setRole(e.target.value as 'member' | 'admin')}
@@ -269,6 +278,7 @@ export default function InviteModal() {
 
             <div>
               <label
+                htmlFor="invite-modal-dept-select"
                 style={{
                   display: 'block',
                   fontSize: 'var(--fs-xs)',
@@ -280,6 +290,7 @@ export default function InviteModal() {
                 Department
               </label>
               <select
+                id="invite-modal-dept-select"
                 className="input select"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
@@ -298,6 +309,7 @@ export default function InviteModal() {
 
           <div style={{ marginBottom: 'var(--sp-5)' }}>
             <label
+              htmlFor="invite-modal-note-textarea"
               style={{
                 display: 'block',
                 fontSize: 'var(--fs-xs)',
@@ -309,6 +321,7 @@ export default function InviteModal() {
               Invitation Note <span style={{ color: 'var(--text-tertiary)', fontWeight: 'normal' }}>(Optional)</span>
             </label>
             <textarea
+              id="invite-modal-note-textarea"
               className="input textarea"
               rows={2}
               placeholder="Join our team on Cursis to collaborate on projects..."

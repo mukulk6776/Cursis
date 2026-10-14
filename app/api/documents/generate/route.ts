@@ -1,30 +1,28 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { generateDocumentFromPrompt } from '@/lib/db/documents';
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const body = await request.json().catch(() => ({}));
+    const rawWorkspaceId = body.workspaceId || '';
 
-    const body = await request.json();
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     if (!body.prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+      return apiError('Prompt is required', 400);
     }
 
     const document = await generateDocumentFromPrompt(
-      workspaceId,
+      wsAuth.workspaceId,
       body.prompt,
       body.category || 'kickoff',
       body.projectId
     );
 
-    return NextResponse.json({ success: true, document }, { status: 201 });
+    return apiSuccess({ document }, 201);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

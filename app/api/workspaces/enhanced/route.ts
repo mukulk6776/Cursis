@@ -86,7 +86,7 @@ export async function POST(request: Request) {
         workspaceId: workspace.workspaceId,
         name: workspace.name,
         slug: workspace.slug,
-        url: `/dashboard/w/${workspace.slug}`,
+        url: `/dashboard?workspace=${workspace.workspaceId || workspace.id}`,
       },
     }, 201);
   } catch (error: any) {

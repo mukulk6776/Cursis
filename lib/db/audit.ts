@@ -112,21 +112,99 @@ export async function rollbackAction(
     return { success: false, message: 'This action has already been rolled back' };
   }
 
-  // Perform state restoration based on targetType
+  const supportedTargets = ['task', 'project', 'document'];
+  if (!supportedTargets.includes(entry.targetType)) {
+    return { success: false, message: `Rollback is not supported for target type "${entry.targetType}".` };
+  }
+
+  let restorationApplied = false;
+
+  // Perform state restoration based on targetType and persist to MongoDB
   if (entry.targetType === 'task') {
+    const { getTaskById } = await import('./tasks');
+    const existing = await getTaskById(entry.targetId, entry.workspaceId);
+    if (!existing) {
+      return { success: false, message: `Target task ${entry.targetId} not found in this workspace.` };
+    }
+
     const task = inMemoryStore.tasks.get(entry.targetId);
     if (task && entry.rollbackState) {
       Object.assign(task, entry.rollbackState);
       task.updatedAt = new Date().toISOString();
       inMemoryStore.tasks.set(task.id, task);
+      restorationApplied = true;
+    }
+    try {
+      const col = await getCollection('tasks');
+      if (col) {
+        const res = await col.updateOne(
+          { id: entry.targetId, workspaceId: entry.workspaceId },
+          { $set: { ...entry.rollbackState, updatedAt: new Date().toISOString() } }
+        );
+        if (res.matchedCount > 0) restorationApplied = true;
+      }
+    } catch (e) {
+      console.warn('MongoDB task rollback error:', e);
+      return { success: false, message: 'Database failure during task state restoration.' };
     }
   } else if (entry.targetType === 'project') {
+    const { getProjectById } = await import('./projects');
+    const existing = await getProjectById(entry.targetId, entry.workspaceId);
+    if (!existing) {
+      return { success: false, message: `Target project ${entry.targetId} not found in this workspace.` };
+    }
+
     const project = inMemoryStore.projects.get(entry.targetId);
     if (project && entry.rollbackState) {
       Object.assign(project, entry.rollbackState);
       project.updatedAt = new Date().toISOString();
       inMemoryStore.projects.set(project.id, project);
+      restorationApplied = true;
     }
+    try {
+      const col = await getCollection('projects');
+      if (col) {
+        const res = await col.updateOne(
+          { id: entry.targetId, workspaceId: entry.workspaceId },
+          { $set: { ...entry.rollbackState, updatedAt: new Date().toISOString() } }
+        );
+        if (res.matchedCount > 0) restorationApplied = true;
+      }
+    } catch (e) {
+      console.warn('MongoDB project rollback error:', e);
+      return { success: false, message: 'Database failure during project state restoration.' };
+    }
+  } else if (entry.targetType === 'document') {
+    const { getDocumentById } = await import('./documents');
+    const existing = await getDocumentById(entry.targetId);
+    if (!existing || existing.workspaceId !== entry.workspaceId) {
+      return { success: false, message: `Target document ${entry.targetId} not found in this workspace.` };
+    }
+
+    const doc = inMemoryStore.documents.get(entry.targetId);
+    if (doc && entry.rollbackState) {
+      Object.assign(doc, entry.rollbackState);
+      doc.updatedAt = new Date().toISOString();
+      inMemoryStore.documents.set(doc.id, doc);
+      restorationApplied = true;
+    }
+    try {
+      const col = await getCollection('documents');
+      if (col) {
+        const res = await col.updateOne(
+          { id: entry.targetId, workspaceId: entry.workspaceId },
+          { $set: { ...entry.rollbackState, updatedAt: new Date().toISOString() } }
+        );
+        if (res.matchedCount > 0) restorationApplied = true;
+      }
+    } catch (e) {
+      console.warn('MongoDB document rollback error:', e);
+      return { success: false, message: 'Database failure during document state restoration.' };
+    }
+  }
+
+  if (!restorationApplied) {
+    return { success: false, message: `Failed to restore state for target ${entry.targetType} ${entry.targetId}.` };
   }
 
   entry.rolledBack = true;
@@ -156,3 +234,4 @@ export async function rollbackAction(
 
   return { success: true, message: `Action "${entry.action}" on ${entry.targetType} ${entry.targetId} successfully rolled back.` };
 }
+

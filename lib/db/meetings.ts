@@ -9,10 +9,8 @@ export async function getMeetings(workspaceId: string): Promise<Meeting[]> {
     const col = await getCollection<Meeting>('meetings');
     if (col) {
       const docs = await col.find({ workspaceId }).sort({ scheduledAt: -1 }).toArray();
-      if (docs.length > 0) {
-        docs.forEach((m) => inMemoryStore.meetings.set(m.id, m));
-        return docs;
-      }
+      docs.forEach((m) => inMemoryStore.meetings.set(m.id, m));
+      return docs;
     }
   } catch (e) {
     console.warn('MongoDB getMeetings notice:', e);
@@ -44,15 +42,19 @@ export async function getMeetingById(id: string): Promise<Meeting | null> {
 }
 
 export async function createMeeting(workspaceId: string, data: Partial<Meeting>): Promise<Meeting> {
+  if (data.id) {
+    const existing = inMemoryStore.meetings.get(data.id);
+    if (existing) {
+      const err: any = new Error(`Meeting with ID ${data.id} already exists`);
+      err.statusCode = 409;
+      throw err;
+    }
+  }
+
   const id = data.id || `mtg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const title = data.title || data.name || 'Untitled Meeting';
   const scheduledAt = data.scheduledAt || new Date().toISOString();
   const platform = data.platform || 'google_meet';
-  const defaultUrl = platform === 'zoom'
-    ? 'https://zoom.us/j/new'
-    : platform === 'teams'
-    ? 'https://teams.microsoft.com'
-    : 'https://meet.google.com/new';
 
   const meeting: Meeting = {
     id,
@@ -61,7 +63,7 @@ export async function createMeeting(workspaceId: string, data: Partial<Meeting>)
     title,
     name: title,
     platform,
-    meetingUrl: data.meetingUrl?.trim() || defaultUrl,
+    meetingUrl: data.meetingUrl?.trim() || '',
     scheduledAt,
     date: data.date || scheduledAt.split('T')[0],
     time: data.time || (scheduledAt.includes('T') ? scheduledAt.split('T')[1].substring(0, 5) : '10:00'),
@@ -69,8 +71,8 @@ export async function createMeeting(workspaceId: string, data: Partial<Meeting>)
     duration: data.duration || data.durationMinutes || 30,
     hostId: data.hostId || 'usr_owner_default',
     hostName: data.hostName || 'Host',
-    attendees: data.attendees || data.participants || ['founder@cursis.ai'],
-    participants: data.participants || data.attendees || ['founder@cursis.ai'],
+    attendees: data.attendees || data.participants || [],
+    participants: data.participants || data.attendees || [],
     status: data.status || 'scheduled',
     agenda: data.agenda || '',
     transcript: data.transcript,
@@ -92,11 +94,6 @@ export async function createMeeting(workspaceId: string, data: Partial<Meeting>)
     }
   } catch (e) {
     console.warn('MongoDB insert meeting notice:', e);
-  }
-
-  // If meeting has a transcript/notes and is not processed yet, automatically process it!
-  if ((data.transcript || data.notes) && !data.processedByOrdis) {
-    await processMeetingWithOrdis(id, workspaceId);
   }
 
   return meeting;
@@ -121,16 +118,23 @@ export async function updateMeeting(id: string, updates: Partial<Meeting>): Prom
   const existing = inMemoryStore.meetings.get(id);
   if (!existing) return null;
 
-  const title = updates.title || updates.name || existing.title;
-  const scheduledAt = updates.scheduledAt || existing.scheduledAt;
+  // Protect immutable identifiers: id, workspaceId, hostId, createdAt
+  const { id: _id, workspaceId: _wsId, hostId: _hostId, createdAt: _createdAt, ...allowedUpdates } = updates as any;
+
+  const title = allowedUpdates.title || allowedUpdates.name || existing.title;
+  const scheduledAt = allowedUpdates.scheduledAt || existing.scheduledAt;
 
   const updated: Meeting = {
     ...existing,
-    ...updates,
+    ...allowedUpdates,
+    id: existing.id,
+    workspaceId: existing.workspaceId,
+    hostId: existing.hostId,
+    createdAt: existing.createdAt,
     title,
     name: title,
-    date: updates.date || (scheduledAt ? scheduledAt.split('T')[0] : existing.date),
-    time: updates.time || (scheduledAt && scheduledAt.includes('T') ? scheduledAt.split('T')[1].substring(0, 5) : existing.time),
+    date: allowedUpdates.date || (scheduledAt ? scheduledAt.split('T')[0] : existing.date),
+    time: allowedUpdates.time || (scheduledAt && scheduledAt.includes('T') ? scheduledAt.split('T')[1].substring(0, 5) : existing.time),
     updatedAt: new Date().toISOString(),
   };
 
@@ -139,7 +143,7 @@ export async function updateMeeting(id: string, updates: Partial<Meeting>): Prom
   try {
     const col = await getCollection<Meeting>('meetings');
     if (col) {
-      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+      await col.updateOne({ id, workspaceId: existing.workspaceId }, { $set: updated });
     }
   } catch (e) {
     console.warn('MongoDB update meeting notice:', e);
@@ -154,76 +158,78 @@ export async function processMeetingWithOrdis(
   meetingId: string,
   workspaceId: string
 ): Promise<{ meeting: Meeting; createdTasks: Task[] }> {
-  const meeting = inMemoryStore.meetings.get(meetingId);
+  const meeting = await getMeetingById(meetingId);
   if (!meeting) throw new Error('Meeting not found');
 
-  const team = await getWorkspaceTeam(workspaceId);
-
-  // 1. Generate Intelligent Summary
+  // 1. Summary from genuine notes or transcript
   if (!meeting.summary) {
-    meeting.summary = meeting.notes
-      ? `Summary based on notes: ${meeting.notes.slice(0, 150)}...`
-      : `Meeting concluded covering scope alignment, deliverables, and timeline milestones. Aligned on execution velocity and client deliverables.`;
+    if (meeting.notes?.trim()) {
+      meeting.summary = meeting.notes.trim();
+    } else if (meeting.transcript?.trim()) {
+      meeting.summary = meeting.transcript.trim().slice(0, 500);
+    } else {
+      meeting.summary = 'No meeting notes or transcript recorded.';
+    }
   }
 
-  // 2. Extract Action Items & Assign Tasks Automatically
+  // 2. Only create tasks for explicit action items provided that do not have tasks yet
   const createdTasks: Task[] = [];
-  const primaryAssignee = team[0] || { id: meeting.hostId || 'usr_host', displayName: 'Meeting Host' };
-  const secondaryAssignee = team[1] || primaryAssignee;
+  const existingActionItems = meeting.actionItems || [];
+  const updatedActionItems = [];
 
-  const actionItemsData = meeting.actionItems.length > 0
-    ? meeting.actionItems
-    : [
-        {
-          id: `ai_${Date.now()}_1`,
-          text: `Prepare action items and deliverable specifications for "${meeting.title}"`,
-          assigneeName: primaryAssignee.displayName,
-          assigneeId: primaryAssignee.id,
-          dueDate: new Date(Date.now() + 86400000).toISOString(),
-        },
-        {
-          id: `ai_${Date.now()}_2`,
-          text: `Follow up with meeting participants on milestones and deliverables`,
-          assigneeName: secondaryAssignee.displayName,
-          assigneeId: secondaryAssignee.id,
-          dueDate: new Date(Date.now() + 2 * 86400000).toISOString(),
-        },
-      ];
-
-  meeting.actionItems = [];
-
-  for (const item of actionItemsData) {
+  for (const item of existingActionItems) {
+    if (item.createdTaskId) {
+      updatedActionItems.push(item);
+      continue;
+    }
     const task = await createTask(workspaceId, {
       projectId: meeting.projectId,
       title: item.text,
-      description: `Auto-generated by Ordis from meeting: "${meeting.title}"`,
+      description: `Action item from meeting: "${meeting.title}"`,
       assigneeId: item.assigneeId,
       assigneeName: item.assigneeName,
       dueDate: item.dueDate || new Date(Date.now() + 2 * 86400000).toISOString(),
       priority: 'high',
-      tags: ['Meeting-Generated', 'Ordis-Automated'],
+      tags: ['Meeting-Action-Item'],
     });
 
     createdTasks.push(task);
-
-    meeting.actionItems.push({
+    updatedActionItems.push({
       ...item,
       createdTaskId: task.id,
     });
   }
+  meeting.actionItems = updatedActionItems;
 
-  // 3. Generate Ready Follow-Up Email Draft
-  if (!meeting.followUpEmailDraft) {
-    meeting.followUpEmailDraft = {
-      to: meeting.attendees.filter((a) => a.includes('@') && !a.endsWith('@cursis.ai')),
-      subject: `Follow-up: ${meeting.title} — Summary & Action Items`,
-      body: `Hi Team,\n\nThank you for the productive call today regarding ${meeting.title}.\n\nKey Summary:\n${meeting.summary}\n\nAction Items & Owners:\n${createdTasks.map((t) => `- ${t.title} (Assigned to ${t.assigneeName || 'Team'})`).join('\n')}\n\nEverything is underway.\n\nBest regards,\nCursis Team`,
-      status: 'draft',
-    };
+  // 3. Generate Follow-Up Email Draft if attendees exist
+  if (!meeting.followUpEmailDraft && meeting.attendees?.length > 0) {
+    const validRecipients = meeting.attendees.filter((a) => a.includes('@'));
+    if (validRecipients.length > 0) {
+      meeting.followUpEmailDraft = {
+        to: validRecipients,
+        subject: `Follow-up: ${meeting.title}`,
+        body: `Hi Team,\n\nNotes from our meeting "${meeting.title}":\n\n${meeting.summary}\n\n${
+          createdTasks.length > 0
+            ? 'Action Items:\n' + createdTasks.map((t) => `- ${t.title} (${t.assigneeName || 'Unassigned'})`).join('\n')
+            : ''
+        }\n\nBest regards,\n${meeting.hostName || 'Meeting Host'}`,
+        status: 'draft',
+      };
+    }
   }
 
   meeting.processedByOrdis = true;
+  meeting.updatedAt = new Date().toISOString();
   inMemoryStore.meetings.set(meetingId, meeting);
+
+  try {
+    const col = await getCollection<Meeting>('meetings');
+    if (col) {
+      await col.updateOne({ id: meetingId }, { $set: meeting }, { upsert: true });
+    }
+  } catch (e) {
+    console.warn('MongoDB processMeetingWithOrdis notice:', e);
+  }
 
   return { meeting, createdTasks };
 }

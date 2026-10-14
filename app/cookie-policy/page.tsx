@@ -10,7 +10,12 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: 'https://cursis.in/cookie-policy',
+  },
 };
+
+import CookiePreferenceButton from '@/components/CookiePreferenceButton';
 
 export default function CookiePolicyPage() {
   return (
@@ -90,11 +95,12 @@ export default function CookiePolicyPage() {
           4. Managing Cookie Settings
         </h2>
         <p style={{ margin: '0 0 12px 0' }}>
-          You can adjust your browser settings to block or notify you about cookies. Please note: disabling essential cookies may impact authentication and prevent workspace features from functioning properly.
+          You can adjust your browser settings to block or notify you about cookies, or modify your preferences on Cursis directly. Please note: disabling essential cookies may impact authentication and prevent workspace features from functioning properly.
         </p>
-        <div style={{ padding: '14px', background: '#FEF3C7', border: '1.5px solid #D97706', borderRadius: '8px', fontSize: '13px', color: '#92400E', lineHeight: 1.6 }}>
+        <div style={{ padding: '14px', background: '#FEF3C7', border: '1.5px solid #D97706', borderRadius: '8px', fontSize: '13px', color: '#92400E', lineHeight: 1.6, marginBottom: '16px' }}>
           <strong>Note:</strong> Cursis fully respects the <em>Do Not Track (DNT)</em> and <em>Global Privacy Control (GPC)</em> browser signals by default.
         </div>
+        <CookiePreferenceButton />
       </section>
     </PolicyLayout>
   );

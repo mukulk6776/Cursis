@@ -135,7 +135,7 @@ test('ordinary conversation does not create unrelated workspace entities', async
   assert.equal(parseDirectAction('create department Design and invite alex@example.com'), null);
 });
 test('all website pages are navigable and implemented capabilities are discoverable', async () => {
-  assert.equal(pages.length, 15);
+  assert.equal(pages.length, 14);
   assert.ok(Object.keys(capabilities).length >= 38);
   let round = 0;
   const result = await runWorkspaceAssistant({ ...base, message: 'Open settings', complete: async () => round++ === 0 ? { tool_calls: [{ id: 'nav', type: 'function', function: { name: 'open_page', arguments: '{"page":"settings"}' } }] } : { content: 'Opened settings.' } });

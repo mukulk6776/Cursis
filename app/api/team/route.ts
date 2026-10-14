@@ -1,4 +1,4 @@
-import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { authorizeWorkspaceAccess, isWorkspaceMember } from '@/lib/auth/rbac';
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
 import {
   getWorkspaceTeam,
@@ -133,17 +133,43 @@ export async function PATCH(request: Request) {
       authUser.workspaceId || `ws_${authUser.uid}`
     );
 
-    // Only admins/owners can update other members; members can update themselves
+    const rawUpdates = body.updates && typeof body.updates === 'object' ? body.updates : body;
     const isSelf = userId === authUser.uid;
+    const isModifyingRole = rawUpdates.role !== undefined;
+
+    // Modifying roles requires owner or admin permissions
+    if (isModifyingRole) {
+      const roleAuth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
+      if (roleAuth.errorResponse) return roleAuth.errorResponse;
+    }
+
+    // Only admins/owners can update other members; members can update themselves
     if (!isSelf) {
       const wsAuth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
       if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+      const isTargetMember = await isWorkspaceMember(userId, workspaceId);
+      if (!isTargetMember) {
+        return apiError('Target user is not a member of this workspace', 404);
+      }
     } else {
       const wsAuth = await authorizeWorkspaceAccess(request, workspaceId);
       if (wsAuth.errorResponse) return wsAuth.errorResponse;
     }
 
-    const updated = await updateTeamMember(userId, body.updates || body);
+    // Construct allowlisted update object
+    const allowedKeys = ['displayName', 'title', 'department', 'skills', 'photoURL', 'presence'] as const;
+    const sanitizedUpdates: Record<string, any> = {};
+    for (const key of allowedKeys) {
+      if (rawUpdates[key] !== undefined) {
+        sanitizedUpdates[key] = rawUpdates[key];
+      }
+    }
+    if (isModifyingRole && !isSelf) {
+      sanitizedUpdates.role = rawUpdates.role;
+    }
+
+    const updated = await updateTeamMember(userId, sanitizedUpdates);
     if (!updated) return apiError('Team member not found', 404);
 
     return apiSuccess({ member: updated, message: 'Team member updated' });
@@ -182,7 +208,12 @@ export async function DELETE(request: Request) {
     }
 
     if (userId || email) {
-      const isSelfLeave = (userId && userId === authUser.uid) || (email && email.toLowerCase() === authUser.email.toLowerCase());
+      // Safe self-leave check: if both userId and email are supplied, BOTH must match authUser.
+      // If only one is supplied, that one must match authUser.
+      const isSelfLeave =
+        (!userId || userId === authUser.uid) &&
+        (!email || email.toLowerCase() === authUser.email.toLowerCase());
+
       if (!isSelfLeave) {
         // Only owners can remove other members — use workspace-scoped role check
         const wsAuth = await authorizeWorkspaceAccess(request, workspaceId, ['owner']);

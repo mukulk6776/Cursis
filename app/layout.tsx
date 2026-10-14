@@ -93,9 +93,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://cursis.in',
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  } : undefined,
 };
 
 const softwareSchema = {
@@ -123,11 +123,6 @@ const websiteSchema = {
   name: 'Cursis',
   alternateName: ['Cursis AI', 'Cursis Workplace', 'Cursis Agency OS'],
   url: 'https://cursis.in',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: 'https://cursis.in/resources?q={search_term_string}',
-    'query-input': 'required name=search_term_string',
-  },
 };
 
 const organizationSchema = {

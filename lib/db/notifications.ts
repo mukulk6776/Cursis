@@ -62,8 +62,7 @@ export async function getUserNotifications(params: {
       if (cleanEmail) orClauses.push({ userEmail: cleanEmail });
       if (uid) orClauses.push({ userId: uid });
       if (wsId) {
-        orClauses.push({ workspaceId: wsId, userEmail: { $exists: false } });
-        orClauses.push({ workspaceId: { $in: ['ws_public', 'ws_default', 'ws_cursis_user'] }, userEmail: { $exists: false } });
+        orClauses.push({ workspaceId: wsId, userEmail: { $exists: false }, userId: { $exists: false } });
       }
 
       const query = orClauses.length > 0 ? { $or: orClauses } : {};
@@ -73,8 +72,17 @@ export async function getUserNotifications(params: {
       try {
         const invCol = await getCollection<any>('invitations');
         if (invCol && cleanEmail) {
-          const pendingInvs = await invCol.find({ email: cleanEmail, status: 'pending' }).toArray();
+          const nowIso = new Date().toISOString();
+          const pendingInvs = await invCol.find({
+            email: cleanEmail,
+            status: 'pending',
+            $or: [
+              { expiresAt: { $exists: false } },
+              { expiresAt: { $gt: nowIso } }
+            ]
+          }).toArray();
           for (const pinv of pendingInvs) {
+            if (pinv.expiresAt && new Date(pinv.expiresAt).getTime() < Date.now()) continue;
             const existingIdx = docs.findIndex((d) => d.referenceId === pinv.id);
             if (existingIdx === -1) {
               docs.unshift({
@@ -120,7 +128,7 @@ export async function getUserNotifications(params: {
   const resultNotifs = inMemoryNotifications.filter((n) => {
     if (cleanEmail && n.userEmail === cleanEmail) return true;
     if (uid && n.userId === uid) return true;
-    if (wsId && n.workspaceId === wsId && !n.userEmail) return true;
+    if (wsId && n.workspaceId === wsId && !n.userEmail && !n.userId) return true;
     return false;
   });
 
@@ -129,6 +137,7 @@ export async function getUserNotifications(params: {
     if (cleanEmail && inMemoryInvitations) {
       for (const pinv of inMemoryInvitations.values()) {
         if (pinv.email === cleanEmail && pinv.status === 'pending') {
+          if (pinv.expiresAt && new Date(pinv.expiresAt).getTime() < Date.now()) continue;
           if (!resultNotifs.some((d) => d.referenceId === pinv.id)) {
             resultNotifs.unshift({
               id: `notif_inv_${pinv.id}`,
@@ -161,9 +170,11 @@ export async function getUserNotifications(params: {
 export async function markAllNotificationsRead(params: {
   userId?: string;
   userEmail?: string;
+  workspaceId?: string;
 }): Promise<boolean> {
   const cleanEmail = params.userEmail ? params.userEmail.trim().toLowerCase() : undefined;
   const uid = params.userId;
+  const wsId = params.workspaceId;
 
   try {
     const col = await getCollection<DbNotification>('notifications');
@@ -171,6 +182,9 @@ export async function markAllNotificationsRead(params: {
       const orClauses: any[] = [];
       if (cleanEmail) orClauses.push({ userEmail: cleanEmail });
       if (uid) orClauses.push({ userId: uid });
+      if (wsId) {
+        orClauses.push({ workspaceId: wsId, userEmail: { $exists: false }, userId: { $exists: false } });
+      }
       if (orClauses.length > 0) {
         await col.updateMany({ $or: orClauses }, { $set: { read: true } });
       }
@@ -182,8 +196,11 @@ export async function markAllNotificationsRead(params: {
   inMemoryNotifications.forEach((n) => {
     if ((cleanEmail && n.userEmail === cleanEmail) || (uid && n.userId === uid)) {
       n.read = true;
+    } else if (wsId && n.workspaceId === wsId && !n.userEmail && !n.userId) {
+      n.read = true;
     }
   });
 
   return true;
 }
+

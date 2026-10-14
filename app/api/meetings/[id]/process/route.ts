@@ -1,5 +1,6 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
-import { processMeetingWithOrdis } from '@/lib/db/meetings';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { getMeetingById, processMeetingWithOrdis } from '@/lib/db/meetings';
 
 export async function POST(
   request: Request,
@@ -8,13 +9,17 @@ export async function POST(
   try {
     const auth = await getAuthOrError(request);
     if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
 
     const { id } = await params;
-    const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const existing = await getMeetingById(id);
+    if (!existing) {
+      return apiError('Meeting not found', 404);
+    }
 
-    const result = await processMeetingWithOrdis(id, workspaceId);
+    const wsAuth = await authorizeWorkspaceAccess(request, existing.workspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+    const result = await processMeetingWithOrdis(id, existing.workspaceId);
     return apiSuccess({ ...result });
   } catch (error: any) {
     return apiError(error.message || 'Failed to process meeting with Ordis', 500);

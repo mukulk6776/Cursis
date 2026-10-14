@@ -150,7 +150,7 @@ export default function HeroSection() {
 
           <div className="lp-mockup-status">
             <span className="lp-status-live-dot" />
-            <span>Active Telemetry • 12ms</span>
+            <span>Interactive Simulation • Sample Data</span>
           </div>
         </div>
 

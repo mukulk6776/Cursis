@@ -1,20 +1,18 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const rawWorkspaceId = body.workspaceId || '';
 
-    const report = await OrdisEngine.auditBusiness(workspaceId, body.prompt);
-    return NextResponse.json({ success: true, report });
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+    const report = await OrdisEngine.auditBusiness(wsAuth.workspaceId, body.prompt);
+    return apiSuccess({ report });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

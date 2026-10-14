@@ -140,6 +140,17 @@ export async function createTask(
     }
   }
 
+  let projectId = data.projectId || data.project;
+  if (projectId) {
+    try {
+      const { getProjectById } = await import('./projects');
+      const proj = await getProjectById(String(projectId).trim(), cleanWsId);
+      projectId = proj ? proj.id : undefined;
+    } catch {
+      projectId = undefined;
+    }
+  }
+
   // Normalize status
   let status: TaskStatus = 'todo';
   const rawStatus = (data.status || '').toLowerCase();
@@ -169,13 +180,34 @@ export async function createTask(
     } catch {}
   }
 
-  const id = data.id || `tsk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  let id = data.id?.trim();
+  if (id) {
+    const existing = await getTaskById(id);
+    if (existing) {
+      // Prevent overwrite of existing task via POST
+      id = `tsk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    }
+  } else {
+    id = `tsk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  }
+
+  const rawSubtasks = Array.isArray(data.subtasks) ? data.subtasks : [];
+  const normalizedSubtasks = rawSubtasks.map((st: any, idx: number) => ({
+    id: st.id || `sub_${Date.now()}_${idx}`,
+    title: (st.title || st.name || '').trim(),
+    completed: Boolean(st.completed ?? st.done ?? false),
+  }));
+
+  const assignees = Array.isArray(data.assignees)
+    ? data.assignees
+    : assigneeId ? [assigneeId] : [];
+
   const now = new Date().toISOString();
 
   const task: Task = {
     id,
     workspaceId: cleanWsId,
-    projectId: data.projectId || data.project || undefined,
+    projectId,
     departmentId,
     title,
     description: (data.description || '').trim(),
@@ -190,25 +222,27 @@ export async function createTask(
     actualHours: data.actualHours || 0,
     completionPercent,
     requiredSkills: Array.isArray(data.requiredSkills) ? data.requiredSkills : [],
-    subtasks: Array.isArray(data.subtasks) ? data.subtasks : [],
+    subtasks: normalizedSubtasks,
     tags: Array.isArray(data.tags) ? data.tags : [],
     isAtRisk,
     riskReason,
     suggestedHelperId,
     createdAt: now,
     updatedAt: now,
-  };
+    ...(assignees.length > 0 ? { assignees } : {}),
+  } as any;
 
   inMemoryStore.tasks.set(id, task);
 
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      await col.updateOne({ id }, { $set: task }, { upsert: true });
+      await col.updateOne({ id, workspaceId: cleanWsId }, { $set: task }, { upsert: true });
     }
   } catch (e) {
     console.warn('MongoDB upsert task error:', e);
   }
+
 
   // Send notification if assignee is set
   if (task.assigneeId) {
@@ -269,7 +303,40 @@ export async function updateTask(
   if (rawStatus === 'done' || rawStatus === 'completed') nextStatus = 'done';
   else if (rawStatus === 'in-progress' || rawStatus === 'in_progress') nextStatus = 'in_progress';
   else if (rawStatus === 'review' || rawStatus === 'in_review') nextStatus = 'in_review';
+  else if (rawStatus === 'blocked') nextStatus = 'blocked';
   else if (rawStatus === 'todo') nextStatus = 'todo';
+
+  // Validate project if updated
+  let nextProjectId = task.projectId;
+  if (updates.projectId !== undefined || (updates as any).project !== undefined) {
+    const rawProj = updates.projectId || (updates as any).project;
+    if (rawProj) {
+      try {
+        const { getProjectById } = await import('./projects');
+        const proj = await getProjectById(String(rawProj).trim(), task.workspaceId);
+        nextProjectId = proj ? proj.id : undefined;
+      } catch {
+        nextProjectId = undefined;
+      }
+    } else {
+      nextProjectId = undefined;
+    }
+  }
+
+  // Normalize subtasks if updated
+  let nextSubtasks = task.subtasks;
+  if (Array.isArray(updates.subtasks)) {
+    nextSubtasks = updates.subtasks.map((st: any, idx: number) => ({
+      id: st.id || `sub_${Date.now()}_${idx}`,
+      title: (st.title || st.name || '').trim(),
+      completed: Boolean(st.completed ?? st.done ?? false),
+    }));
+  }
+
+  let nextAssignees = (task as any).assignees;
+  if (Array.isArray((updates as any).assignees)) {
+    nextAssignees = (updates as any).assignees;
+  }
 
   const title = (updates.title || (updates as any).name || task.title).trim();
   const dueDate = updates.dueDate ? normalizeSafeIsoDate(updates.dueDate) : task.dueDate;
@@ -285,15 +352,23 @@ export async function updateTask(
   const updated: Task = {
     ...task,
     ...updates,
+    id: task.id, // Immutable
+    workspaceId: task.workspaceId, // Immutable
+    creatorId: task.creatorId, // Immutable
+    createdAt: task.createdAt, // Immutable
+    projectId: nextProjectId,
     title,
     dueDate,
     status: nextStatus,
     completionPercent,
     isAtRisk,
+    subtasks: nextSubtasks,
+    ...(nextAssignees ? { assignees: nextAssignees } : {}),
     updatedAt: new Date().toISOString(),
-  };
+  } as any;
 
-  inMemoryStore.tasks.set(id, updated);
+
+  inMemoryStore.tasks.set(task.id, updated);
 
   try {
     const col = await getCollection<Task>('tasks');

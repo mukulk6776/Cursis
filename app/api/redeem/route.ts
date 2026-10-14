@@ -37,30 +37,31 @@ const AUTHORIZED_CODES: Record<string, string[]> = {
   ],
 };
 
+import { findVoucherByCode, redeemVoucher } from '@/lib/db/vouchers';
+
 function isValidCodeFormat(code: string): boolean {
-  if (AUTHORIZED_CODES[code]) return true;
-  return /^(CURSIS-[A-Z0-9]{4,12}|VIP-[A-Z0-9]{4,12}|PRO-[A-Z0-9]{4,12}|FOUNDER-[A-Z0-9]{4,12})$/.test(code);
+  return Boolean(AUTHORIZED_CODES[code]);
 }
 
-export async function GET(request: Request) {
-  // Only authenticated owners/admins can view redeemed codes
-  const authUser = await getAuthenticatedUser(request);
-  if (!authUser) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
-  if (authUser.role !== 'owner' && authUser.role !== 'admin') {
-    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-  }
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { inMemoryStore } from '@/lib/db/store';
 
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const targetWs = searchParams.get('workspaceId') || undefined;
+
+    const wsAuth = await authorizeWorkspaceAccess(request, targetWs, ['owner', 'admin']);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const workspaceId = wsAuth.workspaceId;
+
     const db = await getDb();
-    let codes: string[] = Array.from(inMemoryRedeemedCodes);
+    let codes: string[] = [];
 
     if (db) {
       try {
-        const found = await db.collection('redeemed_codes').find({}).project({ code: 1 }).toArray();
-        const mongoCodes = found.map((doc: any) => doc.code);
-        codes = Array.from(new Set([...codes, ...mongoCodes]));
+        const found = await db.collection('redeemed_codes').find({ workspaceId }).project({ code: 1 }).toArray();
+        codes = found.map((doc: any) => doc.code);
       } catch (err) {
         console.warn('Could not query redeemed_codes from mongo:', err);
       }
@@ -71,6 +72,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: false, error: 'Failed to retrieve redeemed codes' }, { status: 500 });
   }
 }
+
 
 export async function POST(request: Request) {
   try {
@@ -155,8 +157,14 @@ export async function POST(request: Request) {
       }
     }
 
-    // 5. Validate against authorized vouchers catalogue or single-use pattern
-    if (!isValidCodeFormat(code)) {
+    // 5. Validate against authorized catalogue OR database vouchers
+    const isAuthorized = Boolean(AUTHORIZED_CODES[code]);
+    let dbVoucher = null;
+    if (!isAuthorized) {
+      dbVoucher = await findVoucherByCode(code);
+    }
+
+    if (!isAuthorized && !dbVoucher) {
       await recordAttempt(clientIP);
       await recordAttempt(userRateKey);
       return NextResponse.json(
@@ -168,13 +176,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine perks
-    const perks = AUTHORIZED_CODES[code] || [
-      'Executive Copilot Feature Pack Activated',
-      'Ordis Full Power Autonomous Copilot Unlocked',
-      'Unlimited Multi-Agent Execution',
-    ];
+    // If database voucher, redeem atomically through redeemVoucher
+    if (dbVoucher) {
+      const result = await redeemVoucher(dbVoucher.id, authUser.uid, authUser.email);
+      if (!result.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: result.error || 'Failed to redeem voucher',
+          },
+          { status: 400 }
+        );
+      }
+      inMemoryRedeemedCodes.add(code);
+      await clearRateLimit(clientIP);
+      await clearRateLimit(userRateKey);
+      return NextResponse.json({
+        success: true,
+        message: `Voucher "${code}" successfully redeemed!`,
+        perks: [`${dbVoucher.type.toUpperCase()} plan tier unlocked`],
+        planTier: result.planTier,
+      });
+    }
 
+    // Determine perks from authorized catalogue
+    const perks = AUTHORIZED_CODES[code];
     const userId = authUser.uid;
     const email = authUser.email;
     const workspaceId = authUser.workspaceId || 'default';
@@ -205,11 +231,16 @@ export async function POST(request: Request) {
 
         // Normalize user planTier to standard if user is logged in
         if (authUser.uid) {
+          const cachedUser = inMemoryStore.users.get(authUser.uid);
+          if (cachedUser) {
+            cachedUser.planTier = 'standard';
+          }
           await db.collection('users').updateOne(
             { uid: authUser.uid },
             { $set: { planTier: 'standard', updatedAt: new Date().toISOString() } }
           );
         }
+
       } catch (err: any) {
         if (err?.code === 11000) {
           inMemoryRedeemedCodes.add(code);

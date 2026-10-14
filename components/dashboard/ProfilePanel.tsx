@@ -150,7 +150,7 @@ export default function ProfilePanel() {
  zIndex: 998,
  }}
  />
- <div className="profile-panel open" id="profile-panel" style={{ zIndex: 999 }}>
+ <div className="profile-panel open" id="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profile-panel-title" style={{ zIndex: 999 }}>
  <div
  style={{
  display: 'flex',
@@ -160,7 +160,7 @@ export default function ProfilePanel() {
  borderBottom: '1px solid var(--border-light)',
  }}
  >
- <h3 style={{ margin: 0 }}>Profile Details</h3>
+ <h3 id="profile-panel-title" style={{ margin: 0 }}>Profile Details</h3>
  <button
  className="btn btn-ghost btn-sm"
  onClick={closeProfilePanel}

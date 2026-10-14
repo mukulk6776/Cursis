@@ -25,7 +25,9 @@ export default function SignupPage() {
  });
  }
  })
- .catch((err) => console.warn('Google redirect notice:', err));
+ .catch((err) => {
+ if (isMounted) setErrorMsg(err?.message || 'Google sign-in could not be restored. Please try again.');
+ });
 
  return () => {
  isMounted = false;
@@ -36,8 +38,16 @@ export default function SignupPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get('redirect');
-      if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-        return redirect;
+      if (redirect) {
+        if (redirect.includes('\\') || /[\x00-\x1F\x7F]/.test(redirect) || redirect.startsWith('//')) {
+          return '/dashboard?setup=true';
+        }
+        try {
+          const parsed = new URL(redirect, window.location.origin);
+          if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/')) {
+            return parsed.pathname + parsed.search + parsed.hash;
+          }
+        } catch {}
       }
     }
     return '/dashboard?setup=true';
@@ -68,6 +78,7 @@ export default function SignupPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        signal: AbortSignal.timeout(30_000),
         body: JSON.stringify({
           idToken: authResult.idToken,
           email: authResult.email,
@@ -97,7 +108,7 @@ export default function SignupPage() {
       window.location.href = getRedirectDestination();
     } catch (err: any) {
       console.error('Session exchange error:', err);
-      setErrorMsg(err?.message || 'Failed to initialize workspace session. Please try logging in directly.');
+      setErrorMsg(err?.name === 'TimeoutError' ? 'Creating your session took too long. Please try signing in again.' : (err?.message || 'Failed to initialize workspace session. Please try logging in directly.'));
     }
   };
 
@@ -249,6 +260,8 @@ export default function SignupPage() {
 
         {errorMsg && (
           <div
+            role="alert"
+            aria-live="assertive"
             style={{
               background: '#fef2f2',
               color: '#991b1b',
@@ -268,9 +281,10 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* Google Enterprise Single Sign-On */}
+        {/* Google Single Sign-On */}
         <button
           type="button"
+          aria-label="Sign up with Google"
           style={{
             width: '100%',
             height: '46px',
@@ -300,7 +314,7 @@ export default function SignupPage() {
           onClick={handleGoogleSignup}
           disabled={googleLoading || loading}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -318,7 +332,7 @@ export default function SignupPage() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          {googleLoading ? 'Connecting to Google...' : 'Sign up with Google Workspace'}
+          {googleLoading ? 'Connecting to Google...' : 'Sign up with Google'}
         </button>
 
         <div style={{ textAlign: 'center', margin: '14px 0 16px', position: 'relative' }}>
@@ -341,10 +355,11 @@ export default function SignupPage() {
 
         <form onSubmit={handleEmailSignup} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
+            <label htmlFor="signup-name" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
               Full Name
             </label>
             <input
+              id="signup-name"
               type="text"
               value={name}
               placeholder="Alex Vance"
@@ -367,13 +382,14 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
-              Work Email
+            <label htmlFor="signup-email" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
+              Email Address
             </label>
             <input
+              id="signup-email"
               type="email"
               value={email}
-              placeholder="alex@company.com"
+              placeholder="alex@gmail.com or alex@outlook.com"
               onChange={(e) => setEmail(e.target.value)}
               required
               style={{
@@ -390,17 +406,21 @@ export default function SignupPage() {
                 transition: 'border-color 0.15s ease',
               }}
             />
+            <span style={{ display: 'block', fontSize: '11px', color: '#968F87', marginTop: '4px' }}>
+              Supported providers: Gmail and Microsoft accounts
+            </span>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
+            <label htmlFor="signup-password" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
               Password
             </label>
             <div style={{ position: 'relative', width: '100%' }}>
               <input
+                id="signup-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters (letters & numbers)"
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 style={{

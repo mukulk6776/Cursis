@@ -1,4 +1,5 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getAutomations, createAutomation } from '@/lib/db/automations';
 
 export async function GET(request: Request) {
@@ -9,6 +10,9 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
+
+    const wsAuth = await authorizeWorkspaceAccess(request, workspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     const automations = await getAutomations(workspaceId);
     return apiSuccess({ automations });
@@ -25,6 +29,10 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const workspaceId = body.workspaceId || authUser.workspaceId;
+
+    // Creating automations requires owner or admin
+    const wsAuth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     if (!body.name || !body.trigger || !body.actions) {
       return apiError('Automation name, trigger, and actions are required', 400);

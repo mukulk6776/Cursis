@@ -54,10 +54,10 @@ export default function Footer() {
         <div className="lp-footer-links-group">
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Platform</div>
-            <a href="#features" className="lp-footer-link">Features</a>
-            <a href="#connected" className="lp-footer-link">Workflow</a>
-            <a href="#ordis" className="lp-footer-link">Ordis AI</a>
-            <a href="#modules" className="lp-footer-link">Modules</a>
+            <a href="/#features" className="lp-footer-link">Features</a>
+            <a href="/#connected" className="lp-footer-link">Workflow</a>
+            <a href="/#ordis" className="lp-footer-link">Ordis AI</a>
+            <a href="/#modules" className="lp-footer-link">Modules</a>
           </div>
 
           <div className="lp-footer-col">

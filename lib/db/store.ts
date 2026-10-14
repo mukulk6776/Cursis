@@ -11,6 +11,7 @@ import {
   AutomationRule,
   Lead,
   Deal,
+  Contact,
   AuditLogEntry,
   OrdisNoticeCard,
   ApprovalQueueItem,
@@ -37,6 +38,7 @@ class InMemoryDataStore {
   public automations: Map<string, AutomationRule> = new Map();
   public leads: Map<string, Lead> = new Map();
   public deals: Map<string, Deal> = new Map();
+  public contacts: Map<string, Contact> = new Map();
   public auditLogs: Map<string, AuditLogEntry> = new Map();
   public ordisCards: Map<string, OrdisNoticeCard> = new Map();
   public approvalQueue: Map<string, ApprovalQueueItem> = new Map();

@@ -73,10 +73,12 @@ export async function POST(request: Request) {
 
     // Check if account already exists
     const existing = await findUserByEmail(email);
-    if (existing && existing.passwordHash) {
-      // Record attempt for duplicate signup
+    if (existing) {
       await recordAttempt(clientIP);
-      return apiError('An account with this email already exists. Please sign in instead.', 409);
+      if (existing.passwordHash) {
+        return apiError('An account with this email already exists. Please sign in instead.', 409);
+      }
+      return apiError('An account with this email is already registered using Google Sign-In. Please sign in with Google.', 409);
     }
 
     // Register user account with PBKDF2 salt & hash

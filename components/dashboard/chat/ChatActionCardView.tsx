@@ -18,20 +18,22 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
  } = useDashboard();
 
  const [copied, setCopied] = useState(false);
- const [taskCompleted, setTaskCompleted] = useState(false);
+  const [taskCompleted, setTaskCompleted] = useState(false);
 
- const handleCopy = (text: string) => {
- try {
- if (navigator.clipboard) {
- navigator.clipboard.writeText(text);
- }
- setCopied(true);
- showToast('Copied to clipboard ');
- setTimeout(() => setCopied(false), 2000);
- } catch {
- showToast('Copied to clipboard ');
- }
- };
+  const handleCopy = async (text: string) => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        showToast('Copied to clipboard');
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        showToast('Clipboard not supported in this browser');
+      }
+    } catch {
+      showToast('Failed to copy to clipboard');
+    }
+  };
 
  const handleAction = (action?: { label: string; actionType: string; target?: string }) => {
  if (!action) return;

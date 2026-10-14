@@ -1,25 +1,36 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
-import { inMemoryStore } from '@/lib/db/store';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { getContacts, createContact, getLeads } from '@/lib/db/crm';
 
 export async function GET(request: Request) {
   try {
     const auth = await getAuthOrError(request);
     if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
 
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
+    const rawWorkspaceId = searchParams.get('workspaceId') || '';
 
-    const leads = Array.from(inMemoryStore.leads.values()).filter((l) => l.workspaceId === workspaceId);
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+    const storedContacts = await getContacts(wsAuth.workspaceId);
+    if (storedContacts.length > 0) {
+      return apiSuccess({ contacts: storedContacts });
+    }
+
+    // Derive contacts from workspace leads if no explicit contacts stored yet
+    const leads = await getLeads(wsAuth.workspaceId);
     const contacts = leads.map((l) => ({
       id: l.id,
+      workspaceId: l.workspaceId,
       name: l.name,
       company: l.company,
       email: l.email,
-      phone: l.phone || '+1-555-0199',
+      phone: l.phone || '',
       role: 'Decision Maker',
       status: l.status === 'won' ? 'Customer' : 'Active',
       lastContact: l.lastContactedAt ? l.lastContactedAt.split('T')[0] : 'Recently',
+      createdAt: l.createdAt,
     }));
 
     return apiSuccess({ contacts });
@@ -32,29 +43,26 @@ export async function POST(request: Request) {
   try {
     const auth = await getAuthOrError(request);
     if (auth.errorResponse) return auth.errorResponse;
-    const authUser = auth.user;
 
     const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const rawWorkspaceId = body.workspaceId || '';
+
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     if (!body.name || !body.company) {
       return apiError('Contact name and company are required', 400);
     }
 
-    const id = `ct_${Date.now()}`;
-    const contact = {
-      id,
-      workspaceId,
+    const contact = await createContact(wsAuth.workspaceId, {
       name: body.name.trim(),
       company: body.company.trim(),
-      email: body.email?.trim() || `${body.name.toLowerCase().replace(/\s+/g, '.')}@${body.company.toLowerCase().replace(/\s+/g, '')}.com`,
-      phone: body.phone?.trim() || '+1-555-0199',
+      email: body.email?.trim() || '',
+      phone: body.phone?.trim() || '',
       role: body.role || 'Contact',
       status: 'Active',
       notes: body.notes || 'Added via CRM Contacts API',
-      lastContact: new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString(),
-    };
+    });
 
     return apiSuccess({ contact }, 201);
   } catch (error: any) {

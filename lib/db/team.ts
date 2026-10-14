@@ -4,19 +4,26 @@ export { MAX_TEAM_MEMBERS };
 import { getCollection } from '@/lib/mongodb';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
 
+export function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function sanitizeTeamUser(u: UserProfile): UserProfile {
-  const isFounder = isFounderEmail(u.email);
+  const clone = { ...u };
+  delete clone.passwordHash;
+  delete clone.salt;
+  const isFounder = isFounderEmail(clone.email);
   if (isFounder) {
-    u.role = 'owner';
-    u.title = 'Founder & CEO';
-    u.department = 'Leadership';
+    clone.role = 'owner';
+    clone.title = 'Founder & CEO';
+    clone.department = 'Leadership';
   } else {
-    if (u.role === 'owner') u.role = 'member';
-    if (u.title && (u.title.toLowerCase().includes('founder') || u.title.toLowerCase().includes('ceo') || u.title.toLowerCase().includes('owner'))) {
-      u.title = 'User';
+    if (clone.role === 'owner') clone.role = 'member';
+    if (clone.title && (clone.title.toLowerCase().includes('founder') || clone.title.toLowerCase().includes('ceo') || clone.title.toLowerCase().includes('owner'))) {
+      clone.title = 'User';
     }
   }
-  return u;
+  return clone;
 }
 
 import { ensureWorkspaceExists } from './workspaces';
@@ -190,13 +197,9 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
           results.push(sanitizeTeamUser(userObj));
         }
 
-        results.forEach((u) => {
-          if (u.id) inMemoryStore.users.set(u.id, u);
-          if (u.uid) inMemoryStore.users.set(u.uid, u);
-        });
-
-        if (results.length > 0) {
-          return results;
+        const publicResults = results.map((u) => sanitizeTeamUser(u));
+        if (publicResults.length > 0) {
+          return publicResults;
         }
       }
     }
@@ -207,12 +210,13 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
   return Array.from(inMemoryStore.users.values())
     .filter((u) => u.workspaceIds?.includes(targetWsId) || u.activeWorkspaceId === targetWsId)
     .map((u) => {
-      const lastActiveMs = u.lastActiveAt ? new Date(u.lastActiveAt).getTime() : 0;
+      const sanitized = sanitizeTeamUser(u);
+      const lastActiveMs = sanitized.lastActiveAt ? new Date(sanitized.lastActiveAt).getTime() : 0;
       const isRecentlyActive = lastActiveMs > 0 && (Date.now() - lastActiveMs) < 120000;
-      if (!isRecentlyActive || u.presence === 'offline') {
-        u.presence = 'offline';
+      if (!isRecentlyActive || sanitized.presence === 'offline') {
+        sanitized.presence = 'offline';
       }
-      return sanitizeTeamUser(u);
+      return sanitized;
     });
 }
 
@@ -369,16 +373,31 @@ export async function removeTeamMember(
     return false;
   }
 
+  function escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // Identity check: if both targetId and cleanEmail provided, verify they belong to same identity
+  if (targetId && cleanEmail) {
+    const memU = inMemoryStore.users.get(targetId);
+    if (memU && memU.email && memU.email.toLowerCase() !== cleanEmail) {
+      return false;
+    }
+  }
+
   // 1. Locate user in MongoDB or memory store to ensure we have both ID and Email
   try {
     const userCol = await getCollection<UserProfile>('users');
     if (userCol) {
       const q: any[] = [];
       if (targetId) q.push({ id: targetId }, { uid: targetId });
-      if (cleanEmail) q.push({ email: cleanEmail }, { email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
+      if (cleanEmail) q.push({ email: cleanEmail }, { email: { $regex: new RegExp(`^${escapeRegex(cleanEmail)}$`, 'i') } });
       if (q.length > 0) {
         const found = await userCol.findOne({ $or: q });
         if (found) {
+          if (targetId && cleanEmail && found.email && found.email.toLowerCase() !== cleanEmail) {
+            return false;
+          }
           if (!cleanEmail && found.email) cleanEmail = found.email.toLowerCase().trim();
         }
       }
@@ -483,7 +502,7 @@ export async function removeTeamMember(
       if (targetId) orClauses.push({ userId: targetId }, { id: targetId }, { uid: targetId });
       if (cleanEmail) {
         orClauses.push({ email: cleanEmail });
-        orClauses.push({ email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
+        orClauses.push({ email: { $regex: new RegExp(`^${escapeRegex(cleanEmail)}$`, 'i') } });
       }
       if (orClauses.length > 0) {
         const filter: any = { $or: orClauses };
@@ -505,7 +524,7 @@ export async function removeTeamMember(
       if (targetId) memConditions.push({ userId: targetId }, { id: targetId }, { uid: targetId });
       if (cleanEmail) {
         memConditions.push({ userId: cleanEmail }, { email: cleanEmail }, { userEmail: cleanEmail });
-        memConditions.push({ email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
+        memConditions.push({ email: { $regex: new RegExp(`^${escapeRegex(cleanEmail)}$`, 'i') } });
       }
       if (memConditions.length > 0) {
         const filter: any = { $or: memConditions };
@@ -525,7 +544,7 @@ export async function removeTeamMember(
     if (invCol) {
       const invClauses: any[] = [];
       if (cleanEmail) {
-        invClauses.push({ email: cleanEmail }, { email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
+        invClauses.push({ email: cleanEmail }, { email: { $regex: new RegExp(`^${escapeRegex(cleanEmail)}$`, 'i') } });
       }
       if (targetId) {
         invClauses.push({ inviteeUserId: targetId }, { id: targetId });
@@ -545,7 +564,7 @@ export async function removeTeamMember(
       if (targetId) matchQueries.push({ id: targetId }, { uid: targetId });
       if (cleanEmail) {
         matchQueries.push({ email: cleanEmail });
-        matchQueries.push({ email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
+        matchQueries.push({ email: { $regex: new RegExp(`^${escapeRegex(cleanEmail)}$`, 'i') } });
       }
       if (matchQueries.length > 0) {
         // Pull workspace from workspaceIds array
@@ -596,7 +615,15 @@ export async function updateTeamMember(
   if (!user) return null;
 
   const isTargetFounder = isFounderEmail(user.email);
-  const cleanUpdates = { ...updates };
+  // Strict field allowlist: prevent mutating credentials, identity, or workspace scope
+  const allowedKeys = ['displayName', 'title', 'department', 'skills', 'photoURL', 'presence', 'role'];
+  const cleanUpdates: any = {};
+  for (const k of allowedKeys) {
+    if ((updates as any)[k] !== undefined) {
+      cleanUpdates[k] = (updates as any)[k];
+    }
+  }
+
   if (!isTargetFounder) {
     if (cleanUpdates.role === 'owner') cleanUpdates.role = 'member';
     if (cleanUpdates.title && (cleanUpdates.title.toLowerCase().includes('founder') || cleanUpdates.title.toLowerCase().includes('ceo') || cleanUpdates.title.toLowerCase().includes('owner'))) {
@@ -613,7 +640,12 @@ export async function updateTeamMember(
 
   try {
     if (col) {
-      await col.updateOne({ $or: [{ id: userId }, { uid: userId }] }, { $set: user }, { upsert: true });
+      const setDoc: any = { ...cleanUpdates, updatedAt: nowIso };
+      delete setDoc.passwordHash;
+      delete setDoc.salt;
+      delete setDoc.id;
+      delete setDoc.uid;
+      await col.updateOne({ $or: [{ id: userId }, { uid: userId }] }, { $set: setDoc });
     }
     const teamCol = await getCollection<WorkspaceTeamMember>('workspace_teams');
     if (teamCol) {
@@ -636,7 +668,11 @@ export async function updateTeamMember(
 
   inMemoryStore.users.set(user.id, user);
   if (user.uid) inMemoryStore.users.set(user.uid, user);
-  return user;
+
+  const sanitized = { ...user };
+  delete sanitized.passwordHash;
+  delete sanitized.salt;
+  return sanitized;
 }
 
 export {

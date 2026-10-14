@@ -5,188 +5,171 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { MeetingPlatform } from '@/lib/dashboard/types';
 
 export default function MeetingModal() {
- const { activeModal, closeModal, addMeeting, projects, employees, meetingCalendarSettings, showToast } = useDashboard();
+  const { activeModal, closeModal, addMeeting, projects, employees, meetingCalendarSettings, user, showToast } = useDashboard();
 
- const [name, setName] = useState('');
- const [platform, setPlatform] = useState<MeetingPlatform>(meetingCalendarSettings?.defaultPlatform || 'google_meet');
- const [meetingUrl, setMeetingUrl] = useState('https://meet.google.com/new');
- const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
- const [time, setTime] = useState('11:00');
- const [duration, setDuration] = useState<number>(meetingCalendarSettings?.defaultDuration || 30);
- const [project, setProject] = useState(projects[0]?.id || '');
- const [selectedParticipants, setSelectedParticipants] = useState<string[]>(['u1']);
- const [agenda, setAgenda] = useState('');
- const [notes, setNotes] = useState('');
+  const [name, setName] = useState('');
+  const [platform, setPlatform] = useState<MeetingPlatform>(meetingCalendarSettings?.defaultPlatform || 'google_meet');
+  const [meetingUrl, setMeetingUrl] = useState('https://meet.google.com/new');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [time, setTime] = useState('11:00');
+  const [duration, setDuration] = useState<number>(meetingCalendarSettings?.defaultDuration || 30);
+  const [project, setProject] = useState(projects[0]?.id || '');
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>(user?.id ? [user.id] : []);
+  const [agenda, setAgenda] = useState('');
+  const [notes, setNotes] = useState('');
 
- if (activeModal !== 'meeting-modal') return null;
+  if (activeModal !== 'meeting-modal') return null;
 
- const handlePlatformChange = (newPlatform: MeetingPlatform) => {
- setPlatform(newPlatform);
- if (newPlatform === 'google_meet') {
- const code = `${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
- setMeetingUrl(`https://meet.google.com/${code}`);
- } else if (newPlatform === 'zoom') {
- const num = Math.floor(1000000000 + Math.random() * 9000000000);
- setMeetingUrl(`https://zoom.us/j/${num}`);
- } else if (newPlatform === 'teams') {
- setMeetingUrl('https://teams.microsoft.com/l/meetup-join/instant');
- } else {
- setMeetingUrl('');
- }
- };
+  const handlePlatformChange = (newPlatform: MeetingPlatform) => {
+    setPlatform(newPlatform);
+    if (newPlatform === 'google_meet' && (!meetingUrl || meetingUrl.includes('zoom.us') || meetingUrl.includes('teams.microsoft'))) {
+      setMeetingUrl('https://meet.google.com/new');
+    } else if (newPlatform === 'zoom' && (!meetingUrl || meetingUrl.includes('meet.google') || meetingUrl.includes('teams.microsoft'))) {
+      setMeetingUrl('https://zoom.us/start/videomeeting');
+    } else if (newPlatform === 'teams' && (!meetingUrl || meetingUrl.includes('meet.google') || meetingUrl.includes('zoom.us'))) {
+      setMeetingUrl('https://teams.microsoft.com/l/meetup-join/instant');
+    }
+  };
 
- const generateGoogleMeetLink = () => {
- const code = `${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
- const url = `https://meet.google.com/${code}`;
- setPlatform('google_meet');
- setMeetingUrl(url);
- showToast('Generated Google Meet link');
- };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    if (!meetingUrl.trim()) {
+      showToast('Please provide a meeting link');
+      return;
+    }
 
- const handleSubmit = (e: React.FormEvent) => {
- e.preventDefault();
- if (!name.trim()) return;
- if (!meetingUrl.trim()) {
- showToast('Please provide a meeting link');
- return;
- }
+    addMeeting({
+      name: name.trim(),
+      platform,
+      meetingUrl: meetingUrl.trim(),
+      date,
+      time,
+      duration: Number(duration),
+      durationMinutes: Number(duration),
+      project: project || null,
+      participants: selectedParticipants.length > 0 ? selectedParticipants : (user?.id ? [user.id] : []),
+      hostId: user?.id,
+      hostName: user?.name,
+      agenda: agenda.trim(),
+      notes: notes.trim(),
+    });
 
- addMeeting({
- name: name.trim(),
- platform,
- meetingUrl: meetingUrl.trim(),
- date,
- time,
- duration: Number(duration),
- durationMinutes: Number(duration),
- project: project || null,
- participants: selectedParticipants,
- agenda: agenda.trim(),
- notes: notes.trim(),
- });
+    setName('');
+    setAgenda('');
+    setNotes('');
+    closeModal();
+  };
 
- setName('');
- setAgenda('');
- setNotes('');
- closeModal();
- };
+  return (
+    <div
+      className="modal-overlay active"
+      id="meeting-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="meeting-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeModal();
+      }}
+    >
+      <div className="modal" style={{ maxWidth: '540px' }}>
+        <div className="modal-header">
+          <span className="modal-title" id="meeting-modal-title">Schedule Meeting (Google Meet / Zoom)</span>
+          <button className="modal-close" onClick={closeModal} aria-label="Close modal">
+            ✕
+          </button>
+        </div>
 
- return (
- <div
- className="modal-overlay active"
- id="meeting-modal"
- onClick={(e) => {
- if (e.target === e.currentTarget) closeModal();
- }}
- >
- <div className="modal" style={{ maxWidth: '540px' }}>
- <div className="modal-header">
- <span className="modal-title">Schedule Meeting (Google Meet / Zoom)</span>
- <button className="modal-close" onClick={closeModal}>
- 
- </button>
- </div>
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            {/* Meeting Title */}
+            <div className="input-group">
+              <label className="input-label" htmlFor="meeting-title">Meeting Title</label>
+              <input
+                id="meeting-title"
+                className="input"
+                placeholder="e.g. Sprint Architecture Sync"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
 
- <form onSubmit={handleSubmit}>
- <div className="modal-body">
- {/* Meeting Title */}
- <div className="input-group">
- <label className="input-label">Meeting Title</label>
- <input
- className="input"
- placeholder="e.g. Sprint Architecture Sync"
- value={name}
- onChange={(e) => setName(e.target.value)}
- required
- autoFocus
- />
- </div>
+            {/* Platform & Meeting Link */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 'var(--sp-3)' }}>
+              <div className="input-group">
+                <label className="input-label" htmlFor="meeting-platform">Platform</label>
+                <select
+                  id="meeting-platform"
+                  className="input select"
+                  value={platform}
+                  onChange={(e) => handlePlatformChange(e.target.value as MeetingPlatform)}
+                >
+                  <option value="google_meet">Google Meet</option>
+                  <option value="zoom">Zoom</option>
+                  <option value="teams">Microsoft Teams</option>
+                  <option value="other">Other / Custom</option>
+                </select>
+              </div>
 
- {/* Platform & Meeting Link */}
- <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 'var(--sp-3)' }}>
- <div className="input-group">
- <label className="input-label">Platform</label>
- <select
- className="input select"
- value={platform}
- onChange={(e) => handlePlatformChange(e.target.value as MeetingPlatform)}
- >
- <option value="google_meet">Google Meet</option>
- <option value="zoom">Zoom</option>
- <option value="teams">Microsoft Teams</option>
- <option value="other">Other / Custom</option>
- </select>
- </div>
+              <div className="input-group">
+                <label className="input-label" htmlFor="meeting-url">Meeting Link</label>
+                <input
+                  id="meeting-url"
+                  className="input"
+                  type="url"
+                  placeholder="https://meet.google.com/..."
+                  value={meetingUrl}
+                  onChange={(e) => setMeetingUrl(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
 
- <div className="input-group">
- <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
- <label className="input-label">Meeting Link</label>
- <button
- type="button"
- onClick={generateGoogleMeetLink}
- style={{
- background: 'none',
- border: 'none',
- color: 'var(--c-brand)',
- fontSize: '11px',
- fontWeight: 700,
- cursor: 'pointer',
- padding: 0,
- }}
- >
- + Gen Meet Link
- </button>
- </div>
- <input
- className="input"
- type="url"
- placeholder="https://meet.google.com/..."
- value={meetingUrl}
- onChange={(e) => setMeetingUrl(e.target.value)}
- required
- />
- </div>
- </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
+              {/* Date */}
+              <div className="input-group">
+                <label className="input-label" htmlFor="meeting-date">Date</label>
+                <input
+                  id="meeting-date"
+                  className="input"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
 
- <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
- {/* Date */}
- <div className="input-group">
- <label className="input-label">Date</label>
- <input
- className="input"
- type="date"
- value={date}
- onChange={(e) => setDate(e.target.value)}
- required
- />
- </div>
+              {/* Time */}
+              <div className="input-group">
+                <label className="input-label" htmlFor="meeting-time">Time</label>
+                <input
+                  id="meeting-time"
+                  className="input"
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  required
+                />
+              </div>
 
- {/* Time */}
- <div className="input-group">
- <label className="input-label">Time</label>
- <input
- className="input"
- type="time"
- value={time}
- onChange={(e) => setTime(e.target.value)}
- required
- />
- </div>
-
- {/* Duration */}
- <div className="input-group">
- <label className="input-label">Duration</label>
- <select
- className="input select"
- value={duration}
- onChange={(e) => setDuration(Number(e.target.value))}
- >
- <option value={15}>15 minutes</option>
- <option value={30}>30 minutes</option>
- <option value={45}>45 minutes</option>
- <option value={60}>60 minutes</option>
- <option value={90}>90 minutes</option>
- </select>
+              {/* Duration */}
+              <div className="input-group">
+                <label className="input-label" htmlFor="meeting-duration">Duration</label>
+                <select
+                  id="meeting-duration"
+                  className="input select"
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                >
+                  <option value={15}>15 minutes</option>
+                  <option value={30}>30 minutes</option>
+                  <option value={45}>45 minutes</option>
+                  <option value={60}>60 minutes</option>
+                  <option value={90}>90 minutes</option>
+                </select>
+              </div>
  </div>
 
  {/* Project */}
@@ -204,7 +187,6 @@ export default function MeetingModal() {
  </option>
  ))}
  </select>
- </div>
  </div>
 
  {/* Participants */}

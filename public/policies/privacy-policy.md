@@ -4,7 +4,7 @@
 
 ## 1. INTRODUCTION
 
-Welcome to CUSIS ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, and protect your personal information when you use our team management platform at cusis.in (the "Service").
+Welcome to Cursis ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, and protect your personal information when you use our team management platform at cursis.in (the "Service").
 
 We are committed to protecting your privacy and ensuring transparency about our data practices. By using the Service, you agree to the collection and use of information in accordance with this Privacy Policy.
 
@@ -209,7 +209,7 @@ We may disclose information when required by law or when we believe in good fait
 
 ### 4.5 Business Transfers
 
-If CUSIS is involved in a merger, acquisition, bankruptcy, or sale of assets:
+If Cursis is involved in a merger, acquisition, bankruptcy, or sale of assets:
 - Your information may be transferred to the successor entity
 - You will be notified via email and/or Service notice
 - The successor will be bound by this Privacy Policy unless you consent to changes
@@ -313,7 +313,7 @@ You have the right to:
 - Export your data in machine-readable format
 - Review information we hold about you
 
-**How to exercise:** Contact support@cusis.in or use account settings
+**How to exercise:** Contact support@cursis.in or use account settings
 
 ### 7.2 Correction and Update
 
@@ -331,7 +331,7 @@ You have the right to:
 - Request deletion of specific information
 - Withdraw consent for processing
 
-**How to exercise:** Use account deletion feature or contact support@cusis.in
+**How to exercise:** Use account deletion feature or contact support@cursis.in
 
 **Note:** Some information may be retained as described in Section 5 (Data Retention)
 
@@ -342,14 +342,14 @@ You have the right to:
 - Restrict processing in specific circumstances
 - Opt out of marketing communications
 
-**How to exercise:** Contact support@cusis.in or adjust settings
+**How to exercise:** Contact support@cursis.in or adjust settings
 
 ### 7.5 Marketing Opt-Out
 
 To stop receiving marketing emails:
 - Click "unsubscribe" in any marketing email
 - Adjust email preferences in account settings
-- Contact support@cusis.in
+- Contact support@cursis.in
 
 **Note:** You will still receive essential service-related communications
 
@@ -362,13 +362,13 @@ You can control cookies through:
 
 ### 7.7 Do Not Track
 
-We do not currently respond to "Do Not Track" browser signals, as there is no industry standard for handling such signals.
+Cursis fully respects "Do Not Track" (DNT) and "Global Privacy Control" (GPC) browser signals by automatically disabling optional analytics cookies.
 
 ## 8. INTERNATIONAL DATA TRANSFERS
 
 ### 8.1 Global Operations
 
-CUSIS operates globally. Your data may be:
+Cursis operates globally. Your data may be:
 - Stored in data centers located in various countries
 - Processed by service providers in different jurisdictions
 - Transferred across international borders
@@ -394,7 +394,7 @@ The Service is not intended for users under 18 years of age. We do not knowingly
 ### 9.2 Parental Notice
 
 If you believe we have collected information from a child under 18:
-- Contact us immediately at privacy@cusis.in
+- Contact us immediately at privacy@cursis.in
 - We will investigate and delete such information promptly
 
 ## 10. REGION-SPECIFIC PROVISIONS
@@ -419,11 +419,11 @@ If you are in the EEA or UK, you have additional rights:
 
 **Data Protection Officer:**
 
-For GDPR-related inquiries: dpo@cusis.in
+For GDPR-related inquiries: dpo@cursis.in
 
 **EU Representative (if applicable):**
 
-[Include if you have an EU representative]
+
 
 ### 10.2 California Residents (CCPA/CPRA)
 
@@ -444,7 +444,7 @@ We do NOT sell your personal information.
 
 **How to Exercise Rights:**
 
-Contact us at privacy@cusis.in or call [phone number]
+Contact us at privacy@cursis.in or contact support@cursis.in
 
 **Authorized Agent:**
 
@@ -456,7 +456,7 @@ We respond to verifiable requests within 45 days.
 
 ### 10.3 Other Jurisdictions
 
-If you are in a jurisdiction with specific data protection laws, you may have additional rights. Contact us at privacy@cusis.in for information.
+If you are in a jurisdiction with specific data protection laws, you may have additional rights. Contact us at privacy@cursis.in for information.
 
 ## 11. THIRD-PARTY SERVICES
 
@@ -471,7 +471,7 @@ The Service may contain links to third-party websites or services. We are not re
 
 ### 11.2 Third-Party Integrations
 
-If you connect third-party services to CUSIS:
+If you connect third-party services to Cursis:
 - You authorize us to access specified data from those services
 - Those services' privacy policies apply to data they collect
 - You can revoke access at any time in your settings
@@ -514,21 +514,21 @@ We encourage you to review this Privacy Policy periodically to stay informed abo
 
 For questions about this Privacy Policy or our privacy practices:
 
-**Email:** privacy@cusis.in  
-**Support:** support@cusis.in  
-**Website:** https://cusis.in/privacy
+**Email:** privacy@cursis.in  
+**Support:** support@cursis.in  
+**Website:** https://cursis.in/privacy
 
 ### 13.2 Data Protection Officer (GDPR)
 
 For GDPR-specific inquiries:
 
-**Email:** dpo@cusis.in
+**Email:** dpo@cursis.in
 
 ### 13.3 Exercising Your Rights
 
 To exercise your privacy rights:
 
-**Email:** privacy@cusis.in  
+**Email:** privacy@cursis.in  
 **Subject Line:** "Privacy Rights Request"  
 **Include:** Your name, email, and specific request
 
@@ -536,14 +536,12 @@ To exercise your privacy rights:
 
 If you discover a security vulnerability:
 
-**Email:** security@cusis.in
+**Email:** security@cursis.in
 
 ### 13.5 Mailing Address
 
-CUSIS  
-[Your Physical Address]  
-[City, State, ZIP Code]  
-[Country]
+Cursis  
+Delhi, India
 
 ## 14. ADDITIONAL INFORMATION
 

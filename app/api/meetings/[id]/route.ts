@@ -1,4 +1,5 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getMeetingById, updateMeeting, deleteMeeting } from '@/lib/db/meetings';
 
 export async function GET(
@@ -14,6 +15,9 @@ export async function GET(
     if (!meeting) {
       return apiError('Meeting not found', 404);
     }
+
+    const wsAuth = await authorizeWorkspaceAccess(request, meeting.workspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     return apiSuccess({ meeting });
   } catch (error: any) {
@@ -34,6 +38,9 @@ export async function PATCH(
     if (!existing) {
       return apiError('Meeting not found', 404);
     }
+
+    const wsAuth = await authorizeWorkspaceAccess(request, existing.workspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     const body = await request.json().catch(() => ({}));
     const updated = await updateMeeting(id, body);
@@ -57,6 +64,9 @@ export async function DELETE(
     if (!existing) {
       return apiError('Meeting not found', 404);
     }
+
+    const wsAuth = await authorizeWorkspaceAccess(request, existing.workspaceId, ['owner', 'admin', 'manager']);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     await deleteMeeting(id);
     return apiSuccess({ message: 'Meeting deleted successfully', id });

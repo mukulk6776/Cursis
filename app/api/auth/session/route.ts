@@ -66,14 +66,24 @@ export async function POST(request: Request) {
       // 2. Verify with token verifier (Google OAuth / Firebase ID token)
       try {
         const decoded = await adminAuth.verifyIdToken(idToken);
-        userUid = decoded.uid || clientUid;
-        userEmail = String(decoded.email || clientEmail || '').trim().toLowerCase();
-        userName = String(decoded.name || clientName || userEmail.split('@')[0] || 'Cursis User').trim();
-        photoURL = decoded.picture || clientPhoto;
+        if (!decoded || !decoded.uid) {
+          return apiError('Invalid authentication token', 401);
+        }
 
-        if (!userEmail) {
+        // AUTH-09: Require verified provider email from the identity provider.
+        // Never use client-supplied email or UID for account identity binding.
+        const providerEmail = String(decoded.email || '').trim().toLowerCase();
+        if (!providerEmail) {
           return apiError('A verified email address is required from your identity provider', 401);
         }
+        if (decoded.email_verified === false) {
+          return apiError('Email address must be verified by your identity provider before signing in', 401);
+        }
+
+        userUid = decoded.uid;
+        userEmail = providerEmail;
+        userName = String(decoded.name || userEmail.split('@')[0] || 'Cursis User').trim();
+        photoURL = decoded.picture || undefined;
       } catch (authErr: any) {
         console.warn('Token verification error:', authErr?.message || authErr);
         return apiError('Invalid or expired authentication credentials', 401);
@@ -168,6 +178,9 @@ export async function DELETE(request: Request) {
   const isCursisDomain = host.includes('cursis.in');
   const deleteCookieOptions = {
     maxAge: 0,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
     path: '/',
     expires: new Date(0),
     ...(isCursisDomain ? { domain: '.cursis.in' } : {}),

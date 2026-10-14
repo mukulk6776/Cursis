@@ -27,11 +27,21 @@ export interface SessionPayload {
 export function createSessionToken(payload: SessionPayload): string {
   const now = Date.now();
   const maxAgeMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+  const sanitizedPayload = { ...payload } as any;
+  for (const imgKey of ['photoURL', 'photoUrl', 'avatar', 'image']) {
+    if (
+      sanitizedPayload[imgKey] &&
+      (String(sanitizedPayload[imgKey]).startsWith('data:') || String(sanitizedPayload[imgKey]).length > 512)
+    ) {
+      delete sanitizedPayload[imgKey];
+    }
+  }
+
   const enriched: SessionPayload = {
-    ...payload,
-    createdAt: payload.createdAt || now,
-    iat: payload.iat || Math.floor((payload.createdAt || now) / 1000),
-    exp: payload.exp || Math.floor(((payload.createdAt || now) + maxAgeMs) / 1000),
+    ...sanitizedPayload,
+    createdAt: sanitizedPayload.createdAt || now,
+    iat: sanitizedPayload.iat || Math.floor((sanitizedPayload.createdAt || now) / 1000),
+    exp: sanitizedPayload.exp || Math.floor(((sanitizedPayload.createdAt || now) + maxAgeMs) / 1000),
   };
   const data = Buffer.from(JSON.stringify(enriched)).toString('base64url');
   const signature = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');

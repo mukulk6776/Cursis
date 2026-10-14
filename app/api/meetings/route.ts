@@ -34,12 +34,20 @@ export async function POST(request: Request) {
     }
 
     const meeting = await createMeeting(resolvedWsId, {
+      id: body.id,
       title: title.trim(),
+      projectId: body.projectId || body.project || undefined,
+      meetingUrl: body.meetingUrl,
+      scheduledAt: body.scheduledAt,
       date: body.date,
       time: body.time,
+      durationMinutes: body.durationMinutes || body.duration,
+      duration: body.duration || body.durationMinutes,
       platform: body.platform,
       agenda: body.agenda,
-      attendees: body.attendeeIds || body.attendees || [],
+      notes: body.notes,
+      participants: body.participants || body.attendees || body.attendeeIds || [],
+      attendees: body.attendees || body.participants || body.attendeeIds || [],
       hostId: authUser.uid,
       hostName: authUser.displayName,
     });

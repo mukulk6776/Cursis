@@ -26,25 +26,73 @@ export default function CalendarPage() {
   const [schedTopic, setSchedTopic] = useState('Technical Architecture Sync');
   const [selectedMeetingDetail, setSelectedMeetingDetail] = useState<Meeting | null>(null);
   const [savedEvents, setSavedEvents] = useState<any[]>([]);
+  const [smartSlots, setSmartSlots] = useState<any[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedAttendeeIds, setSelectedAttendeeIds] = useState<string[]>([]);
 
   useEffect(() => {
+    if (selectedAttendeeIds.length === 0 && employees.length > 0) {
+      setSelectedAttendeeIds(employees.slice(0, 3).map((e) => e.id));
+    }
+  }, [employees]);
+
+  useEffect(() => {
+    if (!showSmartScheduler) return;
+    let cancelled = false;
+    setLoadingSlots(true);
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const attendeesParam = selectedAttendeeIds.length > 0 ? `&attendees=${encodeURIComponent(selectedAttendeeIds.join(','))}` : '';
+    fetch(`/api/calendar/smart-slots?workspaceId=${encodeURIComponent(activeWorkspaceId || '')}&date=${dateStr}&duration=30${attendeesParam}`, {
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) {
+          if (Array.isArray(data.slots)) {
+            setSmartSlots(data.slots);
+          } else {
+            setSmartSlots([]);
+          }
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSmartSlots([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingSlots(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showSmartScheduler, activeWorkspaceId, currentDate, selectedAttendeeIds]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSavedEvents([]);
     const fetchEvents = async () => {
       try {
         const wsId = activeWorkspaceId || '';
         const res = await fetch(`/api/calendar/events?workspaceId=${encodeURIComponent(wsId)}`, {
           credentials: 'include',
         });
-        if (res.ok) {
+        if (res.ok && !cancelled) {
           const data = await res.json();
           if (Array.isArray(data.events)) {
             setSavedEvents(data.events);
           }
         }
       } catch (err) {
-        console.warn('Calendar events load error:', err);
+        if (!cancelled) {
+          console.warn('Calendar events load error:', err);
+        }
       }
     };
     fetchEvents();
+
+    return () => {
+      cancelled = true;
+    };
   }, [activeWorkspaceId, activeModal]);
 
  const months = [
@@ -55,6 +103,7 @@ export default function CalendarPage() {
  const navigateDate = (direction: number) => {
  const next = new Date(currentDate);
  if (currentView === 'month') {
+ next.setDate(1);
  next.setMonth(next.getMonth() + direction);
  } else if (currentView === 'week') {
  next.setDate(next.getDate() + direction * 7);
@@ -94,17 +143,36 @@ export default function CalendarPage() {
     raw?: any;
   }
 
+  const formatTimeInTimezone = (isoString?: string, defaultTime = '10:00') => {
+    if (!isoString) return defaultTime;
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return defaultTime;
+      return new Intl.DateTimeFormat('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: orgSettings?.timezone || 'UTC',
+      }).format(d);
+    } catch {
+      return defaultTime;
+    }
+  };
+
   const allEvents: CalendarEvent[] = [];
 
-  if (filterType === 'all' || filterType === 'events') {
+  if (filterType === 'all' || filterType === 'events' || filterType === 'milestones') {
     savedEvents.forEach((ev) => {
+      const isMilestone = ev.category === 'milestone';
+      if (filterType === 'milestones' && !isMilestone) return;
+      if (filterType === 'events' && isMilestone) return;
       allEvents.push({
         id: ev.id,
         name: ev.title || 'Event',
         date: ev.startTime ? ev.startTime.split('T')[0] : (ev.date || ''),
-        time: ev.startTime && ev.startTime.includes('T') ? ev.startTime.split('T')[1].substring(0, 5) : (ev.time || '10:00'),
-        type: 'event',
-        color: '#0f4cff',
+        time: formatTimeInTimezone(ev.startTime, ev.time || '10:00'),
+        type: isMilestone ? 'milestone' : 'event',
+        color: isMilestone ? 'var(--c-purple)' : '#0f4cff',
         raw: ev,
       });
     });
@@ -124,66 +192,90 @@ export default function CalendarPage() {
     });
   }
 
- if (filterType === 'all' || filterType === 'tasks') {
- tasks.forEach((t) => {
- if (t.deadline) {
- allEvents.push({
- id: t.id,
- name: t.name,
- date: t.deadline,
- time: '23:59',
- type: 'task',
- color: 'var(--c-warning)',
- raw: t,
- });
- }
- });
- }
+  if (filterType === 'all' || filterType === 'tasks') {
+    tasks.forEach((t) => {
+      if (t.deadline) {
+        allEvents.push({
+          id: t.id,
+          name: t.name,
+          date: t.deadline,
+          time: '23:59',
+          type: 'task',
+          color: 'var(--c-warning)',
+          raw: t,
+        });
+      }
+    });
+  }
 
- if (filterType === 'all' || filterType === 'milestones') {
- projects.forEach((p) => {
- if (p.milestones) {
- p.milestones.forEach((ms, idx) => {
- allEvents.push({
- id: `ms_${p.id}_${idx}`,
- name: `${p.name}: ${ms.name}`,
- date: ms.date,
- type: 'milestone',
- color: 'var(--c-purple)',
- raw: ms,
- });
- });
- }
- });
- }
+  if (filterType === 'all' || filterType === 'milestones') {
+    projects.forEach((p) => {
+      if (p.milestones) {
+        p.milestones.forEach((ms, idx) => {
+          allEvents.push({
+            id: `ms_${p.id}_${idx}`,
+            name: `${p.name}: ${ms.name}`,
+            date: ms.date,
+            type: 'milestone',
+            color: 'var(--c-purple)',
+            raw: ms,
+          });
+        });
+      }
+    });
+  }
 
- const bookSlot = (slotLabel: string) => {
- const timeStr = slotLabel.includes('15:30') ? '15:30' : '11:00';
- const dateStr = slotLabel.includes('Tomorrow')
- ? new Date(Date.now() + 86400000).toISOString().split('T')[0]
- : new Date().toISOString().split('T')[0];
+  const bookSlot = (slot: any) => {
+    const timeStr = typeof slot === 'string'
+      ? (slot.includes('15:30') ? '15:30' : '11:00')
+      : (slot.time || '11:00');
+    const dateStr = typeof slot === 'string'
+      ? (slot.includes('Tomorrow') ? new Date(Date.now() + 86400000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
+      : (slot.date || currentDate.toISOString().split('T')[0]);
+    const duration = typeof slot === 'object' && slot.duration ? slot.duration : 30;
 
- const newM: Meeting = {
- id: 'm_' + Date.now(),
- name: schedTopic,
- date: dateStr,
- time: timeStr,
- duration: 45,
- participants: ['u1', 'u2', 'u3', 'u4', 'u5'],
- project: 'p1',
- status: 'scheduled',
- platform: 'google_meet',
- meetingUrl: 'https://meet.google.com/ordis-smart-' + Date.now().toString().slice(-6),
- agenda: `Optimal slot booked via ORDIS AI Smart Scheduler for "${schedTopic}". Zero participant conflicts.`,
- aiSummary: null,
- notes: '',
- };
+    const newM: Meeting = {
+      id: 'm_' + Date.now(),
+      name: schedTopic || 'AI Scheduled Meeting',
+      date: dateStr,
+      time: timeStr,
+      duration,
+      durationMinutes: duration,
+      participants: selectedAttendeeIds.length > 0 ? selectedAttendeeIds : employees.slice(0, 3).map((e) => e.id),
+      project: projects[0]?.id || null,
+      status: 'scheduled',
+      platform: 'google_meet',
+      meetingUrl: 'https://meet.google.com/new',
+      agenda: `Optimal slot booked via ORDIS AI Smart Scheduler for "${schedTopic}".`,
+      aiSummary: null,
+      notes: '',
+    };
 
  addMeeting(newM);
  addAuditEntry('ordis', 'meeting.auto_scheduled', schedTopic, `Scheduled for ${dateStr} at ${timeStr}`);
- showToast(`Slot booked! Meeting "${schedTopic}" scheduled for ${dateStr} at ${timeStr} *`);
+ showToast(`Slot booked! Meeting "${newM.name}" scheduled for ${dateStr} at ${timeStr}`);
  setShowSmartScheduler(false);
  };
+
+ const displayedEvents = React.useMemo(() => {
+ if (currentView === 'day') {
+ const dayStr = currentDate.toISOString().split('T')[0];
+ return allEvents.filter((ev) => ev.date === dayStr);
+ }
+ if (currentView === 'week') {
+ const day = currentDate.getDay();
+ const start = new Date(currentDate);
+ start.setDate(start.getDate() - day);
+ start.setHours(0, 0, 0, 0);
+ const end = new Date(start);
+ end.setDate(end.getDate() + 6);
+ end.setHours(23, 59, 59, 999);
+ const startStr = start.toISOString().split('T')[0];
+ const endStr = end.toISOString().split('T')[0];
+ return allEvents.filter((ev) => ev.date >= startStr && ev.date <= endStr);
+ }
+ return allEvents;
+ }, [allEvents, currentView, currentDate]);
 
  // Month View Calculations
  const year = currentDate.getFullYear();
@@ -334,7 +426,7 @@ export default function CalendarPage() {
  <span className="badge badge-neutral" style={{ fontSize: '9px', padding: '0 4px' }}>
  GC
  </span>{' '}
- Google Calendar Sync (Active)
+ Google Calendar (Connect in Integrations)
  </span>
  </div>
  <div>All times in {orgSettings.timezone}</div>
@@ -431,9 +523,26 @@ export default function CalendarPage() {
  </div>
  ))}
  {dayEvents.length > 3 && (
- <span style={{ fontSize: '8px', color: 'var(--text-tertiary)' }}>
- +{dayEvents.length - 3} more
- </span>
+   <button
+     type="button"
+     style={{
+       fontSize: '8px',
+       color: 'var(--c-brand, #FF5500)',
+       background: 'transparent',
+       border: 'none',
+       cursor: 'pointer',
+       padding: '0',
+       textAlign: 'left',
+       fontWeight: 'bold',
+     }}
+     onClick={() => {
+       setCurrentDate(new Date(cd.dateStr + 'T12:00:00'));
+       setCurrentView('day');
+     }}
+     aria-label={`View ${dayEvents.length - 3} more events for ${cd.dateStr}`}
+   >
+     +{dayEvents.length - 3} more
+   </button>
  )}
  </div>
  </div>
@@ -449,7 +558,12 @@ export default function CalendarPage() {
  <div className="card" style={{ padding: 'var(--sp-4)' }}>
  <h4 style={{ marginBottom: 'var(--sp-3)' }}>Schedule Timetable</h4>
  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
- {allEvents.map((ev) => (
+ {displayedEvents.length === 0 ? (
+ <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-xs)', padding: 'var(--sp-2)' }}>
+ No events scheduled for this {currentView}.
+ </div>
+ ) : (
+ displayedEvents.map((ev) => (
  <div
  key={ev.id}
  style={{
@@ -472,7 +586,8 @@ export default function CalendarPage() {
  {ev.date} {ev.time || ''}
  </div>
  </div>
- ))}
+ ))
+ )}
  </div>
  </div>
 
@@ -555,7 +670,7 @@ export default function CalendarPage() {
  <div className="input-group">
  <label className="input-label">Selected Participants</label>
  <div style={{ display: 'flex', gap: 'var(--sp-2)', flexWrap: 'wrap', marginTop: '4px' }}>
- {employees.slice(0, 5).map((e) => (
+ {employees.slice(0, 8).map((e) => (
  <label
  key={e.id}
  style={{
@@ -569,7 +684,18 @@ export default function CalendarPage() {
  cursor: 'pointer',
  }}
  >
- <input type="checkbox" defaultChecked style={{ width: '14px', height: '14px' }} />
+ <input
+   type="checkbox"
+   checked={selectedAttendeeIds.includes(e.id)}
+   onChange={(ev) => {
+     if (ev.target.checked) {
+       setSelectedAttendeeIds((prev) => [...prev, e.id]);
+     } else {
+       setSelectedAttendeeIds((prev) => prev.filter((id) => id !== e.id));
+     }
+   }}
+   style={{ width: '14px', height: '14px' }}
+ />
  <span>{e.name.split(' ')[0]}</span>
  </label>
  ))}
@@ -589,51 +715,41 @@ export default function CalendarPage() {
  AI RECOMMENDED TIME SLOTS
  </div>
  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
+ {loadingSlots ? (
+ <div style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
+ Scanning participant schedules for real collision-free availability...
+ </div>
+ ) : smartSlots.length > 0 ? (
+ smartSlots.map((slot, idx) => (
  <div
+ key={idx}
  className="card"
  style={{
  padding: 'var(--sp-3)',
- background: 'var(--c-brand-bg)',
- border: 'var(--border-width) solid var(--c-brand)',
+ background: idx === 0 ? 'var(--c-brand-bg)' : 'var(--c-surface)',
+ border: `var(--border-width) solid ${idx === 0 ? 'var(--c-brand)' : 'var(--border-color)'}`,
  cursor: 'pointer',
  }}
- onClick={() => bookSlot('Today at 15:30 (45 min)')}
+ onClick={() => bookSlot(slot)}
  >
  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
- <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)', color: 'var(--c-brand)' }}>
- Option 1: Today at 15:30 (45 min)
+ <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)', color: idx === 0 ? 'var(--c-brand)' : 'var(--text-primary)' }}>
+ {slot.label || `Slot ${idx + 1}: ${slot.date || ''} at ${slot.time || ''} (${slot.duration || 30} min)`}
  </span>
- <span className="badge badge-success" style={{ fontSize: '10px' }}>
- 100% Free
+ <span className={`badge ${idx === 0 ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '10px' }}>
+ {slot.freePercent ? `${slot.freePercent}% Free` : 'Verified Free'}
  </span>
  </div>
  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
- All 5 participants have zero schedule conflicts and optimal energy focus scores.
+ {slot.note || 'Zero schedule conflicts detected across active participants.'}
  </div>
  </div>
-
- <div
- className="card"
- style={{
- padding: 'var(--sp-3)',
- background: 'var(--c-surface)',
- border: 'var(--border-width) solid var(--border-color)',
- cursor: 'pointer',
- }}
- onClick={() => bookSlot('Tomorrow at 11:00 (30 min)')}
- >
- <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
- <span style={{ fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-sm)' }}>
- Option 2: Tomorrow at 11:00 (30 min)
- </span>
- <span className="badge badge-neutral" style={{ fontSize: '10px' }}>
- 90% Free
- </span>
+ ))
+ ) : (
+ <div style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
+ No open collision-free slots found for this date. Select another date or duration.
  </div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
- Minimal overlap with team focus coding blocks.
- </div>
- </div>
+ )}
  </div>
  </div>
  </div>

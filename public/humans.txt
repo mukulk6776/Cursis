@@ -2,7 +2,7 @@
 
 /* TEAM */
   Company: Cursis Inc.
-  Location: Bengaluru, Karnataka, India
+  Location: Delhi, India
   Contact: cursis.in@gmail.com
 
 /* SITE */

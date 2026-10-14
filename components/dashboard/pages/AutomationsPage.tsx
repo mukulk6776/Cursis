@@ -519,10 +519,10 @@ export default function AutomationsPage() {
  if (e.target === e.currentTarget) setShowNlModal(false);
  }}
  >
- <div className="modal" style={{ maxWidth: '600px' }}>
+ <div className="modal" role="dialog" aria-modal="true" aria-labelledby="nl-automation-title" style={{ maxWidth: '600px' }}>
  <div className="modal-header">
  <div>
- <span className="modal-title">Natural Language Workflow Creator</span>
+ <span id="nl-automation-title" className="modal-title">Natural Language Workflow Creator</span>
  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
  Describe what you want to automate in plain English
  </div>

@@ -4,7 +4,7 @@
 
 ## 1. INTRODUCTION
 
-This Cookie Policy explains how CUSIS ("we," "our," or "us") uses cookies and similar tracking technologies on our website at cusis.in and our dashboard application (the "Service").
+This Cookie Policy explains how Cursis ("we," "our," or "us") uses cookies and similar tracking technologies on our website at cursis.in and our dashboard application (the "Service").
 
 This policy should be read together with our Privacy Policy and Terms and Conditions.
 
@@ -112,7 +112,7 @@ Currently, we do NOT use marketing or advertising cookies. If this changes:
 
 ### 4.1 First-Party Cookies
 
-Set by CUSIS directly. These cookies:
+Set by Cursis directly. These cookies:
 - Are controlled by us
 - Collect information for our use only
 - Support core Service functionality
@@ -134,7 +134,7 @@ We do not control third-party cookies. Please review the privacy policies of the
 
 ### 5.1 Cookie Consent Manager
 
-When you first visit CUSIS, you'll see a cookie consent banner allowing you to:
+When you first visit Cursis, you'll see a cookie consent banner allowing you to:
 - Accept all cookies
 - Reject non-essential cookies
 - Customize your cookie preferences
@@ -142,7 +142,7 @@ When you first visit CUSIS, you'll see a cookie consent banner allowing you to:
 You can change your preferences anytime by:
 - Clicking the cookie settings link in the footer
 - Accessing Cookie Preferences in your account settings
-- Emailing support@cusis.in
+- Emailing support@cursis.in
 
 ### 5.2 Browser Controls
 
@@ -258,19 +258,7 @@ We may use mobile analytics services:
 
 ### 8.1 Current Stance
 
-Currently, we do not respond to "Do Not Track" (DNT) browser signals because:
-- There is no universal standard for DNT
-- Different browsers implement DNT differently
-- No industry consensus on how to respond
-
-### 8.2 Alternative Controls
-
-Instead of DNT, please use:
-- Our cookie consent manager
-- Browser cookie controls (Section 5.2)
-- Third-party opt-out tools
-
-We monitor developments in DNT standards and may implement support in the future.
+Cursis honors Do Not Track (DNT) and Global Privacy Control (GPC) signals by automatically deactivating optional functional and analytics cookies.
 
 ## 9. COOKIES AND PRIVACY
 
@@ -300,7 +288,7 @@ Cookie data is protected by:
 
 ### 9.4 Privacy Policy Link
 
-For comprehensive information about how we handle your data, see our Privacy Policy at https://cusis.in/privacy
+For comprehensive information about how we handle your data, see our Privacy Policy at https://cursis.in/privacy
 
 ## 10. UPDATES TO THIS COOKIE POLICY
 
@@ -351,7 +339,7 @@ Your consent is:
 You can withdraw consent at any time:
 - Through our cookie consent manager
 - In your account settings
-- By contacting privacy@cusis.in
+- By contacting privacy@cursis.in
 
 Withdrawal does not affect the lawfulness of processing before withdrawal.
 
@@ -378,7 +366,7 @@ We comply with cookie laws in all jurisdictions where we operate. Contact us for
 
 The Service is not intended for users under 18. We do not knowingly place cookies on devices of children under 18.
 
-If you believe a child has used the Service, please contact us at privacy@cusis.in so we can delete any cookies.
+If you believe a child has used the Service, please contact us at privacy@cursis.in so we can delete any cookies.
 
 ## 14. CONTACT US
 
@@ -386,22 +374,22 @@ If you believe a child has used the Service, please contact us at privacy@cusis.
 
 For questions about this Cookie Policy:
 
-**Email:** cookies@cusis.in  
-**General Support:** support@cusis.in  
-**Website:** https://cusis.in/cookies
+**Email:** cookies@cursis.in  
+**General Support:** support@cursis.in  
+**Website:** https://cursis.in/cookies
 
 ### 14.2 Privacy Inquiries
 
 For broader privacy questions:
 
-**Email:** privacy@cusis.in  
-**Data Protection Officer:** dpo@cusis.in
+**Email:** privacy@cursis.in  
+**Data Protection Officer:** dpo@cursis.in
 
 ### 14.3 Technical Support
 
 For help managing cookie settings:
 
-**Email:** support@cusis.in  
+**Email:** support@cursis.in  
 **Live Chat:** Available in the dashboard
 
 ## 15. ADDITIONAL RESOURCES
@@ -414,9 +402,9 @@ For help managing cookie settings:
 
 ### 15.2 Related Policies
 
-- **Privacy Policy:** https://cusis.in/privacy
-- **Terms and Conditions:** https://cusis.in/terms
-- **Security Policy:** https://cusis.in/security
+- **Privacy Policy:** https://cursis.in/privacy
+- **Terms and Conditions:** https://cursis.in/terms
+- **Security Policy:** https://cursis.in/security
 
 ## 16. SUMMARY TABLE
 
@@ -452,7 +440,7 @@ BY USING THE SERVICE AND ACCEPTING COOKIES, YOU ACKNOWLEDGE THAT YOU HAVE READ A
 
 ## QUICK ACTIONS
 
-🍪 **Manage Cookie Preferences** → [Account Settings](https://cusis.in/settings/cookies)  
-📖 **Read Privacy Policy** → [Privacy Policy](https://cusis.in/privacy)  
-📧 **Contact Us** → cookies@cusis.in  
-❓ **Get Help** → support@cusis.in
+🍪 **Manage Cookie Preferences** → [Account Settings](https://cursis.in/cookie-policy)  
+📖 **Read Privacy Policy** → [Privacy Policy](https://cursis.in/privacy)  
+📧 **Contact Us** → cookies@cursis.in  
+❓ **Get Help** → support@cursis.in

@@ -161,7 +161,7 @@ interface DashboardContextType {
 
  // Connected Settings State
  workspaceSettings: WorkspaceSettings;
- updateWorkspaceSettings: (updates: Partial<WorkspaceSettings> & Record<string, any>) => void | Promise<void>;
+ updateWorkspaceSettings: (updates: Partial<WorkspaceSettings> & Record<string, any>) => Promise<boolean | void> | boolean | void;
   saveWorkspaceName: (name: string, workspaceId?: string) => Promise<boolean>;
   updateWorkspaceName: (name: string, workspaceId?: string) => Promise<boolean>;
  teamSettings: TeamSettings;
@@ -287,7 +287,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const segment = path.replace(/^\/dashboard\/?/, '').split('/')[0];
     const validPages: DashboardPageType[] = [
       'home', 'ordis', 'tasks', 'projects', 'team', 'departments', 'documents', 'calendar',
-      'meetings', 'analytics', 'settings'
+      'meetings', 'analytics', 'workspace', 'automations', 'messages', 'integrations', 'settings'
     ];
  if (validPages.includes(segment as DashboardPageType)) {
  return segment as DashboardPageType;
@@ -464,6 +464,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
       setTasks([]);
       setDepartments([]);
+      setProjects([]);
+      setDocuments([]);
+      setMeetings([]);
       const ws = workspaces.find((w) => w.id === workspaceId);
       showToast(`Switched to ${ws?.name || 'workspace'}`);
       syncTeamAndNotifications(workspaceId);
@@ -606,6 +609,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // Persistent Team & Notifications Synchronization with MongoDB
   const syncTeamAndNotifications = async (wsId?: string) => {
+    const currentGen = ((syncTeamAndNotifications as any)._gen = ((syncTeamAndNotifications as any)._gen || 0) + 1);
     const targetWsId = wsId || (activeWorkspaceId && activeWorkspaceId !== 'ws_public' && activeWorkspaceId !== 'ws_default' ? activeWorkspaceId : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || ''));
     if (typeof window !== 'undefined') {
       try {
@@ -619,8 +623,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       const url = targetWsId ? `/api/team?workspaceId=${encodeURIComponent(targetWsId)}` : '/api/team';
       const authToken = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
 
-      // Parallelize all 5 live MongoDB queries concurrently for fast dashboard response
-      const [teamRes, notifRes, taskRes, deptRes, mtgRes] = await Promise.all([
+      // Parallelize live MongoDB queries concurrently for fast dashboard response
+      const [teamRes, notifRes, taskRes, deptRes, mtgRes, projRes, docRes] = await Promise.all([
         fetch(url, { credentials: 'include' }).catch(() => null),
         fetch(`/api/notifications?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
         fetch(`/api/tasks?workspaceId=${encodeURIComponent(targetWsId)}`, {
@@ -632,7 +636,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         }).catch(() => null),
         fetch(`/api/departments?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
         fetch(`/api/meetings?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
+        fetch(`/api/projects?workspaceId=${encodeURIComponent(targetWsId)}`, {
+          credentials: 'include',
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        }).catch(() => null),
+        fetch(`/api/documents?workspaceId=${encodeURIComponent(targetWsId)}`, {
+          credentials: 'include',
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        }).catch(() => null),
       ]);
+
+      if (currentGen !== (syncTeamAndNotifications as any)._gen) {
+        return; // Superseded by a newer sync invocation
+      }
 
       // 1. Live team members and invitations
       if (teamRes && teamRes.ok) {
@@ -841,6 +857,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               status: m.status || 'scheduled',
               agenda: m.agenda || '',
               notes: m.notes || '',
+              summary: m.summary || '',
+              aiSummary: m.aiSummary || (m.summary ? { summary: m.summary, decisions: [], actionItems: (m.actionItems || []).map((a: any) => ({ task: a.text || a.title || a.task, assignee: a.assigneeId || a.assignee || '', deadline: a.dueDate || a.deadline || '' })), followUps: [] } : null),
             }));
 
             setMeetings((prev) => {
@@ -854,6 +872,65 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               return [...mappedMtgs, ...inFlight];
             });
           }
+        }
+      }
+
+      // 5. Workspace projects
+      if (projRes && projRes.ok) {
+        const projData = await projRes.json().catch(() => null);
+        if (currentGen !== (syncTeamAndNotifications as any)._gen) return;
+        const serverProjects = projData?.projects || projData?.data?.projects;
+        if (Array.isArray(serverProjects)) {
+          setProjects(serverProjects.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            icon: p.icon || 'folder',
+            color: p.color || '#0f4cff',
+            desc: p.description || p.desc || '',
+            progress: p.progressPercent ?? p.progress ?? 0,
+            status: p.health || p.status || 'Planning',
+            deadline: p.deadline || '',
+            team: p.teamMemberIds || p.team || [],
+            tasks: p.taskCount ?? p.tasks ?? 0,
+            completed: p.completedTaskCount ?? p.completed ?? 0,
+            milestones: Array.isArray(p.milestones)
+              ? p.milestones.map((m: any) => ({
+                  id: m.id || 'm_' + Math.random().toString(36).substring(2, 6),
+                  name: m.name || m.title || 'Milestone',
+                  date: (m.dueDate || m.date || '').split('T')[0],
+                  completed: Boolean(m.completed),
+                }))
+              : [],
+          })));
+        }
+      }
+
+      // 6. Workspace documents
+      if (docRes && docRes.ok) {
+        const docData = await docRes.json().catch(() => null);
+        const serverDocs = docData?.documents || docData?.data?.documents;
+        if (Array.isArray(serverDocs)) {
+          setDocuments(serverDocs.map((d: any) => ({
+            id: d.id,
+            name: d.title || d.name || 'Untitled Document',
+            type: (d.category as any) || (d.type as any) || 'knowledge',
+            size: d.fileSize || d.size || '',
+            updated: d.updatedAt ? d.updatedAt.split('T')[0] : (d.createdAt ? d.createdAt.split('T')[0] : (d.updated || 'Recently')),
+            author: d.authorName || d.author || 'Team Member',
+            project: d.projectId || d.project || '',
+            tags: Array.isArray(d.tags) ? d.tags : [],
+            version: d.version || 1,
+            versions: Array.isArray(d.versions) ? d.versions : [],
+            aiSummary: d.summary || d.aiSummary || '',
+            keyClauses: Array.isArray(d.keyClauses) ? d.keyClauses : [],
+            sharedWith: Array.isArray(d.sharedWith) ? d.sharedWith : [],
+            esignStatus: d.esignStatus || null,
+            fileUrl: d.fileUrl,
+            fileType: d.fileType,
+            fileSize: d.fileSize,
+            category: d.category,
+            content: d.content || '',
+          })));
         }
       }
     } catch (e) {
@@ -1086,10 +1163,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   };
 
- const handleSignOut = async () => {
- showToast('Signing out of workspace...');
- await signOutUser('/login?logout=true');
- };
+  const handleSignOut = async () => {
+    showToast('Signing out of workspace...');
+    if (typeof window !== 'undefined') {
+      try {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('cursis_')) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      } catch {}
+    }
+    await signOutUser('/login?logout=true');
+  };
 
  const showToast = (message: string) => {
  const id = 'toast_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5);
@@ -1111,7 +1200,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const closeNotifications = () => setNotificationsOpen(false);
  const openProfilePanel = (employeeId: string) => setProfilePanelEmployeeId(employeeId);
  const closeProfilePanel = () => setProfilePanelEmployeeId(null);
- const openMeetingNotes = (m: Meeting) => setSelectedMeetingNotes(m);
+ const openMeetingNotes = (m: Meeting) => {
+ setSelectedMeetingNotes(m);
+ setActiveModal('meeting-notes-modal');
+ };
  const openGenericModal = (title: string, body: ReactNode) => setGenericModal({ title, body });
  const closeGenericModal = () => setGenericModal(null);
  const clearChatHistory = newOrdisChat;
@@ -1339,6 +1431,35 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     const wsIdToUpdate = targetId || activeWorkspaceId || 'ws_default';
     const shortName = generateWorkspaceAbbreviation(cleanName);
+    const prevWorkspaces = workspaces;
+    const prevWorkspaceSettings = workspaceSettings;
+    const prevOrgSettings = orgSettings;
+
+    const prevCustomWsName = typeof window !== 'undefined' ? localStorage.getItem('cursis_custom_workspace_name') : null;
+    const prevWsNameKey = typeof window !== 'undefined' ? localStorage.getItem(`cursis_ws_name_${wsIdToUpdate}`) : null;
+    const prevNameMapRaw = typeof window !== 'undefined' ? localStorage.getItem('cursis_workspace_names') : null;
+    const prevSavedWsRaw = typeof window !== 'undefined' ? localStorage.getItem('cursis_workspace_settings') : null;
+    const prevSavedOrgRaw = typeof window !== 'undefined' ? localStorage.getItem('cursis_org_settings') : null;
+
+    const restoreLocalStorage = () => {
+      if (typeof window === 'undefined') return;
+      try {
+        if (prevCustomWsName !== null) localStorage.setItem('cursis_custom_workspace_name', prevCustomWsName);
+        else localStorage.removeItem('cursis_custom_workspace_name');
+
+        if (prevWsNameKey !== null) localStorage.setItem(`cursis_ws_name_${wsIdToUpdate}`, prevWsNameKey);
+        else localStorage.removeItem(`cursis_ws_name_${wsIdToUpdate}`);
+
+        if (prevNameMapRaw !== null) localStorage.setItem('cursis_workspace_names', prevNameMapRaw);
+        else localStorage.removeItem('cursis_workspace_names');
+
+        if (prevSavedWsRaw !== null) localStorage.setItem('cursis_workspace_settings', prevSavedWsRaw);
+        else localStorage.removeItem('cursis_workspace_settings');
+
+        if (prevSavedOrgRaw !== null) localStorage.setItem('cursis_org_settings', prevSavedOrgRaw);
+        else localStorage.removeItem('cursis_org_settings');
+      } catch {}
+    };
 
     // 1. Immediately update local state in workspaces array
     setWorkspaces((prev) =>
@@ -1408,6 +1529,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         }),
       });
 
+      if (!res.ok) {
+        setWorkspaces(prevWorkspaces);
+        setWorkspaceSettings(prevWorkspaceSettings);
+        setOrgSettings(prevOrgSettings);
+        restoreLocalStorage();
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || errData.message || 'Failed to update workspace name');
+        return false;
+      }
+
       // Call companion /api/workspaces/[id]/settings
       fetch(`/api/workspaces/${encodeURIComponent(serverTargetId)}/settings`, {
         method: 'PATCH',
@@ -1416,18 +1547,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ name: cleanName }),
       }).catch(() => {});
 
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data?.data?.workspace?.name) {
-          const confirmed = data.data.workspace.name;
-          setWorkspaces((prev) =>
-            prev.map((w) =>
-              w.id === serverTargetId || w.id === wsIdToUpdate
-                ? { ...w, name: confirmed, shortName: generateWorkspaceAbbreviation(confirmed) }
-                : w
-            )
-          );
-        }
+      const data = await res.json().catch(() => null);
+      if (data?.data?.workspace?.name) {
+        const confirmed = data.data.workspace.name;
+        setWorkspaces((prev) =>
+          prev.map((w) =>
+            w.id === serverTargetId || w.id === wsIdToUpdate
+              ? { ...w, name: confirmed, shortName: generateWorkspaceAbbreviation(confirmed) }
+              : w
+          )
+        );
       }
 
       addAuditEntry(user.name, 'workspace.renamed', 'Workspace Settings', `Renamed workspace to "${cleanName}"`);
@@ -1435,19 +1564,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (err) {
       console.warn('Backend save workspace name warning:', err);
-      showToast('Workspace name saved');
-      return true;
+      setWorkspaces(prevWorkspaces);
+      setWorkspaceSettings(prevWorkspaceSettings);
+      setOrgSettings(prevOrgSettings);
+      restoreLocalStorage();
+      showToast('Failed to update workspace name: Network error');
+      return false;
     }
   };
 
   const updateWorkspaceName = saveWorkspaceName;
 
-
-
- // ---- Settings Mutation Handlers with Persistence ----
- const updateWorkspaceSettings = async (updates: Partial<WorkspaceSettings> & Record<string, any>) => {
+  // ---- Settings Mutation Handlers with Persistence ----
+  const updateWorkspaceSettings = async (updates: Partial<WorkspaceSettings> & Record<string, any>) => {
     if (updates.name && updates.name.trim()) {
-      await saveWorkspaceName(updates.name.trim());
+      const renameOk = await saveWorkspaceName(updates.name.trim());
+      if (!renameOk) return false;
     }
 
     setWorkspaceSettings((prev) => {
@@ -1701,14 +1833,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const newTask: Task = {
  id: 't_' + Date.now(),
  name: taskData.name,
- project: taskData.project || (projects[0]?.id || 'p1'),
+ project: taskData.project || (projects[0]?.id || ''),
  assignee: taskData.assignee || user.id,
  assignees: taskData.assignees || [taskData.assignee || user.id],
  priority: taskData.priority || 'medium',
  status: taskData.status || 'todo',
- deadline: taskData.deadline || '2026-09-15',
+ deadline: taskData.deadline || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
  tags: taskData.tags || ['General'],
  description: taskData.description || '',
+ departmentId: taskData.departmentId || undefined,
  subtasks: taskData.subtasks || [],
  };
 
@@ -1720,9 +1853,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  );
 
  // Update project tasks count
+ if (newTask.project) {
  setProjects((prev) =>
  prev.map((p) => (p.id === newTask.project ? { ...p, tasks: p.tasks + 1 } : p))
  );
+ }
 
  // Add activity
  const emp = employees.find((e) => e.id === newTask.assignee);
@@ -1738,62 +1873,64 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  showToast(`Task "${newTask.name}" created `);
 
-  // Persist task to MongoDB via API and trigger assignee notification
-  const statusMap: Record<string, string> = {
-    'in-progress': 'in_progress',
-    'completed': 'done',
-    'review': 'in_review',
-    'todo': 'todo',
-  };
+ // Persist task to MongoDB via API and trigger assignee notification
+ const statusMap: Record<string, string> = {
+ 'in-progress': 'in_progress',
+ 'completed': 'done',
+ 'review': 'in_review',
+ 'todo': 'todo',
+ };
 
-  const assigneeName = emp?.name || '';
-  const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
-    ? activeWorkspaceId
-    : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+ const assigneeName = emp?.name || '';
+ const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+ ? activeWorkspaceId
+ : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+ const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
 
-  // Safe date parse helper
-  let safeDueDate = new Date(Date.now() + 3 * 86400000).toISOString();
-  if (newTask.deadline) {
-    const parsedD = new Date(newTask.deadline);
-    if (!isNaN(parsedD.getTime())) {
-      safeDueDate = parsedD.toISOString();
-    }
-  }
+ // Safe date parse helper
+ let safeDueDate = new Date(Date.now() + 7 * 86400000).toISOString();
+ if (newTask.deadline) {
+ const parsedD = new Date(newTask.deadline);
+ if (!isNaN(parsedD.getTime())) {
+ safeDueDate = parsedD.toISOString();
+ }
+ }
 
-  fetch('/api/tasks', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({
-      id: newTask.id,
-      title: newTask.name,
-      description: newTask.description || '',
-      assigneeId: newTask.assignee,
-      assigneeName: assigneeName,
-      projectId: newTask.project,
-      priority: newTask.priority,
-      status: statusMap[newTask.status] || newTask.status,
-      dueDate: safeDueDate,
-      tags: newTask.tags || [],
-      workspaceId: wsId,
-      departmentId: newTask.departmentId || undefined,
-    }),
-  })
-    .then((res) => {
-      if (res.ok) {
-        // Refresh notifications and sync state
-        setTimeout(() => syncTeamAndNotifications(wsId), 600);
-      }
-    })
-    .catch((err) => {
-      console.warn('Task API persist notice:', err);
-    });
-  };
+ fetch('/api/tasks', {
+ method: 'POST',
+ credentials: 'include',
+ headers: {
+ 'Content-Type': 'application/json',
+ ...(token ? { Authorization: `Bearer ${token}` } : {}),
+ },
+ body: JSON.stringify({
+ id: newTask.id,
+ title: newTask.name,
+ description: newTask.description || '',
+ assigneeId: newTask.assignee,
+ assigneeName: assigneeName,
+ assignees: newTask.assignees || [newTask.assignee],
+ projectId: newTask.project || undefined,
+ priority: newTask.priority,
+ status: statusMap[newTask.status] || newTask.status,
+ dueDate: safeDueDate,
+ tags: newTask.tags || [],
+ workspaceId: wsId,
+ departmentId: newTask.departmentId || undefined,
+ subtasks: newTask.subtasks || [],
+ }),
+ })
+ .then((res) => {
+ if (res.ok) {
+ // Refresh notifications and sync state
+ setTimeout(() => syncTeamAndNotifications(wsId), 600);
+ }
+ })
+ .catch((err) => {
+ console.warn('Task API persist notice:', err);
+ });
+ };
 
   const updateTask = (id: string, updates: Partial<Task>) => {
   setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
@@ -1814,7 +1951,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const emp = employees.find((e) => e.id === updates.assignee);
     if (emp) payload.assigneeName = emp.name;
   }
+  if (updates.assignees !== undefined) payload.assignees = updates.assignees;
   if (updates.project !== undefined) payload.projectId = updates.project;
+  if (updates.departmentId !== undefined) payload.departmentId = updates.departmentId;
+  if (updates.subtasks !== undefined) payload.subtasks = updates.subtasks;
   if (updates.priority !== undefined) payload.priority = updates.priority;
   if (updates.status !== undefined) payload.status = statusMap[updates.status] || updates.status;
   if (updates.deadline !== undefined) {
@@ -1919,11 +2059,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleTaskComplete = (taskId: string) => {
-    let nextStatus: TaskStatus = 'in-progress';
+    const target = tasks.find((t) => t.id === taskId);
+    if (!target) return;
+    const nextStatus: TaskStatus = target.status === 'completed' ? 'in-progress' : 'completed';
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          nextStatus = t.status === 'completed' ? 'in-progress' : 'completed';
           const act = `Task "${t.name}" marked as ${nextStatus === 'completed' ? 'done' : 'in progress'}`;
           setActivity((a) => [{ id: 'act_' + Date.now(), text: act, time: 'Just now', dot: '#00b341' }, ...a]);
           return { ...t, status: nextStatus };
@@ -2001,62 +2143,152 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  const updateProject = (id: string, updates: Partial<Project>) => {
- setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
- showToast('Project updated ');
+  const prevProjects = projects;
+  setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+
+  const serverPayload: Record<string, any> = {};
+  if (updates.name !== undefined) serverPayload.name = updates.name;
+  if (updates.desc !== undefined) serverPayload.description = updates.desc;
+  if ((updates as any).description !== undefined) serverPayload.description = (updates as any).description;
+  if (updates.progress !== undefined) serverPayload.progressPercent = updates.progress;
+  if ((updates as any).progressPercent !== undefined) serverPayload.progressPercent = (updates as any).progressPercent;
+  if (updates.team !== undefined) serverPayload.teamMemberIds = updates.team;
+  if ((updates as any).teamMemberIds !== undefined) serverPayload.teamMemberIds = (updates as any).teamMemberIds;
+  if (updates.status !== undefined) serverPayload.health = updates.status;
+  if ((updates as any).health !== undefined) serverPayload.health = (updates as any).health;
+  if (updates.deadline !== undefined) serverPayload.deadline = updates.deadline;
+  if (updates.color !== undefined) serverPayload.color = updates.color;
+  if (updates.icon !== undefined) serverPayload.icon = updates.icon;
+  if (updates.milestones !== undefined) {
+    serverPayload.milestones = updates.milestones.map((m: any) => ({
+      id: m.id,
+      title: m.title || m.name || 'Milestone',
+      dueDate: m.dueDate || m.date || '',
+      completed: Boolean(m.completed),
+    }));
+  }
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+  fetch(`/api/projects/${id}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(serverPayload),
+  })
+    .then((res) => {
+      if (!res.ok) {
+        setProjects(prevProjects);
+        showToast('Failed to update project on server');
+      } else {
+        showToast('Project updated');
+      }
+    })
+    .catch((err) => {
+      console.warn('Project update persist notice:', err);
+      setProjects(prevProjects);
+      showToast('Network error updating project');
+    });
  };
 
  const deleteProject = (id: string) => {
- setProjects((prev) => prev.filter((p) => p.id !== id));
- showToast('Project deleted');
+  const prevProjects = projects;
+  setProjects((prev) => prev.filter((p) => p.id !== id));
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+  fetch(`/api/projects/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  })
+    .then((res) => {
+      if (!res.ok) {
+        setProjects(prevProjects);
+        showToast('Failed to delete project on server');
+      } else {
+        showToast('Project deleted');
+      }
+    })
+    .catch((err) => {
+      console.warn('Project delete persist notice:', err);
+      setProjects(prevProjects);
+      showToast('Network error deleting project');
+    });
  };
 
  // ---- Meeting Mutations ----
  const addMeeting = (m: Partial<Meeting> & { name: string; meetingUrl: string }) => {
- const newM: Meeting = {
- id: 'm_' + Date.now(),
- name: m.name,
- title: m.name,
- platform: m.platform || meetingCalendarSettings.defaultPlatform,
- meetingUrl: m.meetingUrl,
- date: m.date || '2026-09-09',
- time: m.time || '14:00',
- duration: m.duration || meetingCalendarSettings.defaultDuration,
- participants: m.participants || [user.id],
- hostId: user.id,
- hostName: user.name,
- project: m.project || null,
- status: 'scheduled',
- agenda: m.agenda || '1. Overview of recent sprint tasks\n2. Open blockers discussion\n3. Action items assignment',
- notes: m.notes || '',
- };
- setMeetings((prev) => [newM, ...prev]);
- const act = `Scheduled meeting "${newM.name}" for ${newM.date} at ${newM.time}`;
- setActivity((prev) => [{ id: 'act_' + Date.now(), text: act, time: 'Just now', dot: '#ccff00' }, ...prev]);
- showToast(`Meeting "${newM.name}" scheduled `);
+  const todayIso = new Date().toISOString().split('T')[0];
+  const newM: Meeting = {
+    id: 'm_' + Date.now(),
+    name: m.name,
+    title: m.name,
+    platform: m.platform || meetingCalendarSettings.defaultPlatform,
+    meetingUrl: m.meetingUrl,
+    date: m.date || todayIso,
+    time: m.time || '14:00',
+    duration: m.duration || meetingCalendarSettings.defaultDuration,
+    participants: m.participants || [user.id],
+    hostId: m.hostId || user.id,
+    hostName: m.hostName || user.name,
+    project: m.project || null,
+    status: 'scheduled',
+    agenda: m.agenda || '1. Overview of recent sprint tasks\n2. Open blockers discussion\n3. Action items assignment',
+    notes: m.notes || '',
+  };
+  setMeetings((prev) => [newM, ...prev]);
+  const act = `Scheduled meeting "${newM.name}" for ${newM.date} at ${newM.time}`;
+  setActivity((prev) => [{ id: 'act_' + Date.now(), text: act, time: 'Just now', dot: '#ccff00' }, ...prev]);
 
- const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
-   ? activeWorkspaceId
-   : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+  const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+    ? activeWorkspaceId
+    : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
 
- fetch('/api/meetings', {
-   method: 'POST',
-   credentials: 'include',
-   headers: { 'Content-Type': 'application/json' },
-   body: JSON.stringify({
-     id: newM.id,
-     title: newM.name,
-     name: newM.name,
-     platform: newM.platform,
-     meetingUrl: newM.meetingUrl,
-     date: newM.date,
-     time: newM.time,
-     duration: newM.duration,
-     participants: newM.participants,
-     workspaceId: wsId,
-     agenda: newM.agenda,
-     notes: newM.notes,
-   }),
- }).catch((err) => console.warn('Meeting API persist notice:', err));
+  fetch('/api/meetings', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: newM.id,
+      title: newM.name,
+      name: newM.name,
+      platform: newM.platform,
+      meetingUrl: newM.meetingUrl,
+      date: newM.date,
+      time: newM.time,
+      duration: newM.duration,
+      participants: newM.participants,
+      hostId: newM.hostId,
+      hostName: newM.hostName,
+      project: newM.project,
+      workspaceId: wsId,
+      agenda: newM.agenda,
+      notes: newM.notes,
+    }),
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        setMeetings((prev) => prev.filter((item) => item.id !== newM.id));
+        showToast('Failed to schedule meeting on server');
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      const serverMtg = data?.data?.meeting || data?.meeting;
+      if (serverMtg?.id && serverMtg.id !== newM.id) {
+        setMeetings((prev) => prev.map((item) => item.id === newM.id ? { ...item, id: serverMtg.id } : item));
+      }
+      showToast(`Meeting "${newM.name}" scheduled`);
+    })
+    .catch((err) => {
+      console.warn('Meeting API persist notice:', err);
+      setMeetings((prev) => prev.filter((item) => item.id !== newM.id));
+      showToast('Network error scheduling meeting');
+    });
  };
 
   const updateMeeting = (id: string, updates: Partial<Meeting>) => {
@@ -2300,6 +2532,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return { success: false, message: `Code "${code}" has already been redeemed and can only be used once.` };
     }
 
+    let perks: string[] = [];
+    let isSpecialFeatureUnlock = false;
+
     try {
       const res = await fetch('/api/redeem', {
         method: 'POST',
@@ -2320,56 +2555,53 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           message: data.message || `Code "${code}" could not be redeemed.`,
         };
       }
+      perks = Array.isArray(data.perks) ? data.perks : [];
     } catch (err) {
       console.warn('Backend redeem check error:', err);
-    }
-
-    let perks: string[] = [];
-    let isSpecialFeatureUnlock = false;
-
-    if (code === 'CURSIS-PRO-2026') {
-      perks = [
-        'Executive Autonomous Copilot Unlocked',
-        'Real-Time Bottleneck Detection',
-        'Unlimited Multi-Agent Execution',
-      ];
-    } else if (code === 'ENTERPRISE-SCALE-4') {
-      perks = [
-        'Enterprise Feature Pack Granted',
-        'Ordis Autonomous Copilot & Ambient Scanner Active',
-        'Full 2,000-User Enterprise Scale Support',
-        'Instant Enterprise Telemetry Synthesis',
-      ];
-    } else if (code === 'ORDIS-VIP-ACCESS') {
-      perks = [
-        'Executive VIP Access Activated',
-        'Ordis Autonomous Agents Active (Bottleneck Scanner & Copilot)',
-        'SOC-2 Audit Telemetry Access',
-      ];
-    } else if (code === 'FEATURE-STUDIO-PRO') {
-      perks = [
-        'Dynamic Feature Builder Studio Unlocked',
-        'Executive KPI Telemetry Synthesized',
-        'AI Code Review & Deployment Gatekeeper Active',
-      ];
-      isSpecialFeatureUnlock = true;
-    } else if (code === 'SPECIAL-FOUNDER') {
-      perks = [
-        'Sovereign Founder Tier Activated',
-        'VIP Founder Badge Unlocked',
-        'Unlimited Ambient Copilot Cycles',
-        'Zero Rate-Limit Autonomy',
-      ];
-    } else if (code.startsWith('CURSIS-') || code.startsWith('VIP-') || code.startsWith('PRO-')) {
-      perks = [
-        'Executive Autonomous Copilot Active',
-        'Enterprise Feature Entitlement',
-      ];
-    } else {
       return {
         success: false,
-        message: 'Invalid or expired redeem code. Please check your voucher and try again.',
+        message: 'Could not connect to the server to verify this voucher. Please check your network and try again.',
       };
+    }
+
+    if (perks.length === 0) {
+      if (code === 'CURSIS-PRO-2026') {
+        perks = [
+          'Executive Autonomous Copilot Unlocked',
+          'Real-Time Bottleneck Detection',
+          'Unlimited Multi-Agent Execution',
+        ];
+      } else if (code === 'ENTERPRISE-SCALE-4') {
+        perks = [
+          'Enterprise Feature Pack Granted',
+          'Ordis Autonomous Copilot & Ambient Scanner Active',
+          'Full 2,000-User Enterprise Scale Support',
+          'Instant Enterprise Telemetry Synthesis',
+        ];
+      } else if (code === 'ORDIS-VIP-ACCESS') {
+        perks = [
+          'Executive VIP Access Activated',
+          'Ordis Autonomous Agents Active (Bottleneck Scanner & Copilot)',
+          'SOC-2 Audit Telemetry Access',
+        ];
+      } else if (code === 'FEATURE-STUDIO-PRO') {
+        perks = [
+          'Dynamic Feature Builder Studio Unlocked',
+          'Executive KPI Telemetry Synthesized',
+          'AI Code Review & Deployment Gatekeeper Active',
+        ];
+      } else if (code === 'SPECIAL-FOUNDER') {
+        perks = [
+          'Sovereign Founder Tier Activated',
+          'VIP Founder Badge Unlocked',
+          'Unlimited Ambient Copilot Cycles',
+          'Zero Rate-Limit Autonomy',
+        ];
+      }
+    }
+
+    if (code === 'FEATURE-STUDIO-PRO' || code === 'CURSIS-PRO-2026' || code === 'ENTERPRISE-SCALE-4') {
+      isSpecialFeatureUnlock = true;
     }
 
     setUser((prev) => ({ ...prev, planTier: 'standard' }));
@@ -2624,7 +2856,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
        credentials: 'include', headers: token ? { Authorization: `Bearer ${token}` } : {},
      });
      if (!response.ok) throw new Error(`Could not refresh ${resource}`);
-     return (await response.json()).data;
+     const json = await response.json();
+     return json.data || json;
    };
    const refreshed = await Promise.allSettled([read('projects'), read('documents'), read('automations'), read('crm/deals')]);
    const projectData = refreshed[0].status === 'fulfilled' ? refreshed[0].value : null;
@@ -2848,12 +3081,29 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  setOrgSettings((prev) => {
  const next = { ...prev, ...updates };
  try {
- localStorage.setItem('cursis_org_settings', JSON.stringify(next));
+ localStorage.setItem(`cursis_org_settings_${activeWorkspaceId}`, JSON.stringify(next));
  } catch {}
  return next;
  });
  addAuditEntry(user.name, 'security.settings.updated', 'Security Policies', 'Updated workspace security policies and organization settings');
- showToast('Security & compliance settings saved ');
+ showToast('Security & compliance settings saved');
+
+ const effectiveWsId = (activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public')
+ ? activeWorkspaceId
+ : (workspaces?.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || 'ws_' + user.id);
+
+ try {
+ fetch('/api/workspaces', {
+ method: 'PATCH',
+ credentials: 'include',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({
+ workspaceId: effectiveWsId,
+ securityPolicies: updates.securityPolicies,
+ settings: { securityPolicies: updates.securityPolicies },
+ }),
+ }).catch((e) => console.warn('Workspace security policies update notice:', e));
+ } catch {}
  };
 
  const toggleAgent = (id: string) => {
@@ -2951,25 +3201,40 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       ? activeWorkspaceId
       : (workspaces?.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id || 'ws_' + user.id);
 
-    try {
-      fetch('/api/documents', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          workspaceId: effectiveWsId,
-          title: newDoc.name,
-          category: newDoc.category || newDoc.type,
-          tags: newDoc.tags,
-          projectId: newDoc.project,
-          fileType: newDoc.fileType,
-          fileSize: newDoc.fileSize || newDoc.size,
-          fileUrl: newDoc.fileUrl,
-          content: docData.content || '',
-          summary: newDoc.aiSummary,
-        }),
-      }).catch((e) => console.warn('Document POST notice:', e));
-    } catch {}
+    fetch('/api/documents', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workspaceId: effectiveWsId,
+        title: newDoc.name,
+        category: newDoc.category || newDoc.type,
+        tags: newDoc.tags,
+        projectId: newDoc.project,
+        fileType: newDoc.fileType,
+        fileSize: newDoc.fileSize || newDoc.size,
+        fileUrl: newDoc.fileUrl,
+        content: docData.content || '',
+        summary: newDoc.aiSummary,
+      }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          setDocuments((prev) => prev.filter((d) => d.id !== newDoc.id));
+          showToast('Failed to save document to server');
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const serverDoc = data?.data?.document || data?.document;
+        if (serverDoc?.id && serverDoc.id !== newDoc.id) {
+          setDocuments((prev) => prev.map((d) => (d.id === newDoc.id ? { ...d, id: serverDoc.id } : d)));
+        }
+      })
+      .catch((e) => {
+        console.warn('Document POST notice:', e);
+        setDocuments((prev) => prev.filter((d) => d.id !== newDoc.id));
+        showToast('Network error saving document');
+      });
   };
 
   const updateDocument = (id: string, updates: Partial<DocumentItem>) => {
@@ -3003,7 +3268,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, ...updates }),
+        body: JSON.stringify({
+          id,
+          title: updates.name,
+          summary: updates.aiSummary,
+          ...updates,
+        }),
       }).catch(() => {});
     } catch {}
   };
@@ -3184,59 +3454,189 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  setAutomations((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)));
  };
 
- // ---- CRM & Agency Mutations ----
  const addDeal = (dealData: Omit<CrmDeal, 'id' | 'lastActivity'>) => {
- const newDeal: CrmDeal = {
- id: 'd_' + Date.now(),
- title: dealData.title,
- client: dealData.client,
- value: dealData.value,
- stage: dealData.stage,
- owner: dealData.owner,
- probability: dealData.probability,
- notes: dealData.notes,
- contactEmail: dealData.contactEmail,
- lastActivity: 'Just now',
- };
- setCrm((prev) => ({
- ...prev,
- deals: [newDeal, ...prev.deals],
- }));
- addAuditEntry('Alex Morgan', 'crm.deal.created', newDeal.title, `Added deal for ${newDeal.client} valued at ${newDeal.value}`);
- showToast(`Deal "${newDeal.title}" created `);
+  const numericValue = typeof dealData.value === 'number'
+    ? dealData.value
+    : parseFloat(String(dealData.value || '').replace(/[^0-9.-]/g, '')) || 0;
+  const newDeal: CrmDeal = {
+    id: 'd_' + Date.now(),
+    title: dealData.title,
+    client: dealData.client,
+    value: dealData.value,
+    stage: dealData.stage,
+    owner: dealData.owner,
+    probability: dealData.probability,
+    notes: dealData.notes,
+    contactEmail: dealData.contactEmail,
+    lastActivity: 'Just now',
+  };
+  setCrm((prev) => ({
+    ...prev,
+    deals: [newDeal, ...prev.deals],
+  }));
+  addAuditEntry(user.name, 'crm.deal.created', newDeal.title, `Added deal for ${newDeal.client} valued at ${newDeal.value}`);
+
+  const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+    ? activeWorkspaceId
+    : (workspaces?.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+
+  fetch('/api/crm/deals', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      workspaceId: wsId,
+      title: dealData.title,
+      company: dealData.client,
+      value: numericValue,
+      currency: 'USD',
+      stage: dealData.stage || 'lead',
+      contactEmail: dealData.contactEmail,
+      notes: dealData.notes,
+    }),
+  })
+    .then(async (res) => {
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        const serverDeal = data?.data?.deal || data?.deal;
+        if (serverDeal?.id) {
+          setCrm((prev) => ({
+            ...prev,
+            deals: prev.deals.map((d) => (d.id === newDeal.id ? { ...d, id: serverDeal.id } : d)),
+          }));
+        }
+        showToast(`Deal "${newDeal.title}" created`);
+      } else {
+        setCrm((prev) => ({
+          ...prev,
+          deals: prev.deals.filter((d) => d.id !== newDeal.id),
+        }));
+        showToast('Failed to save deal to server');
+      }
+    })
+    .catch(() => {
+      setCrm((prev) => ({
+        ...prev,
+        deals: prev.deals.filter((d) => d.id !== newDeal.id),
+      }));
+      showToast('Network error saving deal');
+    });
  };
 
  const updateDealStage = (dealId: string, stage: string) => {
- setCrm((prev) => ({
- ...prev,
- deals: prev.deals.map((d) => (d.id === dealId ? { ...d, stage, lastActivity: 'Just now' } : d)),
- }));
- showToast('Deal stage updated ');
+  setCrm((prev) => ({
+    ...prev,
+    deals: prev.deals.map((d) => (d.id === dealId ? { ...d, stage, lastActivity: 'Just now' } : d)),
+  }));
+  showToast('Deal stage updated');
+
+  const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+    ? activeWorkspaceId
+    : (workspaces?.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+
+  fetch('/api/crm/deals', {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      workspaceId: wsId,
+      id: dealId,
+      stage,
+    }),
+  }).catch(() => {});
  };
 
  const addContact = (contactData: Omit<CrmContact, 'id' | 'lastContact'>) => {
- const newContact: CrmContact = {
- id: 'c_' + Date.now(),
- name: contactData.name,
- company: contactData.company,
- email: contactData.email,
- phone: contactData.phone,
- role: contactData.role,
- status: contactData.status,
- dealId: contactData.dealId,
- notes: contactData.notes,
- lastContact: 'Just now',
- };
- setCrm((prev) => ({
- ...prev,
- contacts: [newContact, ...prev.contacts],
- }));
- showToast(`Contact "${newContact.name}" added `);
+  const newContact: CrmContact = {
+    id: 'c_' + Date.now(),
+    name: contactData.name,
+    company: contactData.company,
+    email: contactData.email,
+    phone: contactData.phone,
+    role: contactData.role,
+    status: contactData.status,
+    dealId: contactData.dealId,
+    notes: contactData.notes,
+    lastContact: 'Just now',
+  };
+  setCrm((prev) => ({
+    ...prev,
+    contacts: [newContact, ...prev.contacts],
+  }));
+
+  const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
+    ? activeWorkspaceId
+    : (workspaces?.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
+
+  fetch('/api/crm/contacts', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      workspaceId: wsId,
+      name: contactData.name,
+      company: contactData.company,
+      email: contactData.email,
+      phone: contactData.phone,
+      role: contactData.role,
+      dealId: contactData.dealId,
+      notes: contactData.notes,
+    }),
+  })
+    .then(async (res) => {
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        const serverContact = data?.data?.contact || data?.contact;
+        if (serverContact?.id) {
+          setCrm((prev) => ({
+            ...prev,
+            contacts: prev.contacts.map((c) => (c.id === newContact.id ? { ...c, id: serverContact.id } : c)),
+          }));
+        }
+        showToast(`Contact "${newContact.name}" added`);
+      } else {
+        setCrm((prev) => ({
+          ...prev,
+          contacts: prev.contacts.filter((c) => c.id !== newContact.id),
+        }));
+        showToast('Failed to save contact to server');
+      }
+    })
+    .catch(() => {
+      setCrm((prev) => ({
+        ...prev,
+        contacts: prev.contacts.filter((c) => c.id !== newContact.id),
+      }));
+      showToast('Network error saving contact');
+    });
  };
 
  const submitAgencyRequest = (req: { company: string; email: string; solutionType: string; requirements: string }) => {
- addAuditEntry('Alex Morgan', 'agency.request.submitted', req.company, `Requested ${req.solutionType}`);
+ addAuditEntry(user.name, 'agency.request.submitted', req.company, `Requested ${req.solutionType}`);
+ const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
+ fetch('/api/agency/request-build', {
+ method: 'POST',
+ credentials: 'include',
+ headers: {
+ 'Content-Type': 'application/json',
+ ...(token ? { Authorization: `Bearer ${token}` } : {}),
+ },
+ body: JSON.stringify({
+ workspaceId: activeWorkspaceId,
+ companyName: req.company,
+ contactEmail: req.email,
+ requestedService: req.solutionType,
+ requirements: req.requirements,
+ }),
+ })
+ .then((res) => {
+ if (res.ok) {
  showToast(`Request submitted for ${req.company}. Our agency lead will contact you within 24 hours `);
+ } else {
+ showToast(`Failed to submit request for ${req.company}`);
+ }
+ })
+ .catch(() => showToast(`Network error submitting agency request`));
  };
 
  return (

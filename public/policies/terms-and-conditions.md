@@ -4,7 +4,7 @@
 
 ## 1. INTRODUCTION AND ACCEPTANCE OF TERMS
 
-Welcome to CUSIS ("we," "our," or "us"). These Terms and Conditions ("Terms") govern your access to and use of the CUSIS platform, including our website at cusis.in, dashboard application, mobile applications, and all related services (collectively, the "Service").
+Welcome to Cursis ("we," "our," or "us"). These Terms and Conditions ("Terms") govern your access to and use of the Cursis platform, including our website at cursis.in, dashboard application, mobile applications, and all related services (collectively, the "Service").
 
 By accessing or using our Service, you agree to be bound by these Terms. If you do not agree to these Terms, you may not access or use the Service.
 
@@ -157,7 +157,7 @@ You represent and warrant that:
 
 ### 5.3 Our Intellectual Property
 
-The Service and its original content, features, and functionality are owned by CUSIS and protected by:
+The Service and its original content, features, and functionality are owned by Cursis and protected by:
 - Copyright, trademark, and other intellectual property laws
 - International treaties and conventions
 
@@ -373,7 +373,7 @@ You are solely responsible for:
 
 ## 13. INDEMNIFICATION
 
-You agree to indemnify, defend, and hold harmless CUSIS, its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
+You agree to indemnify, defend, and hold harmless Cursis, its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
 
 - Your use of the Service
 - Your violation of these Terms
@@ -387,21 +387,21 @@ You agree to indemnify, defend, and hold harmless CUSIS, its officers, directors
 ### 14.1 Informal Resolution
 
 Before filing a formal dispute, you agree to:
-- Contact us at legal@cusis.in to describe the issue
+- Contact us at legal@cursis.in to describe the issue
 - Attempt to resolve the matter informally for 30 days
 - Provide information necessary to resolve the dispute
 
 ### 14.2 Governing Law
 
-These Terms are governed by the laws of [Your Jurisdiction], without regard to conflict of law principles.
+These Terms are governed by the laws of Delhi, India, without regard to conflict of law principles.
 
 ### 14.3 Arbitration (Optional - if applicable)
 
-[Include arbitration clause if desired, or proceed to court jurisdiction]
+Disputes shall be submitted to the competent courts of Delhi, India.
 
 ### 14.4 Jurisdiction and Venue
 
-Any legal action must be brought in the courts located in [Your Jurisdiction]. You consent to the exclusive jurisdiction of these courts.
+Any legal action must be brought in the courts located in Delhi, India. You consent to the exclusive jurisdiction of these courts.
 
 ### 14.5 Class Action Waiver
 
@@ -432,7 +432,7 @@ If you operate in a regulated industry (healthcare, finance, etc.), you are resp
 
 ### 16.1 Entire Agreement
 
-These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement between you and CUSIS regarding the Service.
+These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement between you and Cursis regarding the Service.
 
 ### 16.2 Amendments
 
@@ -475,7 +475,7 @@ Provisions that should survive termination include:
 ### 16.8 Notices
 
 All notices must be sent to:
-- Email: legal@cusis.in
+- Email: legal@cursis.in
 - Your registered email address
 
 ### 16.9 Relationship
@@ -490,10 +490,10 @@ These Terms do not confer rights on any third parties.
 
 For questions about these Terms, contact us at:
 
-**CUSIS**
-Email: legal@cusis.in
-Support: support@cusis.in
-Website: https://cusis.in
+**Cursis**
+Email: legal@cursis.in
+Support: support@cursis.in
+Website: https://cursis.in
 
 ## 18. ACKNOWLEDGMENT
 

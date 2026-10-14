@@ -141,6 +141,9 @@ export default function WorkspaceSetupModal() {
     >
       <div
         className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ws-setup-title"
         style={{
           maxWidth: '680px',
           width: '100%',
@@ -208,6 +211,7 @@ export default function WorkspaceSetupModal() {
               type="button"
               onClick={handleSkip}
               className="btn btn-ghost btn-sm"
+              aria-label="Skip workspace setup"
               style={{
                 borderRadius: '50%',
                 width: '32px',
@@ -228,6 +232,7 @@ export default function WorkspaceSetupModal() {
           </div>
 
           <h2
+            id="ws-setup-title"
             style={{
               fontSize: '22px',
               fontWeight: 800,
@@ -264,10 +269,11 @@ export default function WorkspaceSetupModal() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Workspace Name */}
               <div className="input-group" style={{ margin: 0 }}>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
+                <label htmlFor="ws-setup-name" className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
                   Workspace Name <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
+                  id="ws-setup-name"
                   type="text"
                   className="input"
                   value={wsName}
@@ -289,10 +295,11 @@ export default function WorkspaceSetupModal() {
 
               {/* Tagline / Mission */}
               <div className="input-group" style={{ margin: 0 }}>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
+                <label htmlFor="ws-setup-tagline" className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
                   Mission / Tagline
                 </label>
                 <input
+                  id="ws-setup-tagline"
                   type="text"
                   className="input"
                   value={tagline}
@@ -311,10 +318,11 @@ export default function WorkspaceSetupModal() {
 
               {/* Industry */}
               <div className="input-group" style={{ margin: 0 }}>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
+                <label htmlFor="ws-setup-industry" className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
                   Industry
                 </label>
                 <select
+                  id="ws-setup-industry"
                   className="input select"
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
@@ -333,7 +341,7 @@ export default function WorkspaceSetupModal() {
                 </select>
 
                 {/* Popular industry quick-select pills */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }} role="group" aria-label="Suggested industries">
                   {['Software', 'AI & Data', 'Creative Agency', 'Fintech', 'Healthcare', 'E-Commerce'].map((tag) => {
                     const fullInd = INDUSTRIES.find((i) => i.toLowerCase().includes(tag.toLowerCase())) || tag;
                     const isSelected = industry === fullInd;
@@ -375,16 +383,19 @@ export default function WorkspaceSetupModal() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Brand Accent Color */}
               <div>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', marginBottom: '8px' }}>
+                <label className="input-label" id="accent-color-label" style={{ fontWeight: 700, fontSize: '12px', marginBottom: '8px', display: 'block' }}>
                   Primary Brand Accent Color
                 </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <div role="radiogroup" aria-labelledby="accent-color-label" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                   {ACCENT_COLORS.map(({ color, label }) => {
                     const isSelected = accentColor.toLowerCase() === color.toLowerCase();
                     return (
                       <button
                         key={color}
                         type="button"
+                        role="radio"
+                        aria-checked={isSelected}
+                        aria-label={label}
                         onClick={() => setAccentColor(color)}
                         title={label}
                         style={{
@@ -419,15 +430,18 @@ export default function WorkspaceSetupModal() {
 
               {/* Interface Density */}
               <div>
-                <label className="input-label" style={{ fontWeight: 700, fontSize: '12px', marginBottom: '8px' }}>
+                <label className="input-label" id="density-label" style={{ fontWeight: 700, fontSize: '12px', marginBottom: '8px', display: 'block' }}>
                   Interface Density
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                <div role="radiogroup" aria-labelledby="density-label" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                   {DENSITY_OPTIONS.map((opt) => {
                     const isSelected = density === opt.id;
                     return (
-                      <div
+                      <button
                         key={opt.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={isSelected}
                         onClick={() => setDensity(opt.id)}
                         style={{
                           border: isSelected ? `2px solid ${accentColor}` : '1px solid var(--border-color, #e2e8f0)',
@@ -439,9 +453,11 @@ export default function WorkspaceSetupModal() {
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '2px',
+                          textAlign: 'left',
+                          font: 'inherit',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                           <span style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? accentColor : 'var(--text-primary, #0f172a)' }}>
                             {opt.label}
                           </span>
@@ -454,7 +470,7 @@ export default function WorkspaceSetupModal() {
                         <span style={{ fontSize: '10px', color: 'var(--text-tertiary, #94a3b8)', lineHeight: 1.3 }}>
                           {opt.desc}
                         </span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>

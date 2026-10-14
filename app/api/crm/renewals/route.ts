@@ -1,20 +1,22 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { scanClientRenewals } from '@/lib/db/crm';
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await getAuthOrError(request);
+    if (auth.errorResponse) return auth.errorResponse;
+    const authUser = auth.user;
 
     const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const rawWorkspaceId = body.workspaceId || '';
 
-    const renewalInsights = await scanClientRenewals(workspaceId);
-    return NextResponse.json({ success: true, count: renewalInsights.length, renewals: renewalInsights });
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+    const renewalInsights = await scanClientRenewals(wsAuth.workspaceId);
+    return apiSuccess({ count: renewalInsights.length, renewals: renewalInsights });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

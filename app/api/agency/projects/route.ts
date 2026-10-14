@@ -1,20 +1,18 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getCustomBuildRequests } from '@/lib/db/agency';
 
 export async function GET(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
+    const rawWorkspaceId = searchParams.get('workspaceId') || '';
 
-    const requests = await getCustomBuildRequests(workspaceId);
-    return NextResponse.json({ requests });
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+    const requests = await getCustomBuildRequests(wsAuth.workspaceId);
+    return apiSuccess({ requests });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

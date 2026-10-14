@@ -1,38 +1,36 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getAuditLogs, logAuditEvent } from '@/lib/db/audit';
 
 export async function GET(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
+    const rawWorkspaceId = searchParams.get('workspaceId') || '';
 
-    const auditLogs = await getAuditLogs(workspaceId);
-    return NextResponse.json({ auditLogs });
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId, ['owner', 'admin']);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+    const auditLogs = await getAuditLogs(wsAuth.workspaceId);
+    return apiSuccess({ auditLogs });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json().catch(() => ({}));
+    const rawWorkspaceId = body.workspaceId || '';
+
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const authUser = wsAuth.user;
+
     const action = String(body.action || 'unknown');
     const target = String(body.target || '');
     const details = body.details || '';
-    const workspaceId = body.workspaceId || authUser.workspaceId;
 
-    const entry = await logAuditEvent(workspaceId, {
+    const entry = await logAuditEvent(wsAuth.workspaceId, {
       actorType: 'user',
       actorId: authUser.uid || authUser.email,
       actorName: authUser.displayName || authUser.email,
@@ -43,8 +41,7 @@ export async function POST(request: Request) {
       isRollbackable: false,
     });
 
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
       auditLog: {
         id: entry.id,
         actor: entry.actorName,
@@ -53,8 +50,8 @@ export async function POST(request: Request) {
         details: typeof entry.details === 'object' ? (entry.details.summary || JSON.stringify(entry.details)) : String(entry.details),
         timestamp: entry.createdAt,
       },
-    });
+    }, 201);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

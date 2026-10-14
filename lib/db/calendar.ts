@@ -10,9 +10,16 @@ export async function getCalendarEvents(
     const col = await getCollection<CalendarEvent>('calendar_events');
     if (col) {
       const docs = await col.find({ workspaceId }).toArray();
-      if (docs && docs.length > 0) {
-        docs.forEach((e) => inMemoryStore.calendarEvents.set(e.id, e));
-      }
+      // Authoritative DB read: update inMemoryStore cache
+      docs.forEach((e) => inMemoryStore.calendarEvents.set(e.id, e));
+      return docs
+        .filter((evt) => {
+          if (filter?.startDate && new Date(evt.endTime).getTime() < new Date(filter.startDate).getTime()) return false;
+          if (filter?.endDate && new Date(evt.startTime).getTime() > new Date(filter.endDate).getTime()) return false;
+          if (filter?.attendeeId && !evt.attendeeIds.includes(filter.attendeeId)) return false;
+          return true;
+        })
+        .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
     }
   } catch (e) {
     console.warn('MongoDB getCalendarEvents notice:', e);
@@ -99,7 +106,7 @@ export async function deleteCalendarEvent(id: string): Promise<boolean> {
 }
 
 // Ordis Smart Slot Finder Algorithm
-// Scans calendar and returns the next N open non-conflicting time slots for attendees
+// Scans calendar and meetings, returning verified open non-conflicting time slots for attendees
 export async function findSmartOpenSlots(
   workspaceId: string,
   options?: {
@@ -107,17 +114,24 @@ export async function findSmartOpenSlots(
     durationMinutes?: number;
     daysAhead?: number;
     slotsCount?: number;
+    timezone?: string;
   }
 ): Promise<Array<{ startTime: string; endTime: string; formattedLabel: string }>> {
   const duration = options?.durationMinutes || 30;
   const daysAhead = options?.daysAhead || 3;
   const targetCount = options?.slotsCount || 3;
+  const timezone = options?.timezone || 'UTC';
 
   const existingEvents = await getCalendarEvents(workspaceId);
+  let existingMeetings: any[] = [];
+  try {
+    const { getMeetings } = await import('./meetings');
+    existingMeetings = await getMeetings(workspaceId);
+  } catch {}
+
   const slots: Array<{ startTime: string; endTime: string; formattedLabel: string }> = [];
 
   const now = new Date();
-  // Start from next morning 10:00 AM or today afternoon
   const checkDate = new Date(now);
   if (checkDate.getHours() >= 17) {
     checkDate.setDate(checkDate.getDate() + 1);
@@ -144,16 +158,47 @@ export async function findSmartOpenSlots(
       slotStart.setHours(hour, 0, 0, 0);
       const slotEnd = new Date(slotStart.getTime() + duration * 60000);
 
-      // Check conflict with existing events
-      const hasConflict = existingEvents.some((e) => {
+      // Check conflict with calendar events
+      const hasCalendarConflict = existingEvents.some((e) => {
         const eStart = new Date(e.startTime).getTime();
         const eEnd = new Date(e.endTime).getTime();
-        return slotStart.getTime() < eEnd && slotEnd.getTime() > eStart;
+        const timeOverlap = slotStart.getTime() < eEnd && slotEnd.getTime() > eStart;
+        if (!timeOverlap) return false;
+        if (options?.attendeeIds && options.attendeeIds.length > 0) {
+          return e.attendeeIds?.some((att) => options.attendeeIds!.includes(att));
+        }
+        return true;
       });
 
-      if (!hasConflict && slotStart.getTime() > Date.now()) {
-        const dayName = slotStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        const timeLabel = slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      // Check conflict with meetings
+      const hasMeetingConflict = existingMeetings.some((m) => {
+        if (!m.date || !m.time) return false;
+        try {
+          const mStart = new Date(`${m.date}T${m.time}:00`).getTime();
+          const mDur = m.duration || m.durationMinutes || 30;
+          const mEnd = mStart + mDur * 60000;
+          const timeOverlap = slotStart.getTime() < mEnd && slotEnd.getTime() > mStart;
+          if (!timeOverlap) return false;
+          if (options?.attendeeIds && options.attendeeIds.length > 0) {
+            const participants = m.participants || m.attendees || [];
+            return participants.some((att: string) => options.attendeeIds!.includes(att));
+          }
+          return true;
+        } catch {
+          return false;
+        }
+      });
+
+      if (!hasCalendarConflict && !hasMeetingConflict && slotStart.getTime() > Date.now()) {
+        let dayName = '';
+        let timeLabel = '';
+        try {
+          dayName = slotStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: timezone });
+          timeLabel = slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: timezone });
+        } catch {
+          dayName = slotStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          timeLabel = slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
         slots.push({
           startTime: slotStart.toISOString(),
           endTime: slotEnd.toISOString(),
@@ -163,21 +208,6 @@ export async function findSmartOpenSlots(
     }
   }
 
-  // If fallback needed
-  if (slots.length === 0) {
-    const tomorrow1 = new Date(Date.now() + 86400000);
-    tomorrow1.setHours(15, 0, 0, 0);
-    const tomorrow2 = new Date(Date.now() + 86400000);
-    tomorrow2.setHours(17, 30, 0, 0);
-    const dayAfter = new Date(Date.now() + 2 * 86400000);
-    dayAfter.setHours(11, 0, 0, 0);
-
-    return [
-      { startTime: tomorrow1.toISOString(), endTime: new Date(tomorrow1.getTime() + 1800000).toISOString(), formattedLabel: 'Tomorrow at 3:00 PM IST' },
-      { startTime: tomorrow2.toISOString(), endTime: new Date(tomorrow2.getTime() + 1800000).toISOString(), formattedLabel: 'Tomorrow at 5:30 PM IST' },
-      { startTime: dayAfter.toISOString(), endTime: new Date(dayAfter.getTime() + 1800000).toISOString(), formattedLabel: 'Thursday at 11:00 AM IST' },
-    ];
-  }
-
   return slots;
 }
+

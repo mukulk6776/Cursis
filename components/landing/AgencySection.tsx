@@ -6,6 +6,8 @@ export default function AgencySection() {
   const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<string>('AI Agents');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState({ name: '', email: '', details: '' });
 
   const services = [
@@ -81,14 +83,38 @@ export default function AgencySection() {
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setInquiryModalOpen(false);
-      setSubmitted(false);
-      setFormData({ name: '', email: '', details: '' });
-    }, 2500);
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const res = await fetch('/api/agency/request-build', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          service: selectedService,
+          requirements: formData.details,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setInquiryModalOpen(false);
+          setSubmitted(false);
+          setFormData({ name: '', email: '', details: '' });
+        }, 3000);
+      } else {
+        setSubmitError(data.error || 'Failed to submit inquiry. Please try again.');
+      }
+    } catch {
+      setSubmitError('Network error. Please check your connection and try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -221,12 +247,19 @@ export default function AgencySection() {
                   />
                 </div>
 
+                {submitError && (
+                  <div style={{ color: '#ef4444', fontSize: '13px', marginTop: '6px' }}>
+                    {submitError}
+                  </div>
+                )}
+
                 <button
                   type="submit"
+                  disabled={submitting}
                   className="btn btn-primary btn-block"
-                  style={{ marginTop: '8px' }}
+                  style={{ marginTop: '8px', opacity: submitting ? 0.7 : 1 }}
                 >
-                  Submit Project Brief →
+                  {submitting ? 'Submitting...' : 'Submit Project Brief →'}
                 </button>
               </form>
             )}

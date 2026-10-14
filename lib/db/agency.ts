@@ -54,5 +54,16 @@ export async function createCustomBuildRequest(
   };
 
   inMemoryStore.agencyRequests.set(id, request);
+
+  try {
+    const { getCollection } = await import('@/lib/mongodb');
+    const col = await getCollection<CustomBuildRequest>('agency_requests');
+    if (col) {
+      await col.insertOne(request);
+    }
+  } catch (e) {
+    console.warn('MongoDB agency request insert notice:', e);
+  }
+
   return request;
 }

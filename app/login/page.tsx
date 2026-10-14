@@ -32,7 +32,9 @@ export default function LoginPage() {
  });
  }
  })
- .catch((err) => console.warn('Google redirect notice:', err));
+ .catch((err) => {
+ if (isMounted) setErrorMsg(err?.message || 'Google sign-in could not be restored. Please try again.');
+ });
 
  return () => {
  isMounted = false;
@@ -43,8 +45,16 @@ export default function LoginPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get('redirect');
-      if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-        return redirect;
+      if (redirect) {
+        if (redirect.includes('\\') || /[\x00-\x1F\x7F]/.test(redirect) || redirect.startsWith('//')) {
+          return '/dashboard?setup=true';
+        }
+        try {
+          const parsed = new URL(redirect, window.location.origin);
+          if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/')) {
+            return parsed.pathname + parsed.search + parsed.hash;
+          }
+        } catch {}
       }
     }
     return '/dashboard?setup=true';
@@ -75,6 +85,7 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        signal: AbortSignal.timeout(30_000),
         body: JSON.stringify({
           idToken: authResult.idToken,
           email: authResult.email,
@@ -104,7 +115,7 @@ export default function LoginPage() {
       window.location.href = getRedirectDestination();
     } catch (err: any) {
       console.error('Session exchange error:', err);
-      setErrorMsg(err?.message || 'Authentication failed. Please verify your credentials and try again.');
+      setErrorMsg(err?.name === 'TimeoutError' ? 'Creating your session took too long. Please try signing in again.' : (err?.message || 'Authentication failed. Please verify your credentials and try again.'));
     }
   };
 
@@ -148,9 +159,9 @@ export default function LoginPage() {
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
         setErrorMsg('Google sign-in popup was closed before completing.');
       } else if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain') || msg.includes('not configured')) {
-        setErrorMsg('Google OAuth domain restricted in this environment. Use "Instant Demo Access" or email login below.');
+        setErrorMsg('Google sign-in is not configured for this domain. Please use email login below.');
       } else {
-        setErrorMsg(err?.message || 'Failed to authenticate with Google. Please try email login or Instant Demo.');
+        setErrorMsg(err?.message || 'Failed to authenticate with Google. Please try again or use email login.');
       }
     } finally {
       setGoogleLoading(false);
@@ -254,6 +265,8 @@ export default function LoginPage() {
 
         {successMsg && (
           <div
+            role="status"
+            aria-live="polite"
             style={{
               background: '#f0fdf4',
               color: '#166534',
@@ -274,6 +287,8 @@ export default function LoginPage() {
 
         {errorMsg && (
           <div
+            role="alert"
+            aria-live="assertive"
             style={{
               background: '#fef2f2',
               color: '#991b1b',
@@ -293,9 +308,10 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Google Enterprise Single Sign-On */}
+        {/* Google Single Sign-On */}
         <button
           type="button"
+          aria-label="Continue with Google"
           style={{
             width: '100%',
             height: '46px',
@@ -325,7 +341,7 @@ export default function LoginPage() {
           onClick={handleGoogleSignIn}
           disabled={googleLoading || loading}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -343,7 +359,7 @@ export default function LoginPage() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          {googleLoading ? 'Authenticating with Google...' : 'Continue with Google Workspace'}
+          {googleLoading ? 'Authenticating with Google...' : 'Continue with Google'}
         </button>
 
         <div style={{ textAlign: 'center', margin: '14px 0 16px', position: 'relative' }}>
@@ -366,13 +382,14 @@ export default function LoginPage() {
 
         <form onSubmit={handleEmailLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
-              Work Email
+            <label htmlFor="login-email" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
+              Email Address
             </label>
             <input
+              id="login-email"
               type="email"
               value={email}
-              placeholder="name@company.com"
+              placeholder="name@gmail.com or name@outlook.com"
               onChange={(e) => setEmail(e.target.value)}
               required
               style={{
@@ -389,19 +406,30 @@ export default function LoginPage() {
                 transition: 'border-color 0.15s ease',
               }}
             />
+            <span style={{ display: 'block', fontSize: '11px', color: '#968F87', marginTop: '4px' }}>
+              Supported providers: Gmail and Microsoft accounts
+            </span>
           </div>
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#1A1612' }}>
+              <label htmlFor="login-password" style={{ fontSize: '12px', fontWeight: 600, color: '#1A1612' }}>
                 Password
               </label>
-              <Link href="/" style={{ fontSize: '11px', color: '#FF5500', textDecoration: 'none', fontWeight: 600 }}>
-                Forgot?
-              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMsg('');
+                  setSuccessMsg('To reset your password, contact your workspace owner or email security@cursis.in.');
+                }}
+                style={{ background: 'none', border: 'none', padding: 0, fontSize: '11px', color: '#FF5500', textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Forgot Password?
+              </button>
             </div>
             <div style={{ position: 'relative' }}>
               <input
+                id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 placeholder="••••••••••••"
@@ -423,6 +451,7 @@ export default function LoginPage() {
               />
               <button
                 type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: 'absolute',

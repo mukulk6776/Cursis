@@ -89,26 +89,39 @@ export class OrdisEngine {
   /**
    * Resolves an approval item
    */
-  static async resolveApprovalItem(id: string, action: string, userId: string) {
+  static async resolveApprovalItem(id: string, action: string, userId: string, workspaceId?: string) {
+    const existing = inMemoryStore.approvalQueue.get(id);
+    if (workspaceId && existing && existing.workspaceId !== workspaceId) {
+      return null;
+    }
+
     const resolvedItem = {
+      ...(existing || {}),
       id,
       action,
       resolvedBy: userId,
-      status: action === 'approve' ? 'approved' : 'rejected',
+      status: (action === 'approve' ? 'approved' : 'rejected') as 'approved' | 'rejected',
       resolvedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     try {
       const db = await getDb();
       if (db) {
-        await db
+        const query: any = { id };
+        if (workspaceId) query.workspaceId = workspaceId;
+        const res = await db
           .collection('ordis_approvals')
-          .updateOne({ id }, { $set: resolvedItem }, { upsert: true });
+          .updateOne(query, { $set: resolvedItem });
+        if (res.matchedCount === 0 && !existing) {
+          return null;
+        }
       }
     } catch (e) {
       console.warn('MongoDB approval update error:', e);
     }
 
+    inMemoryStore.approvalQueue.set(id, resolvedItem as any);
     return resolvedItem;
   }
 

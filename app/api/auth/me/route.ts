@@ -73,6 +73,8 @@ export async function PATCH(request: Request) {
 
     // Refresh HTTP-only session cookie so subsequent reloads retain photoURL
     try {
+      const host = request.headers.get('host') || '';
+      const isCursisDomain = host.includes('cursis.in');
       const cookieStore = await cookies();
       cookieStore.set('cursis_session', updatedSessionToken, {
         maxAge: 60 * 60 * 24 * 7,
@@ -80,6 +82,7 @@ export async function PATCH(request: Request) {
         secure: process.env.NODE_ENV === 'production',
         path: '/',
         sameSite: 'lax',
+        ...(isCursisDomain ? { domain: '.cursis.in' } : {}),
       });
     } catch (cookieErr) {
       console.warn('Session cookie update notice:', cookieErr);

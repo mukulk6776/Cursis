@@ -24,8 +24,9 @@ export default function EventModal() {
 
     setIsSubmitting(true);
     try {
-      const startTime = `${date}T${time}:00.000Z`;
-      const endTimestamp = new Date(new Date(startTime).getTime() + durationMinutes * 60000);
+      const localStart = new Date(`${date}T${time}:00`);
+      const startTime = !isNaN(localStart.getTime()) ? localStart.toISOString() : new Date().toISOString();
+      const endTimestamp = new Date((!isNaN(localStart.getTime()) ? localStart.getTime() : Date.now()) + durationMinutes * 60000);
       const endTime = endTimestamp.toISOString();
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
@@ -86,6 +87,9 @@ export default function EventModal() {
     >
       <div
         className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="event-modal-title"
         style={{
           maxWidth: '520px',
           width: '100%',
@@ -99,7 +103,7 @@ export default function EventModal() {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: '#111827' }}>
+            <h3 id="event-modal-title" style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: '#111827' }}>
               Create Calendar Event
             </h3>
             <p style={{ fontSize: '12px', color: '#6B7280', margin: '3px 0 0 0' }}>
@@ -110,6 +114,7 @@ export default function EventModal() {
             type="button"
             className="btn btn-ghost btn-sm"
             onClick={closeModal}
+            aria-label="Close modal"
             style={{ fontSize: '16px', padding: '2px 8px', color: '#6B7280' }}
           >
             ✕
@@ -120,10 +125,11 @@ export default function EventModal() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Title */}
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+              <label htmlFor="event-modal-title-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
                 Event Title *
               </label>
               <input
+                id="event-modal-title-input"
                 className="input"
                 type="text"
                 placeholder="e.g. Q4 Strategy Review / All-Hands / Product Launch"
@@ -145,10 +151,11 @@ export default function EventModal() {
             {/* Type & Project */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-type-select" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
                   Category
                 </label>
                 <select
+                  id="event-modal-type-select"
                   className="input select"
                   value={eventType}
                   onChange={(e) => setEventType(e.target.value as any)}
@@ -170,10 +177,11 @@ export default function EventModal() {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-project-select" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
                   Linked Project (Optional)
                 </label>
                 <select
+                  id="event-modal-project-select"
                   className="input select"
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
@@ -199,10 +207,11 @@ export default function EventModal() {
             {/* Date & Time */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '10px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-date-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
                   Date *
                 </label>
                 <input
+                  id="event-modal-date-input"
                   type="date"
                   className="input"
                   value={date}
@@ -220,10 +229,11 @@ export default function EventModal() {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-time-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
                   Start Time
                 </label>
                 <input
+                  id="event-modal-time-input"
                   type="time"
                   className="input"
                   value={time}
@@ -240,10 +250,11 @@ export default function EventModal() {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-duration-select" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
                   Duration
                 </label>
                 <select
+                  id="event-modal-duration-select"
                   className="input select"
                   value={durationMinutes}
                   onChange={(e) => setDurationMinutes(Number(e.target.value))}
@@ -270,10 +281,11 @@ export default function EventModal() {
 
             {/* Location / Venue */}
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+              <label htmlFor="event-modal-location-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
                 Location / Venue
               </label>
               <input
+                id="event-modal-location-input"
                 className="input"
                 type="text"
                 placeholder="e.g. Main Conference Room, Online Link, or Headquarters"
@@ -292,10 +304,11 @@ export default function EventModal() {
 
             {/* Description */}
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+              <label htmlFor="event-modal-description-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
                 Description &amp; Agenda
               </label>
               <textarea
+                id="event-modal-description-input"
                 className="input"
                 rows={3}
                 placeholder="Add notes, briefing agenda, or preparation materials..."

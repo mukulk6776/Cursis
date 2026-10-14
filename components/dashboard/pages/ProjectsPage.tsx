@@ -12,6 +12,8 @@ export default function ProjectsPage() {
     meetings,
     openModal,
     showToast,
+    addProject,
+    addTask,
   } = useDashboard();
 
   const [currentView, setCurrentView] = useState<'grid' | 'list' | 'kanban'>('grid');
@@ -22,6 +24,40 @@ export default function ProjectsPage() {
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
   const projectTasks = selectedProjectId ? getTasksForProject(selectedProjectId) : [];
+
+  const handleLoadTemplate = (t: { name: string; desc: string; tasks: number }) => {
+    const projId = 'proj_' + Date.now();
+    addProject({
+      id: projId,
+      name: t.name,
+      desc: t.desc,
+      color: '#0f4cff',
+      icon: 'folder',
+      status: 'In Progress',
+      progress: 0,
+      deadline: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      team: employees.slice(0, 2).map((e) => e.id),
+      tasks: t.tasks,
+      completed: 0,
+    });
+    const templateTaskNames = [
+      `Kickoff & Scope Alignment: ${t.name}`,
+      `Technical Architecture & Review`,
+      `Design System & Deliverables Specification`,
+      `Sprint Execution & Verification`,
+    ];
+    templateTaskNames.forEach((taskTitle) => {
+      addTask({
+        name: taskTitle,
+        project: projId,
+        priority: 'high',
+        status: 'todo',
+        assignee: employees[0]?.id || '',
+        deadline: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+      });
+    });
+    showToast(`Project "${t.name}" created with starter tasks`);
+  };
 
   return (
     <div className="page active" id="page-projects" style={{ maxWidth: '1080px', margin: '0 auto' }}>
@@ -432,7 +468,7 @@ export default function ProjectsPage() {
               key={idx}
               className="card"
               style={{ padding: '10px 14px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--c-white)' }}
-              onClick={() => showToast(`Template "${t.name}" loaded into project draft`)}
+              onClick={() => handleLoadTemplate(t)}
             >
               <div style={{ fontWeight: 700, fontSize: '12px', color: '#0A0A0A' }}>+ {t.name}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{t.desc}</div>

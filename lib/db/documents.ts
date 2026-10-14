@@ -14,14 +14,13 @@ export async function getDocuments(
       if (filter?.category) query.category = filter.category;
       if (filter?.isCompanyBrain !== undefined) query.isCompanyBrainResource = filter.isCompanyBrain;
       const docs = await col.find(query).sort({ updatedAt: -1 }).toArray();
-      if (docs.length > 0) {
-        docs.forEach((d) => inMemoryStore.documents.set(d.id, d));
-        return docs;
-      }
+      docs.forEach((d) => inMemoryStore.documents.set(d.id, d));
+      return docs;
     }
   } catch (e) {
     console.warn('MongoDB getDocuments notice:', e);
   }
+
 
   return Array.from(inMemoryStore.documents.values())
     .filter((doc) => {
@@ -89,13 +88,23 @@ export async function createDocument(workspaceId: string, data: Partial<Document
 }
 
 export async function updateDocument(id: string, updates: Partial<DocumentItem>): Promise<DocumentItem | null> {
-  const doc = inMemoryStore.documents.get(id);
-  if (!doc) return null;
+  let doc: DocumentItem | null | undefined = inMemoryStore.documents.get(id);
+  if (!doc) {
+    doc = await getDocumentById(id);
+    if (!doc) return null;
+  }
+
+  // Prevent immutable fields from being overwritten
+  const safeUpdates = { ...updates };
+  delete (safeUpdates as any).id;
+  delete (safeUpdates as any).workspaceId;
+  delete (safeUpdates as any).authorId;
+  delete (safeUpdates as any).createdAt;
 
   const updated: DocumentItem = {
     ...doc,
-    ...updates,
-    version: (doc.version || 1) + 1,
+    ...safeUpdates,
+    version: updates.version !== undefined ? updates.version : (doc.version || 1) + 1,
     updatedAt: new Date().toISOString(),
   };
 

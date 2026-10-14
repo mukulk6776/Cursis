@@ -1,44 +1,39 @@
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/session';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 import { inMemoryStore } from '@/lib/db/store';
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json().catch(() => ({}));
-    const workspaceId = body.workspaceId || authUser.workspaceId;
+    const rawWorkspaceId = body.workspaceId || '';
 
-    const newCards = await OrdisEngine.runAmbientScan(workspaceId);
-    const allCards = Array.from(inMemoryStore.ordisCards.values()).filter((c) => c.workspaceId === workspaceId);
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
-    return NextResponse.json({
-      success: true,
+    const newCards = await OrdisEngine.runAmbientScan(wsAuth.workspaceId);
+    const allCards = Array.from(inMemoryStore.ordisCards.values()).filter((c) => c.workspaceId === wsAuth.workspaceId);
+
+    return apiSuccess({
       newlyDetectedCount: newCards.length,
       activeCards: allCards,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }
 
 export async function GET(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser(request);
-    if (!authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId') || authUser.workspaceId;
+    const rawWorkspaceId = searchParams.get('workspaceId') || '';
 
-    const cards = Array.from(inMemoryStore.ordisCards.values()).filter((c) => c.workspaceId === workspaceId);
-    return NextResponse.json({ cards });
+    const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
+    if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+    const cards = Array.from(inMemoryStore.ordisCards.values()).filter((c) => c.workspaceId === wsAuth.workspaceId);
+    return apiSuccess({ cards });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error.message || 'Internal Server Error', 500);
   }
 }

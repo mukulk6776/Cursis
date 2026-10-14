@@ -1,8 +1,11 @@
 import crypto from 'crypto';
+import { promisify } from 'util';
 import { inMemoryStore } from './store';
 import { UserProfile, UserRole } from './types';
 import { getCollection } from '@/lib/mongodb';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
+
+const pbkdf2Async = promisify(crypto.pbkdf2);
 
 /**
  * Generate a cryptographically strong salt
@@ -23,7 +26,42 @@ export function hashPassword(password: string, salt: string): string {
 }
 
 /**
- * Secure constant-time password verification returning validation and rehash migration status.
+ * Async non-blocking password verification returning validation and rehash migration status.
+ */
+export async function verifyPasswordResultAsync(
+  password: string,
+  salt: string,
+  expectedHash: string
+): Promise<{ valid: boolean; needsRehash: boolean }> {
+  try {
+    const expectedBuf = Buffer.from(expectedHash, 'hex');
+
+    // 1. Current iteration count (210,000 iterations for SHA-512)
+    const key = await pbkdf2Async(password, salt, PBKDF2_ITERATIONS, 64, 'sha512');
+    if (key.length === expectedBuf.length && crypto.timingSafeEqual(key, expectedBuf)) {
+      return { valid: true, needsRehash: false };
+    }
+
+    // 2. Previously upgraded 600,000 iteration hashes
+    const key600k = await pbkdf2Async(password, salt, 600_000, 64, 'sha512');
+    if (key600k.length === expectedBuf.length && crypto.timingSafeEqual(key600k, expectedBuf)) {
+      return { valid: true, needsRehash: false };
+    }
+
+    // 3. Fall back to legacy 10,000 iteration count for existing accounts (triggers transparent upgrade)
+    const keyLegacy = await pbkdf2Async(password, salt, PBKDF2_LEGACY_ITERATIONS, 64, 'sha512');
+    if (keyLegacy.length === expectedBuf.length && crypto.timingSafeEqual(keyLegacy, expectedBuf)) {
+      return { valid: true, needsRehash: true };
+    }
+
+    return { valid: false, needsRehash: false };
+  } catch {
+    return { valid: false, needsRehash: false };
+  }
+}
+
+/**
+ * Synchronous constant-time password verification (kept for backward compatibility with synchronous callers).
  */
 export function verifyPasswordResult(password: string, salt: string, expectedHash: string): { valid: boolean; needsRehash: boolean } {
   try {
@@ -182,9 +220,12 @@ export async function registerUser(params: {
 }): Promise<UserProfile> {
   const cleanEmail = params.email.trim().toLowerCase();
   
-  let existing = await findUserByEmail(cleanEmail);
-  if (existing && existing.passwordHash) {
-    throw new Error('An account with this email already exists.');
+  const existing = await findUserByEmail(cleanEmail);
+  if (existing && params.password) {
+    if (existing.passwordHash) {
+      throw new Error('An account with this email already exists.');
+    }
+    throw new Error('An account with this email is already registered using Google Sign-In. Please sign in with Google.');
   }
 
   const cleanName = params.displayName.trim() || cleanEmail.split('@')[0];

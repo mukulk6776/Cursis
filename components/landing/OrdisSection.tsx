@@ -97,8 +97,17 @@ export default function OrdisSection() {
     scenarios.find((s) => s.id === activeScenarioId && s.mode === activeMode) ||
     filteredScenarios[0];
 
-  const handleActionClick = (id: string) => {
-    setExecutedActions((prev) => ({ ...prev, [id]: true }));
+  const handleActionClick = async (scenario: OrdisOperationalScenario) => {
+    if (scenario.id === 'sprint-summary') {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+          await navigator.clipboard.writeText(scenario.responseBody);
+        }
+      } catch (err) {
+        console.warn('Clipboard write error:', err);
+      }
+    }
+    setExecutedActions((prev) => ({ ...prev, [scenario.id]: true }));
   };
 
   return (
@@ -211,7 +220,7 @@ export default function OrdisSection() {
                     <button
                       type="button"
                       className="btn btn-brand btn-sm"
-                      onClick={() => handleActionClick(activeScenario.id)}
+                      onClick={() => handleActionClick(activeScenario)}
                     >
                       {activeScenario.actionButtonLabel}
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

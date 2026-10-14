@@ -19,8 +19,8 @@ export default function PricingSection() {
     'End-to-end workflow automation & dedicated custom APIs',
     'Custom executive dashboards & enterprise business intelligence',
     'Full-stack custom software engineering by core architects',
-    'Dedicated engineering team & private enterprise Slack/Teams bridge',
-    'Enterprise 99.99% SLA, Okta/SAML SSO & dedicated vector hosting',
+    'Dedicated engineering team & private enterprise communications bridge',
+    'Custom API integrations, security architecture review & dedicated deployment guidance',
   ];
 
   return (

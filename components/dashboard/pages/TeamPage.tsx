@@ -292,9 +292,11 @@ export default function TeamPage() {
                       <div>
                         {/* Top row: Avatar, Name & Status Badge */}
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
-                          <div
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                          <button
+                            type="button"
+                            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', textAlign: 'left' }}
                             onClick={() => openProfilePanel(emp.id)}
+                            aria-label={`View profile for ${emp.name}`}
                           >
                             <div
                               className="avatar avatar-lg"
@@ -317,7 +319,7 @@ export default function TeamPage() {
                                 {emp.email || `${emp.name.toLowerCase().replace(/\s+/g, '.')}@cursis.io`}
                               </div>
                             </div>
-                          </div>
+                          </button>
 
                           <span
                             style={{
@@ -600,8 +602,9 @@ export default function TeamPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '240px', overflowY: 'auto' }}>
                   {deptMembers.slice(0, 8).map((m) => (
-                    <div
+                    <button
                       key={m.id}
+                      type="button"
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -610,8 +613,13 @@ export default function TeamPage() {
                         background: 'var(--c-surface)',
                         borderRadius: '4px',
                         cursor: 'pointer',
+                        border: 'none',
+                        width: '100%',
+                        textAlign: 'left',
+                        font: 'inherit',
                       }}
                       onClick={() => openProfilePanel(m.id)}
+                      aria-label={`View profile for ${m.name}`}
                     >
                       <div
                         className="avatar avatar-sm"
@@ -629,7 +637,7 @@ export default function TeamPage() {
                       <div style={{ flex: 1, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         <strong>{m.name}</strong> · <span style={{ color: 'var(--text-secondary)' }}>{m.role}</span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                   {deptMembers.length > 8 && (
                     <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textAlign: 'center', padding: '4px' }}>

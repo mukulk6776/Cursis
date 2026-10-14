@@ -8,9 +8,10 @@ import {
   GoogleAuthProvider,
   signOut,
   Auth,
-  onAuthStateChanged,
   type User as FirebaseUser,
 } from "firebase/auth";
+
+import { withAuthTimeout } from "./timeout";
 
 export type { FirebaseUser };
 
@@ -87,6 +88,7 @@ export interface AuthResult {
 export async function signInWithEmail(email: string, pass: string): Promise<AuthResult> {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
+    signal: AbortSignal.timeout(15000),
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({ email: email.trim(), password: pass }),
@@ -127,6 +129,7 @@ export async function signInWithEmail(email: string, pass: string): Promise<Auth
 export async function signUpWithEmail(email: string, pass: string, displayName: string): Promise<AuthResult> {
   const res = await fetch('/api/auth/signup', {
     method: 'POST',
+    signal: AbortSignal.timeout(15000),
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({
@@ -166,7 +169,7 @@ export async function signUpWithEmail(email: string, pass: string, displayName: 
 }
 
 /**
- * Sign in with Google (Popup with automatic fallback)
+ * Sign in with Google. Blocked popups must be retried from a user gesture.
  */
 export async function signInWithGoogle(): Promise<AuthResult> {
   const activeAuth = getFirebaseAuth();
@@ -178,9 +181,9 @@ export async function signInWithGoogle(): Promise<AuthResult> {
       provider.addScope("email");
       provider.setCustomParameters({ prompt: 'select_account' });
 
-      const userCredential = await signInWithPopup(activeAuth, provider);
+      const userCredential = await withAuthTimeout(signInWithPopup(activeAuth, provider), 120_000, "Google sign-in timed out. Close the Google window and try again. If it keeps loading, allow popups and cookies for this site.");
       const user = userCredential.user;
-      const idToken = await user.getIdToken();
+      const idToken = await withAuthTimeout(user.getIdToken(), 30_000, "Google could not finish verifying your account. Please try again.");
       return {
         uid: user.uid,
         email: user.email || "google-user@cursis.ai",
@@ -194,17 +197,9 @@ export async function signInWithGoogle(): Promise<AuthResult> {
         throw err;
       }
       if (code === "auth/popup-blocked") {
-        console.warn("Popup blocked, attempting redirect sign-in...");
-        try {
-          const provider = new GoogleAuthProvider();
-          await signInWithRedirect(activeAuth, provider);
-          return new Promise(() => {});
-        } catch (redirectErr) {
-          console.warn("Redirect sign-in notice:", redirectErr);
-        }
+        throw Object.assign(new Error("Your browser blocked the Google sign-in popup. Allow popups for this site, then click Continue with Google again."), { code });
       }
-      console.error("Google Sign-In failed:", err);
-      throw new Error(err?.message || "Google Workspace authentication failed. Please try again or use your work email.");
+      throw err;
     }
   }
 
@@ -216,62 +211,23 @@ export async function signInWithGoogle(): Promise<AuthResult> {
  */
 export async function handleGoogleRedirectResult(): Promise<AuthResult | null> {
   const activeAuth = getFirebaseAuth();
-  if (isFirebaseConfigured && activeAuth) {
-    try {
-      // 1. Try getRedirectResult first
-      const result = await getRedirectResult(activeAuth).catch((err) => {
-        console.warn("getRedirectResult notice:", err);
-        return null;
-      });
-      if (result?.user) {
-        const user = result.user;
-        const idToken = await user.getIdToken();
-        return {
-          uid: user.uid,
-          email: user.email || "google-user@cursis.ai",
-          displayName: user.displayName || "Google User",
-          idToken,
-          photoURL: user.photoURL,
-        };
-      }
+  if (!isFirebaseConfigured || !activeAuth) return null;
 
-      // 2. Fallback: Check if activeAuth.currentUser is already populated
-      if (activeAuth.currentUser) {
-        const user = activeAuth.currentUser;
-        const idToken = await user.getIdToken();
-        return {
-          uid: user.uid,
-          email: user.email || "google-user@cursis.ai",
-          displayName: user.displayName || "Google User",
-          idToken,
-          photoURL: user.photoURL,
-        };
-      }
-
-      // 3. Fallback: Wait briefly for onAuthStateChanged in case credential hydration is in progress
-      const user = await new Promise<FirebaseUser | null>((resolve) => {
-        const unsubscribe = onAuthStateChanged(activeAuth, (u) => {
-          unsubscribe();
-          resolve(u);
-        });
-        setTimeout(() => resolve(null), 1000);
-      });
-
-      if (user) {
-        const idToken = await user.getIdToken();
-        return {
-          uid: user.uid,
-          email: user.email || "google-user@cursis.ai",
-          displayName: user.displayName || "Google User",
-          idToken,
-          photoURL: user.photoURL,
-        };
-      }
-    } catch (err: any) {
-      console.warn("Google redirect resolution notice:", err);
-    }
-  }
-  return null;
+  // Only consume an actual redirect result. A persisted Firebase user can be
+  // stale and must not start a second session exchange alongside popup login.
+  const result = await withAuthTimeout(getRedirectResult(activeAuth), 15_000,
+    "Google sign-in could not be restored. Please click Continue with Google to try again.");
+  if (!result?.user) return null;
+  const user = result.user;
+  const idToken = await withAuthTimeout(user.getIdToken(), 30_000,
+    "Google could not finish verifying your account. Please try again.");
+  return {
+    uid: user.uid,
+    email: user.email || "",
+    displayName: user.displayName || "Google User",
+    idToken,
+    photoURL: user.photoURL,
+  };
 }
 
 /**

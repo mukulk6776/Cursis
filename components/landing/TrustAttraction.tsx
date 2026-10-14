@@ -52,19 +52,21 @@ interface CustomerCaseStudy {
 // 3 Customer Case Study Cards
 const CUSTOMER_CASE_STUDIES: CustomerCaseStudy[] = [
   {
-    tag: 'Customer · 01',
-    stat: '2,100+',
-    label: 'active creators scaling on Cursis',
+    tag: 'Workflow · 01',
+    stat: 'Sprint Hub',
+    label: 'collaborative engineering and hackathon planning',
     brandName: 'REVERIE HACKS',
     brandSub: 'Creative Tech & Hackathon Collective',
     logoInitials: 'RH',
     bg: '#FFD66B', // Tano butter yellow
     tapeRotate: -3.5,
     tapeColor: 'rgba(255, 255, 255, 0.92)',
-    actionLabel: 'Active Sprint Hub →',
+    actionLabel: 'Explore Sprints →',
   },
   {
-    tag: 'Customer · 02',
+    tag: 'Workflow · 02',
+    stat: 'Pipeline',
+    label: 'automated multi-stage content ops and review stages',
     brandName: 'CONTENT SERVICE MEDIA',
     brandSub: 'High-Volume Production & Syndication',
     logoInitials: 'CSM',
@@ -74,9 +76,9 @@ const CUSTOMER_CASE_STUDIES: CustomerCaseStudy[] = [
     actionLabel: 'Production Engine →',
   },
   {
-    tag: 'Customer · 03',
-    stat: '99.4%',
-    label: 'on-time milestone SLA delivery',
+    tag: 'Workflow · 03',
+    stat: 'Studio Ops',
+    label: 'unified asset management and brand deliverables',
     brandName: 'LAKAI STUDIO',
     brandSub: 'Creator Brand & Digital Studio',
     logoInitials: 'LK',
