@@ -155,8 +155,8 @@
 .ai-response-icon {
  width: 28px;
  height: 28px;
- background: var(--c-gray-900);
- 
+ background: var(--c-brand);
+ border-radius: var(--border-radius-sm);
  display: flex;
  align-items: center;
  justify-content: center;
@@ -187,15 +187,16 @@
  align-items: center;
  gap: var(--sp-3);
  padding: var(--sp-3);
- background: rgba(255,255,255,0.4);
- 
+ background: var(--surface-hover);
+ border: 1px solid var(--border-color);
+ border-radius: var(--border-radius-sm);
  font-size: var(--fs-sm);
 }
 
 .ai-action-check {
  width: 20px;
  height: 20px;
- 
+ border-radius: 4px;
  background: var(--c-success);
  display: flex;
  align-items: center;
@@ -233,22 +234,20 @@
  gap: var(--sp-2);
  padding: var(--sp-2) var(--sp-4);
  background: var(--c-white);
- 
- border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
- 
+ border: 1px solid var(--border-color);
  font-size: var(--fs-sm);
  font-weight: var(--fw-medium);
  color: var(--text-secondary);
  cursor: pointer;
- transition: all 0.3s var(--ease-spring);
+ transition: all 0.25s var(--ease-spring);
 }
 
 .quick-action-btn:hover {
- background: var(--c-gray-900);
+ background: var(--c-brand);
  color: white;
- border-color: var(--border-color);
+ border-color: var(--c-brand);
  transform: translateY(-2px);
- box-shadow: var(--shadow-md);
+ box-shadow: var(--shadow-brand);
 }
 
 /* Stats Grid */
@@ -574,7 +573,7 @@
 
 .kanban-column {
   min-width: 280px;
-  background: var(--c-surface, #F9FAFB);
+  background: var(--surface-card, #F9FAFB);
   border: 1px solid var(--border-color, #E5E7EB);
   border-radius: 10px;
   display: flex;
@@ -585,8 +584,8 @@
 }
 
 .kanban-column.drag-over {
-  background: rgba(15, 76, 255, 0.04);
-  border-color: #0F4CFF;
+  background: rgba(255, 85, 0, 0.08);
+  border-color: var(--c-brand);
 }
 
 .kanban-column-header {
@@ -601,7 +600,7 @@
 .kanban-column-title {
   font-size: 13px;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary, #111827);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -610,8 +609,8 @@
 .kanban-column-count {
   font-size: 11px;
   font-weight: 600;
-  color: #6B7280;
-  background: #ffffff;
+  color: var(--text-secondary, #6B7280);
+  background: var(--c-bg-subtle, #ffffff);
   border: 1px solid var(--border-color, #E5E7EB);
   padding: 2px 8px;
   border-radius: 9999px;
@@ -625,7 +624,7 @@
 }
 
 .kanban-card {
-  background: #ffffff;
+  background: var(--surface-card, #ffffff);
   border: 1px solid var(--border-color, #E5E7EB);
   border-radius: 8px;
   padding: 12px;
@@ -636,8 +635,8 @@
 
 .kanban-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: #D1D5DB;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--c-brand, #D1D5DB);
 }
 
 .kanban-card:active {
@@ -652,14 +651,14 @@
 .kanban-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary, #111827);
   margin-bottom: 8px;
   line-height: 1.4;
 }
 
 .kanban-card-project {
   font-size: 11px;
-  color: #6B7280;
+  color: var(--text-tertiary, #6B7280);
   margin-bottom: 8px;
 }
 
@@ -896,8 +895,8 @@
  right: 0;
  width: 440px;
  height: 100vh;
- background: var(--c-white); 
- border-left: 1px solid var(--border-light);
+ background: var(--surface-card); 
+ border-left: 1px solid var(--border-color);
  box-shadow: var(--shadow-2xl);
  z-index: var(--z-modal);
  transform: translateX(100%);
@@ -930,7 +929,7 @@
 }
 
 .calendar-day-header {
- background: rgba(255,255,255,0.4);
+ background: var(--c-bg-subtle);
  padding: var(--sp-2);
  text-align: center;
  font-size: var(--fs-xs);
@@ -946,7 +945,8 @@
 }
 
 .calendar-day.other-month {
- background: rgba(255,255,255,0.4);
+ background: var(--c-bg-subtle);
+ opacity: 0.6;
  color: var(--text-tertiary);
 }
 
@@ -1086,7 +1086,7 @@
 .meeting-interface {
  position: fixed;
  inset: 0;
- background: var(--c-gray-900);
+ background: #0A0C10 !important;
  z-index: var(--z-modal);
  display: none;
  flex-direction: column;
@@ -1105,8 +1105,9 @@
 }
 
 .meeting-video-tile {
- background: var(--c-dark);
- 
+ background: #141720 !important;
+ border: 1px solid #232836;
+ border-radius: 12px;
  display: flex;
  flex-direction: column;
  align-items: center;
@@ -1122,9 +1123,9 @@
  color: white;
  font-size: var(--fs-sm);
  font-weight: var(--fw-medium);
- background: rgba(0,0,0,0.5);
- padding: 2px 8px;
- 
+ background: rgba(0,0,0,0.65);
+ padding: 3px 10px;
+ border-radius: 6px;
 }
 
 .meeting-controls {
@@ -1133,14 +1134,15 @@
  justify-content: center;
  gap: var(--sp-3);
  padding: var(--sp-4);
- background: var(--c-dark);
+ background: #0D0F15 !important;
+ border-top: 1px solid #232836;
 }
 
 .meeting-control-btn {
  width: 48px;
  height: 48px;
- 
- background: var(--c-dark-2);
+ border-radius: 50%;
+ background: #1E2230 !important;
  color: white;
  display: flex;
  align-items: center;
@@ -1150,10 +1152,10 @@
  transition: all var(--dur-fast) var(--ease-default);
 }
 
-.meeting-control-btn:hover { background: var(--c-gray-700); }
-.meeting-control-btn.active { background: var(--c-brand); }
-.meeting-control-btn.danger { background: var(--c-error); }
-.meeting-control-btn.danger:hover { background: #dc2626; }
+.meeting-control-btn:hover { background: #2E354A !important; }
+.meeting-control-btn.active { background: var(--c-brand) !important; }
+.meeting-control-btn.danger { background: var(--c-error) !important; }
+.meeting-control-btn.danger:hover { background: #dc2626 !important; }
 
 .meeting-ordis-indicator {
  position: absolute;
@@ -1611,8 +1613,9 @@
 }
 
 .workspace-dropdown-item.active {
- background: var(--c-brand-light);
+ background: rgba(255, 85, 0, 0.15);
  border-color: var(--c-brand);
+ color: var(--text-primary);
 }
 
 .workspace-dropdown-footer {

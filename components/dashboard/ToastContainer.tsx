@@ -66,10 +66,10 @@ export default function ToastContainer() {
               transition={{ type: 'spring', stiffness: 400, damping: 28 }}
               style={{
                 pointerEvents: 'auto',
-                background: '#FFFFFF',
-                border: '1px solid rgba(0, 0, 0, 0.08)',
+                background: 'var(--surface-card, #FFFFFF)',
+                border: '1px solid var(--border-color)',
                 borderRadius: '14px',
-                boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.05)',
+                boxShadow: 'var(--shadow-lg, 0 12px 32px -4px rgba(0, 0, 0, 0.25))',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
@@ -111,7 +111,7 @@ export default function ToastContainer() {
                       fontWeight: 700,
                       textTransform: 'uppercase',
                       letterSpacing: '0.06em',
-                      color: '#9CA3AF',
+                      color: 'var(--text-tertiary, #9CA3AF)',
                       marginBottom: '3px',
                     }}
                   >
@@ -121,7 +121,7 @@ export default function ToastContainer() {
                     style={{
                       fontSize: '13.5px',
                       fontWeight: 600,
-                      color: '#111827',
+                      color: 'var(--text-primary, #111827)',
                       lineHeight: 1.4,
                       wordBreak: 'break-word',
                     }}
@@ -138,7 +138,7 @@ export default function ToastContainer() {
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: '#9CA3AF',
+                      color: 'var(--text-tertiary, #9CA3AF)',
                       cursor: 'pointer',
                       padding: '4px',
                       borderRadius: '6px',
@@ -149,11 +149,11 @@ export default function ToastContainer() {
                       flexShrink: 0,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#111827';
-                      e.currentTarget.style.background = '#F3F4F6';
+                      e.currentTarget.style.color = 'var(--text-primary)';
+                      e.currentTarget.style.background = 'var(--surface-hover)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#9CA3AF';
+                      e.currentTarget.style.color = 'var(--text-tertiary)';
                       e.currentTarget.style.background = 'transparent';
                     }}
                     title="Dismiss notification"

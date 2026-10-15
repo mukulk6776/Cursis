@@ -494,8 +494,8 @@ teamSettings,
  className="btn btn-secondary btn-sm"
  style={{
  color: 'var(--c-error)',
- borderColor: '#fca5a5',
- background: '#fff5f5',
+ borderColor: 'rgba(239, 68, 68, 0.4)',
+ background: 'rgba(239, 68, 68, 0.12)',
  fontWeight: 700,
  display: 'flex',
  alignItems: 'center',

@@ -60,5 +60,14 @@ Screenshot*.png
 # ads & motion graphics
 ads/
 cursis_motion_ad.html
+cursis-showreel.html
+cursis_showreel_*.mp4
+*.mp4
+*.wav
+render.mjs
+scratch_*.js
+subframes/
+beats/
 remotion/
 scratch/
+

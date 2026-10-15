@@ -406,7 +406,7 @@ export default function DocumentsPage() {
         style={{
           padding: 'var(--sp-3) var(--sp-4)',
           marginBottom: 'var(--sp-4)',
-          background: 'var(--c-white)',
+          background: 'var(--surface-card)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -540,7 +540,7 @@ export default function DocumentsPage() {
           style={{
             padding: 'var(--sp-8)',
             textAlign: 'center',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--sp-2)' }}>
@@ -592,7 +592,7 @@ export default function DocumentsPage() {
               className="card"
               style={{
                 padding: 'var(--sp-4)',
-                background: 'var(--c-white)',
+                background: 'var(--surface-card)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -738,7 +738,7 @@ export default function DocumentsPage() {
         </div>
       ) : (
         /* TABLE VIEW */
-        <div className="card" style={{ padding: 0, overflowX: 'auto', background: 'var(--c-white)' }}>
+        <div className="card" style={{ padding: 0, overflowX: 'auto', background: 'var(--surface-card)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-xs)' }}>
             <thead>
               <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>

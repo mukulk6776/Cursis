@@ -467,7 +467,7 @@ export default function CalendarPage() {
  <div
  key={idx}
  style={{
- background: cd.isCurrentMonth ? 'var(--c-white)' : 'var(--c-bg)',
+ background: cd.isCurrentMonth ? 'var(--surface-card)' : 'var(--surface-secondary)',
  minHeight: '105px',
  padding: '6px',
  display: 'flex',

@@ -72,7 +72,7 @@ export default function TeamPage() {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               Team
             </h1>
             <span
@@ -149,7 +149,7 @@ export default function TeamPage() {
           gap: '12px',
           border: '1px solid var(--border-color)',
           borderRadius: '8px',
-          background: 'var(--c-white)',
+          background: 'var(--surface-card)',
         }}
       >
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -230,12 +230,12 @@ export default function TeamPage() {
               style={{
                 padding: '48px 24px',
                 textAlign: 'center',
-                background: 'var(--c-white)',
+                background: 'var(--surface-card)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '8px',
               }}
             >
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: '#0A0A0A' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
                 No team members found
               </h3>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
@@ -286,7 +286,7 @@ export default function TeamPage() {
                         gap: '12px',
                         border: '1px solid var(--border-color)',
                         borderRadius: '8px',
-                        background: 'var(--c-white)',
+                        background: 'var(--surface-card)',
                       }}
                     >
                       <div>
@@ -312,7 +312,7 @@ export default function TeamPage() {
                               {emp.initials}
                             </div>
                             <div>
-                              <h3 style={{ margin: '0 0 2px 0', fontSize: '14px', fontWeight: 700, color: '#0A0A0A' }}>
+                              <h3 style={{ margin: '0 0 2px 0', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                                 {emp.name}
                               </h3>
                               <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
@@ -440,7 +440,7 @@ export default function TeamPage() {
                     color: 'var(--text-secondary)',
                     border: '1px solid var(--border-color)',
                     borderRadius: '8px',
-                    background: 'var(--c-white)',
+                    background: 'var(--surface-card)',
                   }}
                 >
                   <div>
@@ -459,7 +459,7 @@ export default function TeamPage() {
                     >
                       ‹ Prev
                     </button>
-                    <span style={{ padding: '0 6px', fontWeight: 600, color: '#0A0A0A' }}>
+                    <span style={{ padding: '0 6px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       Page {safePage} of {totalPages}
                     </span>
                     <button
@@ -481,7 +481,7 @@ export default function TeamPage() {
 
       {/* 2. PENDING INVITES TAB */}
       {activeTab === 'invites' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
           <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
@@ -540,7 +540,7 @@ export default function TeamPage() {
             style={{
               gridColumn: '1 / -1',
               padding: '14px 18px',
-              background: 'var(--c-white)',
+              background: 'var(--surface-card)',
               border: '1px solid var(--border-color)',
               borderRadius: '8px',
               display: 'flex',
@@ -573,7 +573,7 @@ export default function TeamPage() {
             );
 
             return (
-              <div key={dept.id} className="card" style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+              <div key={dept.id} className="card" style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
                 <span
                   style={{
                     fontSize: '10px',
@@ -590,7 +590,7 @@ export default function TeamPage() {
                 >
                   Department
                 </span>
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#0A0A0A' }}>{dept.name}</h3>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{dept.name}</h3>
                 {headEmp && (
                   <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
                     Lead: <strong>{headEmp.name}</strong> ({headEmp.role})
@@ -653,10 +653,10 @@ export default function TeamPage() {
 
       {/* 4. WORKLOAD DISTRIBUTION TAB */}
       {activeTab === 'workload' && (
-        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div>
-              <h3 style={{ margin: '0 0 2px 0', fontSize: '15px', fontWeight: 700, color: '#0A0A0A' }}>
+              <h3 style={{ margin: '0 0 2px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Team Task Allocation &amp; Bandwidth
               </h3>
               <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -676,7 +676,7 @@ export default function TeamPage() {
                   key={emp.id}
                   style={{
                     padding: '12px 14px',
-                    background: 'var(--c-white)',
+                    background: 'var(--surface-card)',
                     border: '1px solid var(--border-color)',
                     borderRadius: '6px',
                   }}
@@ -696,7 +696,7 @@ export default function TeamPage() {
                       >
                         {emp.initials}
                       </div>
-                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{emp.name}</span>
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{emp.name}</span>
                       <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>({emp.role})</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -735,7 +735,7 @@ export default function TeamPage() {
 
       {/* 5. ONBOARDING CHECKLIST TAB */}
       {activeTab === 'onboarding' && (
-        <div className="card" style={{ padding: '20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+        <div className="card" style={{ padding: '20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
           <span
             style={{
               fontSize: '10px',
@@ -752,7 +752,7 @@ export default function TeamPage() {
           >
             Workflow Checklist
           </span>
-          <h2 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>
+          <h2 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
             New Member Onboarding
           </h2>
           <p style={{ margin: '0 0 16px 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
@@ -773,7 +773,7 @@ export default function TeamPage() {
                   alignItems: 'flex-start',
                   gap: '12px',
                   padding: '12px',
-                  background: 'var(--c-white)',
+                  background: 'var(--surface-card)',
                   border: '1px solid var(--border-color)',
                   borderRadius: '6px',
                 }}
@@ -796,7 +796,7 @@ export default function TeamPage() {
                   ✓
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{step.title}</div>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{step.title}</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{step.desc}</div>
                 </div>
               </div>

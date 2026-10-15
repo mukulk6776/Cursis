@@ -83,7 +83,7 @@ export default function MeetingsPage() {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               Meetings
             </h1>
             <span
@@ -140,7 +140,7 @@ export default function MeetingsPage() {
           gap: '12px',
           border: '1px solid var(--border-color)',
           borderRadius: '8px',
-          background: 'var(--c-white)',
+          background: 'var(--surface-card)',
         }}
       >
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -202,12 +202,12 @@ export default function MeetingsPage() {
           style={{
             padding: '48px 24px',
             textAlign: 'center',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
           }}
         >
-          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: '#0A0A0A' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
             No meetings found
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '420px', margin: '0 auto 16px' }}>
@@ -244,7 +244,7 @@ export default function MeetingsPage() {
                   opacity: isCompleted ? 0.75 : 1,
                   border: '1px solid var(--border-color)',
                   borderRadius: '8px',
-                  background: 'var(--c-white)',
+                  background: 'var(--surface-card)',
                   gap: '12px',
                 }}
               >
@@ -269,7 +269,7 @@ export default function MeetingsPage() {
                     </span>
                   </div>
 
-                  <h3 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 700, color: '#0A0A0A' }}>
+                  <h3 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {m.name || m.title}
                   </h3>
 

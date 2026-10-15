@@ -106,7 +106,7 @@ export default function AnalyticsPage() {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               Analytics
             </h1>
             <span
@@ -164,13 +164,13 @@ export default function AnalyticsPage() {
             padding: '16px 18px',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
         >
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
             Completion Rate
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
+          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0}%
           </div>
           <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>
@@ -184,7 +184,7 @@ export default function AnalyticsPage() {
             padding: '16px 18px',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
         >
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
@@ -195,7 +195,7 @@ export default function AnalyticsPage() {
               fontSize: '24px',
               fontWeight: 800,
               margin: '4px 0',
-              color: overdue > 0 ? '#dc2626' : '#0A0A0A',
+              color: overdue > 0 ? '#dc2626' : 'var(--text-primary)',
               letterSpacing: '-0.02em',
             }}
           >
@@ -218,13 +218,13 @@ export default function AnalyticsPage() {
             padding: '16px 18px',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
         >
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
             Project Progress
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
+          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {avgProgress}%
           </div>
           <div style={{ fontSize: '12px', color: '#0f4cff', fontWeight: 600 }}>
@@ -247,7 +247,7 @@ export default function AnalyticsPage() {
           style={{
             gridColumn: '1 / -1',
             padding: '16px 20px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
             display: 'flex',
@@ -273,7 +273,7 @@ export default function AnalyticsPage() {
               >
                 Performance Synthesis
               </span>
-              <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>
+              <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
                 Operational Summary
               </span>
             </div>
@@ -286,11 +286,11 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Chart 1: Team Workload */}
-        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
           <div
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}
           >
-            <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>
+            <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
               Team Task Allocation
             </span>
             <span
@@ -336,7 +336,7 @@ export default function AnalyticsPage() {
                     top: '-18px',
                     fontSize: '11px',
                     fontWeight: 700,
-                    color: '#0A0A0A',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {w.tasks}
@@ -358,11 +358,11 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Chart 2: Project Delivery */}
-        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
           <div
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}
           >
-            <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>
+            <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
               Project Completion
             </span>
             <span
@@ -393,7 +393,7 @@ export default function AnalyticsPage() {
                       marginBottom: '4px',
                     }}
                   >
-                    <span style={{ fontWeight: 600, color: '#0A0A0A' }}>{p.name}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</span>
                     <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{p.progress}%</span>
                   </div>
                   <div style={{ height: '6px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -406,8 +406,8 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Custom Report Builder Panel */}
-        <div className="card" style={{ gridColumn: '1 / -1', padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
-          <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#0A0A0A' }}>Custom Report Builder</h3>
+        <div className="card" style={{ gridColumn: '1 / -1', padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
+          <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Custom Report Builder</h3>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
             Configure analytical views across departments, categories, and timelines.
           </p>

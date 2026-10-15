@@ -59,7 +59,7 @@ export default function HomePage() {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               {getGreeting()}, {user.name.split(' ')[0]}
             </h1>
             <span
@@ -108,14 +108,14 @@ export default function HomePage() {
         style={{
           padding: '16px 20px',
           marginBottom: '20px',
-          background: 'var(--c-white)',
+          background: 'var(--surface-card)',
           border: '1px solid var(--border-color)',
           borderRadius: '8px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>
+            <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
               Ordis Copilot
             </span>
             <span
@@ -225,14 +225,14 @@ export default function HomePage() {
             cursor: 'pointer',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
           onClick={() => setCurrentPage('tasks')}
         >
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
             Active Tasks
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
+          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {inProgressTasks}
           </div>
           <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>
@@ -247,7 +247,7 @@ export default function HomePage() {
             cursor: 'pointer',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
           onClick={() => setCurrentPage('tasks')}
         >
@@ -259,7 +259,7 @@ export default function HomePage() {
               fontSize: '24px',
               fontWeight: 800,
               margin: '4px 0',
-              color: overdueTasks.length > 0 ? '#dc2626' : '#0A0A0A',
+              color: overdueTasks.length > 0 ? '#dc2626' : 'var(--text-primary)',
               letterSpacing: '-0.02em',
             }}
           >
@@ -283,14 +283,14 @@ export default function HomePage() {
             cursor: 'pointer',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
           onClick={() => setCurrentPage('projects')}
         >
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
             Active Projects
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
+          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {projects.length}
           </div>
           <div style={{ fontSize: '12px', color: '#0f4cff', fontWeight: 600 }}>
@@ -307,14 +307,14 @@ export default function HomePage() {
             cursor: 'pointer',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
           onClick={() => setCurrentPage('team')}
         >
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
             Team Roster
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: '#0A0A0A', letterSpacing: '-0.02em' }}>
+          <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {employees.length > 0 ? employees.length : 1}
           </div>
           <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>
@@ -332,11 +332,11 @@ export default function HomePage() {
             padding: '18px 20px',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ fontWeight: 700, fontSize: '15px', color: '#0A0A0A' }}>Sprint Tasks</div>
+            <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)' }}>Sprint Tasks</div>
             <div style={{ display: 'flex', gap: '4px' }}>
               <button
                 type="button"
@@ -384,7 +384,7 @@ export default function HomePage() {
                       alignItems: 'center',
                       gap: '12px',
                       padding: '10px 14px',
-                      background: 'var(--c-white)',
+                      background: 'var(--surface-card)',
                       border: '1px solid var(--border-color)',
                       borderRadius: '6px',
                       opacity: isDone ? 0.6 : 1,
@@ -405,7 +405,7 @@ export default function HomePage() {
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
-                          color: '#0A0A0A',
+                          color: 'var(--text-primary)',
                         }}
                       >
                         {task.name}
@@ -455,11 +455,11 @@ export default function HomePage() {
               padding: '18px 20px',
               border: '1px solid var(--border-color)',
               borderRadius: '8px',
-              background: 'var(--c-white)',
+              background: 'var(--surface-card)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <div style={{ fontWeight: 700, fontSize: '15px', color: '#0A0A0A' }}>Upcoming Syncs</div>
+              <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)' }}>Upcoming Syncs</div>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
@@ -481,7 +481,7 @@ export default function HomePage() {
                     key={m.id}
                     style={{
                       padding: '10px 14px',
-                      background: 'var(--c-white)',
+                      background: 'var(--surface-card)',
                       border: '1px solid var(--border-color)',
                       borderRadius: '6px',
                       display: 'flex',
@@ -491,7 +491,7 @@ export default function HomePage() {
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{m.name || m.title}</div>
+                      <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{m.name || m.title}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                         {m.date} at {m.time} ({m.duration} min) · {m.platform === 'google_meet' ? 'Google Meet' : m.platform}
                       </div>
@@ -520,10 +520,10 @@ export default function HomePage() {
               padding: '18px 20px',
               border: '1px solid var(--border-color)',
               borderRadius: '8px',
-              background: 'var(--c-white)',
+              background: 'var(--surface-card)',
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: '15px', color: '#0A0A0A', marginBottom: '14px' }}>
+            <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '14px' }}>
               Workspace Activity
             </div>
 

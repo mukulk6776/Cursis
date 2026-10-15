@@ -411,8 +411,8 @@ export default function ProfilePanel() {
  justifyContent: 'center',
  gap: '8px',
  color: 'var(--c-error)',
- borderColor: '#fca5a5',
- background: '#fff5f5',
+ borderColor: 'rgba(239, 68, 68, 0.4)',
+ background: 'rgba(239, 68, 68, 0.12)',
  fontWeight: 700,
  fontSize: 'var(--fs-sm)',
  }}
@@ -454,8 +454,8 @@ export default function ProfilePanel() {
  justifyContent: 'center',
  gap: '8px',
  color: 'var(--c-error)',
- borderColor: '#fca5a5',
- background: '#fff5f5',
+ borderColor: 'rgba(239, 68, 68, 0.4)',
+ background: 'rgba(239, 68, 68, 0.12)',
  fontWeight: 700,
  fontSize: 'var(--fs-sm)',
  }}

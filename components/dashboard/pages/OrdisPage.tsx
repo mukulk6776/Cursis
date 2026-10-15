@@ -550,8 +550,8 @@ export default function OrdisPage() {
         .ordis-sidebar {
           display: flex;
           flex-direction: column;
-          background: #F9F9F9;
-          border-right: 1px solid #ECECEC;
+          background: var(--surface-sidebar, #F9F9F9);
+          border-right: 1px solid var(--border-color, #ECECEC);
           height: 100%;
           min-height: 0;
           overflow: hidden;
@@ -580,11 +580,11 @@ export default function OrdisPage() {
         }
 
         .ordis-resize-handle:hover {
-          background: #E5E7EB;
+          background: var(--border-dark, #E5E7EB);
         }
 
         .ordis-resize-handle:focus-visible {
-          outline: 2px solid #FF5500;
+          outline: 2px solid var(--c-brand, #FF5500);
           outline-offset: -1px;
         }
 
@@ -626,7 +626,7 @@ export default function OrdisPage() {
           font-size: 15px;
           font-weight: 700;
           letter-spacing: -0.01em;
-          color: #0A0A0A;
+          color: var(--text-primary, #0A0A0A);
         }
 
         .ordis-icon-btn {
@@ -638,13 +638,13 @@ export default function OrdisPage() {
           border: none;
           background: transparent;
           border-radius: 8px;
-          color: #555;
+          color: var(--text-secondary, #555);
           transition: background 0.15s ease, color 0.15s ease;
         }
 
         .ordis-icon-btn:hover {
-          background: #EAEAEA;
-          color: #0A0A0A;
+          background: var(--surface-hover, #EAEAEA);
+          color: var(--text-primary, #0A0A0A);
         }
 
         .ordis-sidebar-new-section {
@@ -658,18 +658,18 @@ export default function OrdisPage() {
           align-items: center;
           justify-content: space-between;
           padding: 9px 12px;
-          background: #ffffff;
-          border: 1px solid #E5E5E5;
+          background: var(--surface-card, #ffffff);
+          border: 1px solid var(--border-color, #E5E5E5);
           border-radius: 10px;
-          color: #0d0d0d;
+          color: var(--text-primary, #0d0d0d);
           font-size: 13.5px;
           font-weight: 600;
           transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .ordis-new-chat-btn:hover:not(:disabled) {
-          background: #F3F4F6;
-          border-color: #D1D5DB;
+          background: var(--surface-hover, #F3F4F6);
+          border-color: var(--border-dark, #D1D5DB);
         }
 
         .ordis-new-chat-left {
@@ -679,7 +679,7 @@ export default function OrdisPage() {
         }
 
         .ordis-new-chat-icon {
-          color: #71717A;
+          color: var(--text-tertiary, #71717A);
         }
 
         .ordis-search-box {
@@ -688,14 +688,14 @@ export default function OrdisPage() {
           align-items: center;
           gap: 8px;
           padding: 6px 10px;
-          background: #ffffff;
-          border: 1px solid #E5E5E5;
+          background: var(--surface-card, #ffffff);
+          border: 1px solid var(--border-color, #E5E5E5);
           border-radius: 8px;
           flex-shrink: 0;
         }
 
         .ordis-search-icon {
-          color: #9CA3AF;
+          color: var(--text-tertiary, #9CA3AF);
           flex-shrink: 0;
         }
 
@@ -706,18 +706,18 @@ export default function OrdisPage() {
           outline: none;
           background: transparent;
           font-size: 12.5px;
-          color: #0d0d0d;
+          color: var(--text-primary, #0d0d0d);
         }
 
         .ordis-search-box input::placeholder {
-          color: #9CA3AF;
+          color: var(--text-muted, #9CA3AF);
         }
 
         .ordis-search-clear {
           border: none;
           background: transparent;
           padding: 2px;
-          color: #71717A;
+          color: var(--text-tertiary, #71717A);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -737,7 +737,7 @@ export default function OrdisPage() {
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.04em;
-          color: #9CA3AF;
+          color: var(--text-tertiary, #9CA3AF);
           padding: 6px 10px 4px;
         }
 
@@ -750,7 +750,7 @@ export default function OrdisPage() {
         }
 
         .ordis-history-empty {
-          color: #71717A;
+          color: var(--text-tertiary, #71717A);
           font-size: 12.5px;
           text-align: center;
           padding: 24px 14px;
@@ -767,11 +767,12 @@ export default function OrdisPage() {
         }
 
         .ordis-chat-item:hover {
-          background: #EFEFEF;
+          background: var(--surface-hover, #EFEFEF);
         }
 
         .ordis-chat-item.is-active {
-          background: #ECECEC;
+          background: var(--c-brand-bg, rgba(255, 85, 0, 0.12));
+          border: 1px solid var(--c-brand, #FF5500);
         }
 
         .ordis-chat-select {
@@ -781,7 +782,7 @@ export default function OrdisPage() {
           background: transparent;
           text-align: left;
           padding: 9px 10px;
-          color: #111827;
+          color: var(--text-primary, #111827);
         }
 
         .ordis-chat-title {
@@ -797,7 +798,7 @@ export default function OrdisPage() {
         .ordis-chat-select time {
           display: block;
           font-size: 10.5px;
-          color: #71717A;
+          color: var(--text-tertiary, #71717A);
           margin-top: 2px;
         }
 
@@ -818,7 +819,7 @@ export default function OrdisPage() {
           background: transparent;
           padding: 5px;
           border-radius: 5px;
-          color: #71717A;
+          color: var(--text-tertiary, #71717A);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -826,8 +827,8 @@ export default function OrdisPage() {
         }
 
         .ordis-tool-btn:hover {
-          background: #DCDCDC;
-          color: #0A0A0A;
+          background: var(--surface-hover, #DCDCDC);
+          color: var(--text-primary, #0A0A0A);
         }
 
         .ordis-rename-form {
@@ -838,10 +839,11 @@ export default function OrdisPage() {
         .ordis-rename-form input {
           width: 100%;
           padding: 5px 8px;
-          border: 1.5px solid #0A0A0A;
+          border: 1.5px solid var(--border-dark, #0A0A0A);
           border-radius: 6px;
           font-size: 12.5px;
-          background: #ffffff;
+          background: var(--surface-card, #ffffff);
+          color: var(--text-primary);
         }
 
         .ordis-inline-actions {
@@ -851,8 +853,9 @@ export default function OrdisPage() {
         }
 
         .ordis-inline-actions button {
-          border: 1px solid #D1D5DB;
-          background: #ffffff;
+          border: 1px solid var(--border-color, #D1D5DB);
+          background: var(--surface-card, #ffffff);
+          color: var(--text-primary);
           padding: 4px 10px;
           border-radius: 6px;
           font-size: 11.5px;
@@ -862,14 +865,15 @@ export default function OrdisPage() {
         .ordis-delete-popover {
           width: 100%;
           padding: 6px 10px 10px;
-          background: #FEE2E2;
+          background: rgba(239, 68, 68, 0.18);
+          border: 1px solid rgba(239, 68, 68, 0.35);
           border-radius: 8px;
         }
 
         .ordis-delete-popover p {
           font-size: 12px;
           font-weight: 600;
-          color: #991B1B;
+          color: var(--c-error, #EF4444);
           margin: 2px 0 6px;
         }
 
@@ -882,8 +886,8 @@ export default function OrdisPage() {
 
         .ordis-sidebar-footer {
           padding: 10px 12px;
-          border-top: 1px solid #ECECEC;
-          background: #F9F9F9;
+          border-top: 1px solid var(--border-color, #ECECEC);
+          background: var(--surface-sidebar, #F9F9F9);
           flex-shrink: 0;
         }
 
@@ -897,7 +901,7 @@ export default function OrdisPage() {
           width: 28px;
           height: 28px;
           border-radius: 50%;
-          background: #0A0A0A;
+          background: var(--c-brand, #FF5500);
           color: #ffffff;
           display: flex;
           align-items: center;
@@ -916,7 +920,7 @@ export default function OrdisPage() {
           display: block;
           font-size: 12.5px;
           font-weight: 600;
-          color: #111827;
+          color: var(--text-primary, #111827);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -927,7 +931,7 @@ export default function OrdisPage() {
           align-items: center;
           gap: 5px;
           font-size: 10.5px;
-          color: #6B7280;
+          color: var(--text-tertiary, #6B7280);
           margin-top: 1px;
         }
 
@@ -939,7 +943,7 @@ export default function OrdisPage() {
           min-width: 0;
           min-height: 0;
           height: 100%;
-          background: #ffffff;
+          background: var(--surface-primary, #ffffff);
           overflow: hidden;
           position: relative;
         }
@@ -951,8 +955,9 @@ export default function OrdisPage() {
           align-items: center;
           justify-content: space-between;
           padding: 0 16px;
-          border-bottom: 1px solid #F0F0F0;
-          background: #ffffff;
+          border-bottom: 1px solid var(--border-color, #F0F0F0);
+          background: var(--surface-topbar, #ffffff);
+          backdrop-filter: blur(8px);
           flex-shrink: 0;
           z-index: 10;
         }
@@ -973,13 +978,13 @@ export default function OrdisPage() {
           border: none;
           background: transparent;
           border-radius: 8px;
-          color: #4B5563;
+          color: var(--text-secondary, #4B5563);
           transition: background 0.15s ease, color 0.15s ease;
         }
 
         .ordis-header-btn:hover {
-          background: #F3F4F6;
-          color: #0A0A0A;
+          background: var(--surface-hover, #F3F4F6);
+          color: var(--text-primary, #0A0A0A);
         }
 
         .ordis-model-pill {
@@ -991,7 +996,7 @@ export default function OrdisPage() {
           cursor: default;
           font-size: 15px;
           font-weight: 600;
-          color: #0D0D0D;
+          color: var(--text-primary, #0D0D0D);
           letter-spacing: -0.01em;
         }
 
@@ -1031,7 +1036,7 @@ export default function OrdisPage() {
           border-radius: 50%;
           background: #0A0A0A;
           color: #ffffff;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          box-shadow: var(--shadow-sm);
           margin-bottom: 4px;
         }
 
@@ -1039,7 +1044,7 @@ export default function OrdisPage() {
           font-size: clamp(24px, 4vw, 30px);
           font-weight: 600;
           letter-spacing: -0.025em;
-          color: #0D0D0D;
+          color: var(--text-primary, #0D0D0D);
           margin: 14px 0 28px;
         }
 
@@ -1051,19 +1056,19 @@ export default function OrdisPage() {
         }
 
         .ordis-starter {
-          border: 1px solid #E5E7EB;
+          border: 1px solid var(--border-color, #E5E7EB);
           border-radius: 16px;
           padding: 14px 16px;
-          background: #ffffff;
+          background: var(--surface-card, #ffffff);
           text-align: left;
-          color: #111827;
+          color: var(--text-primary, #111827);
           transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
         }
 
         .ordis-starter:hover:not(:disabled) {
-          background: #F9FAFB;
-          border-color: #D1D5DB;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          background: var(--surface-hover, #F9FAFB);
+          border-color: var(--border-dark, #D1D5DB);
+          box-shadow: var(--shadow-sm);
           transform: translateY(-1px);
         }
 
@@ -1071,14 +1076,14 @@ export default function OrdisPage() {
           display: block;
           font-size: 13.5px;
           font-weight: 600;
-          color: #111827;
+          color: var(--text-primary, #111827);
           margin-bottom: 3px;
         }
 
         .ordis-starter span {
           display: block;
           font-size: 12px;
-          color: #6B7280;
+          color: var(--text-tertiary, #6B7280);
           line-height: 1.4;
         }
 
@@ -1105,14 +1110,16 @@ export default function OrdisPage() {
 
         .ordis-user-bubble {
           max-width: 78%;
-          background: #F4F4F4;
-          color: #0D0D0D;
+          background: var(--surface-card, #F4F4F4);
+          color: var(--text-primary, #0D0D0D);
+          border: 1px solid var(--border-color, transparent);
           border-radius: 22px;
           padding: 12px 18px;
           font-size: 15px;
           line-height: 1.5;
           word-break: break-word;
           overflow-wrap: break-word;
+          box-shadow: var(--shadow-xs);
         }
 
         .ordis-ai-message {
@@ -1143,13 +1150,13 @@ export default function OrdisPage() {
         .ordis-ai-name {
           font-size: 13px;
           font-weight: 700;
-          color: #0A0A0A;
+          color: var(--text-primary, #0A0A0A);
         }
 
         .ordis-ai-body {
           font-size: 15px;
           line-height: 1.7;
-          color: #1F2937;
+          color: var(--text-secondary, #1F2937);
           word-break: break-word;
           overflow-wrap: break-word;
         }
@@ -1173,7 +1180,7 @@ export default function OrdisPage() {
         }
 
         .ordis-ai-body strong {
-          color: #0A0A0A;
+          color: var(--text-primary, #0A0A0A);
           font-weight: 700;
         }
 
@@ -1190,7 +1197,7 @@ export default function OrdisPage() {
           gap: 5px;
           border: none;
           background: transparent;
-          color: #6B7280;
+          color: var(--text-tertiary, #6B7280);
           padding: 4px 8px;
           border-radius: 6px;
           font-size: 12px;
@@ -1198,8 +1205,8 @@ export default function OrdisPage() {
         }
 
         .ordis-action-btn:hover {
-          background: #F3F4F6;
-          color: #111827;
+          background: var(--surface-hover, #F3F4F6);
+          color: var(--text-primary, #111827);
         }
 
         .ordis-action-btn.is-active {
@@ -1216,25 +1223,25 @@ export default function OrdisPage() {
         .ordis-follow-ups button {
           font-size: 12px;
           font-weight: 500;
-          border: 1px solid #E5E7EB;
+          border: 1px solid var(--border-color, #E5E7EB);
           border-radius: 20px;
-          background: #F9FAFB;
+          background: var(--surface-card, #F9FAFB);
           padding: 5px 12px;
-          color: #374151;
+          color: var(--text-secondary, #374151);
           transition: all 0.12s ease;
         }
 
         .ordis-follow-ups button:hover:not(:disabled) {
-          background: #ffffff;
-          border-color: #0A0A0A;
-          color: #0A0A0A;
+          background: var(--surface-hover, #ffffff);
+          border-color: var(--c-brand, #0A0A0A);
+          color: var(--c-brand, #0A0A0A);
         }
 
         .ordis-thinking {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #6B7280;
+          color: var(--text-tertiary, #6B7280);
           font-size: 14px;
           padding: 8px 0;
         }
@@ -1244,7 +1251,7 @@ export default function OrdisPage() {
           position: relative;
           width: 100%;
           padding: 10px 20px max(14px, env(safe-area-inset-bottom));
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.85) 30%, #ffffff 100%);
+          background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--surface-primary) 50%);
           flex-shrink: 0;
         }
 
@@ -1258,17 +1265,17 @@ export default function OrdisPage() {
           display: flex;
           align-items: flex-end;
           gap: 10px;
-          background: #F4F4F4;
-          border: 1px solid #E5E5E5;
+          background: var(--surface-card, #F4F4F4);
+          border: 1px solid var(--border-color, #E5E5E5);
           border-radius: 26px;
           padding: 8px 12px 8px 18px;
           transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .ordis-composer:focus-within {
-          background: #ffffff;
-          border-color: #D1D5DB;
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+          background: var(--surface-card, #ffffff);
+          border-color: var(--c-brand, #D1D5DB);
+          box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.2);
         }
 
         .ordis-composer textarea {
@@ -1277,7 +1284,7 @@ export default function OrdisPage() {
           border: none;
           outline: none;
           background: transparent;
-          color: #0D0D0D;
+          color: var(--text-primary, #0D0D0D);
           font-size: 15px;
           line-height: 1.5;
           resize: none;
@@ -1288,7 +1295,7 @@ export default function OrdisPage() {
         }
 
         .ordis-composer textarea::placeholder {
-          color: #9CA3AF;
+          color: var(--text-muted, #9CA3AF);
         }
 
         .ordis-send-btn {
@@ -1296,7 +1303,7 @@ export default function OrdisPage() {
           height: 32px;
           border-radius: 50%;
           border: none;
-          background: #000000;
+          background: var(--c-brand, #000000);
           color: #ffffff;
           display: flex;
           align-items: center;
@@ -1307,18 +1314,19 @@ export default function OrdisPage() {
 
         .ordis-send-btn:not(:disabled):hover {
           transform: scale(1.06);
+          background: var(--c-brand-hover, #E64D00);
         }
 
         .ordis-send-btn:disabled {
-          background: #E5E5E5;
-          color: #9CA3AF;
-          opacity: 1;
+          background: var(--border-color, #E5E5E5);
+          color: var(--text-muted, #9CA3AF);
+          opacity: 0.6;
         }
 
         .ordis-disclaimer {
           text-align: center;
           font-size: 11px;
-          color: #9CA3AF;
+          color: var(--text-muted, #9CA3AF);
           margin: 7px 0 0;
           line-height: 1.4;
         }

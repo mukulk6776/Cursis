@@ -81,10 +81,10 @@ export default function LinkPreviewCard({ preview, loading, onRemove }: LinkPrev
     <div
       style={{
         marginTop: '10px',
-        border: '1px solid var(--c-gray-200)',
+        border: '1px solid var(--border-color)',
         borderRadius: 'var(--border-radius-md)',
         overflow: 'hidden',
-        background: 'var(--c-white)',
+        background: 'var(--surface-card)',
         maxWidth: '500px',
         position: 'relative',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
@@ -92,11 +92,11 @@ export default function LinkPreviewCard({ preview, loading, onRemove }: LinkPrev
       }}
       onClick={() => window.open(preview.url, '_blank', 'noopener,noreferrer')}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--c-gray-400)';
-        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+        e.currentTarget.style.borderColor = 'var(--c-brand)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.2))';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--c-gray-200)';
+        e.currentTarget.style.borderColor = 'var(--border-color)';
         e.currentTarget.style.boxShadow = 'none';
       }}
     >
@@ -144,7 +144,7 @@ export default function LinkPreviewCard({ preview, loading, onRemove }: LinkPrev
             width: '100%',
             height: '200px',
             overflow: 'hidden',
-            background: '#f8fafc',
+            background: 'var(--surface-secondary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -83,7 +83,7 @@ export default function AutomationModal() {
  </div>
  <select
  className="input select"
- style={{ background: 'white' }}
+ style={{ background: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
  value={whenTrigger}
  onChange={(e) => setWhenTrigger(e.target.value)}
  >
@@ -117,7 +117,7 @@ export default function AutomationModal() {
  </div>
  <select
  className="input select"
- style={{ background: 'white' }}
+ style={{ background: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
  value={ifCondition}
  onChange={(e) => setIfCondition(e.target.value)}
  >
@@ -150,7 +150,7 @@ export default function AutomationModal() {
  </div>
  <select
  className="input select"
- style={{ background: 'white' }}
+ style={{ background: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
  value={thenAction}
  onChange={(e) => setThenAction(e.target.value)}
  >

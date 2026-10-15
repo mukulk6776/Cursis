@@ -74,7 +74,7 @@ export default function ProjectsPage() {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               Projects
             </h1>
             <span
@@ -137,12 +137,12 @@ export default function ProjectsPage() {
           style={{
             padding: '48px 24px',
             textAlign: 'center',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
           }}
         >
-          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: '#0A0A0A' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
             No active projects
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
@@ -186,7 +186,7 @@ export default function ProjectsPage() {
                       cursor: 'pointer',
                       border: '1px solid var(--border-color)',
                       borderRadius: '8px',
-                      background: 'var(--c-white)',
+                      background: 'var(--surface-card)',
                     }}
                     onClick={() => setSelectedProjectId(p.id)}
                   >
@@ -201,7 +201,7 @@ export default function ProjectsPage() {
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff', flexShrink: 0 }} />
-                          <span style={{ fontWeight: 700, fontSize: '14px', color: '#0A0A0A' }}>{p.name}</span>
+                          <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>{p.name}</span>
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', marginLeft: '16px' }}>
                           {p.desc.substring(0, 70)}
@@ -238,7 +238,7 @@ export default function ProjectsPage() {
                         <span>
                           {p.completed}/{p.tasks} tasks
                         </span>
-                        <span style={{ fontWeight: 700, color: '#0A0A0A' }}>{p.progress}%</span>
+                        <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{p.progress}%</span>
                       </div>
                       <div style={{ height: '6px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%`, transition: 'width 0.3s ease' }} />
@@ -299,7 +299,7 @@ export default function ProjectsPage() {
 
           {/* VIEW: LIST */}
           {currentView === 'list' && (
-            <div className="card" style={{ overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)', padding: 0 }}>
+            <div className="card" style={{ overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)', padding: 0 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
@@ -324,7 +324,7 @@ export default function ProjectsPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff', flexShrink: 0 }} />
                             <div>
-                              <div style={{ fontWeight: 700, color: '#0A0A0A' }}>{p.name}</div>
+                              <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{p.name}</div>
                               <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                                 {p.desc.substring(0, 45)}...
                               </div>
@@ -410,14 +410,14 @@ export default function ProjectsPage() {
                         borderBottom: '1px solid var(--border-color)',
                       }}
                     >
-                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{s}</span>
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{s}</span>
                       <span
                         style={{
                           fontSize: '11px',
                           fontWeight: 700,
                           padding: '1px 6px',
                           borderRadius: '4px',
-                          background: 'var(--c-white)',
+                          background: 'var(--surface-card)',
                           border: '1px solid var(--border-color)',
                           color: 'var(--text-secondary)',
                         }}
@@ -430,12 +430,12 @@ export default function ProjectsPage() {
                         <div
                           key={p.id}
                           className="card"
-                          style={{ padding: '12px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--c-white)' }}
+                          style={{ padding: '12px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--surface-card)' }}
                           onClick={() => setSelectedProjectId(p.id)}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff' }} />
-                            <span style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{p.name}</span>
+                            <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{p.name}</span>
                           </div>
                           <div style={{ height: '4px', background: 'var(--c-surface)', borderRadius: '2px', overflow: 'hidden', marginBottom: '6px' }}>
                             <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%` }} />
@@ -456,7 +456,7 @@ export default function ProjectsPage() {
 
       {/* Project Templates */}
       <div style={{ marginTop: '24px' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: '#0A0A0A' }}>Quick Project Templates</h3>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>Quick Project Templates</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '8px' }}>
           {[
             { name: 'Product Launch', desc: 'Lifecycle from ideation to market release', tasks: 28 },
@@ -467,10 +467,10 @@ export default function ProjectsPage() {
             <div
               key={idx}
               className="card"
-              style={{ padding: '10px 14px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--c-white)' }}
+              style={{ padding: '10px 14px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--surface-card)' }}
               onClick={() => handleLoadTemplate(t)}
             >
-              <div style={{ fontWeight: 700, fontSize: '12px', color: '#0A0A0A' }}>+ {t.name}</div>
+              <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-primary)' }}>+ {t.name}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{t.desc}</div>
               <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '6px' }}>
                 {t.tasks} pre-built tasks
@@ -499,12 +499,12 @@ export default function ProjectsPage() {
             padding: '16px',
           }}
         >
-          <div className="modal" style={{ maxWidth: '720px', width: '100%', maxHeight: '85vh', overflowY: 'auto', background: 'var(--c-white)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '20px' }}>
+          <div className="modal" style={{ maxWidth: '720px', width: '100%', maxHeight: '85vh', overflowY: 'auto', background: 'var(--surface-card)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: selectedProject.color || '#0f4cff' }} />
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>{selectedProject.name}</span>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedProject.name}</span>
                   <span
                     style={{
                       fontSize: '10px',
@@ -544,23 +544,23 @@ export default function ProjectsPage() {
                 }}
               >
                 <div style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A' }}>{selectedProject.progress}%</div>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>{selectedProject.progress}%</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Progress</div>
                 </div>
                 <div style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
                     {selectedProject.completed}/{selectedProject.tasks}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Tasks Done</div>
                 </div>
                 <div style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
                     {selectedProject.team.length}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Members</div>
                 </div>
                 <div style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, paddingTop: '4px', color: '#0A0A0A' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, paddingTop: '4px', color: 'var(--text-primary)' }}>
                     {selectedProject.deadline}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Deadline</div>
@@ -569,7 +569,7 @@ export default function ProjectsPage() {
 
               {/* Task List */}
               <div style={{ marginBottom: '16px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: '#0A0A0A' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-primary)' }}>
                   Project Tasks ({projectTasks.length})
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -588,7 +588,7 @@ export default function ProjectsPage() {
                             padding: '8px 12px',
                             border: '1px solid var(--border-color)',
                             borderRadius: '6px',
-                            background: 'var(--c-white)',
+                            background: 'var(--surface-card)',
                             fontSize: '12px',
                           }}
                         >
@@ -606,7 +606,7 @@ export default function ProjectsPage() {
                           >
                             {t.priority}
                           </span>
-                          <span style={{ flex: 1, fontWeight: 600, color: '#0A0A0A' }}>{t.name}</span>
+                          <span style={{ flex: 1, fontWeight: 600, color: 'var(--text-primary)' }}>{t.name}</span>
                           <span
                             style={{
                               fontSize: '10px',

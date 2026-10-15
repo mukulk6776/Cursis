@@ -227,75 +227,102 @@
    ============================================ */
 [data-theme="dark"],
 .dark {
-  --c-cream: #0c0e12;
-  --c-paper: #161922;
-  --c-ink: #f9fafb;
-  --c-ink-soft: #e5e7eb;
-  --c-near-black: #ffffff;
-  --c-dark: #f9fafb;
-  --c-dark-2: #e5e7eb;
-  --c-white: #161922;
+  --c-cream: #0A0C10;
+  --c-paper: #14171F;
+  --c-ink: #F9FAFB;
+  --c-ink-soft: #E5E7EB;
+  --c-near-black: #FFFFFF;
+  --c-dark: #0A0A0A;
+  --c-dark-2: #14171F;
+  --c-white: #14171F;
 
-  --c-bg: #0c0e12;
-  --c-bg-subtle: #141824;
-  --c-bg-elevated: #1e2230;
+  --c-bg: #0A0C10;
+  --c-bg-subtle: #11141D;
+  --c-bg-elevated: #1A1E29;
 
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-tertiary: #9ca3af;
-  --text-muted: #6b7280;
+  --text-primary: #F9FAFB;
+  --text-secondary: #D1D5DB;
+  --text-tertiary: #9CA3AF;
+  --text-muted: #6B7280;
 
-  --surface-primary: #0c0e12;
-  --surface-secondary: #161922;
-  --surface-tertiary: #1e2230;
-  --surface-sidebar: #0f1117;
-  --surface-topbar: rgba(15, 17, 23, 0.95);
-  --surface-card: #161922;
-  --surface-modal: #161922;
-  --surface-overlay: rgba(0, 0, 0, 0.75);
-  --surface-hover: rgba(255, 255, 255, 0.05);
-  --surface-active: rgba(255, 255, 255, 0.08);
+  --surface-primary: #0A0C10;
+  --surface-secondary: #14171F;
+  --surface-tertiary: #1A1E29;
+  --surface-sidebar: #0D0F15;
+  --surface-topbar: rgba(13, 15, 21, 0.92);
+  --surface-card: #14171F;
+  --surface-modal: #14171F;
+  --surface-overlay: rgba(0, 0, 0, 0.82);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --surface-active: rgba(255, 255, 255, 0.1);
 
-  --c-surface: #161922;
+  --c-surface: #14171F;
   --c-brand-hover: #FF722B;
   --pastel-lavender: #312E81;
   --pastel-blue: #1E3A8A;
   
-  --c-gray-100: #1e2230;
-  --c-gray-200: #282e3e;
-  --c-gray-300: #374151;
-  --c-gray-400: #6b7280;
-  --c-gray-700: #d1d5db;
-  --c-gray-900: #f9fafb;
+  --c-gray-100: #1A1E29;
+  --c-gray-200: #252B3B;
+  --c-gray-300: #353D52;
+  --c-gray-400: #6B7280;
+  --c-gray-700: #D1D5DB;
+  --c-gray-900: #0A0C10;
 
-  --c-bg-primary: #0c0e12;
-  --c-bg-secondary: #161922;
-  --c-text-primary: #f9fafb;
-  --c-text-secondary: #d1d5db;
-  --c-text-tertiary: #9ca3af;
-  --c-border-primary: #282e3e;
+  --c-bg-primary: #0A0C10;
+  --c-bg-secondary: #14171F;
+  --c-text-primary: #F9FAFB;
+  --c-text-secondary: #D1D5DB;
+  --c-text-tertiary: #9CA3AF;
+  --c-border-primary: #2B3142;
   --c-accent-primary: #FF5500;
 
-  --border-color: #282e3e;
-  --border-light: #212634;
-  --border-dark: #374151;
+  --border-color: #2B3142;
+  --border-light: #202534;
+  --border-dark: #424B63;
+  --border-focus: #FF5500;
 
   --c-brand-bg: rgba(255, 85, 0, 0.15);
   --c-accent-bg: rgba(255, 194, 51, 0.15);
   --c-success-bg: rgba(16, 185, 129, 0.15);
   --c-warning-bg: rgba(245, 158, 11, 0.15);
   --c-error-bg: rgba(239, 68, 68, 0.15);
+  --c-info-bg: rgba(255, 85, 0, 0.15);
+  --c-purple-bg: rgba(192, 132, 252, 0.15);
 
   --shadow-xs: 2px 2px 0 0 #000000;
   --shadow-sm: 3px 3px 0 0 #000000;
-  --shadow-md: 6px 6px 0 0 #000000;
-  --shadow-lg: 8px 8px 0 0 #000000;
-  --shadow-xl: 10px 10px 0 0 #000000;
+  --shadow-md: 5px 5px 0 0 #000000;
+  --shadow-lg: 7px 7px 0 0 #000000;
+  --shadow-xl: 9px 9px 0 0 #000000;
   --shadow-2xl: 12px 12px 0 0 #000000;
-  --shadow-tano: 6px 6px 0 0 #000000;
-  --shadow-tano-hover: 8px 8px 0 0 #000000;
-  --shadow-card-hover: 8px 8px 0 0 #000000;
-  --shadow-brand: 6px 6px 0 0 #000000;
+  --shadow-tano: 5px 5px 0 0 #000000;
+  --shadow-tano-hover: 7px 7px 0 0 #000000;
+  --shadow-card-hover: 7px 7px 0 0 #000000;
+  --shadow-brand: 5px 5px 0 0 rgba(255, 85, 0, 0.35);
+  --shadow-coral: 6px 6px 0 0 #FF5500;
+  --shadow-yellow: 6px 6px 0 0 #FFC233;
+  --shadow-mint: 6px 6px 0 0 #10B981;
 }
+
+/* Custom Theme-Aware Scrollbars */
+[data-theme="dark"] ::-webkit-scrollbar,
+.dark ::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+[data-theme="dark"] ::-webkit-scrollbar-track,
+.dark ::-webkit-scrollbar-track {
+  background: var(--c-bg);
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb,
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--c-gray-300);
+  border-radius: 9999px;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover,
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--c-gray-400);
+}
+
 
 

@@ -17,6 +17,7 @@ export default function Topbar() {
     setMobileSidebarOpen,
     setCurrentPage,
     signOut,
+    updateWorkspaceSettings,
   } = useDashboard();
 
   const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
@@ -25,7 +26,40 @@ export default function Topbar() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    const checkDark = () => {
+      if (typeof document === 'undefined') return;
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || document.documentElement.classList.contains('dark');
+      setIsDarkMode(isDark);
+    };
+    checkDark();
+    const observer = new MutationObserver(checkDark);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = isDarkMode ? 'light' : 'dark';
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cursis_theme', nextTheme);
+      const root = document.documentElement;
+      if (nextTheme === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+        root.classList.add('dark');
+      } else {
+        root.setAttribute('data-theme', 'light');
+        root.classList.remove('dark');
+      }
+    }
+    setIsDarkMode(!isDarkMode);
+    if (typeof updateWorkspaceSettings === 'function') {
+      updateWorkspaceSettings({ theme: nextTheme });
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -93,6 +127,34 @@ export default function Topbar() {
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           {unreadCount > 0 && <span className="notif-dot" />}
+        </button>
+
+        {/* Theme Toggle Button (Sun/Moon) */}
+        <button
+          className="topbar-action-btn"
+          onClick={toggleTheme}
+          aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          type="button"
+          id="topbar-theme-toggle"
+        >
+          {isDarkMode ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          )}
         </button>
 
         {/* Agency Services Button */}
@@ -254,18 +316,18 @@ export default function Topbar() {
                 top: '100%',
                 right: 0,
                 marginTop: '8px',
-                background: 'var(--c-white)',
+                background: 'var(--surface-modal, var(--surface-card))',
                 border: '1px solid var(--border-color)',
-                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)',
-                borderRadius: '6px',
+                boxShadow: 'var(--shadow-lg, 0 10px 25px -5px rgba(0,0,0,0.3))',
+                borderRadius: '8px',
                 padding: '6px',
                 zIndex: 100,
                 minWidth: '220px',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--c-gray-200)', marginBottom: '4px' }}>
-                <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--c-near-black)' }}>{user.name}</div>
+              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)', marginBottom: '4px' }}>
+                <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-primary)' }}>{user.name}</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user.email}
                 </div>
@@ -274,6 +336,38 @@ export default function Topbar() {
                     {user.role}
                   </span>
                 </div>
+              </div>
+
+              {/* Theme Selector segmented control */}
+              <div style={{ padding: '4px', margin: '4px 0 6px 0', background: 'var(--surface-secondary)', borderRadius: '6px', display: 'flex', gap: '4px' }}>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${!isDarkMode ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ flex: 1, fontSize: '11px', padding: '3px 4px', height: '24px', justifyContent: 'center' }}
+                  onClick={() => {
+                    localStorage.setItem('cursis_theme', 'light');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    document.documentElement.classList.remove('dark');
+                    setIsDarkMode(false);
+                    if (typeof updateWorkspaceSettings === 'function') updateWorkspaceSettings({ theme: 'light' });
+                  }}
+                >
+                  Light
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${isDarkMode ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ flex: 1, fontSize: '11px', padding: '3px 4px', height: '24px', justifyContent: 'center' }}
+                  onClick={() => {
+                    localStorage.setItem('cursis_theme', 'dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.documentElement.classList.add('dark');
+                    setIsDarkMode(true);
+                    if (typeof updateWorkspaceSettings === 'function') updateWorkspaceSettings({ theme: 'dark' });
+                  }}
+                >
+                  Dark
+                </button>
               </div>
 
               <button
@@ -310,7 +404,7 @@ export default function Topbar() {
                 Workspace Settings
               </button>
 
-              <div style={{ height: '1px', background: 'var(--c-gray-200)', margin: '4px 0' }} />
+              <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
 
               <button
                 type="button"

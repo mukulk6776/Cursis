@@ -132,10 +132,10 @@ export default function VoucherModal() {
                 <div
                   style={{
                     padding: 'var(--sp-3)',
-                    background: '#FEF2F2',
-                    border: '1px solid #FCA5A5',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
                     borderRadius: '8px',
-                    color: '#DC2626',
+                    color: 'var(--c-error)',
                     fontSize: 'var(--fs-sm)',
                     fontWeight: 600,
                     marginTop: 'var(--sp-3)',
@@ -147,7 +147,7 @@ export default function VoucherModal() {
 
               <div
                 style={{
-                  background: 'var(--c-surface)',
+                  background: 'var(--surface-secondary)',
                   border: 'var(--border-width) solid var(--border-color)',
                   padding: 'var(--sp-3)',
                   fontSize: 'var(--fs-xs)',
@@ -183,17 +183,17 @@ export default function VoucherModal() {
             <div
               style={{
                 padding: 'var(--sp-5)',
-                background: '#ECFDF5',
+                background: 'rgba(16, 185, 129, 0.15)',
                 border: '2px solid #10B981',
                 borderRadius: '12px',
                 textAlign: 'center',
               }}
             >
-              <div style={{ fontSize: '48px', marginBottom: 'var(--sp-3)' }}>✓</div>
-              <h3 style={{ margin: 0, marginBottom: 'var(--sp-2)', color: '#065F46', fontSize: 'var(--fs-lg)' }}>
+              <div style={{ fontSize: '48px', marginBottom: 'var(--sp-3)', color: 'var(--c-success)' }}>✓</div>
+              <h3 style={{ margin: 0, marginBottom: 'var(--sp-2)', color: 'var(--c-success)', fontSize: 'var(--fs-lg)' }}>
                 Voucher Redeemed Successfully!
               </h3>
-              <p style={{ margin: 0, color: '#047857', fontSize: 'var(--fs-sm)' }}>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 'var(--fs-sm)' }}>
                 Your {premiumDetails.planTier || 'premium'} access is now active
                 {premiumDetails.expiresAt && ` until ${new Date(premiumDetails.expiresAt).toLocaleDateString()}`}.
               </p>

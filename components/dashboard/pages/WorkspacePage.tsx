@@ -213,7 +213,7 @@ export default function WorkspacePage() {
  key={d.id}
  className="card"
  style={{
- background: 'white',
+ background: 'var(--surface-card)',
  padding: 'var(--sp-3)',
  border: 'var(--border-width) solid var(--border-color)',
  boxShadow: 'var(--shadow-sm)',
@@ -226,7 +226,7 @@ export default function WorkspacePage() {
  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-2)' }}>
  <span style={{ fontSize: 'var(--fs-md)', fontWeight: 'var(--fw-black)' }}>{d.value}</span>
  </div>
- <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', borderTop: '1px solid var(--c-gray-200)', paddingTop: 'var(--sp-2)' }}>
+ <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', borderTop: '1px solid var(--border-color)', paddingTop: 'var(--sp-2)' }}>
  {crm.pipeline.map((p) => (
  <button
  key={p.id}
@@ -254,7 +254,7 @@ export default function WorkspacePage() {
  <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
  <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
  <thead>
- <tr style={{ background: 'var(--c-surface)', borderBottom: 'var(--border-width) solid var(--border-color)' }}>
+ <tr style={{ background: 'var(--surface-secondary)', borderBottom: 'var(--border-width) solid var(--border-color)' }}>
  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Contact Name</th>
  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Company</th>
  <th style={{ textAlign: 'left', padding: 'var(--sp-3)' }}>Role</th>
@@ -272,7 +272,7 @@ export default function WorkspacePage() {
  </tr>
  ) : (
  crm.contacts.map((c) => (
- <tr key={c.id} style={{ borderBottom: '1px solid var(--c-gray-200)' }}>
+ <tr key={c.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
  <td style={{ padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)' }}>{c.name}</td>
  <td style={{ padding: 'var(--sp-3)' }}>{c.company}</td>
  <td style={{ padding: 'var(--sp-3)' }}>{c.role}</td>
@@ -309,7 +309,7 @@ export default function WorkspacePage() {
  alignItems: 'center',
  justifyContent: 'space-between',
  padding: 'var(--sp-3)',
- background: 'var(--c-surface)',
+ background: 'var(--surface-secondary)',
  border: 'var(--border-width) solid var(--border-color)',
  }}
  >
@@ -343,7 +343,7 @@ export default function WorkspacePage() {
  {/* Cursis Agency Storefront */}
  {activeTab === 'agency-store' && (
  <div>
- <div className="card" style={{ padding: 'var(--sp-5)', marginBottom: 'var(--sp-5)', background: 'var(--c-white)', borderLeft: '6px solid var(--c-brand)' }}>
+ <div className="card" style={{ padding: 'var(--sp-5)', marginBottom: 'var(--sp-5)', background: 'var(--surface-card)', borderLeft: '6px solid var(--c-brand)' }}>
  <span className="badge badge-brand" style={{ marginBottom: 'var(--sp-2)' }}>CURSIS AI SOLUTIONS AGENCY</span>
  <h2 style={{ margin: '0 0 var(--sp-2) 0', fontSize: 'var(--fs-2xl)' }}>Custom AI Engineering &amp; Client Workspaces</h2>
  <p style={{ margin: '0 0 var(--sp-4) 0', color: 'var(--text-secondary)', maxWidth: '720px' }}>

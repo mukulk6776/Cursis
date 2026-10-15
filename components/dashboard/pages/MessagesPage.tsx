@@ -327,8 +327,9 @@ export default function MessagesPage() {
  padding: '7px 10px',
  borderRadius: 'var(--border-radius-sm)',
  cursor: 'pointer',
- background: isActive ? 'var(--c-near-black)' : 'transparent',
- color: isActive ? 'var(--c-white)' : 'var(--text-primary)',
+ background: isActive ? 'var(--surface-hover)' : 'transparent',
+ color: isActive ? 'var(--c-brand)' : 'var(--text-primary)',
+ borderLeft: isActive ? '3px solid var(--c-brand)' : '3px solid transparent',
  fontWeight: isActive ? 700 : 500,
  fontSize: '13px',
  marginBottom: '2px',
@@ -399,8 +400,9 @@ export default function MessagesPage() {
  padding: '7px 10px',
  borderRadius: 'var(--border-radius-sm)',
  cursor: 'pointer',
- background: isActive ? 'var(--c-near-black)' : 'transparent',
- color: isActive ? 'var(--c-white)' : 'var(--text-primary)',
+ background: isActive ? 'var(--surface-hover)' : 'transparent',
+ color: isActive ? 'var(--c-brand)' : 'var(--text-primary)',
+ borderLeft: isActive ? '3px solid var(--c-brand)' : '3px solid transparent',
  fontWeight: isActive ? 700 : 500,
  fontSize: '13px',
  marginBottom: '2px',
@@ -620,16 +622,16 @@ export default function MessagesPage() {
  style={{
  marginTop: '10px',
  padding: '10px 14px',
- background: '#fff7ed',
- borderLeft: '3px solid #f97316',
+ background: 'rgba(255, 85, 0, 0.1)',
+ borderLeft: '3px solid var(--c-brand)',
  borderRadius: '4px',
- border: '1px solid #fed7aa',
+ border: '1px solid rgba(255, 85, 0, 0.25)',
  }}
  >
- <div style={{ fontWeight: 800, fontSize: '12px', color: '#c2410c' }}>
+ <div style={{ fontWeight: 800, fontSize: '12px', color: 'var(--c-brand)' }}>
  Actionable Task Detected by Ordis
  </div>
- <div style={{ fontSize: '12px', color: '#431407', marginTop: '3px' }}>
+ <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px' }}>
  "{msg.proposedTask.name}" · Due {msg.proposedTask.deadline}
  </div>
  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
@@ -670,11 +672,12 @@ export default function MessagesPage() {
  alignItems: 'center',
  gap: '5px',
  padding: '3px 8px',
- background: '#f1f5f9',
- border: '1px solid #cbd5e1',
+ background: 'var(--surface-secondary)',
+ border: '1px solid var(--border-color)',
  borderRadius: '4px',
  fontSize: '11px',
  fontWeight: 600,
+ color: 'var(--text-primary)',
  cursor: 'pointer',
  }}
  >
@@ -733,7 +736,7 @@ export default function MessagesPage() {
  style={{
  padding: 'var(--sp-3) var(--sp-4)',
  borderTop: 'var(--border-width) solid var(--border-color)',
- background: 'var(--c-white)',
+ background: 'var(--surface-card)',
  }}
  >
  <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
@@ -834,7 +837,7 @@ export default function MessagesPage() {
  fontSize: '11px',
  fontWeight: 800,
  color: 'var(--text-tertiary)',
- borderBottom: '1px solid var(--c-gray-200)',
+ borderBottom: '1px solid var(--border-color)',
  }}
  >
  {parentThreadMsg.threads?.length || 0} REPLIES
@@ -854,8 +857,8 @@ export default function MessagesPage() {
  marginBottom: '10px',
  padding: '6px 8px',
  borderRadius: '6px',
- background: 'var(--c-white)',
- border: '1px solid var(--c-gray-200)',
+ background: 'var(--surface-secondary)',
+ border: '1px solid var(--border-color)',
  }}
  >
  <div
@@ -895,7 +898,7 @@ export default function MessagesPage() {
  </div>
 
  {/* Thread Reply Input */}
- <div style={{ padding: 'var(--sp-3)', borderTop: '1px solid var(--c-gray-200)', background: 'var(--c-white)' }}>
+ <div style={{ padding: 'var(--sp-3)', borderTop: '1px solid var(--border-color)', background: 'var(--surface-card)' }}>
  <div style={{ display: 'flex', gap: '6px' }}>
  <input
  type="text"

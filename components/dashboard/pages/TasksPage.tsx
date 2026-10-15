@@ -131,7 +131,7 @@ export default function TasksPage() {
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {/* View Switcher */}
-          <div style={{ display: 'flex', background: '#F3F4F6', padding: '3px', borderRadius: '8px', border: '1px solid #E5E7EB', gap: '2px' }}>
+          <div style={{ display: 'flex', background: 'var(--surface-secondary)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '2px' }}>
             {(['list', 'calendar', 'timeline'] as ViewMode[]).map((v) => (
               <button
                 key={v}
@@ -143,10 +143,10 @@ export default function TasksPage() {
                   borderRadius: '6px',
                   height: '28px',
                   fontWeight: currentView === v ? 600 : 500,
-                  background: currentView === v ? '#FFFFFF' : 'transparent',
-                  color: currentView === v ? '#111827' : '#6B7280',
-                  border: currentView === v ? '1px solid #E5E7EB' : '1px solid transparent',
-                  boxShadow: currentView === v ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                  background: currentView === v ? 'var(--surface-card)' : 'transparent',
+                  color: currentView === v ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  border: currentView === v ? '1px solid var(--border-color)' : '1px solid transparent',
+                  boxShadow: currentView === v ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -493,17 +493,17 @@ export default function TasksPage() {
                   {Array.from(new Set(filteredTasks.map((t) => t.deadline))).sort().map((dateStr) => {
                     const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
                     return (
-                      <div key={dateStr} className="card" style={{ background: 'var(--c-surface)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: '#0f4cff' }}>
+                      <div key={dateStr} className="card" style={{ background: 'var(--surface-card)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: 'var(--c-brand)' }}>
                           {formatDate(dateStr)} ({dayTasks.length})
                         </div>
                         {dayTasks.map((t) => (
                           <div
                             key={t.id}
-                            style={{ padding: '6px 8px', background: 'white', border: '1px solid var(--border-color)', borderRadius: '4px', marginBottom: '4px', fontSize: '12px', cursor: 'pointer' }}
+                            style={{ padding: '6px 8px', background: 'var(--surface-secondary)', border: '1px solid var(--border-color)', borderRadius: '4px', marginBottom: '4px', fontSize: '12px', cursor: 'pointer' }}
                             onClick={() => setSelectedTaskDetail(t)}
                           >
-                            <div style={{ fontWeight: 600, color: '#0A0A0A' }}>{t.name}</div>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t.name}</div>
                             <div style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{t.status} · {t.priority}</div>
                           </div>
                         ))}
@@ -516,22 +516,22 @@ export default function TasksPage() {
 
             {/* 4. Timeline / Progress View */}
             {currentView === 'timeline' && (
-              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: '#0A0A0A' }}>
+              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Sprint Progress
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {filteredTasks.map((t) => (
                     <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 0', borderBottom: '1px solid var(--border-color)' }}>
-                      <div style={{ width: '220px', fontWeight: 600, fontSize: '12px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: '#0A0A0A' }}>
+                      <div style={{ width: '220px', fontWeight: 600, fontSize: '12px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
                         {t.name}
                       </div>
-                      <div style={{ flex: 1, background: 'var(--c-surface)', height: '16px', borderRadius: '4px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+                      <div style={{ flex: 1, background: 'var(--surface-secondary)', height: '16px', borderRadius: '4px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
                         <div
                           style={{
                             height: '100%',
                             width: t.status === 'completed' ? '100%' : t.status === 'in-progress' ? '50%' : t.status === 'review' ? '80%' : '15%',
-                            background: t.status === 'completed' ? '#16a34a' : '#0f4cff',
+                            background: t.status === 'completed' ? '#16a34a' : 'var(--c-brand)',
                           }}
                         />
                       </div>
@@ -549,7 +549,7 @@ export default function TasksPage() {
 
       {/* Task Templates Section */}
       <div style={{ marginTop: '24px' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: '#0A0A0A' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
           Quick Task Templates
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
@@ -567,11 +567,11 @@ export default function TasksPage() {
                 cursor: 'pointer',
                 border: '1px solid var(--border-color)',
                 borderRadius: '6px',
-                background: 'var(--c-white)',
+                background: 'var(--surface-card)',
               }}
               onClick={() => loadTemplate(tmpl.name)}
             >
-              <div style={{ fontWeight: 700, fontSize: '12px', color: '#0A0A0A', marginBottom: '2px' }}>
+              <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-primary)', marginBottom: '2px' }}>
                 + {tmpl.name}
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{tmpl.fields}</div>
@@ -601,7 +601,7 @@ export default function TasksPage() {
             style={{
               maxWidth: '520px',
               width: '100%',
-              background: 'var(--c-white)',
+              background: 'var(--surface-modal, var(--surface-card))',
               borderRadius: '8px',
               border: '1px solid var(--border-color)',
               padding: '20px',
@@ -616,7 +616,7 @@ export default function TasksPage() {
                     fontWeight: 700,
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    background: 'var(--c-surface)',
+                    background: 'var(--surface-secondary)',
                     color: 'var(--text-secondary)',
                     border: '1px solid var(--border-color)',
                     textTransform: 'uppercase',
@@ -624,7 +624,7 @@ export default function TasksPage() {
                 >
                   {selectedTaskDetail.priority}
                 </span>
-                <h3 style={{ margin: '6px 0 0 0', fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>
+                <h3 style={{ margin: '6px 0 0 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {selectedTaskDetail.name}
                 </h3>
               </div>
@@ -655,7 +655,7 @@ export default function TasksPage() {
                       updateTaskStatus(selectedTaskDetail.id, e.target.value as TaskStatus);
                       setSelectedTaskDetail({ ...selectedTaskDetail, status: e.target.value as TaskStatus });
                     }}
-                    style={{ width: '100%', height: '32px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                    style={{ width: '100%', height: '32px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
                   >
                     <option value="todo">To Do</option>
                     <option value="in-progress">In Progress</option>
@@ -667,7 +667,7 @@ export default function TasksPage() {
                   <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                     Deadline
                   </label>
-                  <div style={{ fontSize: '12px', padding: '6px 0', color: '#0A0A0A', fontWeight: 500 }}>
+                  <div style={{ fontSize: '12px', padding: '6px 0', color: 'var(--text-primary)', fontWeight: 500 }}>
                     {formatDate(selectedTaskDetail.deadline)}
                   </div>
                 </div>

@@ -93,20 +93,20 @@ export default function EventModal() {
         style={{
           maxWidth: '520px',
           width: '100%',
-          background: '#ffffff',
+          background: 'var(--surface-modal, var(--surface-card))',
           borderRadius: '10px',
-          border: '1px solid var(--border-color, #E5E7EB)',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.3))',
           padding: '24px',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
           <div>
-            <h3 id="event-modal-title" style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: '#111827' }}>
+            <h3 id="event-modal-title" style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
               Create Calendar Event
             </h3>
-            <p style={{ fontSize: '12px', color: '#6B7280', margin: '3px 0 0 0' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
               Schedule milestones, company events, release deadlines, or team syncs.
             </p>
           </div>
@@ -115,7 +115,7 @@ export default function EventModal() {
             className="btn btn-ghost btn-sm"
             onClick={closeModal}
             aria-label="Close modal"
-            style={{ fontSize: '16px', padding: '2px 8px', color: '#6B7280' }}
+            style={{ fontSize: '16px', padding: '2px 8px', color: 'var(--text-secondary)' }}
           >
             ✕
           </button>
@@ -125,7 +125,7 @@ export default function EventModal() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Title */}
             <div>
-              <label htmlFor="event-modal-title-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+              <label htmlFor="event-modal-title-input" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
                 Event Title *
               </label>
               <input
@@ -142,8 +142,10 @@ export default function EventModal() {
                   height: '36px',
                   padding: '0 12px',
                   fontSize: '13px',
-                  border: '1px solid #D1D5DB',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '6px',
+                  background: 'var(--surface-secondary)',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -151,7 +153,7 @@ export default function EventModal() {
             {/* Type & Project */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label htmlFor="event-modal-type-select" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-type-select" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
                   Category
                 </label>
                 <select
@@ -164,8 +166,10 @@ export default function EventModal() {
                     height: '36px',
                     padding: '0 10px',
                     fontSize: '13px',
-                    border: '1px solid #D1D5DB',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '6px',
+                    background: 'var(--surface-secondary)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   <option value="event">General Event</option>
@@ -177,7 +181,7 @@ export default function EventModal() {
               </div>
 
               <div>
-                <label htmlFor="event-modal-project-select" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-project-select" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
                   Linked Project (Optional)
                 </label>
                 <select
@@ -190,8 +194,10 @@ export default function EventModal() {
                     height: '36px',
                     padding: '0 10px',
                     fontSize: '13px',
-                    border: '1px solid #D1D5DB',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '6px',
+                    background: 'var(--surface-secondary)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   <option value="">None / General Workspace</option>
@@ -207,7 +213,7 @@ export default function EventModal() {
             {/* Date & Time */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '10px' }}>
               <div>
-                <label htmlFor="event-modal-date-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-date-input" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
                   Date *
                 </label>
                 <input
@@ -222,14 +228,16 @@ export default function EventModal() {
                     height: '36px',
                     padding: '0 10px',
                     fontSize: '12px',
-                    border: '1px solid #D1D5DB',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '6px',
+                    background: 'var(--surface-secondary)',
+                    color: 'var(--text-primary)',
                   }}
                 />
               </div>
 
               <div>
-                <label htmlFor="event-modal-time-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-time-input" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
                   Start Time
                 </label>
                 <input
@@ -243,14 +251,16 @@ export default function EventModal() {
                     height: '36px',
                     padding: '0 10px',
                     fontSize: '12px',
-                    border: '1px solid #D1D5DB',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '6px',
+                    background: 'var(--surface-secondary)',
+                    color: 'var(--text-primary)',
                   }}
                 />
               </div>
 
               <div>
-                <label htmlFor="event-modal-duration-select" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+                <label htmlFor="event-modal-duration-select" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
                   Duration
                 </label>
                 <select
@@ -263,8 +273,10 @@ export default function EventModal() {
                     height: '36px',
                     padding: '0 10px',
                     fontSize: '12px',
-                    border: '1px solid #D1D5DB',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '6px',
+                    background: 'var(--surface-secondary)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   <option value={15}>15 mins</option>
@@ -281,7 +293,7 @@ export default function EventModal() {
 
             {/* Location / Venue */}
             <div>
-              <label htmlFor="event-modal-location-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+              <label htmlFor="event-modal-location-input" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
                 Location / Venue
               </label>
               <input
@@ -296,15 +308,17 @@ export default function EventModal() {
                   height: '36px',
                   padding: '0 12px',
                   fontSize: '13px',
-                  border: '1px solid #D1D5DB',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '6px',
+                  background: 'var(--surface-secondary)',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
 
             {/* Description */}
             <div>
-              <label htmlFor="event-modal-description-input" style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>
+              <label htmlFor="event-modal-description-input" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
                 Description &amp; Agenda
               </label>
               <textarea
@@ -318,9 +332,11 @@ export default function EventModal() {
                   width: '100%',
                   padding: '8px 12px',
                   fontSize: '13px',
-                  border: '1px solid #D1D5DB',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '6px',
                   resize: 'vertical',
+                  background: 'var(--surface-secondary)',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -333,7 +349,7 @@ export default function EventModal() {
               gap: '10px',
               marginTop: '20px',
               paddingTop: '16px',
-              borderTop: '1px solid var(--border-color, #E5E7EB)',
+              borderTop: '1px solid var(--border-color)',
             }}
           >
             <button

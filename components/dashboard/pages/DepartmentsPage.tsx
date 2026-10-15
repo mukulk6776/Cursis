@@ -259,7 +259,7 @@ export default function DepartmentsPage() {
           style={{
             padding: '48px 24px',
             textAlign: 'center',
-            background: 'var(--c-white)',
+            background: 'var(--surface-card)',
             border: '1px solid var(--border-color)',
             borderRadius: '8px',
           }}
@@ -299,7 +299,7 @@ export default function DepartmentsPage() {
                 className="card"
                 style={{
                   padding: '14px 18px',
-                  background: 'var(--c-white)',
+                  background: 'var(--surface-card)',
                   border: '1px solid var(--border-color)',
                   borderRadius: '8px',
                   display: 'flex',
@@ -311,7 +311,7 @@ export default function DepartmentsPage() {
               >
                 <div style={{ flex: '1', minWidth: '220px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '15px', fontWeight: 700, color: '#0A0A0A' }}>
+                    <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {dept.name}
                     </span>
                     <span
@@ -399,10 +399,10 @@ export default function DepartmentsPage() {
                   <div
                     style={{
                       padding: '8px 12px',
-                      background: '#fee2e2',
-                      border: '1px solid #ef4444',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
                       borderRadius: '6px',
-                      color: '#b91c1c',
+                      color: 'var(--c-error)',
                       fontSize: '12px',
                       marginBottom: '12px',
                     }}
@@ -480,10 +480,10 @@ export default function DepartmentsPage() {
                   <div
                     style={{
                       padding: '8px 12px',
-                      background: '#fee2e2',
-                      border: '1px solid #ef4444',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
                       borderRadius: '6px',
-                      color: '#b91c1c',
+                      color: 'var(--c-error)',
                       fontSize: '12px',
                       marginBottom: '12px',
                     }}
@@ -557,10 +557,10 @@ export default function DepartmentsPage() {
                 <div
                   style={{
                     padding: '8px 12px',
-                    background: '#fee2e2',
-                    border: '1px solid #ef4444',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
                     borderRadius: '6px',
-                    color: '#b91c1c',
+                    color: 'var(--c-error)',
                     fontSize: '12px',
                     marginBottom: '12px',
                   }}
@@ -577,17 +577,17 @@ export default function DepartmentsPage() {
                 <div
                   style={{
                     padding: '12px',
-                    background: '#fffbeb',
-                    border: '1px solid #f59e0b',
+                    background: 'rgba(245, 158, 11, 0.15)',
+                    border: '1px solid rgba(245, 158, 11, 0.4)',
                     borderRadius: '6px',
                     marginBottom: '14px',
                   }}
                 >
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#92400e', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <AlertTriangle size={14} color="#92400e" />
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--c-warning, #f59e0b)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertTriangle size={14} color="var(--c-warning, #f59e0b)" />
                     <span>{deletingDept.name} has {deletingDept.activeTaskCount} active task(s).</span>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#78350f', margin: '0 0 10px 0' }}>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 10px 0' }}>
                     Choose how to handle active tasks before deleting:
                   </p>
 
