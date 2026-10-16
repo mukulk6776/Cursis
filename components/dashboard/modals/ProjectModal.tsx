@@ -169,7 +169,7 @@ export default function ProjectModal() {
  className="tag"
  style={{
  cursor: 'pointer',
- background: isSelected ? 'var(--c-near-black)' : 'var(--c-gray-200)',
+ background: isSelected ? 'var(--c-brand)' : 'var(--c-gray-200)',
  color: isSelected ? 'white' : 'var(--text-secondary)',
  }}
  onClick={() => {

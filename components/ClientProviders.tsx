@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { ThemeController } from './ThemeController';
 
 // Lazy load CookieConsent - it's not needed for initial render
 const CookieConsent = dynamic(() => import('@/components/CookieConsent'), {
@@ -8,5 +9,5 @@ const CookieConsent = dynamic(() => import('@/components/CookieConsent'), {
 });
 
 export function ClientProviders() {
-  return <CookieConsent />;
+  return <><ThemeController /><CookieConsent /></>;
 }

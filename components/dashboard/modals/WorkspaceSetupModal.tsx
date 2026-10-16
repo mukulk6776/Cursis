@@ -148,7 +148,7 @@ export default function WorkspaceSetupModal() {
           maxWidth: '680px',
           width: '100%',
           maxHeight: '92vh',
-          background: 'var(--c-white, #ffffff)',
+          background: 'var(--surface-modal, #ffffff)',
           borderRadius: '24px',
           boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.08)',
           overflowY: 'auto',

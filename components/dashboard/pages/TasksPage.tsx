@@ -106,7 +106,7 @@ export default function TasksPage() {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0A0A0A' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               Tasks
             </h1>
             <span
@@ -207,9 +207,9 @@ export default function TasksPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: isActive ? '#FF5500' : '#FFFFFF',
-                  color: isActive ? '#FFFFFF' : '#374151',
-                  border: `1px solid ${isActive ? '#FF5500' : '#E5E7EB'}`,
+                  background: isActive ? 'var(--c-brand)' : 'var(--surface-card)',
+                  color: isActive ? 'var(--c-on-brand)' : 'var(--text-secondary)',
+                  border: `1px solid ${isActive ? 'var(--c-brand)' : 'var(--border-color)'}`,
                   boxShadow: isActive ? '0 2px 4px rgba(255, 85, 0, 0.2)' : '0 1px 2px rgba(0, 0, 0, 0.03)',
                   transition: 'all 0.15s ease',
                 }}
@@ -221,8 +221,8 @@ export default function TasksPage() {
                     fontWeight: 700,
                     padding: '1px 6px',
                     borderRadius: '10px',
-                    background: isActive ? 'rgba(255, 255, 255, 0.25)' : '#F3F4F6',
-                    color: isActive ? '#FFFFFF' : '#6B7280',
+                    background: isActive ? 'rgba(255, 255, 255, 0.25)' : 'var(--surface-tertiary)',
+                    color: isActive ? 'var(--c-on-brand)' : 'var(--text-tertiary)',
                   }}
                 >
                   {count}
@@ -292,7 +292,7 @@ export default function TasksPage() {
           <button
             type="button"
             className="btn btn-ghost btn-sm"
-            style={{ fontSize: '11px', padding: '2px 8px', color: '#dc2626' }}
+            style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--c-error)' }}
             onClick={handleBulkDelete}
           >
             Delete Selected ({selectedTaskIds.length})
@@ -316,12 +316,12 @@ export default function TasksPage() {
             style={{
               padding: '48px 24px',
               textAlign: 'center',
-              background: 'var(--c-white)',
+              background: 'var(--surface-card)',
               border: '1px solid var(--border-color)',
               borderRadius: '8px',
             }}
           >
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: '#0A0A0A' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
               No tasks found
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
@@ -342,7 +342,7 @@ export default function TasksPage() {
           <>
             {/* List View */}
             {currentView === 'list' && (
-              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
+              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
                 <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
@@ -389,7 +389,7 @@ export default function TasksPage() {
                             />
                           </td>
                           <td style={{ padding: '10px 14px' }}>
-                            <div style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A', textDecoration: isDone ? 'line-through' : 'none' }}>
+                            <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', textDecoration: isDone ? 'line-through' : 'none' }}>
                               {t.name}
                             </div>
                             {t.description && (
@@ -403,7 +403,7 @@ export default function TasksPage() {
                               <span
                                 style={{
                                   background: 'rgba(15, 76, 255, 0.08)',
-                                  color: '#0f4cff',
+                                  color: 'var(--c-brand-text)',
                                   border: '1px solid rgba(15, 76, 255, 0.2)',
                                   fontSize: '11px',
                                   fontWeight: 600,
@@ -439,7 +439,7 @@ export default function TasksPage() {
                                 borderRadius: '4px',
                                 border: '1px solid var(--border-color)',
                                 background: 'var(--c-surface)',
-                                color: t.priority === 'urgent' || t.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
+                                color: t.priority === 'urgent' || t.priority === 'high' ? 'var(--c-error)' : 'var(--text-secondary)',
                               }}
                             >
                               {t.priority}
@@ -465,7 +465,7 @@ export default function TasksPage() {
                             <button
                               type="button"
                               className="btn btn-ghost btn-sm"
-                              style={{ color: '#dc2626', fontSize: '12px', padding: '2px 8px' }}
+                              style={{ color: 'var(--c-error)', fontSize: '12px', padding: '2px 8px' }}
                               onClick={() => {
                                 if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
                                   deleteTask(t.id);
@@ -485,8 +485,8 @@ export default function TasksPage() {
 
             {/* 3. Calendar View */}
             {currentView === 'calendar' && (
-              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--c-white)' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: '#0A0A0A' }}>
+              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Tasks by Due Date
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
@@ -678,7 +678,7 @@ export default function TasksPage() {
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
-                style={{ color: '#dc2626', fontSize: '12px' }}
+                style={{ color: 'var(--c-error)', fontSize: '12px' }}
                 onClick={() => {
                   if (window.confirm(`Are you sure you want to delete task "${selectedTaskDetail.name}"?`)) {
                     deleteTask(selectedTaskDetail.id);

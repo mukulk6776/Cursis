@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { setDashboardTheme } from '@/lib/dashboard/theme';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function Topbar() {
@@ -44,17 +45,7 @@ export default function Topbar() {
 
   const toggleTheme = () => {
     const nextTheme = isDarkMode ? 'light' : 'dark';
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('cursis_theme', nextTheme);
-      const root = document.documentElement;
-      if (nextTheme === 'dark') {
-        root.setAttribute('data-theme', 'dark');
-        root.classList.add('dark');
-      } else {
-        root.setAttribute('data-theme', 'light');
-        root.classList.remove('dark');
-      }
-    }
+    setDashboardTheme(nextTheme);
     setIsDarkMode(!isDarkMode);
     if (typeof updateWorkspaceSettings === 'function') {
       updateWorkspaceSettings({ theme: nextTheme });
@@ -345,9 +336,7 @@ export default function Topbar() {
                   className={`btn btn-sm ${!isDarkMode ? 'btn-primary' : 'btn-ghost'}`}
                   style={{ flex: 1, fontSize: '11px', padding: '3px 4px', height: '24px', justifyContent: 'center' }}
                   onClick={() => {
-                    localStorage.setItem('cursis_theme', 'light');
-                    document.documentElement.setAttribute('data-theme', 'light');
-                    document.documentElement.classList.remove('dark');
+                    setDashboardTheme('light');
                     setIsDarkMode(false);
                     if (typeof updateWorkspaceSettings === 'function') updateWorkspaceSettings({ theme: 'light' });
                   }}
@@ -359,9 +348,7 @@ export default function Topbar() {
                   className={`btn btn-sm ${isDarkMode ? 'btn-primary' : 'btn-ghost'}`}
                   style={{ flex: 1, fontSize: '11px', padding: '3px 4px', height: '24px', justifyContent: 'center' }}
                   onClick={() => {
-                    localStorage.setItem('cursis_theme', 'dark');
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    document.documentElement.classList.add('dark');
+                    setDashboardTheme('dark');
                     setIsDarkMode(true);
                     if (typeof updateWorkspaceSettings === 'function') updateWorkspaceSettings({ theme: 'dark' });
                   }}

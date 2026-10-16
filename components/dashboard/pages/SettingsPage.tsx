@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { setDashboardTheme, readThemePreference, THEME_EVENT, ThemePreference } from '@/lib/dashboard/theme';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { OrgSettings } from '@/lib/dashboard/types';
 import { Sun, Moon, Monitor, Pipette } from 'lucide-react';
@@ -37,7 +38,20 @@ teamSettings,
  } = useDashboard();
 
  const [activeTab, setActiveTab] = useState<SettingsTab>('workspace');
+ const [themePreference, setThemePreference] = useState<ThemePreference>('system');
  const [auditLoading, setAuditLoading] = useState(false);
+
+ useEffect(() => {
+   const refresh = () => setThemePreference(readThemePreference());
+   const change = (event: Event) => setThemePreference((event as CustomEvent<ThemePreference>).detail);
+   refresh();
+   window.addEventListener('storage', refresh);
+   window.addEventListener(THEME_EVENT, change);
+   return () => {
+     window.removeEventListener('storage', refresh);
+     window.removeEventListener(THEME_EVENT, change);
+   };
+ }, []);
 
  // Fetch audit logs when security tab becomes active
  useEffect(() => {
@@ -285,15 +299,14 @@ teamSettings,
 
  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--sp-4)' }}>
  <div className="input-group">
- <label className="input-label">Website Theme (Dark Mode)</label>
+ <label className="input-label">Dashboard appearance</label>
  <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
  {[
  { id: 'light', label: 'Light', icon: Sun },
  { id: 'dark', label: 'Dark', icon: Moon },
  { id: 'system', label: 'System', icon: Monitor },
  ].map(({ id, label, icon: Icon }) => {
- const currentTheme = (wsForm as any).theme || (typeof window !== 'undefined' ? localStorage.getItem('cursis_theme') : null) || 'light';
- const isActive = currentTheme === id;
+ const isActive = themePreference === id;
  return (
  <button
  key={id}
@@ -303,21 +316,7 @@ teamSettings,
  onClick={() => {
  const mode = id as 'light' | 'dark' | 'system';
  setWsForm((prev) => ({ ...prev, theme: mode }));
- if (typeof window !== 'undefined') {
- localStorage.setItem('cursis_theme', mode);
- const root = document.documentElement;
- if (mode === 'dark') {
- root.setAttribute('data-theme', 'dark');
- root.classList.add('dark');
- } else if (mode === 'system') {
- const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
- root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
- if (prefersDark) root.classList.add('dark'); else root.classList.remove('dark');
- } else {
- root.setAttribute('data-theme', 'light');
- root.classList.remove('dark');
- }
- }
+ setDashboardTheme(mode);
  updateWorkspaceSettings({ theme: mode });
  }}
  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flex: 1, fontWeight: isActive ? 700 : 500 }}

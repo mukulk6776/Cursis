@@ -1,0 +1,77 @@
+/* Dashboard-only refinements. Public pages always retain the cream palette. */
+html[data-dashboard="true"][data-theme="dark"] .cursis-dashboard-root {
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  accent-color: var(--c-brand);
+  scrollbar-color: var(--border-dark) var(--surface-primary);
+
+  & :is(.card, .stat-card, .project-card, .task-card, .kanban-card) {
+    background: var(--surface-card);
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-sm);
+  }
+
+  & :is(.card, .project-card, .task-card, .kanban-card):hover {
+    border-color: var(--border-dark);
+  }
+
+  & :is(.dropdown-menu, .modal, .notif-panel, .command-palette, .profile-panel) {
+    background: var(--surface-modal);
+    color: var(--text-primary);
+    border-color: var(--border-dark);
+    box-shadow: var(--shadow-lg);
+  }
+
+  & :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), textarea, select) {
+    background-color: var(--c-bg-subtle);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    caret-color: var(--c-brand-light);
+  }
+
+  & :is(input, textarea)::placeholder { color: var(--text-muted); opacity: 1; }
+  & option { background: var(--surface-modal); color: var(--text-primary); }
+  & input:-webkit-autofill {
+    -webkit-text-fill-color: var(--text-primary);
+    box-shadow: 0 0 0 1000px var(--c-bg-subtle) inset;
+    caret-color: var(--text-primary);
+  }
+
+  & :is(button, a, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--c-brand-light);
+    outline-offset: 3px;
+  }
+
+  & :is(.btn-primary, .btn-brand) {
+    background: var(--c-brand);
+    color: var(--c-on-brand);
+    border-color: var(--c-brand-light);
+    box-shadow: var(--shadow-xs);
+  }
+  & :is(.btn-primary, .btn-brand):hover { background: var(--c-brand-hover); }
+  & :is(.btn-secondary, .view-switcher, .tabs-pill) { background: var(--surface-tertiary); }
+  & :is(.btn-ghost, .dropdown-item, .tab):hover { background: var(--surface-hover); }
+  & :is(button:disabled, input:disabled, select:disabled) { opacity: 0.55; cursor: not-allowed; }
+
+  & :is(th, .table-header) { background: var(--c-bg-subtle); color: var(--text-secondary); }
+  & td { border-color: var(--border-light); }
+  & tbody tr:hover { background: var(--surface-hover); }
+  & :is(.avatar-count, .tag) { background: var(--surface-tertiary); color: var(--text-secondary); }
+  & .avatar-group .avatar { border-color: var(--surface-card); }
+  & .progress { background: var(--border-light); }
+  & :is(.badge-brand, .badge-info) { color: var(--c-brand-text); }
+  & :is(.flow-when, .mention-link) { color: var(--c-info); }
+  & .flow-if { color: var(--c-warning); }
+  & .flow-then { color: var(--c-success); }
+  & .toggle { background: var(--border-dark); }
+  & .toggle.active { background: var(--c-brand); }
+  & .toggle::after { background: #FFFFFF; }
+  & ::selection { background: #803B22; color: #FFFFFF; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursis-dashboard-root *, .cursis-dashboard-root *::before, .cursis-dashboard-root *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

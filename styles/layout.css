@@ -46,7 +46,7 @@
   height: var(--topbar-height);
   border-bottom: var(--border-width) solid var(--border-color);
   flex-shrink: 0;
-  background: var(--c-white);
+  background: var(--surface-card);
 }
 
 .sidebar-logo {
@@ -261,7 +261,7 @@
   border-top: var(--border-width) solid var(--border-color);
   padding: var(--sp-3);
   flex-shrink: 0;
-  background: var(--c-white);
+  background: var(--surface-card);
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
@@ -274,7 +274,7 @@
   padding: var(--sp-2) var(--sp-3);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
-  background: var(--c-white);
+  background: var(--surface-card);
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease-default);
   margin-top: var(--sp-2);
@@ -383,7 +383,7 @@
 /* ---- Top Bar ---- */
 .topbar {
   height: var(--topbar-height);
-  background: var(--c-white);
+  background: var(--surface-card);
   border-bottom: var(--border-width) solid var(--border-color);
   display: flex;
   align-items: center;
@@ -437,7 +437,7 @@
 .topbar-search-btn .search-shortcut {
   font-size: var(--fs-xs);
   color: var(--text-secondary);
-  background: var(--c-white);
+  background: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-xs);
   padding: 2px 6px;
@@ -459,7 +459,7 @@
   justify-content: center;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
-  background: var(--c-white);
+  background: var(--surface-card);
   color: var(--text-secondary);
   font-weight: var(--fw-semibold);
   position: relative;

@@ -247,9 +247,9 @@ export default function ProjectsPage() {
 
                     {/* Stats Row */}
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', fontSize: '11px' }}>
-                      <span style={{ color: '#0f4cff', fontWeight: 600 }}>{activeTasks} active</span>
+                      <span style={{ color: 'var(--c-brand-text)', fontWeight: 600 }}>{activeTasks} active</span>
                       {overdueTasks > 0 && (
-                        <span style={{ color: '#dc2626', fontWeight: 600 }}>{overdueTasks} overdue</span>
+                        <span style={{ color: 'var(--c-error)', fontWeight: 600 }}>{overdueTasks} overdue</span>
                       )}
                       <span style={{ color: 'var(--text-secondary)' }}>Due {p.deadline}</span>
                     </div>

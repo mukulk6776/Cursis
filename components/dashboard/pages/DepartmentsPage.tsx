@@ -362,7 +362,7 @@ export default function DepartmentsPage() {
                       type="button"
                       className="btn btn-ghost btn-sm"
                       onClick={() => openDeleteModal(dept)}
-                      style={{ fontSize: '12px', color: '#dc2626', padding: '4px 10px' }}
+                      style={{ fontSize: '12px', color: 'var(--c-error)', padding: '4px 10px' }}
                     >
                       Delete
                     </button>

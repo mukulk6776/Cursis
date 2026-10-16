@@ -259,7 +259,7 @@ export default function MessagesPage() {
  display: 'flex',
  flex: 1,
  border: 'var(--border-width) solid var(--border-color)',
- background: 'var(--c-white)',
+ background: 'var(--surface-card)',
  overflow: 'hidden',
  }}
  >
@@ -450,7 +450,7 @@ export default function MessagesPage() {
  </div>
 
  {/* Message Area */}
- <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'var(--c-white)' }}>
+ <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'var(--surface-card)' }}>
  {/* Header */}
  <div
  style={{
@@ -459,7 +459,7 @@ export default function MessagesPage() {
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
- background: 'var(--c-white)',
+ background: 'var(--surface-card)',
  }}
  >
  <div>
@@ -801,7 +801,7 @@ export default function MessagesPage() {
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
- background: 'var(--c-white)',
+ background: 'var(--surface-card)',
  }}
  >
  <span style={{ fontWeight: 800, fontSize: '13px' }}>Thread Discussion</span>
@@ -819,7 +819,7 @@ export default function MessagesPage() {
  style={{
  padding: 'var(--sp-3) var(--sp-4)',
  borderBottom: '1px solid var(--c-gray-200)',
- background: 'var(--c-white)',
+ background: 'var(--surface-card)',
  }}
  >
  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>

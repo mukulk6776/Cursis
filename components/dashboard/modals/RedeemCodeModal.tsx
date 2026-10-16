@@ -56,7 +56,7 @@ export default function RedeemCodeModal() {
         style={{
           maxWidth: '540px',
           width: '95%',
-          background: 'var(--c-white)',
+          background: 'var(--surface-card)',
           borderRadius: 'var(--border-radius-lg)',
           boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
           overflow: 'hidden',

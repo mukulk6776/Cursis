@@ -712,7 +712,7 @@ export default function DocumentsPage() {
                     <button
                       type="button"
                       className="btn btn-ghost btn-sm"
-                      style={{ fontSize: '11px', padding: '3px 8px', color: '#dc2626' }}
+                      style={{ fontSize: '11px', padding: '3px 8px', color: 'var(--c-error)' }}
                       onClick={() => setDeletingDoc(doc)}
                       title="Delete Document"
                     >
@@ -749,7 +749,7 @@ export default function DocumentsPage() {
                   <td style={{ padding: '10px 14px', fontWeight: 700 }}>
                     <button
                       type="button"
-                      style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontWeight: 700, cursor: 'pointer', color: '#0f4cff', textAlign: 'left' }}
+                      style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontWeight: 700, cursor: 'pointer', color: 'var(--c-brand-text)', textAlign: 'left' }}
                       onClick={() => setPreviewDoc(doc)}
                     >
                       {doc.name}
@@ -806,7 +806,7 @@ export default function DocumentsPage() {
                         <button
                           type="button"
                           className="btn btn-ghost btn-sm"
-                          style={{ fontSize: '11px', padding: '2px 8px', color: '#dc2626' }}
+                          style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--c-error)' }}
                           onClick={() => setDeletingDoc(doc)}
                         >
                           Delete
@@ -965,7 +965,7 @@ export default function DocumentsPage() {
                     <button
                       type="button"
                       className="btn btn-ghost btn-sm"
-                      style={{ color: '#dc2626' }}
+                      style={{ color: 'var(--c-error)' }}
                       onClick={() => {
                         setDeletingDoc(previewDoc);
                         setPreviewDoc(null);
@@ -1017,7 +1017,7 @@ export default function DocumentsPage() {
             <form onSubmit={handleCreateSubmit}>
               <div className="modal-body">
                 {createFileError && (
-                  <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', borderRadius: '6px', fontSize: '12px', marginBottom: 'var(--sp-3)', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--c-error)', borderRadius: '6px', fontSize: '12px', marginBottom: 'var(--sp-3)', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <AlertCircle size={14} />
                     <span>{createFileError}</span>
                   </div>
@@ -1036,7 +1036,7 @@ export default function DocumentsPage() {
                     style={{ padding: '6px' }}
                   />
                   {createFileName && (
-                    <div style={{ fontSize: '11px', color: '#0f4cff', marginTop: '4px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--c-brand-text)', marginTop: '4px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <CheckCircle2 size={13} /> Attached: {createFileName} ({createFileSize})
                     </div>
                   )}

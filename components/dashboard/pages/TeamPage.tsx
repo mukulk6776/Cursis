@@ -348,7 +348,7 @@ export default function TeamPage() {
                               padding: '1px 6px',
                               borderRadius: '4px',
                               background: 'rgba(15, 76, 255, 0.08)',
-                              color: '#0f4cff',
+                              color: 'var(--c-brand-text)',
                               border: '1px solid rgba(15, 76, 255, 0.2)',
                             }}
                           >
@@ -407,7 +407,7 @@ export default function TeamPage() {
                               style={{
                                 fontSize: '11px',
                                 padding: '2px 8px',
-                                color: '#dc2626',
+                                color: 'var(--c-error)',
                               }}
                               onClick={async (e) => {
                                 e.stopPropagation();
@@ -520,7 +520,7 @@ export default function TeamPage() {
                       <button
                         type="button"
                         className="btn btn-ghost btn-sm"
-                        style={{ fontSize: '11px', padding: '2px 8px', color: '#dc2626' }}
+                        style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--c-error)' }}
                         disabled={!canManage}
                         onClick={() => revokeInvitation(inv.id)}
                       >

@@ -30,7 +30,7 @@
 }
 
 .ai-command-bar {
- background: var(--c-white);
+ background: var(--surface-card);
  border: 1px solid var(--border-color);
  border-radius: var(--border-radius-lg);
  padding: var(--sp-4) var(--sp-5);
@@ -137,7 +137,7 @@
 }
 
 .ai-response-card {
- background: var(--c-white);
+ background: var(--surface-card);
  
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
@@ -233,7 +233,7 @@
  align-items: center;
  gap: var(--sp-2);
  padding: var(--sp-2) var(--sp-4);
- background: var(--c-white);
+ background: var(--surface-card);
  border: 1px solid var(--border-color);
  font-size: var(--fs-sm);
  font-weight: var(--fw-medium);
@@ -263,7 +263,7 @@
 
 /* My Work Section */
 .my-work {
- background: var(--c-white);
+ background: var(--surface-card);
  
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
@@ -294,7 +294,7 @@
  gap: var(--sp-3);
  padding: var(--sp-3) var(--sp-4);
  border-bottom: 1px solid var(--c-gray-200);
- background: var(--c-white);
+ background: var(--surface-card);
  transition: all var(--dur-fast) var(--ease-default);
  cursor: pointer;
 }
@@ -313,7 +313,7 @@
  width: 18px;
  height: 18px;
  border: 2px solid var(--c-gray-400);
- background: var(--c-white);
+ background: var(--surface-card);
  cursor: pointer;
  display: inline-flex;
  align-items: center;
@@ -416,7 +416,7 @@
 .task-row .task-project {
  font-size: var(--fs-xs);
  color: var(--text-tertiary);
- background: var(--c-white);
+ background: var(--surface-card);
  padding: 2px 8px;
  
  white-space: nowrap;
@@ -451,7 +451,7 @@
 }
 
 .insight-card {
- background: var(--c-white);
+ background: var(--surface-card);
  
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
@@ -477,7 +477,7 @@
  display: flex;
  align-items: center;
  justify-content: center;
- color: var(--c-dark);
+ color: var(--text-primary);
  flex-shrink: 0;
  font-size: var(--fs-lg);
 }
@@ -497,7 +497,7 @@
 
 /* Activity Feed */
 .activity-feed {
- background: var(--c-white);
+ background: var(--surface-card);
  border: var(--border-width) solid var(--border-color);
  border-radius: var(--border-radius-md);
  box-shadow: var(--shadow-sm);
@@ -702,7 +702,7 @@
 
 /* Task list view */
 .task-list-view {
-  background: var(--c-white); 
+  background: var(--surface-card);
   border: 1px solid var(--border-color); 
   border-radius: var(--border-radius-lg);
   overflow-x: auto;
@@ -747,7 +747,7 @@
 }
 
 .project-card {
- background: var(--c-white); 
+ background: var(--surface-card);
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
  padding: var(--sp-5);
@@ -834,7 +834,7 @@
 }
 
 .team-card {
- background: var(--c-white); 
+ background: var(--surface-card);
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
  padding: var(--sp-5);
@@ -895,7 +895,7 @@
  right: 0;
  width: 440px;
  height: 100vh;
- background: var(--surface-card); 
+ background: var(--surface-card);
  border-left: 1px solid var(--border-color);
  box-shadow: var(--shadow-2xl);
  z-index: var(--z-modal);
@@ -939,7 +939,7 @@
 }
 
 .calendar-day {
- background: var(--c-white); 
+ background: var(--surface-card);
  min-height: 100px;
  padding: var(--sp-2);
 }
@@ -984,17 +984,17 @@
 
 .calendar-event.meeting {
  background: var(--c-info-bg);
- color: #2563eb;
+ color: var(--c-info);
 }
 
 .calendar-event.task {
  background: var(--c-purple-bg);
- color: #7c3aed;
+ color: var(--c-purple);
 }
 
 .calendar-event.deadline {
  background: var(--c-error-bg);
- color: #dc2626;
+ color: var(--c-error);
 }
 
 .calendar-header-bar {
@@ -1026,7 +1026,7 @@
 }
 
 .meeting-card {
- background: var(--c-white); 
+ background: var(--surface-card);
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
  padding: var(--sp-4) var(--sp-5);
@@ -1191,7 +1191,7 @@
 @media (max-width: 1024px) { .analytics-grid { grid-template-columns: 1fr; } }
 
 .chart-card {
- background: var(--c-white); 
+ background: var(--surface-card);
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
  padding: var(--sp-5);
@@ -1286,7 +1286,7 @@
 }
 
 .module-card {
- background: var(--c-white); 
+ background: var(--surface-card);
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
  padding: var(--sp-5);
@@ -1337,7 +1337,7 @@
 
 /* Module detail table */
 .module-table {
- background: var(--c-white); 
+ background: var(--surface-card);
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
  overflow: hidden;
@@ -1382,7 +1382,7 @@
 }
 
 .automation-card {
- background: var(--c-white); 
+ background: var(--surface-card);
  border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);
  
  padding: var(--sp-4) var(--sp-5);
@@ -1438,8 +1438,8 @@
 }
 
 .flow-when { background: var(--c-info-bg); color: #2563eb; }
-.flow-if { background: var(--c-warning-bg); color: #b45309; }
-.flow-then { background: var(--c-success-bg); color: #15803d; }
+.flow-if { background: var(--c-warning-bg); color: var(--c-warning); }
+.flow-then { background: var(--c-success-bg); color: var(--c-success); }
 
 .automation-flow-arrow {
  color: var(--c-gray-400);
@@ -1470,7 +1470,7 @@
  border-radius: var(--border-radius-xl);
  width: 90%;
  max-width: 640px;
- background: var(--c-white); 
+ background: var(--surface-card);
  
  box-shadow: var(--shadow-2xl);
  overflow: hidden;
@@ -1535,7 +1535,7 @@
  display: flex;
  align-items: center;
  justify-content: center;
- background: var(--c-white);
+ background: var(--surface-card);
  font-size: var(--fs-base);
  flex-shrink: 0;
 }
@@ -1574,7 +1574,7 @@
  top: calc(100% + 8px);
  right: 0;
  width: 320px;
- background: var(--c-white);
+ background: var(--surface-card);
  border: var(--border-width) solid var(--border-color);
  box-shadow: var(--shadow-lg);
  display: none;
@@ -1627,7 +1627,7 @@
 /* ==== AGENCY HERO BANNER & MODAL ==== */
 .agency-hero-banner {
  border-radius: var(--border-radius-lg);
- background: var(--c-white);
+ background: var(--surface-card);
  border: var(--border-width) solid var(--border-color);
  padding: var(--sp-5) var(--sp-6);
  box-shadow: var(--shadow-md);
@@ -1641,7 +1641,7 @@
 
 .agency-service-card {
  border-radius: var(--border-radius-lg);
- background: var(--c-white);
+ background: var(--surface-card);
  border: var(--border-width) solid var(--border-color);
  padding: var(--sp-4);
  box-shadow: var(--shadow-sm);
@@ -1657,7 +1657,7 @@
 /* ==== DOCUMENTS & PAPERWORK STUDIO ==== */
 .paperwork-studio-card {
  border-radius: var(--border-radius-lg);
- background: var(--c-white);
+ background: var(--surface-card);
  border: var(--border-width) solid var(--border-color);
  padding: var(--sp-6);
  box-shadow: var(--shadow-md);
@@ -1695,14 +1695,14 @@
 }
 
 .pipeline-step.completed {
- background: var(--c-white);
+ background: var(--surface-card);
  border-color: var(--border-color);
 }
 
 .pipeline-step.completed .pipeline-step-num {
  border-radius: 50%;
  background: var(--c-gray-900);
- color: var(--c-white);
+ color: #ffffff;
 }
 
 .pipeline-step.active {
@@ -1714,7 +1714,7 @@
 .pipeline-step.active .pipeline-step-num {
  border-radius: 50%;
  background: var(--c-brand);
- color: var(--c-white);
+ color: #ffffff;
 }
 
 .pipeline-step-num {
@@ -1756,7 +1756,7 @@
 
 .doc-card {
  border-radius: var(--border-radius-lg);
- background: var(--c-white);
+ background: var(--surface-card);
  border: var(--border-width) solid var(--border-color);
  padding: var(--sp-4);
  box-shadow: var(--shadow-sm);
@@ -1824,7 +1824,7 @@
 
 .doc-summary-modal {
  border-radius: var(--border-radius-xl);
- background: var(--c-white);
+ background: var(--surface-card);
  border: var(--border-width) solid var(--border-color);
  box-shadow: var(--shadow-xl);
  max-width: 640px;
@@ -1840,7 +1840,7 @@
  display: flex;
  height: calc(100vh - var(--topbar-height) - 100px);
  min-height: 520px;
- background: var(--c-white);
+ background: var(--surface-card);
  border: var(--border-width) solid var(--border-color);
  box-shadow: var(--shadow-md);
 }
@@ -1890,12 +1890,12 @@
 
 .messages-sidebar-item.active {
  background: var(--c-brand);
- color: var(--c-white);
+ color: #ffffff;
  font-weight: var(--fw-bold);
 }
 
 .messages-sidebar-item.active .messages-hash {
- color: var(--c-white);
+ color: #ffffff;
 }
 
 .messages-hash {
@@ -1923,7 +1923,7 @@
  display: flex;
  align-items: center;
  justify-content: space-between;
- background: var(--c-white);
+ background: var(--surface-card);
 }
 
 .messages-feed {

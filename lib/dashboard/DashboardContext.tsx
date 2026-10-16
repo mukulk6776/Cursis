@@ -1,5 +1,6 @@
 'use client';
 
+import { setDashboardTheme, isDashboardPath } from './theme';
 import { userForWorkspace } from './workspace-role';
 
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
@@ -1277,31 +1278,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }
  }, []);
 
- // Dynamically apply workspace accent color, theme mode (dark/light), & layout density to DOM
+ // Workspace accents and density only apply while the dashboard is active.
  useEffect(() => {
- if (typeof document === 'undefined') return;
+ if (typeof document === 'undefined' || !isDashboardPath(window.location.pathname)) return;
  const root = document.documentElement;
  if (workspaceSettings.accentColor) {
  root.style.setProperty('--c-brand', workspaceSettings.accentColor);
  root.style.setProperty('--c-brand-hover', workspaceSettings.accentColor);
- root.style.setProperty('--c-info', workspaceSettings.accentColor);
+
  }
  if (workspaceSettings.density) {
  root.setAttribute('data-density', workspaceSettings.density);
  }
- const themeMode = (workspaceSettings as any).theme || (typeof window !== 'undefined' ? localStorage.getItem('cursis_theme') : null) || 'light';
- if (themeMode === 'dark') {
- root.setAttribute('data-theme', 'dark');
- root.classList.add('dark');
- } else if (themeMode === 'system') {
- const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
- root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
- if (prefersDark) root.classList.add('dark'); else root.classList.remove('dark');
- } else {
- root.setAttribute('data-theme', 'light');
- root.classList.remove('dark');
- }
- }, [workspaceSettings.accentColor, workspaceSettings.density, (workspaceSettings as any).theme]);
+
+ }, [workspaceSettings.accentColor, workspaceSettings.density]);
 
  // Real-time online/offline presence tracking and 45s heartbeat
  useEffect(() => {
@@ -1581,6 +1571,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // ---- Settings Mutation Handlers with Persistence ----
   const updateWorkspaceSettings = async (updates: Partial<WorkspaceSettings> & Record<string, any>) => {
+    if (updates.theme) setDashboardTheme(updates.theme);
+    // Appearance is a personal browser preference, available to every workspace role.
+    if (updates.theme && Object.keys(updates).every(key => key === 'theme')) {
+      setWorkspaceSettings(prev => ({ ...prev, theme: updates.theme }));
+      return true;
+    }
     if (updates.name && updates.name.trim()) {
       const renameOk = await saveWorkspaceName(updates.name.trim());
       if (!renameOk) return false;

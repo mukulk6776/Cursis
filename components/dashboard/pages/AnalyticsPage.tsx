@@ -173,7 +173,7 @@ export default function AnalyticsPage() {
           <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0}%
           </div>
-          <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>
+          <div style={{ fontSize: '12px', color: 'var(--c-success)', fontWeight: 600 }}>
             {completed} tasks completed
           </div>
         </div>
@@ -227,7 +227,7 @@ export default function AnalyticsPage() {
           <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {avgProgress}%
           </div>
-          <div style={{ fontSize: '12px', color: '#0f4cff', fontWeight: 600 }}>
+          <div style={{ fontSize: '12px', color: 'var(--c-brand-text)', fontWeight: 600 }}>
             {projects.filter((p) => p.status === 'In Progress').length} active projects
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
                   padding: '2px 8px',
                   borderRadius: '4px',
                   background: 'rgba(15, 76, 255, 0.08)',
-                  color: '#0f4cff',
+                  color: 'var(--c-brand-text)',
                   border: '1px solid rgba(15, 76, 255, 0.2)',
                   textTransform: 'uppercase',
                 }}

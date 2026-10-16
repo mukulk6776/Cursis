@@ -125,7 +125,7 @@ export default function HomePage() {
                 padding: '2px 8px',
                 borderRadius: '4px',
                 background: 'rgba(15, 76, 255, 0.08)',
-                color: '#0f4cff',
+                color: 'var(--c-brand-text)',
                 border: '1px solid rgba(15, 76, 255, 0.2)',
                 textTransform: 'uppercase',
               }}
@@ -235,7 +235,7 @@ export default function HomePage() {
           <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {inProgressTasks}
           </div>
-          <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>
+          <div style={{ fontSize: '12px', color: 'var(--c-success)', fontWeight: 600 }}>
             {completedTasks} completed
           </div>
         </div>
@@ -293,7 +293,7 @@ export default function HomePage() {
           <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {projects.length}
           </div>
-          <div style={{ fontSize: '12px', color: '#0f4cff', fontWeight: 600 }}>
+          <div style={{ fontSize: '12px', color: 'var(--c-brand-text)', fontWeight: 600 }}>
             {projects.length > 0
               ? `${Math.round(projects.reduce((acc, p) => acc + (p.progress || 0), 0) / projects.length)}% avg progress`
               : 'No active projects'}
@@ -317,7 +317,7 @@ export default function HomePage() {
           <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {employees.length > 0 ? employees.length : 1}
           </div>
-          <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: 600 }}>
+          <div style={{ fontSize: '12px', color: 'var(--c-success)', fontWeight: 600 }}>
             {employees.length > 0 ? `${employees.filter((e) => e.status === 'online').length} online now` : 'Workspace active'}
           </div>
         </div>
@@ -536,7 +536,7 @@ export default function HomePage() {
                 activity.slice(0, 4).map((act) => (
                   <div key={act.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }}>
                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: act.dot || '#0f4cff', flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#1A1A1A', fontWeight: 500 }}>
+                    <div style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)', fontWeight: 500 }}>
                       {act.text}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-secondary)', flexShrink: 0 }}>

@@ -516,8 +516,8 @@ export default function OrdisPage() {
           flex: 1;
           min-height: 0;
           overflow: hidden;
-          background: #ffffff;
-          color: #0d0d0d;
+          background: var(--surface-primary);
+          color: var(--text-primary);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
