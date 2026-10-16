@@ -73,6 +73,8 @@ export default function OrdisSection() {
     // Lock synchronously, including clicks fired before React commits the disabled state.
     if (submitted.current) return;
     submitted.current = true;
+    // Keep keyboard focus in the conversation when the question buttons disappear.
+    messages.current?.focus({ preventScroll: true });
     dispatch({ type: 'select', prompt, reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches });
   };
 
@@ -134,7 +136,10 @@ export default function OrdisSection() {
             </span>
             <span>Ordis AI Assistant</span>
           </div>
-          <span className="lp-ordis-demo-badge">Interactive demo</span>
+          <span className="lp-ordis-demo-badge">
+            <span className="lp-ordis-demo-status-dot" aria-hidden="true" />
+            {state.phase === 'complete' ? 'Answer ready' : busy ? 'Working on it' : 'Interactive demo'}
+          </span>
         </header>
 
         <div ref={messages} className="lp-ordis-demo-messages" role="log" aria-label="Ordis demo conversation" aria-live="polite" aria-atomic="true" aria-busy={busy} tabIndex={0}>
@@ -165,20 +170,29 @@ export default function OrdisSection() {
           )}
         </div>
 
-        <div className="lp-ordis-demo-cta-slot">
-          {state.phase === 'complete' && (
-            <button type="button" className="lp-ordis-demo-cta" onClick={() => router.push('/signup')}>
-              Create your free workspace in Cursis <span aria-hidden="true">→</span>
-            </button>
-          )}
-        </div>
-
-        <div className="lp-ordis-demo-prompts" role="group" aria-label="Try a question">
-          {ORDIS_DEMO_PROMPTS.map(prompt => (
-            <button key={prompt.id} type="button" className="lp-ordis-demo-prompt" disabled={locked} aria-disabled={locked} onClick={() => selectPrompt(prompt)}>
-              {prompt.question}
-            </button>
-          ))}
+        <div className="lp-ordis-demo-footer">
+          <div className="lp-ordis-demo-prompts" role="group" aria-label="Try a question" aria-hidden={locked} inert={locked}>
+            <span className="lp-ordis-demo-prompt-label">Start with a question</span>
+            <div className="lp-ordis-demo-prompt-list">
+              {ORDIS_DEMO_PROMPTS.map(prompt => (
+                <button key={prompt.id} type="button" className="lp-ordis-demo-prompt" disabled={locked} aria-disabled={locked} onClick={() => selectPrompt(prompt)}>
+                  {prompt.question}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="lp-ordis-demo-cta-slot">
+            {busy && <p className="lp-ordis-demo-progress" role="status">Your next step is taking shape<span aria-hidden="true">…</span></p>}
+            {state.phase === 'complete' && (
+              <div className="lp-ordis-demo-completion">
+                <p>Less chasing updates. More moving forward.</p>
+                <button type="button" className="lp-ordis-demo-cta" onClick={() => router.push('/signup')}>
+                  Create your free workspace in Cursis <span aria-hidden="true">→</span>
+                </button>
+                <span>Free to start · No credit card required</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

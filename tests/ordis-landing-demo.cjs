@@ -11,7 +11,7 @@ const source = ts.transpileModule(fs.readFileSync('components/landing/OrdisSecti
 function mount(reduced = false) {
   const slots = [], timers = new Map(), listeners = new Set(), routes = [];
   let cursor = 0, pending = [], tree, now = 0, timerId = 0;
-  const viewport = { scrollTop: 0, scrollHeight: 800 };
+  const viewport = { scrollTop: 0, scrollHeight: 800, focused: false, focus() { this.focused = true; } };
   const schedule = (callback, delay, repeat) => { const id = ++timerId; timers.set(id, { callback, due: now + delay, repeat }); return id; };
   const media = { get matches() { return reduced; }, addEventListener: (_, fn) => listeners.add(fn), removeEventListener: (_, fn) => listeners.delete(fn) };
   const hooks = {
@@ -59,6 +59,7 @@ function mount(reduced = false) {
   return { exports, render, advance, timers, listeners, routes, viewport,
     get state() { return slots[0].state; },
     get chips() { return nodes(tree).filter(node => node.props?.className === 'lp-ordis-demo-prompt'); },
+    get promptGroup() { return nodes(tree).find(node => node.props?.className === 'lp-ordis-demo-prompts'); },
     get cta() { return nodes(tree).find(node => node.props?.className === 'lp-ordis-demo-cta'); },
     get log() { return nodes(tree).find(node => node.props?.role === 'log'); },
     reduceMotion() { reduced = true; listeners.forEach(fn => fn()); render(); },
@@ -80,6 +81,9 @@ test('one-shot click locks every chip before rendering, streams after 700ms, the
   demo.render();
   assert.equal(demo.state.prompt.id, 'priorities');
   assert.equal(demo.state.phase, 'typing');
+  assert.equal(demo.viewport.focused, true);
+  assert.equal(demo.promptGroup.props['aria-hidden'], true);
+  assert.equal(demo.promptGroup.props.inert, true);
   assert(demo.chips.every(chip => chip.props.disabled && chip.props['aria-disabled']));
   assert.equal(demo.cta, undefined);
   demo.advance(699);
@@ -96,6 +100,7 @@ test('one-shot click locks every chip before rendering, streams after 700ms, the
   assert(demo.chips.every(chip => chip.props.disabled));
   assert.equal(demo.timers.size, 0);
   assert.equal(demo.listeners.size, 0);
+  assert.equal(demo.promptGroup.props['aria-hidden'], true);
   assert.equal(demo.cta.type, 'button');
   demo.cta.props.onClick();
   assert.deepEqual(demo.routes, ['/signup']);
