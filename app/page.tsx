@@ -3,7 +3,7 @@ import LandingPage from '@/components/landing/LandingPage';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Cursis — Autonomous AI Workplace & Agency OS',
+  title: { absolute: 'Cursis' },
   description:
     'Transform your team productivity with Cursis autonomous AI workplace and agency operating system. Ordis AI proactively detects bottlenecks, rebalances workloads, and takes real actions. SOC 2 certified. 99.99% SLA uptime. Join 1,250+ teams.',
   keywords: [
@@ -23,7 +23,8 @@ export const metadata: Metadata = {
     'sprint management tool',
   ],
   openGraph: {
-    title: 'Cursis — Autonomous AI Workplace & Agency OS',
+    siteName: 'Cursis',
+    title: 'Cursis',
     description: 'Cursis — Autonomous AI Workplace & Agency OS powered by Ordis AI.',
     type: 'website',
     url: 'https://cursis.in',

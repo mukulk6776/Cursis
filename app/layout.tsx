@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://cursis.in'),
   title: {
-    default: 'Cursis — Autonomous AI Workplace & Agency OS',
+    default: 'Cursis',
     template: '%s | Cursis',
   },
   description:
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://cursis.in',
     siteName: 'Cursis',
-    title: 'Cursis — Autonomous AI Workplace & Agency OS',
+    title: 'Cursis',
     description:
       'Cursis is an autonomous AI workplace and agency operating system powered by Ordis AI. Manage teams, projects, tasks, documents, and workflows with proactive AI that takes real actions. SOC 2 certified. 99.99% SLA uptime.',
     images: [
