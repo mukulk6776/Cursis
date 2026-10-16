@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { DocumentItem } from '@/lib/dashboard/types';
-import { isFounderEmail } from '@/lib/auth/founder';
 import { FileText, Lock, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'txt', 'md', 'csv', 'json', 'xlsx', 'pptx', 'png', 'jpg', 'jpeg'];
@@ -74,19 +73,8 @@ export default function DocumentsPage() {
   const [editContent, setEditContent] = useState('');
 
   // Role-Based Access Control (RBAC): Workspace Owners, Admins, and Managers have management permissions
-  const isOwner =
-    isFounderEmail(user.email) ||
-    user.workspaceRole === 'owner' ||
-    user.role?.toLowerCase().includes('owner') ||
-    user.role?.toLowerCase().includes('founder') ||
-    user.role?.toLowerCase().includes('ceo') ||
-    user.id === 'u_owner';
-
-  const isAdmin =
-    isOwner ||
-    user.workspaceRole === 'admin' ||
-    user.role?.toLowerCase().includes('admin') ||
-    user.role?.toLowerCase().includes('manager');
+  const isOwner = user.workspaceRole === 'owner';
+  const isAdmin = isOwner || ['admin', 'manager'].includes(user.workspaceRole || 'member');
 
   const role = isOwner ? 'owner' : (user.workspaceRole || 'member');
   const canManage = isOwner || isAdmin;

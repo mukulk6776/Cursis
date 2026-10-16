@@ -26,6 +26,7 @@ export interface Workspace {
   description: string;
   isCustomClient: boolean;
   badge: string;
+  workspaceRole?: string;
   color: string;
   ownerId: string;
   createdAt: string;

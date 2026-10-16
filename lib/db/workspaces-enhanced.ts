@@ -1,3 +1,5 @@
+import { getUserWorkspaceRole as resolveWorkspaceRole } from '@/lib/auth/rbac';
+import { UserRole } from './types';
 import { getCollection } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
@@ -243,7 +245,7 @@ export async function removeWorkspaceMember(
 
   const now = new Date().toISOString();
   const result = await workspaces.updateOne(
-    { $or: [{ workspaceId }, { id: workspaceId }] },
+    { $or: [{ workspaceId }, { id: workspaceId }], ownerId: { $ne: userId } },
     {
       $pull: {
         members: { userId },
@@ -253,6 +255,7 @@ export async function removeWorkspaceMember(
     }
   );
 
+  if (!result.modifiedCount) return false;
   try {
     const memCol = await getCollection<any>('workspace_memberships');
     if (memCol) {
@@ -270,15 +273,8 @@ export async function hasWorkspaceAccess(
   workspaceId: string,
   userId: string
 ): Promise<boolean> {
-  const workspaces = await getCollection<Workspace>('workspaces');
-  if (!workspaces) return false;
-
-  const workspace = await workspaces.findOne({
-    $or: [{ slug: workspaceId }, { workspaceId }],
-    'members.userId': userId,
-  });
-
-  return !!workspace;
+  const workspace = await getWorkspace(workspaceId);
+  return !!workspace && (await resolveWorkspaceRole(userId, workspace.id || workspace.workspaceId)) !== null;
 }
 
 /**
@@ -287,18 +283,9 @@ export async function hasWorkspaceAccess(
 export async function getUserWorkspaceRole(
   workspaceId: string,
   userId: string
-): Promise<'owner' | 'admin' | 'member' | null> {
-  const workspaces = await getCollection<Workspace>('workspaces');
-  if (!workspaces) return null;
-
-  const workspace = await workspaces.findOne({
-    $or: [{ slug: workspaceId }, { workspaceId }],
-  });
-
-  if (!workspace) return null;
-
-  const member = workspace.members.find((m) => m.userId === userId);
-  return member?.role || null;
+): Promise<UserRole | null> {
+  const workspace = await getWorkspace(workspaceId);
+  return workspace ? resolveWorkspaceRole(userId, workspace.id || workspace.workspaceId) : null;
 }
 
 /**

@@ -1,3 +1,4 @@
+import { getUserWorkspaceRole } from '@/lib/auth/rbac';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -18,8 +19,12 @@ export async function GET(request: Request) {
     }
     const profile = await findUserByEmail(user.email);
     const resolvedPhoto = profile?.photoURL || user.photoURL;
+    const workspaceId = profile?.activeWorkspaceId || profile?.workspaceIds?.[0] || user.workspaceId || `ws_${user.uid}`;
+    const workspaceRole = await getUserWorkspaceRole(user.uid, workspaceId);
     const enrichedUser = {
       ...user,
+      role: workspaceRole || 'member',
+      workspaceRole: workspaceRole || 'member',
       photoURL: resolvedPhoto,
       avatar: resolvedPhoto,
       workspaceId: profile?.activeWorkspaceId || profile?.workspaceIds?.[0] || user.workspaceId,

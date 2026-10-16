@@ -1,3 +1,5 @@
+import { inMemoryMemberships, invitationRole } from './memberships';
+import { getUserWorkspaceRole } from '@/lib/auth/rbac';
 import { inMemoryStore } from './store';
 import { UserProfile, UserRole, Workspace, WorkspaceMembership, WorkspaceTeamMember, MAX_TEAM_MEMBERS } from './types';
 export { MAX_TEAM_MEMBERS };
@@ -12,17 +14,6 @@ function sanitizeTeamUser(u: UserProfile): UserProfile {
   const clone = { ...u };
   delete clone.passwordHash;
   delete clone.salt;
-  const isFounder = isFounderEmail(clone.email);
-  if (isFounder) {
-    clone.role = 'owner';
-    clone.title = 'Founder & CEO';
-    clone.department = 'Leadership';
-  } else {
-    if (clone.role === 'owner') clone.role = 'member';
-    if (clone.title && (clone.title.toLowerCase().includes('founder') || clone.title.toLowerCase().includes('ceo') || clone.title.toLowerCase().includes('owner'))) {
-      clone.title = 'User';
-    }
-  }
   return clone;
 }
 
@@ -46,7 +37,7 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
     const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
 
     // 2. Fetch workspace document to know the owner
-    const ws = wsCol ? await wsCol.findOne({ id: targetWsId }) : null;
+    const ws = wsCol ? await wsCol.findOne({ id: targetWsId }) : inMemoryStore.workspaces.get(targetWsId);
     const ownerId = ws?.ownerId || (targetWsId.startsWith('ws_usr_') ? targetWsId.replace(/^ws_/, '') : '');
 
     // 3. Collect all user IDs associated with this workspace:
@@ -105,7 +96,7 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
         const uid = u.uid || u.id;
         if (uid && !memberUidMap.has(uid)) {
           memberUidMap.set(uid, {
-            role: (u.role === 'owner' || uid === ownerId) ? 'owner' : 'member',
+            role: uid === ownerId ? 'owner' : 'member',
             title: u.title,
             department: u.department,
             joinedAt: u.createdAt,
@@ -131,8 +122,8 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
           const live = liveUserMap.get(uid) || inMemoryStore.users.get(uid);
           const cleanEmail = (live?.email || '').trim().toLowerCase();
           const isFounder = isFounderEmail(cleanEmail);
-          const isOwner = isFounder || uid === ownerId || meta.role === 'owner';
-          const assignedRole: UserRole = isOwner ? 'owner' : (meta.role || live?.role || 'member');
+          const isOwner = uid === ownerId;
+          const assignedRole: UserRole = isOwner ? 'owner' : invitationRole(meta.role);
           const displayName = live?.displayName || (cleanEmail ? cleanEmail.split('@')[0] : 'Team Member');
           const title = isFounder ? 'Founder & CEO' : (live?.title || meta.title || (isOwner ? 'Workspace Owner' : 'Team Member'));
           const department = isFounder ? 'Leadership' : (live?.department || meta.department || (isOwner ? 'Leadership' : 'Engineering'));
@@ -207,17 +198,18 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
     console.warn('MongoDB getWorkspaceTeam notice:', e);
   }
 
-  return Array.from(inMemoryStore.users.values())
+  return Promise.all(Array.from(inMemoryStore.users.values())
     .filter((u) => u.workspaceIds?.includes(targetWsId) || u.activeWorkspaceId === targetWsId)
-    .map((u) => {
+    .map(async (u) => {
       const sanitized = sanitizeTeamUser(u);
+      sanitized.role = await getUserWorkspaceRole(u.uid || u.id, targetWsId) || 'member';
       const lastActiveMs = sanitized.lastActiveAt ? new Date(sanitized.lastActiveAt).getTime() : 0;
       const isRecentlyActive = lastActiveMs > 0 && (Date.now() - lastActiveMs) < 120000;
       if (!isRecentlyActive || sanitized.presence === 'offline') {
         sanitized.presence = 'offline';
       }
       return sanitized;
-    });
+    }));
 }
 
 
@@ -237,7 +229,7 @@ export async function addTeamMember(
 ): Promise<UserProfile> {
   const cleanEmail = memberData.email.toLowerCase().trim();
   const isFounder = isFounderEmail(cleanEmail);
-  const assignedRole: UserRole = isFounder ? 'owner' : (memberData.role !== 'owner' ? memberData.role : 'member');
+  const assignedRole: UserRole = invitationRole(memberData.role);
   const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, memberData.title || 'Team Member');
   const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, memberData.department || 'Engineering');
   const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (memberData.skills || ['General']);
@@ -280,7 +272,7 @@ export async function addTeamMember(
     existingMem.workspaceIds = Array.from(new Set([...(existingMem.workspaceIds || []), ...effectiveWsIds]));
     existingMem.activeWorkspaceId = workspaceId;
     existingMem.displayName = memberData.displayName || existingMem.displayName;
-    existingMem.role = assignedRole;
+
     existingMem.department = assignedDept;
     existingMem.title = assignedTitle;
     if (memberData.planTier) {
@@ -303,6 +295,10 @@ export async function addTeamMember(
       console.warn('MongoDB updateTeamMember notice:', e);
     }
 
+    const membership: WorkspaceMembership = { id: `mem_${workspaceId}_${existingMem.uid || existingMem.id}`, workspaceId, userId: existingMem.uid || existingMem.id, role: assignedRole, createdAt: new Date().toISOString() };
+    inMemoryMemberships.set(`${workspaceId}_${membership.userId}`, membership);
+    const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
+    if (memCol) await memCol.updateOne({ workspaceId, userId: membership.userId }, { $setOnInsert: membership }, { upsert: true });
     inMemoryStore.users.set(existingMem.id, existingMem);
     return existingMem;
   }
@@ -333,6 +329,10 @@ export async function addTeamMember(
     createdAt: new Date().toISOString(),
   });
 
+  const membership: WorkspaceMembership = { id: `mem_${workspaceId}_${id}`, workspaceId, userId: id, role: assignedRole, createdAt: newMember.createdAt };
+  inMemoryMemberships.set(`${workspaceId}_${id}`, membership);
+  const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
+  if (memCol) await memCol.updateOne({ workspaceId, userId: id }, { $setOnInsert: membership }, { upsert: true });
   inMemoryStore.users.set(id, newMember);
 
   // Update workspace member count
@@ -367,6 +367,8 @@ export async function removeTeamMember(
     const memWs = Array.from(inMemoryStore.workspaces.values()).find((w) => w.id !== 'ws_default' && w.id !== 'ws_public');
     if (memWs) targetWsId = memWs.id;
   }
+
+  if (targetId && await getUserWorkspaceRole(targetId, targetWsId) === 'owner') return false;
 
   // Founder protection: cannot remove founder
   if (cleanEmail && isFounderEmail(cleanEmail)) {
@@ -494,6 +496,8 @@ export async function removeTeamMember(
     }
   }
 
+  inMemoryMemberships.delete(`${targetWsId}_${targetId}`);
+
   // 4. Locate and remove from MongoDB workspace_teams collection
   try {
     const teamCol = await getCollection<WorkspaceTeamMember>('workspace_teams');
@@ -605,7 +609,8 @@ export async function removeTeamMember(
 
 export async function updateTeamMember(
   userId: string,
-  updates: Partial<UserProfile>
+  updates: Partial<UserProfile>,
+  workspaceId?: string
 ): Promise<UserProfile | null> {
   let user = inMemoryStore.users.get(userId);
   const col = await getCollection<UserProfile>('users');
@@ -614,9 +619,19 @@ export async function updateTeamMember(
   }
   if (!user) return null;
 
+  if (updates.role !== undefined) {
+    if (!workspaceId) throw new Error('Workspace is required for role updates.');
+    const currentRole = await getUserWorkspaceRole(userId, workspaceId);
+    if (currentRole === 'owner' || updates.role === 'owner') throw new Error('Ownership requires an explicit transfer.');
+    const role = invitationRole(updates.role);
+    const membership: WorkspaceMembership = { id: `mem_${workspaceId}_${userId}`, workspaceId, userId, role, createdAt: new Date().toISOString() };
+    const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
+    if (memCol) await memCol.updateOne({ workspaceId, userId }, { $set: { role }, $setOnInsert: { id: membership.id, workspaceId, userId, createdAt: membership.createdAt } }, { upsert: true });
+    inMemoryMemberships.set(`${workspaceId}_${userId}`, membership);
+  }
   const isTargetFounder = isFounderEmail(user.email);
   // Strict field allowlist: prevent mutating credentials, identity, or workspace scope
-  const allowedKeys = ['displayName', 'title', 'department', 'skills', 'photoURL', 'presence', 'role'];
+  const allowedKeys = ['displayName', 'title', 'department', 'skills', 'photoURL', 'presence'];
   const cleanUpdates: any = {};
   for (const k of allowedKeys) {
     if ((updates as any)[k] !== undefined) {
@@ -650,11 +665,11 @@ export async function updateTeamMember(
     const teamCol = await getCollection<WorkspaceTeamMember>('workspace_teams');
     if (teamCol) {
       await teamCol.updateMany(
-        { userId },
+        { userId, ...(workspaceId ? { workspaceId } : {}) },
         {
           $set: {
             presence: user.presence,
-            role: user.role,
+            ...(updates.role !== undefined ? { role: invitationRole(updates.role) } : {}),
             title: user.title,
             department: user.department,
             updatedAt: nowIso,

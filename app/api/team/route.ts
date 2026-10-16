@@ -169,7 +169,7 @@ export async function PATCH(request: Request) {
       sanitizedUpdates.role = rawUpdates.role;
     }
 
-    const updated = await updateTeamMember(userId, sanitizedUpdates);
+    const updated = await updateTeamMember(userId, sanitizedUpdates, workspaceId);
     if (!updated) return apiError('Team member not found', 404);
 
     return apiSuccess({ member: updated, message: 'Team member updated' });

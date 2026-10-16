@@ -1,5 +1,7 @@
 'use client';
 
+import { userForWorkspace } from './workspace-role';
+
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOutUser } from '@/lib/auth/firebase';
@@ -474,7 +476,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   };
 
  // Base State Entities
-  const [user, setUser] = useState<User>(INITIAL_USER);
+  const [userProfile, setUser] = useState<User>(INITIAL_USER);
+  // Derive permissions on every render so a workspace switch cannot retain the previous role.
+  const user = userForWorkspace(userProfile, workspaces, activeWorkspaceId);
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const removedMemberIdsRef = useRef<Set<string>>(new Set());
   const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
@@ -682,7 +686,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                   const roleTitle = isMemFounder ? 'Founder & CEO' : (u.title || u.role || 'Team Member');
                   const deptName = isMemFounder ? 'Leadership' : (u.department || 'Engineering');
                   const deptId = isMemFounder ? 'dept_leadership' : ('dept_' + deptName.toLowerCase().replace(/\s+/g, '_'));
-                  const wsRole = isMemFounder ? 'owner' : (u.role === 'owner' ? 'member' : (u.role || 'member'));
+                  const wsRole = u.role || 'member';
                   const tier = (u.planTier as 'standard') || 'standard';
 
                   return {
@@ -958,9 +962,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  .substring(0, 2) || 'CU';
 
         const isFounder = isFounderEmail(sessUser.email);
-        const isOwner = isFounder || sessUser.role === 'owner' || sessUser.workspaceRole === 'owner';
+        const isOwner = sessUser.workspaceRole === 'owner';
         const userRoleTitle = isFounder ? 'Founder & CEO' : (sessUser.title || (isOwner ? 'Workspace Owner' : 'Team Member'));
-        const userWorkspaceRole = isOwner ? 'owner' : (sessUser.workspaceRole || sessUser.role || 'owner');
+        const userWorkspaceRole = sessUser.workspaceRole || 'member';
         const userDept = isFounder ? 'Leadership' : (sessUser.department || 'Engineering');
         const userDeptId = isFounder ? 'dept_leadership' : ('dept_' + userDept.toLowerCase().replace(/\s+/g, '_'));
         const userSkills = isFounder ? ['Strategy', 'Leadership', 'Architecture'] : (sessUser.skills || ['General']);
@@ -1039,7 +1043,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               role: targetIsFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(prevEmp.role) ? prevEmp.role : (activeUser.role || 'User')),
               department: targetIsFounder ? 'Leadership' : (prevEmp.department === 'Leadership' ? 'Engineering' : (prevEmp.department || 'Engineering')),
               departmentId: targetIsFounder ? 'dept_leadership' : (prevEmp.departmentId === 'dept_leadership' ? 'dept_engineering' : (prevEmp.departmentId || 'dept_engineering')),
-              workspaceRole: targetIsFounder ? 'owner' : (prevEmp.workspaceRole === 'owner' ? 'member' : (prevEmp.workspaceRole || 'member')),
+              workspaceRole: userWorkspaceRole,
               planTier: prevEmp.planTier || userPlanTier,
               photoURL: activeUser.photoURL || null,
               avatar: activeUser.photoURL || null,
@@ -2424,7 +2428,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       fetch('/api/team', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id, updates: sanitizedUpdates }),
+        body: JSON.stringify({ userId: id, workspaceId: activeWorkspaceId, updates: {
+          ...sanitizedUpdates,
+          role: sanitizedUpdates.workspaceRole,
+        } }),
       }).catch(() => {});
     } catch {}
 
@@ -2506,7 +2513,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 department: 'Leadership',
                 departmentId: 'dept_leadership',
                 teamIds: ['team_core'],
-                workspaceRole: user.workspaceRole || 'owner',
+                workspaceRole: user.workspaceRole || 'member',
                 status: 'online',
                 color: '#0f4cff',
                 tasks: 0,

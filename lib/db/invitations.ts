@@ -1,3 +1,5 @@
+import { inMemoryMemberships, invitationRole } from './memberships';
+import { getUserWorkspaceRole } from '@/lib/auth/rbac';
 import { getCollection } from '@/lib/mongodb';
 import { inMemoryStore } from './store';
 import {
@@ -10,14 +12,13 @@ import {
   Workspace,
   MAX_TEAM_MEMBERS,
 } from './types';
-import { isFounderEmail } from '@/lib/auth/founder';
-import { ensureWorkspaceExists } from './workspaces';
+import { ensureWorkspaceExists, getWorkspace } from './workspaces';
 import { getWorkspaceTeam } from './team';
 import { sendWorkspaceInvitationEmail } from '@/lib/email/notifications';
 
 // In-memory fallback map for invitations
 export const inMemoryInvitations = new Map<string, WorkspaceInvitation>();
-export const inMemoryMemberships = new Map<string, WorkspaceMembership>();
+export { inMemoryMemberships } from './memberships';
 
 export interface ActingUser {
   uid: string;
@@ -30,42 +31,8 @@ export interface ActingUser {
  * Checks if a user is an Owner or Admin of a given workspace.
  */
 export async function isWorkspaceAdminOrOwner(workspaceId: string, user: ActingUser): Promise<boolean> {
-  const cleanEmail = (user.email || '').toLowerCase().trim();
-  if (isFounderEmail(cleanEmail)) return true;
-
-  // Check workspace owner
-  try {
-    const wsCol = await getCollection<Workspace>('workspaces');
-    if (wsCol) {
-      const ws = await wsCol.findOne({ id: workspaceId });
-      if (ws && (ws.ownerId === user.uid || (ws as any).ownerEmail?.toLowerCase() === cleanEmail)) {
-        return true;
-      }
-    }
-  } catch {}
-
-  const memWs = inMemoryStore.workspaces.get(workspaceId);
-  if (memWs && memWs.ownerId === user.uid) return true;
-
-  // Check user role in workspace memberships
-  try {
-    const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
-    if (memCol) {
-      const mem = await memCol.findOne({ workspaceId, userId: user.uid });
-      if (mem && (mem.role === 'owner' || mem.role === 'admin')) {
-        return true;
-      }
-    }
-  } catch {}
-
-  // Check in-memory memberships
-  const memMem = inMemoryMemberships.get(`${workspaceId}_${user.uid}`);
-  if (memMem && (memMem.role === 'owner' || memMem.role === 'admin')) {
-    return true;
-  }
-
-  // Do not allow global user.role to bypass workspace-specific membership
-  return false;
+  const role = await getUserWorkspaceRole(user.uid, workspaceId);
+  return role === 'owner' || role === 'admin';
 }
 
 /**
@@ -87,7 +54,7 @@ export async function createTeamInvitation(params: {
     workspaceId = (inviterUser as any).workspaceId || ('ws_' + inviterUser.uid);
   }
   const cleanInviteEmail = (params.inviteeEmail || '').toLowerCase().trim();
-  const assignedRole: UserRole = params.role === 'admin' ? 'admin' : 'member';
+  const assignedRole: UserRole = invitationRole(params.role);
 
   if (!cleanInviteEmail || !cleanInviteEmail.includes('@')) {
     throw new Error('A valid email address is required.');
@@ -95,7 +62,7 @@ export async function createTeamInvitation(params: {
 
   // Ensure workspace exists
   try {
-    await ensureWorkspaceExists(workspaceId, inviterUser.uid);
+    if (workspaceId === `ws_${inviterUser.uid}`) await ensureWorkspaceExists(workspaceId, inviterUser.uid);
   } catch {}
 
   // 1. Authorization check: Inviter must be Owner or Admin
@@ -243,7 +210,7 @@ export async function createTeamInvitation(params: {
     inviteeUserId,
     email: cleanInviteEmail,
     name: registeredUser.displayName || cleanInviteEmail.split('@')[0],
-    roleTitle: assignedRole === 'admin' ? 'Workspace Admin' : 'Team Member',
+    roleTitle: assignedRole === 'admin' ? 'Workspace Admin' : assignedRole === 'viewer' ? 'Viewer' : 'Team Member',
     workspaceRole: assignedRole,
     department: department || 'Engineering',
     team: team || null,
@@ -277,7 +244,7 @@ export async function createTeamInvitation(params: {
     workspaceId,
     type: 'workspace_invite',
     referenceId: invId,
-    text: `<strong>${inviterUser.displayName || 'Workspace Admin'}</strong> invited you to join <strong>${wsName}</strong> as <strong>${assignedRole === 'admin' ? 'Admin' : 'Member'}</strong>.`,
+    text: `<strong>${inviterUser.displayName || 'Workspace Admin'}</strong> invited you to join <strong>${wsName}</strong> as <strong>${assignedRole.charAt(0).toUpperCase() + assignedRole.slice(1)}</strong>.`,
     read: false,
     icon: 'mail',
     createdAt: now,
@@ -505,13 +472,13 @@ export async function acceptWorkspaceInvitation(
     throw err;
   }
 
-  const role: UserRole = (invitation.workspaceRole as UserRole) || 'member';
+  const role: UserRole = invitationRole(invitation.workspaceRole);
   const membershipId = `mem_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
   // Ensure workspace document exists in workspaces collection
   let wsDoc: Workspace | null = null;
   try {
-    wsDoc = await ensureWorkspaceExists(workspaceId, invitation.inviterUserId);
+    wsDoc = await getWorkspace(workspaceId);
   } catch {}
 
   // 1. Create WorkspaceMembership

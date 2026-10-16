@@ -152,7 +152,7 @@ async function runTests() {
   assert(data4.success, 'Response should indicate success');
   console.log('✓ 4.9MB document upload succeeded');
 
-  // Test 5: Sovereign Founder (mukulk3962364@gmail.com) accessing any workspace
+  // Test 5: A founder email cannot bypass workspace ownership
   mockSessionUser = {
     uid: 'usr_founder',
     email: 'mukulk3962364@gmail.com',
@@ -175,16 +175,17 @@ async function runTests() {
 
   const res5 = await POST(req5);
   const data5 = await res5.json();
-  assert.equal(res5.status, 201, `Founder should be able to create doc in any workspace, got ${res5.status}`);
-  console.log('✓ Sovereign Founder has full owner rights to create documents');
+  assert.equal(res5.status, 403, `Founder without membership must be denied, got ${res5.status}`);
+  console.log('✓ Founder email cannot grant workspace permissions');
 
+  mockSessionUser = { uid: 'usr_owner_1', email: 'owner@company.com', role: 'member', workspaceId: wsId };
   // Test 6: Verify documents can be retrieved via GET
   const getReq = new Request(`http://localhost:3000/api/documents?workspaceId=${wsId}`);
   const getRes = await GET(getReq);
   const getData = await getRes.json();
   assert.equal(getRes.status, 200);
   const docList = getData.documents || getData.data?.documents || [];
-  assert(docList.length >= 3, `Expected at least 3 documents, got ${docList.length}`);
+  assert.equal(docList.length, 2, `Expected only the 2 authorized uploads, got ${docList.length}`);
   console.log(`✓ Retrieved ${docList.length} documents successfully`);
 
   console.log('\nAll Document Permissions & 5MB Cap Tests PASSED! 🎉');

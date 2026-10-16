@@ -1,3 +1,4 @@
+import { getUserWorkspaceRole } from '@/lib/auth/rbac';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -33,15 +34,15 @@ export async function GET(request: Request) {
     const workspaces = await getUserWorkspaces(session.uid);
 
     return apiSuccess({
-      workspaces: workspaces.map(w => ({
+      workspaces: await Promise.all(workspaces.map(async w => ({
         workspaceId: w.workspaceId,
         name: w.name,
         slug: w.slug,
-        role: w.members.find(m => m.userId === session.uid)?.role,
-        memberCount: w.members.length,
+        role: await getUserWorkspaceRole(session.uid, w.id || w.workspaceId),
+        memberCount: w.memberCount || w.members?.length || 1,
         createdAt: w.createdAt,
         settings: w.settings,
-      })),
+      }))),
     });
   } catch (error: any) {
     console.error('Get workspaces error:', error);

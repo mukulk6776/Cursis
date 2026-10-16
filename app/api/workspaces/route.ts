@@ -1,5 +1,5 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
-import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { authorizeWorkspaceAccess, getUserWorkspaceRole } from '@/lib/auth/rbac';
 import { getUserWorkspaces, createWorkspace, updateWorkspace } from '@/lib/db/workspaces';
 import { generateWorkspaceAbbreviation } from '@/lib/dashboard/data';
 
@@ -10,18 +10,22 @@ export async function GET(request: Request) {
     const authUser = auth.user;
 
     const workspaces = await getUserWorkspaces(authUser.uid);
-    const formatted = workspaces.map((w) => ({
-      id: w.id,
-      name: w.name || 'Workspace',
-      shortName: (w as any).shortName || generateWorkspaceAbbreviation(w.name || 'Workspace'),
-      tagline: (w as any).tagline || 'Intelligent Workspace for Modern Teams',
-      isCustomClient: Boolean((w as any).isCustomClient),
-      badge: w.ownerId === authUser.uid ? 'Owner' : 'Member',
-      color: (w as any).color || '#0f4cff',
-      ownerId: w.ownerId,
-      memberCount: w.memberCount || 1,
-      createdAt: w.createdAt,
-      updatedAt: w.updatedAt,
+    const formatted = await Promise.all(workspaces.map(async (w) => {
+      const workspaceRole = await getUserWorkspaceRole(authUser.uid, w.id);
+      return {
+        workspaceRole,
+        id: w.id,
+        name: w.name || 'Workspace',
+        shortName: (w as any).shortName || generateWorkspaceAbbreviation(w.name || 'Workspace'),
+        tagline: (w as any).tagline || 'Intelligent Workspace for Modern Teams',
+        isCustomClient: Boolean((w as any).isCustomClient),
+        badge: workspaceRole ? workspaceRole.charAt(0).toUpperCase() + workspaceRole.slice(1) : 'No access',
+        color: (w as any).color || '#0f4cff',
+        ownerId: w.ownerId,
+        memberCount: w.memberCount || 1,
+        createdAt: w.createdAt,
+        updatedAt: w.updatedAt,
+      };
     }));
     return apiSuccess({ workspaces: formatted });
   } catch (error: any) {

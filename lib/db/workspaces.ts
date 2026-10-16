@@ -1,5 +1,6 @@
+import { inMemoryMemberships } from './memberships';
 import { inMemoryStore } from './store';
-import { Workspace } from './types';
+import { Workspace, WorkspaceMembership } from './types';
 import { getCollection } from '@/lib/mongodb';
 import { notifyAdminCustomClientWorkspace, sendWorkspaceWelcomeEmail } from '@/lib/email/notifications';
 
@@ -65,37 +66,12 @@ export async function ensureWorkspaceExists(
   if (ws) return ws;
 
   // 3. Needs to be created/reconstructed
-  let resolvedOwnerId = ownerIdHint || '';
-  let resolvedName = nameHint || '';
-
-  if (!resolvedOwnerId && cleanId.startsWith('ws_usr_')) {
-    resolvedOwnerId = cleanId.replace(/^ws_/, '');
+  // Only personal workspaces can be recovered from a known owner identity.
+  if (!ownerIdHint || cleanId !== `ws_${ownerIdHint}`) {
+    throw new Error('Workspace not found; ownership cannot be inferred.');
   }
-
-  try {
-    const userCol = await getCollection<any>('users');
-    if (userCol) {
-      let ownerUser: any = null;
-      if (resolvedOwnerId) {
-        ownerUser = await userCol.findOne({ $or: [{ uid: resolvedOwnerId }, { id: resolvedOwnerId }] });
-      }
-      if (!ownerUser) {
-        ownerUser = await userCol.findOne({
-          $or: [
-            { workspaceIds: cleanId },
-            { activeWorkspaceId: cleanId },
-            { role: 'owner' },
-          ],
-        });
-      }
-      if (ownerUser) {
-        if (!resolvedOwnerId) resolvedOwnerId = ownerUser.uid || ownerUser.id;
-        if (!resolvedName) resolvedName = `${ownerUser.displayName || 'Workspace'}'s Workspace`;
-      }
-    }
-  } catch {}
-
-  if (!resolvedOwnerId) resolvedOwnerId = 'usr_owner';
+  const resolvedOwnerId = ownerIdHint;
+  let resolvedName = nameHint || '';
   if (!resolvedName) resolvedName = cleanId === 'ws_cursis_user' ? 'Cursis HQ' : 'Workspace';
 
   const newWs: Workspace = {
@@ -144,7 +120,8 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
     // 1. Get user profile to check workspaceIds
     let userWorkspaceIds: string[] = [];
     let userName = 'User';
-    let userDoc: any = null;
+    let userDoc: any = inMemoryStore.users.get(userId) || null;
+    userWorkspaceIds = userDoc?.workspaceIds || [];
     if (userCol) {
       userDoc = await userCol.findOne({
         $or: [{ uid: userId }, { id: userId }],
@@ -162,6 +139,7 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
       membershipWsIds = memDocs.map((m) => m.workspaceId).filter(Boolean);
     }
 
+    membershipWsIds.push(...Array.from(inMemoryMemberships.values()).filter(m => m.userId === userId).map(m => m.workspaceId));
     const allTargetIds = Array.from(
       new Set([...userWorkspaceIds, ...membershipWsIds, userDoc?.activeWorkspaceId, `ws_${userId}`].filter(Boolean))
     );
@@ -183,7 +161,7 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
 
       // For any target workspace ID that was NOT found in docs, auto-ensure it exists
       for (const tId of allTargetIds) {
-        if (!wsMap.has(tId) && tId !== 'ws_public' && tId !== 'ws_default') {
+        if (!wsMap.has(tId) && tId === `ws_${userId}`) {
           try {
             const ensured = await ensureWorkspaceExists(tId, userId, `${userName}'s Workspace`);
             wsMap.set(tId, ensured);
@@ -307,6 +285,10 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
   };
 
   inMemoryStore.workspaces.set(id, newWorkspace);
+  const membership: WorkspaceMembership = { id: `mem_${id}_${userId}`, workspaceId: id, userId, role: 'owner', createdAt: newWorkspace.createdAt };
+  inMemoryMemberships.set(`${id}_${userId}`, membership);
+  const memberships = await getCollection<WorkspaceMembership>('workspace_memberships');
+  if (memberships) await memberships.updateOne({ workspaceId: id, userId }, { $setOnInsert: membership }, { upsert: true });
 
   try {
     const col = await getCollection<Workspace>('workspaces');
@@ -398,31 +380,7 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
     } catch {}
   }
 
-  // If workspace not found in database or memory yet, create a baseline record to upsert
-  if (!ws) {
-    const fallbackName = updates.name ? updates.name.trim() : 'Workspace';
-    ws = {
-      id: cleanId,
-      name: fallbackName,
-      slug: fallbackName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      tier: updates.tier || 'free',
-      ordisMode: 'chill',
-      industry: updates.industry || 'Technology',
-      teamSize: updates.teamSize || '1-10',
-      features: updates.features || ['workspace_core', 'team'],
-      settings: {
-        ambientMonitoring: true,
-        approvalRequiredForActions: true,
-        simulationMode: false,
-        riskTolerance: 'medium',
-        ...updates.settings,
-      },
-      ownerId: updates.ownerId || (cleanId.startsWith('ws_') ? cleanId.slice(3) : 'user_owner'),
-      memberCount: 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  if (!ws) return null;
 
   const updatedName = updates.name ? updates.name.trim() : ws.name;
   const updatedShortName = updatedName ? updatedName.slice(0, 3).toUpperCase() : 'WS';
@@ -430,6 +388,7 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
   const updated: Workspace = {
     ...ws,
     ...updates,
+    ownerId: ws.ownerId,
     name: updatedName,
     shortName: updatedShortName,
     slug: updatedName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),

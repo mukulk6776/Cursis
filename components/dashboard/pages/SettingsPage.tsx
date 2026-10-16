@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { OrgSettings } from '@/lib/dashboard/types';
-import { isFounderEmail } from '@/lib/auth/founder';
 import { Sun, Moon, Monitor, Pipette } from 'lucide-react';
 
 type SettingsTab = 'workspace' | 'team' | 'notifications' | 'ordis' | 'security';
@@ -107,6 +106,9 @@ teamSettings,
  updateOrgSettings(orgForm);
  };
 
+ if (!['owner', 'admin'].includes(user.workspaceRole || 'member')) {
+   return <div className="page active">Workspace settings require Owner or Admin access.</div>;
+ }
  return (
  <div className="page active" id="page-settings" style={{ display: 'block', maxWidth: '1100px', margin: '0 auto' }}>
  {/* Page Header */}
@@ -591,7 +593,7 @@ teamSettings,
  <td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>{emp.role}</td>
 <td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>{emp.department}</td>
  <td style={{ padding: 'var(--sp-3)' }}>
- {emp.workspaceRole === 'owner' && isFounderEmail(emp.email) ? (
+ {emp.workspaceRole === 'owner' ? (
  <span className="badge badge-brand" style={{ textTransform: 'capitalize' }}>
  Owner
  </span>

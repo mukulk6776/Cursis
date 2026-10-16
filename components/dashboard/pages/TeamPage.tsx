@@ -21,6 +21,7 @@ export default function TeamPage() {
     setCurrentPage: setDashboardPage,
   } = useDashboard();
 
+  const canManage = ['owner', 'admin'].includes(user.workspaceRole || 'member');
   const [activeTab, setActiveTab] = useState<TeamTab>('directory');
   const [deptFilter, setDeptFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,6 +100,7 @@ export default function TeamPage() {
           <button
             type="button"
             className={`btn ${employees.length >= 10 ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+            disabled={!canManage}
             onClick={() => openModal('invite-modal')}
             style={{ fontWeight: 700 }}
             title={employees.length >= 10 ? 'Team limit reached (max 10 members)' : undefined}
@@ -398,7 +400,7 @@ export default function TeamPage() {
                           >
                             Profile
                           </button>
-                          {(user.workspaceRole === 'owner' || user.role === 'owner') && emp.id !== user.id && emp.id !== 'u1' && emp.id !== 'u_owner' && emp.workspaceRole !== 'owner' && (
+                          {canManage && emp.id !== user.id && emp.id !== 'u1' && emp.id !== 'u_owner' && emp.workspaceRole !== 'owner' && (
                             <button
                               type="button"
                               className="btn btn-ghost btn-sm"
@@ -519,6 +521,7 @@ export default function TeamPage() {
                         type="button"
                         className="btn btn-ghost btn-sm"
                         style={{ fontSize: '11px', padding: '2px 8px', color: '#dc2626' }}
+                        disabled={!canManage}
                         onClick={() => revokeInvitation(inv.id)}
                       >
                         Revoke

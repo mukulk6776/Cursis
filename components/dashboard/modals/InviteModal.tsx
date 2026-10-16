@@ -13,13 +13,13 @@ export default function InviteModal() {
   const isAtCapacity = activeCount + pendingCount >= 10;
 
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'member' | 'admin'>('member');
+  const [role, setRole] = useState<'member' | 'admin' | 'viewer'>('member');
   const [department, setDepartment] = useState('Engineering');
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  if (activeModal !== 'invite-modal') return null;
+  if (activeModal !== 'invite-modal' || !['owner', 'admin'].includes(user.workspaceRole || 'member')) return null;
 
   const handleClose = () => {
     setErrorMsg('');
@@ -267,12 +267,13 @@ export default function InviteModal() {
                 id="invite-modal-role-select"
                 className="input select"
                 value={role}
-                onChange={(e) => setRole(e.target.value as 'member' | 'admin')}
+                onChange={(e) => setRole(e.target.value as 'member' | 'admin' | 'viewer')}
                 disabled={isSubmitting || isAtCapacity}
                 style={{ width: '100%' }}
               >
                 <option value="member">Member</option>
-                <option value="admin">Admin</option>
+                <option value="viewer">Viewer</option>
+                  <option value="admin">Admin</option>
               </select>
             </div>
 

@@ -163,13 +163,14 @@ async function runTests() {
     });
 
     // Attempt malicious updates
-    await updateTeamMember(testMemberId, {
+    await assert.rejects(() => updateTeamMember(testMemberId, {
       displayName: 'Legit Updated Name',
       passwordHash: 'hacked_hash',
       salt: 'hacked_salt',
       email: 'attacker@evil.com',
       role: 'owner',
-    });
+    }), /Workspace is required/);
+    await updateTeamMember(testMemberId, { displayName: 'Legit Updated Name', passwordHash: 'hacked_hash', salt: 'hacked_salt', email: 'attacker@evil.com' });
 
     const updatedUser = inMemoryStore.users.get(testMemberId);
     assert.equal(updatedUser.passwordHash, 'original_secure_hash', 'passwordHash must remain uncorrupted');
