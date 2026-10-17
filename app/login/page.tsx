@@ -232,7 +232,7 @@ export default function LoginPage() {
               borderRadius: '9999px',
             }}
           >
-            Enterprise Workspace
+            Your Team Workspace
           </span>
           <span style={{ fontSize: '12px', color: '#B8B2AA' }}>•</span>
           <span style={{ fontSize: '12px', color: '#6B655F', fontWeight: 500 }}>
@@ -259,7 +259,7 @@ export default function LoginPage() {
             Sign In to Workspace
           </h1>
           <p style={{ fontSize: '13px', color: '#6B655F', marginTop: '6px', margin: '6px 0 0 0', lineHeight: 1.5 }}>
-            Enter your enterprise credentials to access your organization's unified workspace.
+            Sign in to find your tasks, projects, and team conversations in one place.
           </p>
         </div>
 
@@ -517,7 +517,7 @@ export default function LoginPage() {
             color: '#6B655F',
           }}
         >
-          <span>Need an enterprise workspace?</span>
+          <span>New to Cursis?</span>
           <Link href="/signup" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'none' }}>
             Create Workspace →
           </Link>
@@ -527,11 +527,11 @@ export default function LoginPage() {
       {/* Enterprise Trust & Compliance Footer */}
       <div style={{ marginTop: '24px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', fontSize: '11px', color: '#968F87' }}>
-          <span>256-Bit TLS Encryption</span>
+          <span>Encrypted Connection</span>
           <span>•</span>
           <span>SOC-2 Type II Certified</span>
           <span>•</span>
-          <span>99.99% Guaranteed SLA Uptime</span>
+          <span>99.99% Availability Guarantee</span>
         </div>
         <p style={{ fontSize: '11px', color: '#B8B2AA', marginTop: '8px' }}>
           By continuing, you agree to Cursis{' '}

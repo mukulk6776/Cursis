@@ -45,69 +45,69 @@ export default function ModulesSection() {
   const modules = [
     {
       num: '01',
-      name: 'Dashboard',
-      desc: 'Track projects, active tasks, and team updates in a single view.',
+      name: 'Team Overview',
+      desc: 'See what needs your attention without checking every project.',
       featured: false,
     },
     {
       num: '02',
       name: 'Ordis AI',
-      desc: 'Your AI partner for sprint summaries, task creation, and workload balancing.',
+      desc: 'Spot delayed tasks, get quick updates, and share work more fairly.',
       featured: true, // Prominent featured card in Tano Butter Yellow (#FFD66B) with washi tape
       badge: 'BUILT-IN AI',
     },
     {
       num: '03',
       name: 'Tasks',
-      desc: 'Organize work with clean boards, filters, and priority tags.',
+      desc: 'Keep track of what needs doing, who owns it, and when it is due.',
       featured: false,
     },
     {
       num: '04',
       name: 'Projects',
-      desc: 'Plan roadmaps, milestones, and project goals with clear deadlines.',
+      desc: 'Keep every project’s tasks and deadlines together.',
       featured: false,
     },
     {
       num: '05',
       name: 'Team',
-      desc: 'Manage member roles, permissions, and team bandwidth.',
+      desc: 'See who does what, who can help, and who can access your work.',
       featured: false,
     },
     {
       num: '06',
       name: 'Calendar',
-      desc: 'Schedule deadlines, sprint dates, and team events.',
+      desc: 'Keep deadlines, meetings, and team events in one calendar.',
       featured: false,
     },
     {
       num: '07',
       name: 'Meetings',
-      desc: 'Host video syncs and turn discussions directly into tasks.',
+      desc: 'Meet on video and turn what you agree on into tasks.',
       featured: false,
     },
     {
       num: '08',
-      name: 'Automations',
-      desc: 'Build real-time event-driven rules and integrations to trigger actions across your tools.',
+      name: 'Automatic Actions',
+      desc: 'Set up simple rules to handle repeat jobs, like sending task reminders.',
       featured: false,
     },
     {
       num: '09',
-      name: 'Analytics',
-      desc: 'View sprint velocity, cycle times, and completion rates.',
+      name: 'Progress Reports',
+      desc: 'See how much work is finished and where things are slowing down.',
       featured: false,
     },
     {
       num: '10',
       name: 'Settings',
-      desc: 'Customize workspace settings, integrations, and access controls.',
+      desc: 'Choose how your workspace works and who can use it.',
       featured: false,
     },
     {
       num: '→',
       name: 'Start Your Workspace',
-      desc: 'Deploy your team autonomous AI workplace in under 60 seconds.',
+      desc: 'Bring your team and their work into one place.',
       featured: false,
       cta: true,
     },
@@ -117,11 +117,11 @@ export default function ModulesSection() {
     <section className="lp-section" id="modules" ref={sectionRef}>
       <div className="lp-section-header">
         <div className="lp-section-label lp-reveal">
-          <span>{count}</span> Workspace Modules
+          <span>{count}</span> Team Tools
         </div>
-        <h2 className="lp-section-title lp-reveal">One workspace. Ten integrated tools.</h2>
+        <h2 className="lp-section-title lp-reveal">Your team’s tools, together at last.</h2>
         <p className="lp-section-subtitle lp-reveal">
-          Everything your team needs, built into one fast and reliable platform.
+          Spend less time switching apps and more time getting work done.
         </p>
       </div>
 
@@ -142,7 +142,7 @@ export default function ModulesSection() {
                 <p className="tano-module-desc">{m.desc}</p>
                 <div className="tano-module-cta-footer">
                   <span className="tano-cta-arrow">→</span>
-                  <span className="tano-cta-text">Deploy Now</span>
+                  <span className="tano-cta-text">Get Started</span>
                 </div>
               </a>
             );

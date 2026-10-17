@@ -6,10 +6,10 @@ export default function CtaSection() {
     <section className="lp-cta-section" id="cta">
       <div className="lp-cta-inner">
         <h2 className="lp-cta-title">
-          Ready to build faster?
+          Ready for fewer missed deadlines?
         </h2>
         <p className="lp-cta-subtitle">
-          Create your workspace in seconds. Free for small teams, no credit card required.
+          Bring your team’s work together. Free for small teams, no credit card required.
         </p>
 
         <div className="lp-cta-buttons">
@@ -26,7 +26,7 @@ export default function CtaSection() {
         </div>
 
         <p className="lp-cta-note">
-          Free plan available • Real-time collaboration • Fast setup
+          Free plan available • Work together in one place • Fast setup
         </p>
       </div>
     </section>

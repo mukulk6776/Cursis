@@ -12,23 +12,23 @@ interface DemoPrompt {
 export const ORDIS_DEMO_PROMPTS: readonly DemoPrompt[] = [
   {
     id: 'priorities',
-    question: 'What are our key priorities for today?',
-    answer: 'Start with the checkout design review: it is holding up QA. Then finish the mobile navigation fixes and approve the release notes. Alex has room to pick up the regression tests so the team can keep Friday’s launch on track.',
+    question: 'What should we work on today?',
+    answer: 'Approve the checkout design first so testing can start. Then fix the phone menu and check the update notes. Alex has time to help with testing so the team can finish by Friday.',
   },
   {
     id: 'workload',
     question: 'Who is overloaded this week?',
-    answer: 'Sarah has 36 hours of work planned against 30 available hours, with two reviews due Thursday. Alex has 8 hours free. Move the checkout regression tests to Alex and keep Sarah focused on the payment integration. That brings her workload back within capacity.',
+    answer: 'Sarah has 36 hours of work but only 30 hours available. Alex has 8 hours free. Give Alex the checkout testing so Sarah can focus on payments and her two reviews due Thursday.',
   },
   {
     id: 'sprint',
-    question: 'Summarize this sprint',
-    answer: '18 of 24 tasks are complete. Four are in progress and two are waiting for review. The account settings update is ready to ship; checkout QA is the remaining delivery risk. Clear the design approval today to keep the Friday release on schedule.',
+    question: 'How is this week’s work going?',
+    answer: '18 of 24 tasks are done. Four are being worked on, and two need a review. The account settings update is ready. Approve the checkout design today so testing can finish before Friday.',
   },
   {
     id: 'checkout',
-    question: 'What’s blocking the checkout flow?',
-    answer: 'The payment error states still need design approval before QA can verify the checkout flow. Jamie owns the review, due today at 2 PM. Once approved, Alex can run the regression tests. Prioritize that approval before taking on new checkout changes.',
+    question: 'What is holding up checkout?',
+    answer: 'Jamie needs to approve the payment error messages by 2 PM today. Then Alex can test checkout. Get that approval first so testing can move ahead.',
   },
 ];
 
@@ -121,8 +121,8 @@ export default function OrdisSection() {
     <section className="lp-section lp-ordis-section" id="ordis" aria-labelledby="ordis-demo-heading">
       <div className="lp-section-header">
         <div className="lp-section-label">Ordis AI</div>
-        <h2 className="lp-section-title" id="ordis-demo-heading">Meet your AI operations partner.</h2>
-        <p className="lp-section-subtitle">Pick a question and see how Ordis turns team updates into a clear next step.</p>
+        <h2 className="lp-section-title" id="ordis-demo-heading">Catch delays before deadlines slip.</h2>
+        <p className="lp-section-subtitle">Ordis AI spots delayed tasks and helps share the workload. Try a question to see what your team could do next.</p>
       </div>
 
       <div className="lp-ordis-demo" data-phase={state.phase}>
@@ -147,7 +147,7 @@ export default function OrdisSection() {
             <div className="lp-ordis-demo-empty">
               <span className="lp-ordis-demo-spark" aria-hidden="true">✳</span>
               <p>Pick a question to see Ordis in action.</p>
-              <span>Sample workspace. Real possibilities.</span>
+              <span>Try it with sample team data.</span>
             </div>
           ) : (
             <>
@@ -182,7 +182,7 @@ export default function OrdisSection() {
             </div>
           </div>
           <div className="lp-ordis-demo-cta-slot">
-            {busy && <p className="lp-ordis-demo-progress" role="status">Your next step is taking shape<span aria-hidden="true">…</span></p>}
+            {busy && <p className="lp-ordis-demo-progress" role="status">Ordis is writing your answer<span aria-hidden="true">…</span></p>}
             {state.phase === 'complete' && (
               <div className="lp-ordis-demo-completion">
                 <p>Less chasing updates. More moving forward.</p>

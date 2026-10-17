@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 
 export default function CreatorsSection() {
   const [pipeline, setPipeline] = useState([
-    { num: '1', label: 'Idea / Script', done: false, desc: 'Hook draft, script outline, timestamp markers' },
-    { num: '2', label: 'Shoot / Record', done: false, desc: 'A-roll camera sync, mic audio check, B-roll prompts' },
-    { num: '3', label: 'Edit / Review', done: false, desc: 'Rough cut assembly, jump cut pacing, sound design' },
-    { num: '4', label: 'Thumbnail / Assets', done: false, desc: 'A/B thumbnail testing, title hooks, end screens' },
-    { num: '5', label: 'Publish', done: true, desc: 'Multi-platform scheduling, SEO tags, comment pin' },
+    { num: '1', label: 'Idea / Script', done: false, desc: 'Write the idea, outline, and script' },
+    { num: '2', label: 'Shoot / Record', done: false, desc: 'Record video, check the sound, and gather extra shots' },
+    { num: '3', label: 'Edit / Review', done: false, desc: 'Edit the video and collect team feedback' },
+    { num: '4', label: 'Cover Image / Title', done: false, desc: 'Choose the cover image, title, and end screen' },
+    { num: '5', label: 'Publish', done: true, desc: 'Check the final video and plan when to share it' },
   ]);
 
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -20,11 +20,11 @@ export default function CreatorsSection() {
   };
 
   const roles = [
-    { code: 'SE', title: 'Script Editor', color: '#2965ff', duty: 'Refines video hooks, ensures narrative retention and pacing' },
-    { code: 'VE', title: 'Video Editor', color: '#8b5cf6', duty: 'Cuts footage, motion graphics, audio sync and visual SFX' },
-    { code: 'TD', title: 'Thumbnail Designer', color: '#f59e0b', duty: 'Generates high-CTR concepts, color grading, title typography' },
-    { code: 'SM', title: 'Social Manager', color: '#10b981', duty: 'Shorts repurposing, TikTok clipping, community engagement' },
-    { code: 'VO', title: 'Voiceover Artist', color: '#ef4444', duty: 'Narrations, localization, sponsor reads, audio master' },
+    { code: 'SE', title: 'Script Editor', color: '#2965ff', duty: 'Makes the script clear and keeps the story interesting' },
+    { code: 'VE', title: 'Video Editor', color: '#8b5cf6', duty: 'Edits the video and adds sound and effects' },
+    { code: 'TD', title: 'Cover Image Designer', color: '#f59e0b', duty: 'Creates cover images that help viewers notice your videos' },
+    { code: 'SM', title: 'Social Manager', color: '#10b981', duty: 'Shares clips and replies to your audience' },
+    { code: 'VO', title: 'Voiceover Artist', color: '#ef4444', duty: 'Records clear voiceovers for your videos' },
   ];
 
   return (
@@ -32,19 +32,19 @@ export default function CreatorsSection() {
       <div className="lp-creators-container">
         <div className="lp-section-header" style={{ marginBottom: '40px' }}>
           <div className="lp-section-label">Media & Creators</div>
-          <h2 className="lp-section-title">Studio workflows for modern creators.</h2>
+          <h2 className="lp-section-title">Get every video ready to share.</h2>
           <p className="lp-section-subtitle">
-            Plan scripts, manage video assets, and coordinate reviews in one clean production pipeline.
+            Keep scripts, files, feedback, and deadlines together, so your next video does not get stuck in review.
           </p>
         </div>
 
         <div className="lp-creators-cards-row">
-          {/* Content Pipeline Card */}
+          {/* Video Checklist Card */}
           <div className="lp-bento-card lp-creators-card">
             <div className="tano-washi-tape" style={{ top: -11, right: 32, transform: 'rotate(-2deg)' }} aria-hidden="true" />
             <div className="lp-card-subhead">
-              <span className="lp-card-tag-tano">Content Pipeline</span>
-              <span className="lp-card-hint">(Click step to toggle)</span>
+              <span className="lp-card-tag-tano">Video Checklist</span>
+              <span className="lp-card-hint">(Click a step to mark it done)</span>
             </div>
             <div className="lp-pipeline-list">
               {pipeline.map((item) => (
@@ -78,8 +78,8 @@ export default function CreatorsSection() {
           <div className="lp-bento-card lp-creators-card">
             <div className="tano-washi-tape" style={{ top: -11, left: 32, transform: 'rotate(2.5deg)' }} aria-hidden="true" />
             <div className="lp-card-subhead">
-              <span className="lp-card-tag-tano">Creator Crew Roles</span>
-              <span className="lp-card-hint">Modular team roles</span>
+              <span className="lp-card-tag-tano">Your Creative Team</span>
+              <span className="lp-card-hint">Who does what</span>
             </div>
             <div className="lp-roles-list">
               {roles.map((r) => (

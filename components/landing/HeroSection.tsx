@@ -10,35 +10,35 @@ type TabKey = 'agent' | 'sprint' | 'team' | 'pipeline';
 export default function HeroSection() {
   const [activeTab, setActiveTab] = useState<TabKey>('agent');
   const [tasks, setTasks] = useState([
-    { id: 1, title: 'Finalize design system tokens', priority: 'High', status: 'In Progress', assignee: 'Mukul K.', sla: 'Today 5:00 PM' },
-    { id: 2, title: 'Security review for OAuth session guard', priority: 'Urgent', status: 'Pending', assignee: 'Sarah T.', sla: 'Tomorrow' },
-    { id: 3, title: 'Review Q3 sprint deliverables', priority: 'Medium', status: 'Done', assignee: 'Alex R.', sla: 'Completed' },
+    { id: 1, title: 'Finish the brand colors and fonts', priority: 'High', status: 'In Progress', assignee: 'Mukul K.', sla: 'Today 5:00 PM' },
+    { id: 2, title: 'Check that sign-in is secure', priority: 'Urgent', status: 'Pending', assignee: 'Sarah T.', sla: 'Tomorrow' },
+    { id: 3, title: 'Review this month’s finished work', priority: 'Medium', status: 'Done', assignee: 'Alex R.', sla: 'Completed' },
   ]);
   const [ordisActionExecuted, setOrdisActionExecuted] = useState(false);
   const [activePromptIndex, setActivePromptIndex] = useState(0);
 
   const prompts = [
     {
-      label: 'Check Blockers',
-      prompt: 'Ordis, what are the key delivery risks for tomorrow?',
-      result: '1 blocker found: "Security review for OAuth session guard" assigned to Sarah T. (at 88% capacity). Recommended: Reassign to Mukul K.',
+      label: 'Spot Delays',
+      prompt: 'Ordis, what could miss its deadline tomorrow?',
+      result: 'One task may be late: "Check that sign-in is secure." Sarah T. is nearly fully booked. Mukul K. has room to help.',
     },
     {
-      label: 'Sprint Summary',
-      prompt: 'Summarize sprint progress and current status.',
-      result: 'Sprint progress: 84% on track. 24 tasks completed this week. All milestone deadlines healthy.',
+      label: 'Quick Update',
+      prompt: 'How is our work going this week?',
+      result: '84% of the planned work is done. The team finished 24 tasks this week, and deadlines are on track.',
     },
     {
-      label: 'Balance Workload',
-      prompt: 'Balance team workload across active squads.',
-      result: 'Rebalanced 2 tasks. Team load normalized to 68%. No members overloaded.',
+      label: 'Share the Work',
+      prompt: 'Help share the work fairly across the team.',
+      result: 'Moved 2 tasks to teammates with time to help. Everyone now has a manageable workload.',
     },
   ];
 
   const handleExecuteAction = () => {
     setOrdisActionExecuted(true);
     setTasks((prev) =>
-      prev.map((t) => (t.id === 2 ? { ...t, status: 'In Progress', assignee: 'Mukul K. (Rebalanced)' } : t))
+      prev.map((t) => (t.id === 2 ? { ...t, status: 'In Progress', assignee: 'Mukul K. (Taking Over)' } : t))
     );
   };
 
@@ -85,17 +85,17 @@ export default function HeroSection() {
           style={{ cursor: 'pointer', textDecoration: 'none' }}
         >
           <span className="tano-hero-badge-pill">NEW</span>
-          <span className="tano-hero-badge-text">Ordis AI 4.0 is live</span>
+          <span className="tano-hero-badge-text">Meet Ordis, your AI assistant</span>
           <span className="tano-hero-badge-arrow">→</span>
         </motion.a>
 
         <motion.h1 className="lp-hero-title" variants={line}>
-          The AI workspace<br />
-          <span className="tano-hero-marker">for modern teams.</span>
+          Less chasing.<br />
+          <span className="tano-hero-marker">More getting done.</span>
         </motion.h1>
 
         <motion.p className="lp-hero-text" variants={line}>
-          Plan sprints, manage tasks, and keep everyone aligned in real time. Powered by built-in intelligence.
+          Keep tasks, projects, chat, and video meetings in one place. Ordis AI spots delayed tasks and helps share the work, so your team can stay on track.
         </motion.p>
 
         <motion.div className="lp-hero-ctas" variants={line}>
@@ -137,7 +137,7 @@ export default function HeroSection() {
             <span className="lp-mockup-dot red" />
             <span className="lp-mockup-dot yellow" />
             <span className="lp-mockup-dot green" />
-            <span className="lp-mockup-tag">cursis / production workspace</span>
+            <span className="lp-mockup-tag">cursis / team workspace</span>
           </div>
 
           <div className="lp-mockup-url">
@@ -150,7 +150,7 @@ export default function HeroSection() {
 
           <div className="lp-mockup-status">
             <span className="lp-status-live-dot" />
-            <span>Interactive Simulation • Sample Data</span>
+            <span>Try the demo • Sample data</span>
           </div>
         </div>
 
@@ -179,7 +179,7 @@ export default function HeroSection() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
               </svg>
-              <span>Sprint Velocity</span>
+              <span>Work Progress</span>
             </button>
 
             <button
@@ -193,7 +193,7 @@ export default function HeroSection() {
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
-              <span>Team Workload (4)</span>
+              <span>Who Is Busy? (4)</span>
             </button>
 
             <button
@@ -207,7 +207,7 @@ export default function HeroSection() {
                 <rect x="14" y="14" width="7" height="7" rx="1" />
                 <rect x="3" y="14" width="7" height="7" rx="1" />
               </svg>
-              <span>Project Pipeline</span>
+              <span>Project Stages</span>
             </button>
           </div>
         </div>
@@ -222,7 +222,7 @@ export default function HeroSection() {
                 <div className="lp-mockup-view-header">
                   <div>
                     <h3 className="lp-mockup-view-title">Active Tasks</h3>
-                    <span className="lp-mockup-view-subtitle">3 tasks in progress • Sprint 84% on track</span>
+                    <span className="lp-mockup-view-subtitle">3 sample tasks • 84% of planned work done</span>
                   </div>
                   <span className="badge badge-brand">84% ON TRACK</span>
                 </div>
@@ -260,7 +260,7 @@ export default function HeroSection() {
                           <span className={`badge badge-sm ${t.priority === 'Urgent' ? 'badge-error' : t.priority === 'High' ? 'badge-warning' : 'badge-neutral'}`}>
                             {t.priority}
                           </span>
-                          <span className="lp-sla-tag">SLA: {t.sla}</span>
+                          <span className="lp-sla-tag">Due: {t.sla}</span>
                         </div>
                       </div>
                     </div>
@@ -269,7 +269,7 @@ export default function HeroSection() {
 
                 {/* Live Agent Interactive Prompts */}
                 <div className="lp-mockup-prompts-bar">
-                  <span className="lp-prompts-title">Simulate Natural Language Commands:</span>
+                  <span className="lp-prompts-title">Try asking Ordis:</span>
                   <div className="lp-prompts-chips">
                     {prompts.map((p, idx) => (
                       <button
@@ -299,7 +299,7 @@ export default function HeroSection() {
                             className="btn btn-sm btn-primary"
                             style={{ fontSize: '0.78rem', padding: '5px 12px', borderRadius: '6px' }}
                           >
-                            {ordisActionExecuted ? 'Task Reassigned to Mukul K.' : 'Reassign Task to Mukul'}
+                            {ordisActionExecuted ? 'Mukul K. Is Taking Over' : 'Give This Task to Mukul'}
                           </button>
                         </div>
                       )}
@@ -314,48 +314,48 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">Sprint Velocity</h3>
-                    <span className="lp-mockup-view-subtitle">Current Sprint • Target End: Friday 6:00 PM</span>
+                    <h3 className="lp-mockup-view-title">Work Progress</h3>
+                    <span className="lp-mockup-view-subtitle">This week’s work • Due Friday at 6:00 PM</span>
                   </div>
                   <span className="badge badge-brand">ON TRACK (99% ON TIME)</span>
                 </div>
 
                 <div className="lp-sprint-grid">
                   <div className="lp-metric-card">
-                    <span className="lp-metric-label">Completed Story Points</span>
+                    <span className="lp-metric-label">Tasks Finished</span>
                     <span className="lp-metric-value">148 / 176</span>
                     <div className="lp-metric-progress">
                       <div className="lp-metric-bar" style={{ width: '84%' }} />
                     </div>
-                    <span className="lp-metric-sub">84% completion rate</span>
+                    <span className="lp-metric-sub">84% of tasks finished</span>
                   </div>
 
                   <div className="lp-metric-card">
-                    <span className="lp-metric-label">Cycle Time Average</span>
+                    <span className="lp-metric-label">Average Time per Task</span>
                     <span className="lp-metric-value">1.8 Days</span>
-                    <span className="lp-metric-trend positive">-34% vs prior month</span>
-                    <span className="lp-metric-sub">Zero staging latency</span>
+                    <span className="lp-metric-trend positive">34% less time than last month</span>
+                    <span className="lp-metric-sub">No waiting between steps</span>
                   </div>
 
                   <div className="lp-metric-card">
-                    <span className="lp-metric-label">Critical Path Risks</span>
+                    <span className="lp-metric-label">Tasks Holding Up Work</span>
                     <span className="lp-metric-value">0 Blocked</span>
                     <span className="lp-metric-trend positive">Fully Clear</span>
-                    <span className="lp-metric-sub">Automated contract checks pass</span>
+                    <span className="lp-metric-sub">No tasks are holding up the team</span>
                   </div>
                 </div>
 
                 <div className="lp-sprint-chart-mock">
                   <div className="lp-chart-header">
-                    <span>Sprint Burnup Trajectory</span>
-                    <span className="badge badge-sm badge-neutral">Forecast: Ahead by 1.2 Days</span>
+                    <span>Tasks Finished This Week</span>
+                    <span className="badge badge-sm badge-neutral">Expected to finish 1.2 days early</span>
                   </div>
                   <div className="lp-chart-bars">
                     <div className="lp-chart-col"><div className="lp-bar-fill" style={{ height: '35%' }} /><span>Mon</span></div>
                     <div className="lp-chart-col"><div className="lp-bar-fill" style={{ height: '52%' }} /><span>Tue</span></div>
                     <div className="lp-chart-col"><div className="lp-bar-fill" style={{ height: '68%' }} /><span>Wed</span></div>
                     <div className="lp-chart-col"><div className="lp-bar-fill" style={{ height: '84%' }} /><span>Thu (Today)</span></div>
-                    <div className="lp-chart-col forecast"><div className="lp-bar-fill" style={{ height: '100%' }} /><span>Fri (Est)</span></div>
+                    <div className="lp-chart-col forecast"><div className="lp-bar-fill" style={{ height: '100%' }} /><span>Fri (Expected)</span></div>
                   </div>
                 </div>
               </div>
@@ -366,10 +366,10 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">Team Workload &amp; Live Availability</h3>
-                    <span className="lp-mockup-view-subtitle">4 team members active • Capacity balanced</span>
+                    <h3 className="lp-mockup-view-title">Who Has Room to Help?</h3>
+                    <span className="lp-mockup-view-subtitle">4 teammates • Work shared evenly</span>
                   </div>
-                  <span className="badge badge-brand">OPTIMAL LOAD</span>
+                  <span className="badge badge-brand">WORK SHARED EVENLY</span>
                 </div>
 
                 <div className="lp-mockup-team-grid">
@@ -377,7 +377,7 @@ export default function HeroSection() {
                     <div className="lp-avatar-sm" style={{ background: '#1A1612', color: '#ffffff' }}>MK</div>
                     <div className="lp-member-info">
                       <div className="lp-member-name">Mukul Kumar</div>
-                      <div className="lp-member-role">Lead Operations Engineer • 3 tasks</div>
+                      <div className="lp-member-role">Team Lead • 3 tasks</div>
                       <div className="lp-member-capacity">
                         <div className="lp-capacity-fill" style={{ width: '65%' }} />
                       </div>
@@ -389,7 +389,7 @@ export default function HeroSection() {
                     <div className="lp-avatar-sm" style={{ background: '#2965ff', color: '#ffffff' }}>ST</div>
                     <div className="lp-member-info">
                       <div className="lp-member-name">Sarah Taylor</div>
-                      <div className="lp-member-role">Systems Architect • 2 tasks</div>
+                      <div className="lp-member-role">Developer • 2 tasks</div>
                       <div className="lp-member-capacity">
                         <div className="lp-capacity-fill" style={{ width: '50%' }} />
                       </div>
@@ -413,7 +413,7 @@ export default function HeroSection() {
                     <div className="lp-avatar-sm" style={{ background: '#8b5cf6', color: '#ffffff' }}>EL</div>
                     <div className="lp-member-info">
                       <div className="lp-member-name">Elena Lin</div>
-                      <div className="lp-member-role">Creator Pipeline Mgr • 4 assets</div>
+                      <div className="lp-member-role">Content Manager • 4 files</div>
                       <div className="lp-member-capacity">
                         <div className="lp-capacity-fill" style={{ width: '70%' }} />
                       </div>
@@ -429,46 +429,46 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">5-Stage Media &amp; Creator Pipeline</h3>
-                    <span className="lp-mockup-view-subtitle">End-to-end production tracking from script to distribution</span>
+                    <h3 className="lp-mockup-view-title">From Video Idea to Published</h3>
+                    <span className="lp-mockup-view-subtitle">See what needs writing, recording, review, or publishing</span>
                   </div>
-                  <span className="badge badge-brand">5 ACTIVE RELEASES</span>
+                  <span className="badge badge-brand">5 PROJECTS UNDERWAY</span>
                 </div>
 
                 <div className="lp-pipeline-columns">
                   <div className="lp-pipeline-col">
-                    <span className="lp-pipeline-col-header">1. Ideation &amp; Script</span>
+                    <span className="lp-pipeline-col-header">1. Idea &amp; Script</span>
                     <div className="lp-pipeline-card">
-                      <strong>Enterprise Keynote Deck</strong>
-                      <span>2 revisions pending</span>
+                      <strong>Client Presentation</strong>
+                      <span>2 changes to review</span>
                     </div>
                   </div>
                   <div className="lp-pipeline-col">
-                    <span className="lp-pipeline-col-header">2. Production</span>
+                    <span className="lp-pipeline-col-header">2. Create</span>
                     <div className="lp-pipeline-card">
-                      <strong>Brand Film Cut v4</strong>
-                      <span>Rendering 4K masters</span>
+                      <strong>Brand Video — Version 4</strong>
+                      <span>Saving the final video</span>
                     </div>
                   </div>
                   <div className="lp-pipeline-col">
-                    <span className="lp-pipeline-col-header">3. Review &amp; QA</span>
+                    <span className="lp-pipeline-col-header">3. Review &amp; Check</span>
                     <div className="lp-pipeline-card urgent">
-                      <strong>SOC-2 Compliance Video</strong>
-                      <span>Stakeholder approval needed</span>
+                      <strong>Product Demo Video</strong>
+                      <span>Waiting for client approval</span>
                     </div>
                   </div>
                   <div className="lp-pipeline-col">
-                    <span className="lp-pipeline-col-header">4. Scheduled</span>
+                    <span className="lp-pipeline-col-header">4. Ready to Share</span>
                     <div className="lp-pipeline-card">
                       <strong>Product Launch Reel</strong>
-                      <span>Release: Tomorrow 9 AM</span>
+                      <span>Goes live tomorrow at 9 AM</span>
                     </div>
                   </div>
                   <div className="lp-pipeline-col">
-                    <span className="lp-pipeline-col-header">5. Delivered</span>
+                    <span className="lp-pipeline-col-header">5. Finished</span>
                     <div className="lp-pipeline-card done">
-                      <strong>Onboarding Playbook</strong>
-                      <span>Live in Enterprise Hub</span>
+                      <strong>New Starter Guide</strong>
+                      <span>Shared with the team</span>
                     </div>
                   </div>
                 </div>
@@ -482,21 +482,21 @@ export default function HeroSection() {
               <div className="lp-ordis-icon-box">O</div>
               <div className="lp-ordis-header-text">
                 <span className="lp-ordis-title">Ordis Assistant</span>
-                <span className="lp-ordis-subtitle">Real-time task intelligence</span>
+                <span className="lp-ordis-subtitle">Help keeping work on track</span>
               </div>
             </div>
 
             <div className="lp-ordis-action-box">
               <div className="lp-ordis-tag">SMART SUGGESTION</div>
               <p className="lp-ordis-msg">
-                <strong>"OAuth security review"</strong> is scheduled for tomorrow. Sarah T. is at 88% capacity.
+                <strong>"Check that sign-in is secure"</strong> is scheduled for tomorrow. Sarah T. is nearly fully booked.
               </p>
 
               {!ordisActionExecuted ? (
                 <div className="lp-ordis-action-footer">
-                  <span className="lp-ordis-suggestion">Suggested Action:</span>
+                  <span className="lp-ordis-suggestion">Try this:</span>
                   <button className="btn btn-brand btn-sm" onClick={handleExecuteAction}>
-                    Reassign to Mukul K. →
+                    Give to Mukul K. →
                   </button>
                 </div>
               ) : (
@@ -504,19 +504,19 @@ export default function HeroSection() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  <span>Reassigned to Mukul K. Workload balanced.</span>
+                  <span>Mukul K. is taking over. Sarah has more time.</span>
                 </div>
               )}
             </div>
 
             <div className="lp-ordis-stats-widget">
-              <span className="lp-widget-title">Sprint Overview</span>
+              <span className="lp-widget-title">This Week’s Progress</span>
               <div className="lp-widget-row">
                 <span>Tasks Completed</span>
                 <strong>24 this week</strong>
               </div>
               <div className="lp-widget-row">
-                <span>Sprint Health</span>
+                <span>Work on Track</span>
                 <strong>94% on track</strong>
               </div>
               <div className="lp-widget-row">
@@ -533,7 +533,7 @@ export default function HeroSection() {
                 role="button"
                 tabIndex={0}
               >
-                View Team Workload
+                See Who Is Busy
               </div>
               <div
                 className="lp-prompt-pill"
@@ -541,7 +541,7 @@ export default function HeroSection() {
                 role="button"
                 tabIndex={0}
               >
-                View Sprint Velocity
+                View Work Progress
               </div>
             </div>
           </div>

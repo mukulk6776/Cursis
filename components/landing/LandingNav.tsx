@@ -106,7 +106,7 @@ export default function LandingNav() {
         >
           <Link href="/" className="lp-nav-logo" onClick={() => setMobileOpen(false)}>
             <div style={{ width: '32px', height: '32px', borderRadius: '9px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
-              <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32" role="img" aria-label="Cursis — Autonomous AI Workplace Logo" style={{ borderRadius: '9px' }}>
+              <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32" role="img" aria-label="Cursis logo" style={{ borderRadius: '9px' }}>
                 <defs>
                   <clipPath id="rounded-logo-nav">
                     <rect x="0" y="0" width="1024" height="1024" rx="180" ry="180" />
@@ -141,9 +141,9 @@ export default function LandingNav() {
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           {[
             { href: '/#features', selector: '#features', label: 'Features' },
-            { href: '/#connected', selector: '#connected', label: 'Workflow' },
+            { href: '/#connected', selector: '#connected', label: 'How It Works' },
             { href: '/#ordis', selector: '#ordis', label: 'Ordis AI' },
-            { href: '/#modules', selector: '#modules', label: 'Modules' },
+            { href: '/#modules', selector: '#modules', label: 'Tools' },
             { href: '/#creators', selector: '#creators', label: 'Creators' },
           ].map((item, i) => (
             <motion.a
@@ -172,7 +172,7 @@ export default function LandingNav() {
                 {isAuthenticated ? (
                   <>
                     <Link href="/dashboard" className="lp-nav-cta-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>
-                      Open Dashboard →
+                      Open Workspace →
                     </Link>
                     <button
                       type="button"
@@ -189,7 +189,7 @@ export default function LandingNav() {
                       Sign In
                     </Link>
                     <Link href="/signup" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
-                      Deploy Workspace
+                      Get Started
                     </Link>
                   </>
                 )}
@@ -210,9 +210,9 @@ export default function LandingNav() {
               <Link
                 href="/dashboard"
                 className="lp-nav-cta-primary lp-hide-mobile"
-                title={userEmail ? `Signed in as ${userEmail}` : 'Open Dashboard'}
+                title={userEmail ? `Signed in as ${userEmail}` : 'Open Workspace'}
               >
-                Open Dashboard →
+                Open Workspace →
               </Link>
               <button
                 type="button"
@@ -228,7 +228,7 @@ export default function LandingNav() {
                 Sign In
               </Link>
               <Link href="/signup" className="lp-nav-cta-primary lp-hide-mobile">
-                Deploy Workspace
+                Get Started
               </Link>
             </>
           )}

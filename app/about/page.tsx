@@ -15,8 +15,8 @@ const teamMembers = [
     initial: 'SV',
     color: '#FF5500',
     description:
-      'Visionary leader driving Cursis strategic direction and growth. Saransh brings deep expertise in enterprise software and AI innovation, steering the company toward building the future of autonomous workplaces.',
-    focus: ['Strategic Vision', 'Enterprise Growth', 'AI Innovation'],
+      'Saransh leads Cursis and guides what we build, with a focus on making teamwork easier.',
+    focus: ['Product Direction', 'Company Growth', 'Useful AI'],
   },
   {
     name: 'Mukul Kumar',
@@ -25,8 +25,8 @@ const teamMembers = [
     initial: 'MK',
     color: '#1A1612',
     description:
-      'Technical architect behind Cursis cutting-edge AI infrastructure. Mukul leads the engineering team in developing Ordis AI and the sophisticated systems that power autonomous workplace operations.',
-    focus: ['AI Infrastructure', 'Distributed Systems', 'Engineering Leadership'],
+      'Mukul leads the team building Cursis and Ordis AI, helping turn everyday team problems into useful tools.',
+    focus: ['Ordis AI', 'Reliable Software', 'Leading Developers'],
   },
   {
     name: 'Lakhan',
@@ -35,15 +35,15 @@ const teamMembers = [
     initial: 'LK',
     color: '#2965ff',
     description:
-      'Growth strategist orchestrating Cursis market expansion and customer success initiatives. Lakhan champions product-market fit through data-driven strategies, building meaningful relationships with enterprise clients.',
-    focus: ['Market Expansion', 'Customer Success', 'Data Strategy'],
+      'Lakhan helps more teams discover Cursis and listens to customers to understand what they need.',
+    focus: ['Reaching New Teams', 'Helping Customers', 'Customer Feedback'],
   },
 ];
 
 const stats = [
-  { label: 'Team Members', value: '10', desc: 'Distributed globally' },
+  { label: 'Team Members', value: '10', desc: 'Working around the world' },
   { label: 'Active Users', value: '500+', desc: 'Teams worldwide' },
-  { label: 'Uptime SLA', value: '99.99%', desc: 'Enterprise-grade' },
+  { label: 'Availability Guarantee', value: '99.99%', desc: 'Time the service is available' },
   { label: 'Founded', value: '2026', desc: 'Delhi, India' },
 ];
 
@@ -348,12 +348,12 @@ export default function AboutPage() {
               </div>
 
               <h1 className="lp-hero-title" style={{ marginBottom: '32px' }}>
-                Building the future of <br />
-                <span className="about-hero-marker">autonomous work.</span>
+                Making it easier to <br />
+                <span className="about-hero-marker">work together.</span>
               </h1>
 
               <p className="lp-hero-text" style={{ fontSize: '1.25rem', maxWidth: '750px', margin: '0 auto' }}>
-                We're creating an AI workplace where intelligent systems don't just assist—they take action, optimize workflows, and empower teams to achieve more.
+                We bring tasks, projects, chat, and meetings together. Ordis AI helps teams spot delays and share work before anyone takes on too much.
               </p>
             </div>
 
@@ -378,25 +378,25 @@ export default function AboutPage() {
               <div className="about-values-grid">
                 <div className="about-value-card">
                   <div className="about-value-icon">A</div>
-                  <h3 className="about-value-title">Autonomous by Design</h3>
+                  <h3 className="about-value-title">Help Before Work Falls Behind</h3>
                   <p className="about-value-desc">
-                    We build systems that take intelligent action, not just wait for commands. Real autonomy means real impact.
+                    We build tools that help teams spot late tasks and find someone who has time to help.
                   </p>
                 </div>
 
                 <div className="about-value-card">
                   <div className="about-value-icon">C</div>
-                  <h3 className="about-value-title">Clarity Over Complexity</h3>
+                  <h3 className="about-value-title">Keep Things Simple</h3>
                   <p className="about-value-desc">
-                    Simple interfaces, powerful results. We eliminate noise so teams can focus on what matters.
+                    Your team should know what to do next without reading a manual.
                   </p>
                 </div>
 
                 <div className="about-value-card">
                   <div className="about-value-icon">S</div>
-                  <h3 className="about-value-title">Built for Scale</h3>
+                  <h3 className="about-value-title">Grow With Your Team</h3>
                   <p className="about-value-desc">
-                    From startups to enterprises, our infrastructure is designed to grow with your team's ambitions.
+                    Keep your work organized as more people and projects join your team.
                   </p>
                 </div>
               </div>
@@ -434,9 +434,9 @@ export default function AboutPage() {
               <div className="about-mission-icon">M</div>
               <div style={{ textAlign: 'center' }}>
                 <div className="about-mission-label">OUR MISSION</div>
-                <h2 className="about-mission-title">Intelligent work, not just digital work.</h2>
+                <h2 className="about-mission-title">Less time managing work. More time doing it.</h2>
                 <p className="about-mission-text">
-                  At Cursis, we believe the future of work isn't about more tools—it's about smarter systems. Ordis AI proactively identifies bottlenecks, rebalances workloads, and takes meaningful actions so teams can focus on innovation and impact instead of operational overhead.
+                  We want teams to spend less time chasing updates and switching apps. Cursis keeps work and conversations together, while Ordis AI helps catch delays and share the workload.
                 </p>
               </div>
             </div>

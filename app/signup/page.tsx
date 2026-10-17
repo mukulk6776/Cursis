@@ -123,7 +123,7 @@ export default function SignupPage() {
  }
 
  if (password.length < 6) {
- setErrorMsg('Enterprise security requires passwords to be at least 6 characters.');
+ setErrorMsg('Use a password with at least 6 characters.');
  return;
  }
 
@@ -136,7 +136,7 @@ export default function SignupPage() {
  await exchangeTokenAndRedirect(authResult);
  }
  } catch (err: any) {
- setErrorMsg(err?.message || 'Failed to provision enterprise workspace. Please try again.');
+ setErrorMsg(err?.message || 'Could not create your workspace. Please try again.');
  } finally {
  setLoading(false);
  }
@@ -231,7 +231,7 @@ export default function SignupPage() {
           </span>
           <span style={{ fontSize: '12px', color: '#B8B2AA' }}>•</span>
           <span style={{ fontSize: '12px', color: '#6B655F', fontWeight: 500 }}>
-            Standard Enterprise Architecture
+            Bring Your Team Together
           </span>
         </div>
       </div>
@@ -251,10 +251,10 @@ export default function SignupPage() {
       >
         <div style={{ marginBottom: '24px', textAlign: 'left' }}>
           <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#1A1612', margin: 0, letterSpacing: '-0.02em' }}>
-            Deploy Your Workspace
+            Create Your Workspace
           </h1>
           <p style={{ fontSize: '13px', color: '#6B655F', marginTop: '6px', margin: '6px 0 0 0', lineHeight: 1.5 }}>
-            Set up an enterprise-grade collaborative environment with unified tasks, projects, and Ordis AI.
+            Keep tasks, projects, and team conversations together, with Ordis AI to help you stay on track.
           </p>
         </div>
 
@@ -489,7 +489,7 @@ export default function SignupPage() {
             }}
             disabled={loading || googleLoading}
           >
-            {loading ? 'Provisioning Workspace...' : 'Create Enterprise Workspace →'}
+            {loading ? 'Creating Your Workspace...' : 'Create Your Workspace →'}
           </button>
         </form>
 
@@ -515,11 +515,11 @@ export default function SignupPage() {
       {/* Enterprise Trust & Compliance Footer */}
       <div style={{ marginTop: '24px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', fontSize: '11px', color: '#968F87' }}>
-          <span>256-Bit TLS Encryption</span>
+          <span>Encrypted Connection</span>
           <span>•</span>
           <span>SOC-2 Type II Certified</span>
           <span>•</span>
-          <span>99.99% Guaranteed SLA Uptime</span>
+          <span>99.99% Availability Guarantee</span>
         </div>
         <p style={{ fontSize: '11px', color: '#B8B2AA', marginTop: '8px' }}>
           By creating an account, you agree to Cursis{' '}

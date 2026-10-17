@@ -5,14 +5,13 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: { absolute: 'Cursis' },
   description:
-    'Transform your team productivity with Cursis autonomous AI workplace and agency operating system. Ordis AI proactively detects bottlenecks, rebalances workloads, and takes real actions. SOC 2 certified. 99.99% SLA uptime. Join 1,250+ teams.',
+    'Keep tasks, projects, chat, and video meetings in one place. Ordis AI helps catch delayed tasks and share the workload.',
   keywords: [
     'Cursis',
     'Ordis AI',
-    'Autonomous Workplace',
-    'Agency Operating System',
-    'Somba Neo-Brutalist UI',
-    'autonomous workspace',
+    'Team Workspace',
+    'Agency Workspace',
+    'shared team workspace',
     'AI workspace management',
     'project management software',
     'team collaboration platform',
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     siteName: 'Cursis',
     title: 'Cursis',
-    description: 'Cursis — Autonomous AI Workplace & Agency OS powered by Ordis AI.',
+    description: 'Cursis brings your team’s work together, with Ordis AI to help keep it on track.',
     type: 'website',
     url: 'https://cursis.in',
   },

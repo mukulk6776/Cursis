@@ -6,7 +6,7 @@ export default function WorkflowSection() {
       num: '01',
       title: 'Share the idea',
       subtitle: 'Discussion',
-      text: 'A client request or feature idea is discussed in a project channel.',
+      text: 'Talk through a client request or new idea with your team.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -16,8 +16,8 @@ export default function WorkflowSection() {
     {
       num: '02',
       title: 'Create the task',
-      subtitle: 'One-Click Action',
-      text: 'Convert any message into an actionable task with an assignee and due date.',
+      subtitle: 'Give It an Owner',
+      text: 'Turn a message into a task. Choose who will do it and when it is due.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
@@ -26,9 +26,9 @@ export default function WorkflowSection() {
     },
     {
       num: '03',
-      title: 'Link to roadmap',
-      subtitle: 'Sprint Milestones',
-      text: 'Attach the task to the current sprint with clear milestone deadlines.',
+      title: 'Add it to the plan',
+      subtitle: 'Set a Deadline',
+      text: 'Add the task to your project so everyone knows what comes next.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
@@ -37,9 +37,9 @@ export default function WorkflowSection() {
     },
     {
       num: '04',
-      title: 'Assign & balance',
-      subtitle: 'Team Bandwidth',
-      text: 'Distribute work based on team availability to prevent burnout.',
+      title: 'Share the work',
+      subtitle: 'See Who Can Help',
+      text: 'Give work to teammates who have time to help, so no one takes on too much.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -53,7 +53,7 @@ export default function WorkflowSection() {
       num: '05',
       title: 'Deliver on time',
       subtitle: 'Progress Updates',
-      text: 'Track real-time progress without needing manual weekly status decks.',
+      text: 'See what is done and what is running late without chasing everyone for updates.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -66,10 +66,10 @@ export default function WorkflowSection() {
   return (
     <section className="lp-section" id="connected">
       <div className="lp-section-header">
-        <div className="lp-section-label">Workflow</div>
-        <h2 className="lp-section-title">From idea to delivery in five steps.</h2>
+        <div className="lp-section-label">How It Works</div>
+        <h2 className="lp-section-title">Turn team conversations into finished work.</h2>
         <p className="lp-section-subtitle">
-          A simple, connected flow where discussion, planning, and execution stay together.
+          Discuss it, plan it, and get it done in the same place.
         </p>
       </div>
 

@@ -28,7 +28,7 @@ export default function Footer() {
             <span className="lp-footer-logo-text">Cursis</span>
           </div>
           <p className="lp-footer-tagline">
-            The modern workspace for high-velocity teams.
+            Your team’s work, conversations, and deadlines in one place.
           </p>
           <div className="lp-footer-social">
             <a href="https://instagram.com/cursis.in" target="_blank" rel="noopener noreferrer" className="lp-footer-social-link" aria-label="Follow us on Instagram">
@@ -53,11 +53,11 @@ export default function Footer() {
 
         <div className="lp-footer-links-group">
           <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Platform</div>
+            <div className="lp-footer-col-title">Product</div>
             <a href="/#features" className="lp-footer-link">Features</a>
-            <a href="/#connected" className="lp-footer-link">Workflow</a>
+            <a href="/#connected" className="lp-footer-link">How It Works</a>
             <a href="/#ordis" className="lp-footer-link">Ordis AI</a>
-            <a href="/#modules" className="lp-footer-link">Modules</a>
+            <a href="/#modules" className="lp-footer-link">Tools</a>
           </div>
 
           <div className="lp-footer-col">
@@ -68,7 +68,7 @@ export default function Footer() {
 
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Workspace</div>
-            <Link href="/dashboard" className="lp-footer-link">Dashboard</Link>
+            <Link href="/dashboard" className="lp-footer-link">Open Workspace</Link>
             <Link href="/login" className="lp-footer-link">Sign In</Link>
             <Link href="/signup" className="lp-footer-link">Get Started</Link>
           </div>
