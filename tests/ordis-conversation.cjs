@@ -67,6 +67,51 @@ test('individual entries are bounded and history cannot introduce a system role'
   } });
 });
 
+const taskCall = { id: 'tasks', type: 'function', function: { name: 'workspace_action', arguments: JSON.stringify({ operation: 'list_tasks', input: {} }) } };
+const task = { id: 't_1791384244289', title: '[Onboarding Item] New Task', status: 'todo', priority: 'high', dueDate: '2026-09-15', assigneeId: 'user_internal', assigneeName: 'Mukul' };
+async function taskReply(message, tasks, extra = {}) {
+  let round = 0;
+  return runWorkspaceAssistant({ ...base, message,
+    runAction: async () => ({ ok: true, operation: 'list_tasks', data: { tasks } }),
+    complete: async () => round++ === 0 ? { tool_calls: [taskCall] } : { content: '| Task ID | Raw data |\n| --- | --- |\n| t_1791384244289 | todo |' },
+    ...extra,
+  });
+}
+test('ongoing task requests return readable records instead of model-generated raw tables', async () => {
+  const result = await taskReply('show my ongoing task list', [task, { ...task, id: 'done', title: 'Finished work', status: 'done' }]);
+  assert.match(result.responseText, /You have 1 ongoing task/);
+  assert.match(result.responseText, /New Task\*\* — To do · High priority · Mukul · Due Sep 15, 2026/);
+  assert.doesNotMatch(result.responseText, /t_179|user_internal|Task ID|\||Finished work/);
+  assert.equal(result.refreshWorkspace, false);
+  assert.equal(result.actions[0].data.tasks[0].id, task.id); // Internal IDs remain available for actions.
+});
+test('ongoing lists include every unfinished stage and handle missing owner and dates', async () => {
+  const result = await taskReply('list current tasks', ['todo', 'in_progress', 'in_review', 'blocked'].map(status => ({ ...task, status, assigneeName: '', assigneeId: '', dueDate: 'invalid' })));
+  assert.match(result.responseText, /4 ongoing tasks/);
+  for (const status of ['To do', 'In progress', 'In review', 'Blocked']) assert.ok(result.responseText.includes(status));
+  assert.match(result.responseText, /Unassigned · No due date/);
+  assert.doesNotMatch(result.responseText, /Invalid Date|undefined/);
+  const empty = await taskReply('list ongoing tasks', [{ ...task, status: 'done' }]);
+  assert.equal(empty.responseText, 'No ongoing tasks found for this request.');
+});
+test('explicit formats and analytical questions retain the requested model response', async () => {
+  for (const message of ['show task IDs', 'show tasks in a table', 'how many ongoing tasks are there?']) {
+    const result = await taskReply(message, [task]);
+    assert.match(result.responseText, /Task ID/);
+  }
+});
+test('task read failures are reported and successful reads survive a provider failure', async () => {
+  const failed = await taskReply('show ongoing tasks', [], { runAction: async () => ({ ok: false, operation: 'list_tasks', error: 'Access denied' }) });
+  assert.match(failed.responseText, /Access denied/);
+  let round = 0;
+  const fallback = await taskReply('show ongoing tasks', [task], { complete: async () => {
+    if (round++ === 0) return { tool_calls: [taskCall] };
+    throw new Error('Provider offline');
+  } });
+  assert.match(fallback.responseText, /1 ongoing task/);
+  assert.doesNotMatch(fallback.responseText, /completed|t_179/);
+});
+
 (async () => {
   for (const { name, fn } of tests) { await fn(); console.log(`PASS ${name}`); }
   console.log(`${tests.length} conversation tests passed.`);

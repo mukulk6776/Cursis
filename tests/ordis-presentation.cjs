@@ -71,5 +71,15 @@ test('empty messages and plain text remain safe', () => {
   assert.match(render('A < B & C > D'), /A &lt; B &amp; C &gt; D/);
 });
 
+test('task names preserve escaped punctuation without turning record text into links', () => {
+  const { presentTaskList } = require(path.join(sourceRoot, 'lib/ordis/task-presentation.ts'));
+  const response = presentTaskList('show ongoing tasks', [{ ok: true, operation: 'list_tasks', data: { tasks: [{
+    title: '[Launch](https://example.com) <mobile> **v2**', status: 'in_progress', priority: 'high',
+  }] } }]);
+  const html = render(response);
+  assert.match(html, /<strong>\[Launch\]\(https:\/\/example.com\) &lt;mobile&gt; \*\*v2\*\*<\/strong>/);
+  assert.doesNotMatch(html, /<a |<table|\\\[/);
+});
+
 for (const { name, fn } of tests) { fn(); console.log(`PASS ${name}`); }
 console.log(`${tests.length} presentation tests passed.`);

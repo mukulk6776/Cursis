@@ -357,19 +357,21 @@ export function formatChatMarkdown(raw?: string | null): string {
  const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
  const inline = (text: string, depth = 0): string => {
   if (depth > 2) return escape(text);
-  const tokens = /`([^`\n]+)`|\[([^\]\n]+)\]\((https?:\/\/[^\s)<>"']+)\)|\*\*([^*\n]+)\*\*|\*([^*\n]+)\*/g;
+  const tokens = /\\([\\`*_{}\[\]()#+.!|>~-])|`([^`\n]+)`|\[([^\]\n]+)\]\((https?:\/\/[^\s)<>"']+)\)|\*\*((?:\\[^\n]|[^*\\\n])+)\*\*|\*((?:\\[^\n]|[^*\\\n])+)\*/g;
   let html = '';
   let cursor = 0;
   for (const match of text.matchAll(tokens)) {
    const index = match.index ?? 0;
    html += escape(text.slice(cursor, index));
    if (match[1] !== undefined) {
-    html += `<code style="background:rgba(127,127,127,0.12);padding:2px 5px;border-radius:4px;font-size:0.92em;color:inherit;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${escape(match[1])}</code>`;
+    html += escape(match[1]);
    } else if (match[2] !== undefined) {
-    html += `<a href="${escape(match[3])}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-underline-offset:3px;font-weight:500;">${escape(match[2])}</a>`;
+    html += `<code style="background:rgba(127,127,127,0.12);padding:2px 5px;border-radius:4px;font-size:0.92em;color:inherit;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${escape(match[2])}</code>`;
+   } else if (match[3] !== undefined) {
+    html += `<a href="${escape(match[4])}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-underline-offset:3px;font-weight:500;">${escape(match[3])}</a>`;
    } else {
-    const tag = match[4] !== undefined ? 'strong' : 'em';
-    html += `<${tag}>${inline(match[4] ?? match[5], depth + 1)}</${tag}>`;
+    const tag = match[5] !== undefined ? 'strong' : 'em';
+    html += `<${tag}>${inline(match[5] ?? match[6], depth + 1)}</${tag}>`;
    }
    cursor = index + match[0].length;
   }
