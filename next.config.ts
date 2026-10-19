@@ -22,9 +22,9 @@ const nextConfig: NextConfig = {
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://images.unsplash.com https://*.googleusercontent.com https://*.gstatic.com https://*.firebaseapp.com",
-      "font-src 'self' data: https://fonts.gstatic.com",
+      "font-src 'self' data:",
       "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com",
       "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
       "object-src 'none'",
@@ -92,11 +92,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: '/refund-policy',
-        destination: '/terms',
-        permanent: false,
-      },
       {
         source: '/data-deletion',
         destination: '/privacy',

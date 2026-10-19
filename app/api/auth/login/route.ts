@@ -8,6 +8,7 @@ import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
+import { accountBlocked } from '@/lib/privacy/core';
 
 export async function POST(request: Request) {
   try {
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
+    if (await accountBlocked('', email)) return apiError('This account is closed or pending erasure. Contact the privacy team for assistance.', 403);
 
     // Credentials Validation
     if (!email || !email.includes('@')) {

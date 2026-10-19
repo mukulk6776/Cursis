@@ -1,0 +1,13 @@
+.privacy-centre { color: #0A0A0A; line-height: 1.65; }
+.privacy-centre section { background: white; border: 2px solid #0A0A0A; border-radius: 18px; box-shadow: 6px 6px 0 #0A0A0A; padding: 24px; margin: 24px 0; }
+.privacy-centre fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+.privacy-centre h2 { font-size: 22px; margin: 0 0 12px; }
+.privacy-centre form { display: grid; gap: 16px; }
+.privacy-centre label { display: block; font-size: 14px; }
+.privacy-centre input:not([type=checkbox]), .privacy-centre select, .privacy-centre textarea { display: block; width: 100%; box-sizing: border-box; padding: 12px; margin-top: 6px; border: 2px solid #0A0A0A; border-radius: 10px; background: #FAF6EE; color: #0A0A0A; font: inherit; }
+.privacy-centre button { cursor: pointer; padding: 12px 16px; margin: 6px 10px 6px 0; border: 2px solid #0A0A0A; border-radius: 12px; background: #FF5500; color: #0A0A0A; box-shadow: 3px 3px 0 #0A0A0A; font-weight: 700; }
+.privacy-centre button:disabled, .privacy-centre fieldset:disabled button { cursor: default; opacity: .55; }
+.privacy-centre :focus-visible { outline: 3px solid #FF5500; outline-offset: 4px; }
+.privacy-centre a { color: #0A0A0A; text-decoration: underline; }
+.privacy-centre .privacy-danger { background: #0A0A0A; color: white; }
+@media (max-width: 560px) { .privacy-centre section { padding: 18px; } .privacy-centre button { width: 100%; } }

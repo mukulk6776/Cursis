@@ -5,6 +5,43 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const ADMIN_EMAIL = 'cursis.in@gmail.com';
 export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Cursis <onboarding@resend.dev>';
 
+export const CURSIS_PHYSICAL_ADDRESS = {
+  company: process.env.PRIVACY_LEGAL_ENTITY || 'Saransh Vashistha, operating as Cursis',
+  addressLine1: process.env.PRIVACY_POSTAL_ADDRESS || 'Business contact address awaiting confirmation',
+  city: '',
+  region: '',
+  postalCode: '',
+  country: '',
+  usComplianceAgent: '',
+};
+
+export function getCanspamEmailFooter(recipientEmail?: string): string {
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in').replace(/\/$/, '');
+  const encodedEmail = recipientEmail ? encodeURIComponent(recipientEmail) : '';
+  const unsubscribeUrl = `${appUrl}/unsubscribe${encodedEmail ? `?email=${encodedEmail}` : ''}`;
+
+  return `
+    <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid #eaeaea; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; line-height: 1.6; color: #737373; text-align: center;">
+      <p style="margin: 0 0 6px 0; font-weight: 600; color: #404040;">
+        ${escapeHtml(CURSIS_PHYSICAL_ADDRESS.company)}
+      </p>
+      <p style="margin: 0 0 6px 0;">
+        ${escapeHtml(CURSIS_PHYSICAL_ADDRESS.addressLine1)}, ${escapeHtml(CURSIS_PHYSICAL_ADDRESS.city)}, ${escapeHtml(CURSIS_PHYSICAL_ADDRESS.postalCode)}, ${escapeHtml(CURSIS_PHYSICAL_ADDRESS.country)}<br />
+      </p>
+      <p style="margin: 0 0 10px 0; color: #999;">
+        This email was sent in compliance with the CAN-SPAM Act of 2003 (15 U.S.C. § 7704).
+      </p>
+      <p style="margin: 0;">
+        <a href="${escapeHtml(unsubscribeUrl)}" style="color: #0f4cff; text-decoration: underline; font-weight: 600;">Unsubscribe from marketing emails</a>
+        &nbsp;&nbsp;•&nbsp;&nbsp;
+        <a href="${escapeHtml(appUrl)}/dashboard/settings" style="color: #737373; text-decoration: underline;">Notification Preferences</a>
+        &nbsp;&nbsp;•&nbsp;&nbsp;
+        <a href="${escapeHtml(appUrl)}/privacy" style="color: #737373; text-decoration: underline;">Privacy Policy</a>
+      </p>
+    </div>
+  `;
+}
+
 export function escapeHtml(str?: string | null): string {
   if (!str) return '';
   return String(str)
@@ -126,6 +163,7 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
         <p style="font-size: 12px; color: #999;">
           This is an automated notification from Cursis. A new custom client workspace has been created and requires your attention.
         </p>
+        ${getCanspamEmailFooter(ADMIN_EMAIL)}
       </div>
     `;
 
@@ -185,6 +223,7 @@ export async function sendWorkspaceWelcomeEmail(
           <p style="font-size: 12px; color: #999;">
             Questions? Reach out to us at <a href="mailto:cursis.in@gmail.com" style="color: #0f4cff;">cursis.in@gmail.com</a>
           </p>
+          ${getCanspamEmailFooter(email)}
         </div>
       `,
     });
@@ -245,6 +284,7 @@ export async function sendWorkspaceInvitationEmail({
           </div>
           <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
           <p style="font-size: 12px; color: #999;">If you were not expecting this invitation, you can safely ignore this email.</p>
+          ${getCanspamEmailFooter(to)}
         </div>
       `,
     });

@@ -10,7 +10,7 @@ interface PolicyLayoutProps {
   badgeColor?: string;
   lastUpdated: string;
   summary: React.ReactNode;
-  activeSlug: 'privacy' | 'terms' | 'cookie-policy' | 'refund-policy' | 'data-deletion';
+  activeSlug: 'privacy' | 'terms' | 'cookie-policy' | 'refund-policy' | 'data-deletion' | 'dmca';
   children: React.ReactNode;
   contactEmail?: string;
   dpoEmail?: string;
@@ -18,8 +18,11 @@ interface PolicyLayoutProps {
 
 const POLICY_NAV_ITEMS = [
   { slug: 'privacy', label: 'Privacy Policy', href: '/privacy' },
+  { slug: 'rights', label: 'Privacy Centre', href: '/privacy/rights' },
   { slug: 'terms', label: 'Terms of Service', href: '/terms' },
   { slug: 'cookie-policy', label: 'Cookie Policy', href: '/cookie-policy' },
+  { slug: 'dmca', label: 'DMCA Notice', href: '/dmca' },
+  { slug: 'refund-policy', label: 'Refund & Renewal', href: '/refund-policy' },
 ];
 
 export default function PolicyLayout({
@@ -30,8 +33,8 @@ export default function PolicyLayout({
   summary,
   activeSlug,
   children,
-  contactEmail = 'legal@cursis.in',
-  dpoEmail = 'dpo@cursis.in',
+  contactEmail = 'official@cursis.in',
+  dpoEmail = 'official@cursis.in',
 }: PolicyLayoutProps) {
   return (
     <div className="lp-body" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#FAF6EE' }}>
@@ -154,7 +157,7 @@ export default function PolicyLayout({
               Questions or Verification Requests
             </h3>
             <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#525252', lineHeight: 1.6 }}>
-              Our data governance and security compliance team reviews requests with SLA commitment within 24 to 48 business hours.
+              Privacy and grievance requests are acknowledged within 72 hours, with a resolution target of 30 calendar days.
             </p>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px' }}>
               <div style={{ padding: '10px 16px', borderRadius: '8px', background: '#F5F5F0', border: '1px solid #E5E0D8' }}>
@@ -164,7 +167,7 @@ export default function PolicyLayout({
                 </a>
               </div>
               <div style={{ padding: '10px 16px', borderRadius: '8px', background: '#F5F5F0', border: '1px solid #E5E0D8' }}>
-                <span style={{ fontWeight: 700, color: '#525252' }}>Data Protection Officer: </span>
+                <span style={{ fontWeight: 700, color: '#525252' }}>Privacy and grievance contact: </span>
                 <a href={`mailto:${dpoEmail}`} style={{ color: '#0F4CFF', fontWeight: 700, textDecoration: 'none' }}>
                   {dpoEmail}
                 </a>

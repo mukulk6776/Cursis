@@ -12,6 +12,8 @@ export default function SignupPage() {
  const [showPassword, setShowPassword] = useState(false);
  const [loading, setLoading] = useState(false);
  const [googleLoading, setGoogleLoading] = useState(false);
+ const [ageConfirmed, setAgeConfirmed] = useState(false);
+ const [privacyConsent, setPrivacyConsent] = useState(false);
  const [errorMsg, setErrorMsg] = useState('');
 
  useEffect(() => {
@@ -85,6 +87,9 @@ export default function SignupPage() {
           displayName: authResult.displayName,
           uid: authResult.uid,
           photoURL: authResult.photoURL,
+          ageConfirmed,
+          privacyConsent,
+          noticeVersion: '2026-10-18',
         }),
       });
 
@@ -113,55 +118,65 @@ export default function SignupPage() {
   };
 
   const handleEmailSignup = async (e: React.FormEvent) => {
- e.preventDefault();
- const cleanName = name.trim();
- const cleanEmail = email.trim().toLowerCase();
+    e.preventDefault();
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
 
- if (!cleanName || !cleanEmail || !password) {
- setErrorMsg('Please complete all fields.');
- return;
- }
+    if (!cleanName || !cleanEmail || !password) {
+      setErrorMsg('Please complete all fields.');
+      return;
+    }
 
- if (password.length < 6) {
- setErrorMsg('Use a password with at least 6 characters.');
- return;
- }
+    if (!ageConfirmed || !privacyConsent) {
+      setErrorMsg('Confirm that you are at least 18 and consent to account processing in the privacy notice.');
+      return;
+    }
 
- setLoading(true);
- setErrorMsg('');
+    if (password.length < 8) {
+      setErrorMsg('Use a password with at least 8 characters.');
+      return;
+    }
 
- try {
- const authResult = await signUpWithEmail(cleanEmail, password, cleanName);
- if (authResult?.email) {
- await exchangeTokenAndRedirect(authResult);
- }
- } catch (err: any) {
- setErrorMsg(err?.message || 'Could not create your workspace. Please try again.');
- } finally {
- setLoading(false);
- }
- };
+    setLoading(true);
+    setErrorMsg('');
 
- const handleGoogleSignup = async () => {
- setGoogleLoading(true);
- setErrorMsg('');
+    try {
+      const authResult = await signUpWithEmail(cleanEmail, password, cleanName, ageConfirmed, privacyConsent);
+      if (authResult?.email) {
+        await exchangeTokenAndRedirect(authResult);
+      }
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Could not create your workspace. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
- try {
- const authResult = await signInWithGoogle();
- if (authResult?.email || authResult?.idToken) {
- await exchangeTokenAndRedirect(authResult);
- }
- } catch (err: any) {
- const code = err?.code || '';
- if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
- setErrorMsg('Google sign-up popup was closed before completing.');
- } else {
- setErrorMsg(err?.message || 'Failed to authenticate with Google. Please try again.');
- }
- } finally {
- setGoogleLoading(false);
- }
- };
+  const handleGoogleSignup = async () => {
+    if (!ageConfirmed || !privacyConsent) {
+      setErrorMsg('Confirm that you are at least 18 and consent to account processing before Google sign-up.');
+      return;
+    }
+
+    setGoogleLoading(true);
+    setErrorMsg('');
+
+    try {
+      const authResult = await signInWithGoogle();
+      if (authResult?.email || authResult?.idToken) {
+        await exchangeTokenAndRedirect(authResult);
+      }
+    } catch (err: any) {
+      const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        setErrorMsg('Google sign-up popup was closed before completing.');
+      } else {
+        setErrorMsg(err?.message || 'Failed to authenticate with Google. Please try again.');
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   return (
     <main
@@ -284,7 +299,7 @@ export default function SignupPage() {
         {/* Google Single Sign-On */}
         <button
           type="button"
-          aria-label="Sign up with Google"
+          aria-label="Continue with Google"
           style={{
             width: '100%',
             height: '46px',
@@ -332,7 +347,7 @@ export default function SignupPage() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          {googleLoading ? 'Connecting to Google...' : 'Sign up with Google'}
+          {googleLoading ? 'Connecting to Google...' : 'Continue with Google'}
         </button>
 
         <div style={{ textAlign: 'center', margin: '14px 0 16px', position: 'relative' }}>
@@ -471,6 +486,53 @@ export default function SignupPage() {
             </div>
           </div>
 
+          {/* Adults-only eligibility attestation */}
+          <div
+            style={{
+              padding: '12px 14px',
+              backgroundColor: '#FAF8F5',
+              border: '1.5px solid #E8E4DE',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+            }}
+          >
+            <input
+              id="signup-age-gate"
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => setAgeConfirmed(e.target.checked)}
+              required
+              style={{
+                marginTop: '2px',
+                width: '18px',
+                height: '18px',
+                accentColor: '#FF5500',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            />
+            <label
+              htmlFor="signup-age-gate"
+              style={{
+                fontSize: '11.5px',
+                color: '#1A1612',
+                lineHeight: 1.45,
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+            >
+              <strong style={{ color: '#0A0A0A' }}>Age eligibility:</strong>{' '}
+              I confirm that I am at least 18. Cursis does not offer accounts for children.
+            </label>
+          </div>
+
+          <label style={{ fontSize: 12, lineHeight: 1.6 }}>
+            <input type="checkbox" required checked={privacyConsent} onChange={e => setPrivacyConsent(e.target.checked)} />{' '}
+            I consent to Cursis using my account and authentication details to provide and secure my workspace, as described in the standalone <Link href="/privacy" target="_blank">Privacy Notice</Link>.
+            This does not include marketing or optional analytics. I can withdraw through the privacy centre and close my account.
+          </label>
           <button
             type="submit"
             style={{
@@ -517,9 +579,9 @@ export default function SignupPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', fontSize: '11px', color: '#968F87' }}>
           <span>Encrypted Connection</span>
           <span>•</span>
-          <span>SOC-2 Type II Certified</span>
+          <Link href="/privacy">Privacy Notice</Link>
           <span>•</span>
-          <span>99.99% Availability Guarantee</span>
+          <span>Free for teams of up to 10</span>
         </div>
         <p style={{ fontSize: '11px', color: '#B8B2AA', marginTop: '8px' }}>
           By creating an account, you agree to Cursis{' '}

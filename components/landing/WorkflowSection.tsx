@@ -86,7 +86,7 @@ export default function WorkflowSection() {
               <h3 className="lp-timeline-title">{step.title}</h3>
             </div>
 
-            <p className="lp-timeline-text">{step.text}</p>
+            <p className="lp-timeline-text">{step.text}</p><a className="marketing-learn" href={step.num === "04" ? "/#features" : "/#ordis"}>Learn more about {step.title.toLowerCase()} →</a>
           </div>
         ))}
       </div>

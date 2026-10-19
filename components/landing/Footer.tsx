@@ -1,5 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
+import MarketingForm from './MarketingForm';
+import WorkspaceFooterLink from './WorkspaceFooterLink';
 
 export default function Footer() {
   return (
@@ -30,7 +32,7 @@ export default function Footer() {
           <p className="lp-footer-tagline">
             Your team’s work, conversations, and deadlines in one place.
           </p>
-          <div className="lp-footer-social">
+          <div className="lp-footer-social"><a href="https://www.linkedin.com/company/cursis/" target="_blank" rel="noopener noreferrer" className="lp-footer-social-link" aria-label="Follow Cursis on LinkedIn"><span aria-hidden="true">in</span></a>
             <a href="https://instagram.com/cursis.in" target="_blank" rel="noopener noreferrer" className="lp-footer-social-link" aria-label="Follow us on Instagram">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
@@ -54,50 +56,55 @@ export default function Footer() {
         <div className="lp-footer-links-group">
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Product</div>
-            <a href="/#features" className="lp-footer-link">Features</a>
-            <a href="/#connected" className="lp-footer-link">How It Works</a>
-            <a href="/#ordis" className="lp-footer-link">Ordis AI</a>
-            <a href="/#modules" className="lp-footer-link">Tools</a>
+            <Link prefetch={false} href="/#features" className="lp-footer-link">Features</Link>
+            <Link prefetch={false} href="/#connected" className="lp-footer-link">How It Works</Link>
+            <Link prefetch={false} href="/#ordis" className="lp-footer-link">Ordis AI</Link>
+            <Link prefetch={false} href="/#modules" className="lp-footer-link">Tools</Link>
           </div>
 
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Company</div>
-            <Link href="/about" className="lp-footer-link">About Us</Link>
-            <Link href="/social" className="lp-footer-link">Social Media</Link>
+            <Link prefetch={false} href="/about" className="lp-footer-link">About Us</Link>
+            <Link prefetch={false} href="/social" className="lp-footer-link">Social Media</Link><Link prefetch={false} href="/pricing" className="lp-footer-link">Pricing</Link><Link prefetch={false} href="/faq" className="lp-footer-link">Faq</Link><Link prefetch={false} href="/contact" className="lp-footer-link">Contact</Link><Link prefetch={false} href="/blog" className="lp-footer-link">Blog</Link><Link prefetch={false} href="/compare" className="lp-footer-link">Compare</Link><Link prefetch={false} href="/creators" className="lp-footer-link">Creators</Link>
           </div>
 
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Workspace</div>
-            <Link href="/dashboard" className="lp-footer-link">Open Workspace</Link>
-            <Link href="/login" className="lp-footer-link">Sign In</Link>
-            <Link href="/signup" className="lp-footer-link">Get Started</Link>
+            <WorkspaceFooterLink />
+            <Link prefetch={false} href="/signup" className="lp-footer-link">Get Started</Link>
           </div>
 
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Legal</div>
-            <Link href="/privacy" className="lp-footer-link">Privacy Policy</Link>
-            <Link href="/terms" className="lp-footer-link">Terms of Service</Link>
-            <Link href="/cookie-policy" className="lp-footer-link">Cookie Policy</Link>
+            <Link prefetch={false} href="/privacy" className="lp-footer-link">Privacy Policy</Link>
+            <Link prefetch={false} href="/privacy/rights" className="lp-footer-link">Privacy Centre</Link>
+            <Link prefetch={false} href="/terms" className="lp-footer-link">Terms of Service</Link>
+            <Link prefetch={false} href="/dmca" className="lp-footer-link">DMCA Policy</Link>
+            <Link prefetch={false} href="/refund-policy" className="lp-footer-link">Refund &amp; Cancellation</Link>
+            <Link prefetch={false} href="/cookie-policy" className="lp-footer-link">Cookie Policy</Link>
           </div>
 
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Contact</div>
-            <a href="mailto:cursis.in@gmail.com" className="lp-footer-link">cursis.in@gmail.com</a>
-            <a href="mailto:cursis.in@gmail.com" className="lp-footer-link">Support</a>
+            <Link prefetch={false} href="/contact" className="lp-footer-link">Contact &amp; Support</Link>
           </div>
         </div>
       </div>
 
-      <div className="lp-footer-bottom">
+      <section className="marketing-newsletter"><h2>Keep up with Cursis</h2><p>Product updates, in your inbox.</p><MarketingForm kind="newsletter" /><Link prefetch={false} href="/unsubscribe">Unsubscribe</Link><p><Link prefetch={false} href="/signup" className="btn btn-primary">Start Free</Link></p></section><div className="lp-footer-bottom">
         <div>
-          <span>© 2026 Cursis Inc. All rights reserved.</span>
+          <span>© 2026 Cursis All rights reserved.</span>
         </div>
         <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap', fontSize: '12px' }}>
-          <Link href="/privacy" className="lp-footer-link">Privacy</Link>
+          <Link prefetch={false} href="/privacy" className="lp-footer-link">Privacy</Link>
           <span style={{ color: 'var(--c-gray-400)' }}>•</span>
-          <Link href="/terms" className="lp-footer-link">Terms</Link>
+          <Link prefetch={false} href="/terms" className="lp-footer-link">Terms</Link>
           <span style={{ color: 'var(--c-gray-400)' }}>•</span>
-          <Link href="/cookie-policy" className="lp-footer-link">Cookies</Link>
+          <Link prefetch={false} href="/dmca" className="lp-footer-link">DMCA</Link>
+          <span style={{ color: 'var(--c-gray-400)' }}>•</span>
+          <Link prefetch={false} href="/refund-policy" className="lp-footer-link">Refunds</Link>
+          <span style={{ color: 'var(--c-gray-400)' }}>•</span>
+          <Link prefetch={false} href="/cookie-policy" className="lp-footer-link">Cookies</Link>
         </div>
       </div>
     </footer>

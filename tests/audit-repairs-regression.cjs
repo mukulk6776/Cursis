@@ -86,6 +86,9 @@ async function runTests() {
         name: 'Attacker Impersonator',
         email: victimEmail,
         password: 'Password123!Secure',
+        ageConfirmed: true,
+        privacyConsent: true,
+        noticeVersion: '2026-10-18',
       }),
     });
 

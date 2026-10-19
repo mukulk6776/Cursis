@@ -64,6 +64,8 @@ export interface UserProfile {
   }[];
   presence: 'online' | 'busy' | 'away' | 'offline';
   providerData?: any[];
+  ageConfirmed?: boolean;
+  coppaConsentAt?: string;
   lastActiveAt: string;
   createdAt: string;
 }

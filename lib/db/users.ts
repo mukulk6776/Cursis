@@ -217,6 +217,7 @@ export async function registerUser(params: {
   role?: UserRole;
   photoURL?: string;
   workspaceId?: string;
+  ageConfirmed?: boolean;
 }): Promise<UserProfile> {
   const cleanEmail = params.email.trim().toLowerCase();
   
@@ -274,6 +275,7 @@ export async function registerUser(params: {
       { id: 'ob_2', title: 'Review workspace channels', completed: true },
     ],
     presence: 'online',
+    ageConfirmed: params.ageConfirmed === true,
     lastActiveAt: new Date().toISOString(),
     createdAt: existing?.createdAt || new Date().toISOString(),
   };

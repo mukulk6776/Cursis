@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '@/components/ClientProviders';
+import MarketingEngagement from '@/components/landing/MarketingEngagement';
 import { THEME_BOOTSTRAP } from '@/lib/dashboard/theme';
 
 const inter = Inter({
@@ -35,16 +36,16 @@ export const metadata: Metadata = {
     'team collaboration platform',
     'workflow automation',
     'enterprise workspace',
-    'SOC 2 certified workspace',
+    'team workspace privacy',
     'AI project management',
     'AI assistant',
     'workload balancing',
     'sprint management',
     'document management system',
   ],
-  authors: [{ name: 'Cursis Inc.', url: 'https://cursis.in' }],
-  creator: 'Cursis Inc.',
-  publisher: 'Cursis Inc.',
+  authors: [{ name: 'Cursis', url: 'https://cursis.in' }],
+  creator: 'Cursis',
+  publisher: 'Cursis',
   formatDetection: {
     email: false,
     address: false,
@@ -65,7 +66,7 @@ export const metadata: Metadata = {
       'Keep tasks, projects, chat, and video meetings together. Ordis AI spots delayed tasks and helps share work so your team can stay on track.',
     images: [
       {
-        url: '/og-image.png',
+        url: '/marketing-og.png',
         width: 1200,
         height: 630,
         alt: 'Cursis — Your Team’s Work in One Place',
@@ -76,8 +77,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Cursis — Your Team’s Work in One Place',
     description: 'Keep work together. Catch delayed tasks and share the workload with help from Ordis AI.',
-    images: ['/og-image.png'],
-    creator: '@cursis',
+    images: ['/marketing-og.png'],
+    creator: '@cursis_',
   },
   robots: {
     index: true,
@@ -98,63 +99,6 @@ export const metadata: Metadata = {
   } : undefined,
 };
 
-const softwareSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Cursis',
-  operatingSystem: 'Web',
-  applicationCategory: 'BusinessApplication',
-  url: 'https://cursis.in',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-  author: {
-    '@type': 'Organization',
-    name: 'Cursis Inc.',
-    location: 'Delhi, India',
-  },
-};
-
-const websiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Cursis',
-  alternateName: ['Cursis AI', 'Cursis Workplace', 'Cursis Agency OS'],
-  url: 'https://cursis.in',
-};
-
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Cursis Inc.',
-  alternateName: 'Cursis',
-  url: 'https://cursis.in',
-  logo: 'https://cursis.in/icon.png',
-  description: 'A team workspace for tasks, projects, chat, and meetings, with help from Ordis AI',
-  foundingDate: '2026-01',
-  foundingLocation: {
-    '@type': 'Place',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Delhi',
-      addressRegion: 'Delhi',
-      addressCountry: 'IN',
-    },
-  },
-  contactPoint: {
-    '@type': 'ContactPoint',
-    contactType: 'Customer Support',
-    email: 'support@cursis.in',
-    availableLanguage: ['English'],
-  },
-  sameAs: [
-    'https://instagram.com/cursis.in',
-    'https://x.com/cursis_',
-  ],
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -164,26 +108,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="author" href="/humans.txt" />
-        {/* DNS prefetch and preconnect for critical external resources */}
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Fonts are fully self-hosted locally via next/font with zero external requests to Google (Munich Court GDPR compliant) */}
         {/* Firebase domains - only preconnect, don't prefetch (loaded on-demand) */}
         <link rel="dns-prefetch" href="https://firebaseapp.com" />
         <link rel="dns-prefetch" href="https://googleapis.com" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-        />
+
+
+
         <script
           dangerouslySetInnerHTML={{
             __html: THEME_BOOTSTRAP,
@@ -192,7 +123,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased min-h-screen`}>
         {children}
-        <ClientProviders />
+        <ClientProviders /><MarketingEngagement />
       </body>
     </html>
   );

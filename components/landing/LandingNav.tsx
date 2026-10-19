@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'motion/react';
-import { signOutUser } from '@/lib/auth/firebase';
+
 
 export default function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
@@ -68,6 +67,7 @@ export default function LandingNav() {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
       return;
     }
+    if (!e.currentTarget.getAttribute('href')?.includes('#')) { setMobileOpen(false); return; }
     const cleanSelector = targetId.startsWith('/') ? targetId.slice(1) : targetId;
     const element = document.querySelector(cleanSelector);
     if (element) {
@@ -78,7 +78,7 @@ export default function LandingNav() {
       const offsetPosition = elementPosition + window.pageYOffset - navOffset;
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth',
+        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
       });
     } else {
       setMobileOpen(false);
@@ -86,25 +86,20 @@ export default function LandingNav() {
   };
 
   const handleSignOut = async () => {
+    const { signOutUser } = await import('@/lib/auth/firebase');
     await signOutUser('/?logout=true');
   };
 
   return (
-    <motion.nav
+    <nav
       ref={navRef as React.RefObject<HTMLElement>}
       className={`lp-nav ${scrolled ? 'lp-nav-scrolled' : ''}`}
       id="lp-nav"
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <div className="lp-nav-container">
-        <motion.div
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1, duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+        <div
         >
-          <Link href="/" className="lp-nav-logo" onClick={() => setMobileOpen(false)}>
+          <Link prefetch={false} href="/" className="lp-nav-logo" onClick={() => setMobileOpen(false)}>
             <div style={{ width: '32px', height: '32px', borderRadius: '9px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
               <svg viewBox="0 0 1024 1024" fill="none" width="32" height="32" role="img" aria-label="Cursis logo" style={{ borderRadius: '9px' }}>
                 <defs>
@@ -135,43 +130,38 @@ export default function LandingNav() {
             </div>
             <span className="lp-nav-logo-text">Cursis</span>
           </Link>
-        </motion.div>
+        </div>
 
         {/* Links drawer */}
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           {[
             { href: '/#features', selector: '#features', label: 'Features' },
-            { href: '/#connected', selector: '#connected', label: 'How It Works' },
-            { href: '/#ordis', selector: '#ordis', label: 'Ordis AI' },
-            { href: '/#modules', selector: '#modules', label: 'Tools' },
-            { href: '/#creators', selector: '#creators', label: 'Creators' },
+            { href: '/pricing', selector: '#main-content', label: 'Pricing' },
+            { href: '/faq', selector: '#main-content', label: 'FAQ' },
+            { href: '/contact', selector: '#main-content', label: 'Contact' },
+            { href: '/blog', selector: '#main-content', label: 'Blog' },
+            { href: '/compare', selector: '#main-content', label: 'Compare' },
+            { href: '/creators', selector: '#main-content', label: 'Creators' },
           ].map((item, i) => (
-            <motion.a
+            <a
               key={item.href}
               href={item.href}
               onClick={(e) => handleAnchorClick(e, item.selector)}
               className="lp-nav-link"
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.12 + i * 0.05, duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
             >
               {item.label}
-            </motion.a>
+            </a>
           ))}
 
           {/* Mobile drawer actions */}
-          <AnimatePresence>
+
             {mobileOpen && (
-              <motion.div
+              <div
                 className="lp-nav-mobile-actions"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-                transition={{ duration: 0.22 }}
               >
                 {isAuthenticated ? (
                   <>
-                    <Link href="/dashboard" className="lp-nav-cta-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>
+                    <Link prefetch={false} href="/dashboard" className="lp-nav-cta-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>
                       Open Workspace →
                     </Link>
                     <button
@@ -185,29 +175,26 @@ export default function LandingNav() {
                   </>
                 ) : (
                   <>
-                    <Link href="/login" className="btn btn-secondary btn-sm" onClick={() => setMobileOpen(false)}>
+                    <Link prefetch={false} href="/login" className="btn btn-secondary btn-sm" onClick={() => setMobileOpen(false)}>
                       Sign In
                     </Link>
-                    <Link href="/signup" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
+                    <Link prefetch={false} href="/signup" className="btn btn-primary btn-sm" onClick={() => setMobileOpen(false)}>
                       Get Started
                     </Link>
                   </>
                 )}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+
         </div>
 
         {/* Desktop actions */}
-        <motion.div
+        <div
           className="lp-nav-actions"
-          initial={{ opacity: 0, x: 12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.18, duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
         >
           {isAuthenticated ? (
             <>
-              <Link
+              <Link prefetch={false}
                 href="/dashboard"
                 className="lp-nav-cta-primary lp-hide-mobile"
                 title={userEmail ? `Signed in as ${userEmail}` : 'Open Workspace'}
@@ -224,10 +211,10 @@ export default function LandingNav() {
             </>
           ) : (
             <>
-              <Link href="/login" className="lp-nav-cta-secondary lp-hide-mobile">
+              <Link prefetch={false} href="/login" className="lp-nav-cta-secondary lp-hide-mobile">
                 Sign In
               </Link>
-              <Link href="/signup" className="lp-nav-cta-primary lp-hide-mobile">
+              <Link prefetch={false} href="/signup" className="lp-nav-cta-primary lp-hide-mobile">
                 Get Started
               </Link>
             </>
@@ -237,35 +224,31 @@ export default function LandingNav() {
             className="lp-nav-mobile-toggle"
             id="lp-mobile-toggle"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle navigation"
+            aria-label="Toggle navigation" aria-expanded={mobileOpen} aria-controls="lp-nav-links"
             type="button"
           >
-            <AnimatePresence mode="wait" initial={false}>
+
               {mobileOpen ? (
-                <motion.svg
+                <svg
                   key="close"
                   width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                  initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
                 >
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
-                </motion.svg>
+                </svg>
               ) : (
-                <motion.svg
+                <svg
                   key="open"
                   width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                  initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
                 >
                   <line x1="4" y1="8" x2="20" y2="8" />
                   <line x1="4" y1="16" x2="20" y2="16" />
-                </motion.svg>
+                </svg>
               )}
-            </AnimatePresence>
+
           </button>
-        </motion.div>
+        </div>
       </div>
-    </motion.nav>
+    </nav>
   );
 }

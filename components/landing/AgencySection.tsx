@@ -8,6 +8,7 @@ export default function AgencySection() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', details: '' });
 
   const services = [
@@ -85,6 +86,7 @@ export default function AgencySection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!privacyConsent) { setSubmitError('Please consent to inquiry processing and confirm you are 18 or older.'); return; }
     setSubmitting(true);
     setSubmitError('');
 
@@ -97,6 +99,9 @@ export default function AgencySection() {
           email: formData.email,
           service: selectedService,
           requirements: formData.details,
+          privacyConsent,
+          ageConfirmed: privacyConsent,
+          noticeVersion: '2026-10-18',
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -247,6 +252,10 @@ export default function AgencySection() {
                   />
                 </div>
 
+                <label style={{ fontSize: 13, lineHeight: 1.6 }}>
+                  <input type="checkbox" required checked={privacyConsent} onChange={e => setPrivacyConsent(e.target.checked)} />{' '}
+                  I am at least 18 and consent to Cursis using these details to respond to this inquiry, as explained in the <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</a>. No marketing consent is included. Withdraw by contacting the privacy team.
+                </label>
                 {submitError && (
                   <div style={{ color: '#ef4444', fontSize: '13px', marginTop: '6px' }}>
                     {submitError}

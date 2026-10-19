@@ -1,19 +1,10 @@
+import { marketingMetadata } from '@/lib/seo/marketing';
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import PolicyLayout from '@/components/landing/PolicyLayout';
 
-export const metadata: Metadata = {
-  title: 'Terms of Service — Cursis Enterprise Workspace',
-  description: 'Understand the terms of service, SLA guarantees, acceptable use policies, and subscription details for Cursis.',
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: 'https://cursis.in/terms',
-  },
-};
+export const metadata = { ...marketingMetadata('/terms', 'Terms of Service', 'Read the terms for using the Cursis team workspace and Ordis AI.') };
 
 export default function TermsPage() {
   return (
@@ -23,11 +14,11 @@ export default function TermsPage() {
       badgeColor="#0F4CFF"
       lastUpdated="Last Updated: September 24, 2026 • Version 2.5"
       activeSlug="terms"
-      contactEmail="legal@cursis.in"
-      dpoEmail="compliance@cursis.in"
+      contactEmail="official@cursis.in"
+      dpoEmail="official@cursis.in"
       summary={
         <p style={{ margin: 0 }}>
-          These Terms of Service (&quot;Terms&quot;) govern your access to and utilization of Cursis (&quot;Platform&quot;), including website services available at <Link href="/" style={{ color: '#0F4CFF', textDecoration: 'underline', fontWeight: 600 }}>cursis.in</Link>. By registering, creating a workspace, or accessing our software, you agree to be bound by these Terms and our <Link href="/privacy" style={{ color: '#0F4CFF', textDecoration: 'underline', fontWeight: 600 }}>Privacy Policy</Link>.
+          These Terms govern use of Cursis at <Link href="/" style={{ color: '#0F4CFF', textDecoration: 'underline', fontWeight: 600 }}>cursis.in</Link>. Personal data handling is explained separately in our <Link href="/privacy" style={{ color: '#0F4CFF', textDecoration: 'underline', fontWeight: 600 }}>Privacy Notice</Link>. Accepting these Terms does not itself grant consent to personal data processing or optional analytics.
         </p>
       }
     >
@@ -37,7 +28,7 @@ export default function TermsPage() {
           1. Provision of Workspace Services &amp; SLA
         </h2>
         <p style={{ margin: '0 0 12px 0' }}>
-          Cursis provides an enterprise workspace platform featuring collaboration, roadmap management, workflow tracking, and Ordis intelligence modules. We commit to a <strong>99.99% monthly scheduled uptime</strong> Service Level Agreement (SLA) for enterprise organizations, backed by automated multi-region failover and real-time health monitoring.
+          Cursis provides an enterprise workspace platform featuring collaboration, roadmap management, workflow tracking, and Ordis intelligence modules. TODO_CONFIRM_WITH_FOUNDER: Confirm service availability terms. No verified uptime percentage or multi-region failover claim is published here.
         </p>
         <p style={{ margin: 0 }}>
           Scheduled maintenance windows are announced at least 72 hours in advance and executed outside primary business operating hours.
@@ -65,7 +56,7 @@ export default function TermsPage() {
           3. Ownership of Workspace Data
         </h2>
         <p style={{ margin: 0 }}>
-          You retain all intellectual property rights, title, and ownership in all data, projects, task records, workflows, and documents uploaded into your Cursis workspace. Cursis claims zero ownership over your proprietary business assets and processes your operational activity as a confidential data processor under strict GDPR and SOC-2 safeguards.
+          You retain your rights in the projects, task records, workflows and documents you upload. Cursis processes customer-controlled personal data under documented instructions and the agreed processing terms. Our separate Privacy Notice explains when Cursis acts as Data Fiduciary and how to exercise your rights.
         </p>
       </section>
 

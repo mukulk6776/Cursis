@@ -1,65 +1,11 @@
-import React from 'react';
 import LandingPage from '@/components/landing/LandingPage';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: { absolute: 'Cursis' },
-  description:
-    'Keep tasks, projects, chat, and video meetings in one place. Ordis AI helps catch delayed tasks and share the workload.',
-  keywords: [
-    'Cursis',
-    'Ordis AI',
-    'Team Workspace',
-    'Agency Workspace',
-    'shared team workspace',
-    'AI workspace management',
-    'project management software',
-    'team collaboration platform',
-    'workflow automation',
-    'enterprise workspace',
-    'AI project management',
-    'workload balancing',
-    'sprint management tool',
-  ],
-  openGraph: {
-    siteName: 'Cursis',
-    title: 'Cursis',
-    description: 'Cursis brings your team’s work together, with Ordis AI to help keep it on track.',
-    type: 'website',
-    url: 'https://cursis.in',
-  },
-  alternates: {
-    canonical: 'https://cursis.in',
-  },
-};
-
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Cursis',
-  operatingSystem: 'Web',
-  applicationCategory: 'BusinessApplication',
-  url: 'https://cursis.in',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-  author: {
-    '@type': 'Organization',
-    name: 'Cursis Inc.',
-    location: 'Delhi, India',
-  },
-};
-
-export default function MainPage() {
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <LandingPage />
-    </>
-  );
-}
+import { marketingMetadata, socialProfiles } from '@/lib/seo/marketing';
+export const metadata = marketingMetadata('', 'Cursis – Team Workspace with AI Task & Workload Management', 'Your free team workspace for tasks, projects, chat and meetings. Ordis AI helps catch delayed tasks and share work. Free for teams of up to 10.');
+// TODO_CONFIRM_WITH_FOUNDER: Set SCHEMA_OFFER_CURRENCY to the confirmed ISO currency.
+const currency = process.env.SCHEMA_OFFER_CURRENCY;
+const schema = { '@context': 'https://schema.org', '@graph': [
+ { '@type': 'Organization', '@id': 'https://cursis.in/#organization', name: 'Cursis', url: 'https://cursis.in', logo: 'https://cursis.in/icon.png', sameAs: socialProfiles.map(p => p.url) },
+ { '@type': 'WebSite', name: 'Cursis', url: 'https://cursis.in', publisher: { '@id': 'https://cursis.in/#organization' } },
+ { '@type': 'SoftwareApplication', name: 'Cursis', operatingSystem: 'Web', applicationCategory: 'BusinessApplication', url: 'https://cursis.in', offers: { '@type': 'Offer', price: '0', ...(currency && /^[A-Z]{3}$/.test(currency) ? { priceCurrency: currency } : {}) }, author: { '@id': 'https://cursis.in/#organization' } }
+] };
+export default function MainPage() { return <><script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema).replace(/</g, '\\u003c')}} /><LandingPage /></>; }

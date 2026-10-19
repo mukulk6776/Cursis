@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Cookie } from 'lucide-react';
+import { hasCurrentCookieChoice } from '@/lib/analytics/privacy';
 
 function safeGetStorage(key: string): string | null {
   try {
@@ -26,7 +27,7 @@ export default function CookieConsent() {
   const [showPreferences, setShowPreferences] = useState(false);
 
   // Preferences state
-  const [functional, setFunctional] = useState(true);
+  const [functional, setFunctional] = useState(false);
   const [analytics, setAnalytics] = useState(false);
 
   useEffect(() => {
@@ -52,8 +53,9 @@ export default function CookieConsent() {
       // Load saved preferences
       try {
         const saved = JSON.parse(consent);
-        setFunctional(saved.functional ?? (dntSignal ? false : true));
-        setAnalytics(saved.analytics ?? false);
+        if (!hasCurrentCookieChoice(saved)) throw new Error('Expired consent');
+        setFunctional(saved.functional === true);
+        setAnalytics(!dntSignal && saved.analytics === true);
       } catch {
         // Corrupt JSON: reset and show banner
         timer = setTimeout(() => setShowBanner(true), 1000);
@@ -151,7 +153,6 @@ export default function CookieConsent() {
           left: 0,
           right: 0,
           background: 'rgba(0, 0, 0, 0.95)',
-          backdropFilter: 'blur(12px)',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '20px 24px',
           zIndex: 9999,
@@ -171,11 +172,10 @@ export default function CookieConsent() {
                 We Value Your Privacy
               </h3>
               <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.5, color: '#94a3b8' }}>
-                We use cookies to enhance your experience, analyze site traffic, and provide personalized features.
-                Essential cookies are required for the site to function. You can customize your preferences or accept all cookies.
+                Essential storage keeps Cursis working. Optional analytics stay off unless you accept them. Choose your preferences or reject optional cookies.
                 {' '}
-                <Link href="/cookie-policy" style={{ color: '#0f4cff', textDecoration: 'underline' }}>
-                  Learn more
+                <Link href="/cookie-policy" style={{ color: '#93c5fd', textDecoration: 'underline' }}>
+                  Read our cookie policy
                 </Link>
               </p>
             </div>
@@ -320,10 +320,10 @@ export default function CookieConsent() {
                 />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: '#ffffff', marginBottom: '4px' }}>
-                    Analytics Cookies
+                    Analytics &amp; Session Telemetry (Disabled by Default)
                   </div>
                   <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                    Help us understand usage patterns and improve the product. No personal data is sold.
+                    Optional usage measurement is off until you choose it. Input masking is a safeguard, not permission to record private content. No session-replay provider is currently configured.
                   </div>
                 </div>
               </div>

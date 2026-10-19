@@ -1,19 +1,10 @@
+import { marketingMetadata } from '@/lib/seo/marketing';
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import PolicyLayout from '@/components/landing/PolicyLayout';
 
-export const metadata: Metadata = {
-  title: 'Cookie Policy — Cursis',
-  description: 'Learn about how Cursis uses cookies and similar technologies to enhance your experience.',
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: 'https://cursis.in/cookie-policy',
-  },
-};
+export const metadata = { ...marketingMetadata('/cookie-policy', 'Cookie Policy', 'Learn about essential storage and optional consent-based analytics at Cursis.') };
 
 import CookiePreferenceButton from '@/components/CookiePreferenceButton';
 
@@ -25,8 +16,8 @@ export default function CookiePolicyPage() {
       badgeColor="#D97706"
       lastUpdated="Last Updated: September 24, 2026 • Version 2.0"
       activeSlug="cookie-policy"
-      contactEmail="privacy@cursis.in"
-      dpoEmail="dpo@cursis.in"
+      contactEmail="official@cursis.in"
+      dpoEmail="official@cursis.in"
       summary={
         <p style={{ margin: 0 }}>
           This Cookie Policy explains how Cursis (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) uses cookies and similar tracking technologies. By accessing our platform, you consent to our use of essential cookies as described in this policy. We do not use advertising or surveillance trackers.

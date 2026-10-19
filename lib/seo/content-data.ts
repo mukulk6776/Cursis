@@ -18,7 +18,7 @@ export const faqData = [
   },
   {
     question: 'What security certifications does Cursis have?',
-    answer: 'Cursis is SOC 2 Type II certified with deterministic zero-bypass security architecture. We implement end-to-end encryption, role-based access control (RBAC), comprehensive audit logging, and comply with GDPR, CCPA, and WCAG 2.1 AA accessibility standards. Your data is encrypted at rest and in transit.',
+    answer: 'Cursis includes signed sessions, password hashing and workspace access controls. Read the Privacy Notice for data flows and current verification limits, and use the Privacy Centre for data requests and consent choices. Independent certifications and production encryption require separate evidence.',
   },
   {
     question: 'Can Cursis integrate with our existing tools?',

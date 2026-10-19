@@ -118,7 +118,7 @@ export default function OrdisSection() {
   }, [state.phase, state.answer]);
 
   return (
-    <section className="lp-section lp-ordis-section" id="ordis" aria-labelledby="ordis-demo-heading">
+    <section className="lp-section lp-ordis-section" id="ordis" aria-labelledby="ordis-demo-heading"><p className="marketing-sample">Sample data · Names, responses and actions are simulated.</p>
       <div className="lp-section-header">
         <div className="lp-section-label">Ordis AI</div>
         <h2 className="lp-section-title" id="ordis-demo-heading">Catch delays before deadlines slip.</h2>

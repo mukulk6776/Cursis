@@ -206,7 +206,7 @@ interface DashboardContextType {
  addDeal: (deal: Omit<CrmDeal, 'id' | 'lastActivity'>) => void;
  updateDealStage: (dealId: string, stage: string) => void;
  addContact: (contact: Omit<CrmContact, 'id' | 'lastContact'>) => void;
- submitAgencyRequest: (req: { company: string; email: string; solutionType: string; requirements: string }) => void;
+ submitAgencyRequest: (req: { company: string; email: string; solutionType: string; requirements: string; privacyConsent: boolean }) => void;
 
  // Security & Org
  orgSettings: OrgSettings;
@@ -3614,7 +3614,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
  };
 
- const submitAgencyRequest = (req: { company: string; email: string; solutionType: string; requirements: string }) => {
+ const submitAgencyRequest = (req: { company: string; email: string; solutionType: string; requirements: string; privacyConsent: boolean }) => {
  addAuditEntry(user.name, 'agency.request.submitted', req.company, `Requested ${req.solutionType}`);
  const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
  fetch('/api/agency/request-build', {
@@ -3630,6 +3630,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  contactEmail: req.email,
  requestedService: req.solutionType,
  requirements: req.requirements,
+ privacyConsent: req.privacyConsent,
+ ageConfirmed: req.privacyConsent,
+ noticeVersion: '2026-10-18',
  }),
  })
  .then((res) => {

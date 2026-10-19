@@ -51,11 +51,14 @@ scratch.html
 # scratch & test scripts
 scratch_*.mjs
 test_*.mjs
+inspect_*.mjs
+render_pdf.mjs
 
 # extra documentation & media files
 *.pdf
 cursis_explanation.html
 Screenshot*.png
+cursis_preview*.png
 
 # ads & motion graphics
 ads/

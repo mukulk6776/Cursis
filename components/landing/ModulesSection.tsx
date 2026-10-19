@@ -166,7 +166,7 @@ export default function ModulesSection() {
               </div>
 
               <h3 className="tano-module-name">{m.name}</h3>
-              <p className="tano-module-desc">{m.desc}</p>
+              <p className="tano-module-desc">{m.desc}</p><a className="marketing-learn" href={m.name === "Ordis AI" ? "/#ordis" : "/faq#included-tools"}>Learn more about {m.name} →</a>
             </div>
           );
         })}

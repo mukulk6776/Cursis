@@ -177,7 +177,7 @@ If you provide suggestions, ideas, or feedback ("Feedback"):
 
 ### 6.1 Privacy Policy
 
-Our collection and use of personal information is described in our Privacy Policy, which is incorporated into these Terms by reference.
+Personal data handling is explained in our separate Privacy Notice. Acceptance of these Terms does not itself grant consent to personal data processing, marketing or optional analytics.
 
 ### 6.2 Data Security
 
@@ -387,7 +387,7 @@ You agree to indemnify, defend, and hold harmless Cursis, its officers, director
 ### 14.1 Informal Resolution
 
 Before filing a formal dispute, you agree to:
-- Contact us at legal@cursis.in to describe the issue
+- Contact us at official@cursis.in to describe the issue
 - Attempt to resolve the matter informally for 30 days
 - Provide information necessary to resolve the dispute
 
@@ -475,7 +475,7 @@ Provisions that should survive termination include:
 ### 16.8 Notices
 
 All notices must be sent to:
-- Email: legal@cursis.in
+- Email: official@cursis.in
 - Your registered email address
 
 ### 16.9 Relationship
@@ -486,21 +486,45 @@ Nothing in these Terms creates a partnership, joint venture, employment, or agen
 
 These Terms do not confer rights on any third parties.
 
-## 17. CONTACT INFORMATION
+## 17. DMCA COPYRIGHT POLICY & DESIGNATED AGENT
+
+Cursis complies with the Digital Millennium Copyright Act (17 U.S.C. § 512). If you believe any content or files uploaded to a Cursis workspace infringe your copyright, please direct your statutory DMCA Takedown Notice to our Designated Copyright Agent:
+
+- **Copyright complaint contact (statutory registration unconfirmed):** Saransh Vashistha, Cursis
+- **Dedicated Email:** [official@cursis.in](mailto:official@cursis.in) / [official@cursis.in](mailto:official@cursis.in)
+- **Headquarters Address:** Business contact address awaiting confirmation
+- **U.S. Compliance Agent:** Agent appointment not confirmed
+- **Full Policy & Counter-Notice Instructions:** [https://cursis.in/dmca](https://cursis.in/dmca)
+
+Cursis enforces a repeat infringer policy providing for the termination of workspace accounts and users who repeatedly infringe intellectual property rights.
+
+## 18. AUTOMATIC RENEWAL TERMS & CANCELLATION (CALIFORNIA ARL)
+
+In accordance with the California Automatic Renewal Law (Cal. Bus. & Prof. Code §§ 17600–17606):
+
+- **Automatic Renewal:** All paid subscriptions and recurring add-ons automatically renew at the conclusion of each billing period (monthly or annually) at the then-current standard rate until canceled.
+- **1-Click Online Cancellation:** You may cancel your subscription at any time online through **Workspace Settings → Billing** without any cancellation penalty or fee. Cancellation takes effect at the end of your current active billing cycle.
+- **Direct Email Assistance:** You may also submit cancellation requests to [billing@cursis.in](mailto:billing@cursis.in).
+- **Written Confirmation:** An automated confirmation receipt of cancellation will be immediately transmitted to your registered email address.
+- **Full Refund Terms:** [https://cursis.in/refund-policy](https://cursis.in/refund-policy)
+
+## 19. CONTACT INFORMATION
 
 For questions about these Terms, contact us at:
 
 **Cursis**
-Email: legal@cursis.in
+Email: official@cursis.in
+Billing: billing@cursis.in
+DMCA Agent: official@cursis.in
 Support: support@cursis.in
 Website: https://cursis.in
 
-## 18. ACKNOWLEDGMENT
+## 20. ACKNOWLEDGMENT
 
 BY USING THE SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THESE TERMS AND CONDITIONS.
 
 ---
 
-**Document Version:** 1.0  
-**Effective Date:** October 1, 2026  
-**Last Reviewed:** October 1, 2026
+**Document Version:** 2.0
+**Effective Date:** October 17, 2026
+**Last Reviewed:** October 17, 2026

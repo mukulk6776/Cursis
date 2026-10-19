@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 export default function FeaturesSection() {
   const [activeLogIndex, setActiveLogIndex] = useState(0);
 
   const ordisLogs = [
-    { time: '10:42 AM', event: 'Progress update: 24 of 28 tasks finished on time.' },
+    { time: '10:42 AM', event: 'Progress update: 21 of 25 planned tasks done (84%).' },
     { time: '11:15 AM', event: 'Work shared: Sarah T. now has more room in her week.' },
     { time: '01:30 PM', event: 'Meeting notes: Turned the discussion into 3 tasks.' },
     { time: '03:10 PM', event: 'Project update: Brand colors and fonts are ready for review.' },
@@ -23,7 +24,7 @@ export default function FeaturesSection() {
       </div>
 
       {/* Asymmetrical Bento Grid */}
-      <div className="lp-bento-grid">
+      <p className="marketing-sample">Sample data · All names, activity and metrics are illustrative demo content.</p><div className="lp-bento-grid">
         {/* Bento Card 1: Autonomous Ordis Intelligence (Large Span 2) */}
         <div className="lp-bento-card lp-bento-span-2 lp-bento-featured">
           <div className="lp-bento-topbar">
@@ -47,7 +48,7 @@ export default function FeaturesSection() {
                 <div
                   key={idx}
                   className={`lp-bento-log-item ${activeLogIndex === idx ? 'active' : ''}`}
-                  onClick={() => setActiveLogIndex(idx)}
+                  role="button" tabIndex={0} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveLogIndex(idx); } }} onClick={() => setActiveLogIndex(idx)}
                 >
                   <span className="lp-log-time">{log.time}</span>
                   <span className="lp-log-text">{log.event}</span>
@@ -56,7 +57,7 @@ export default function FeaturesSection() {
             </div>
           </div>
 
-          <div className="lp-bento-tags">
+          <Link className="marketing-learn" href="/#ordis">Learn more about this feature →</Link><div className="lp-bento-tags">
             <span className="lp-bento-tag">Spot Delays</span>
             <span className="lp-bento-tag">Quick Catch-Ups</span>
             <span className="lp-bento-tag">Updates Without Chasing</span>
@@ -104,7 +105,7 @@ export default function FeaturesSection() {
             </div>
           </div>
 
-          <div className="lp-bento-tags">
+          <Link className="marketing-learn" href="/#ordis">Learn more about this feature →</Link><div className="lp-bento-tags">
             <span className="lp-bento-tag">Share Work Fairly</span>
             <span className="lp-bento-tag">See Who Is Online</span>
           </div>
@@ -114,7 +115,7 @@ export default function FeaturesSection() {
         <div className="lp-bento-card lp-bento-span-1">
           <div className="lp-bento-topbar">
             <span className="badge badge-neutral">03 • PROGRESS</span>
-            <span className="lp-sla-rate">99% On Time</span>
+            <span className="lp-sla-rate">84% planned work done</span>
           </div>
 
           <h3 className="lp-bento-title">Keep Deadlines in Sight</h3>
@@ -128,10 +129,10 @@ export default function FeaturesSection() {
             <div className="lp-stat-bar-track">
               <div className="lp-stat-bar-fill" style={{ width: '84%' }} />
             </div>
-            <span className="lp-stat-sub">84% of planned work finished ahead of schedule</span>
+            <span className="lp-stat-sub">Sample data: 84% of planned work done</span>
           </div>
 
-          <div className="lp-bento-tags">
+          <Link className="marketing-learn" href="/blog/catch-delayed-tasks">Learn more about this feature →</Link><div className="lp-bento-tags">
             <span className="lp-bento-tag">Task Boards</span>
             <span className="lp-bento-tag">Key Deadlines</span>
           </div>
@@ -181,7 +182,7 @@ export default function FeaturesSection() {
             </div>
           </div>
 
-          <div className="lp-bento-tags">
+          <Link className="marketing-learn" href="/creators">Learn more about this feature →</Link><div className="lp-bento-tags">
             <span className="lp-bento-tag">Clear Next Steps</span>
             <span className="lp-bento-tag">Team Reviews</span>
             <span className="lp-bento-tag">Fast Approvals</span>

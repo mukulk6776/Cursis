@@ -94,6 +94,32 @@ export default function PricingSection() {
           >
             Deploy Standard Workspace →
           </Link>
+
+          {/* California ARL Automatic Renewal & Cancellation Disclosure */}
+          <div
+            style={{
+              marginTop: '16px',
+              padding: '12px 14px',
+              backgroundColor: '#FAF8F5',
+              border: '1px solid #E5E0D8',
+              borderRadius: '8px',
+              fontSize: '11px',
+              lineHeight: 1.5,
+              color: '#555',
+            }}
+          >
+            <div style={{ fontWeight: 800, color: '#0A0A0A', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: '10.5px' }}>
+              Renewal Terms &amp; 1-Click Cancellation (California ARL)
+            </div>
+            <p style={{ margin: '0 0 6px 0' }}>
+              • <strong>Complimentary Base:</strong> Standard Workspace is $0/seat with zero hidden licensing tax.<br />
+              • <strong>Automatic Renewal:</strong> Any optional upgraded add-on renews on a monthly recurring basis until canceled.<br />
+              • <strong>Easy 1-Click Cancel:</strong> Cancel anytime directly via <em>Workspace Settings → Billing</em> or by emailing <a href="mailto:billing@cursis.in" style={{ color: '#0F4CFF', textDecoration: 'underline' }}>billing@cursis.in</a>. No cancellation fees.
+            </p>
+            <Link href="/refund-policy" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>
+              View Subscription &amp; Refund Terms →
+            </Link>
+          </div>
         </div>
 
         {/* Tier 2: Enterprise Sovereign */}
@@ -154,6 +180,32 @@ export default function PricingSection() {
           >
             Contact Enterprise Solutions →
           </a>
+
+          {/* California ARL Automatic Renewal & Cancellation Disclosure */}
+          <div
+            style={{
+              marginTop: '16px',
+              padding: '12px 14px',
+              backgroundColor: '#FAF8F5',
+              border: '1px solid #E5E0D8',
+              borderRadius: '8px',
+              fontSize: '11px',
+              lineHeight: 1.5,
+              color: '#555',
+            }}
+          >
+            <div style={{ fontWeight: 800, color: '#0A0A0A', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: '10.5px' }}>
+              Enterprise Renewal Terms (California ARL)
+            </div>
+            <p style={{ margin: '0 0 6px 0' }}>
+              • <strong>Agreed Term:</strong> Enterprise contracts renew automatically on agreed annual/quarterly dates unless notice is given 30 days prior.<br />
+              • <strong>Transparent Invoicing:</strong> Clear itemized invoices issued with net-30 terms.<br />
+              • <strong>Cancellation:</strong> Terminate or modify anytime through your dedicated account executive or by emailing <a href="mailto:billing@cursis.in" style={{ color: '#0F4CFF', textDecoration: 'underline' }}>billing@cursis.in</a>.
+            </p>
+            <Link href="/refund-policy" style={{ color: '#0A0A0A', fontWeight: 700, textDecoration: 'underline' }}>
+              Review Cancellation &amp; Refund Policy →
+            </Link>
+          </div>
         </div>
       </div>
     </section>

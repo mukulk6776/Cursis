@@ -8,6 +8,8 @@ import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
+import { accountBlocked, privacyDb, recordAccountConsent } from '@/lib/privacy/core';
+import { PRIVACY_VERSION } from '@/lib/privacy/config';
 
 export async function POST(request: Request) {
   try {
@@ -28,6 +30,17 @@ export async function POST(request: Request) {
     const name = String(body.name || '').trim();
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
+    const ageConfirmed = body.ageConfirmed === true;
+    if (body.privacyConsent !== true || body.noticeVersion !== PRIVACY_VERSION) return apiError('Please read the current privacy notice and actively consent to account processing.', 400);
+    if (await accountBlocked('', email)) return apiError('Account closure is in progress. Contact the privacy team.', 403);
+
+    // COPPA & Age Eligibility Verification Check
+    if (!ageConfirmed) {
+      return apiError(
+        'You must confirm that you are at least 18. Cursis does not offer accounts for children.',
+        400
+      );
+    }
 
     if (!name) {
       return apiError('Full name is required', 400);
@@ -81,6 +94,7 @@ export async function POST(request: Request) {
       return apiError('An account with this email is already registered using Google Sign-In. Please sign in with Google.', 409);
     }
 
+    await privacyDb(); // Fail closed: do not create an account with no durable consent storage.
     // Register user account with PBKDF2 salt & hash
     const isFounder = isFounderEmail(email);
     const user = await registerUser({
@@ -88,7 +102,9 @@ export async function POST(request: Request) {
       email,
       password,
       role: isFounder ? 'owner' : 'member',
+      ageConfirmed: true,
     });
+    await recordAccountConsent(user.uid, 'password-signup');
 
     // Clear rate limit on successful signup
     await clearRateLimit(clientIP);

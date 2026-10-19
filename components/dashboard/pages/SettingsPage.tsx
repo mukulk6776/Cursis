@@ -121,7 +121,7 @@ teamSettings,
  };
 
  if (!['owner', 'admin'].includes(user.workspaceRole || 'member')) {
-   return <div className="page active">Workspace settings require Owner or Admin access.</div>;
+   return <div className="page active">Workspace settings require Owner or Admin access. <a href="/privacy/rights">Manage your personal privacy and data rights</a>.</div>;
  }
  return (
  <div className="page active" id="page-settings" style={{ display: 'block', maxWidth: '1100px', margin: '0 auto' }}>
@@ -173,6 +173,7 @@ teamSettings,
  >
  5. Security &amp; Audit Logs 
  </button>
+ <a className="tab" href="/privacy/rights">Privacy &amp; data rights</a>
  </div>
 
  {/* ========================================================================= */}

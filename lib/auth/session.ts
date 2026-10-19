@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { inMemoryStore } from '@/lib/db/store';
 import { UserRole } from '@/lib/db/types';
 import { isFounderEmail } from './founder';
+import { accountBlocked } from '@/lib/privacy/core';
 import {
   SESSION_SECRET,
   SessionPayload,
@@ -87,6 +88,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
       if (verified) {
         const uid = verified.uid;
         const email = verified.email;
+        if (await accountBlocked(uid, email)) return null;
         const displayName = verified.displayName || email.split('@')[0];
         const isFounder = isFounderEmail(email);
         const role: UserRole = isFounder ? 'owner' : (verified.role !== 'owner' ? (verified.role as UserRole) : 'member');

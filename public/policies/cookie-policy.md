@@ -260,6 +260,13 @@ We may use mobile analytics services:
 
 Cursis honors Do Not Track (DNT) and Global Privacy Control (GPC) signals by automatically deactivating optional functional and analytics cookies.
 
+### 8.2 Session Replay & Wiretapping Safeguards (California CIPA § 631)
+
+In compliance with the California Invasion of Privacy Act (CIPA, Cal. Penal Code § 631) and related state wiretapping statutes:
+- **Default Disabled:** Session replay, user session recording, and telemetry tools are strictly disabled by default.
+- **Universal Input Masking:** All input fields, textareas, password inputs, tokens, and content-editable message bodies are automatically masked with universal privacy attributes (`data-private="true"`, `data-mask="true"`, `ph-no-capture`) to prevent keystroke or sensitive text recording.
+- **No Third-Party Interception:** No real-time user communications or keystrokes are intercepted, shared, or monitored without affirmative user consent.
+
 ## 9. COOKIES AND PRIVACY
 
 ### 9.1 Personal Information in Cookies

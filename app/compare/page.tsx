@@ -1,5 +1,9 @@
-import { redirect } from 'next/navigation';
-
-export default function ComparePage() {
-  redirect('/');
-}
+import MarketingPage from '@/components/landing/MarketingPage';
+import { marketingMetadata } from '@/lib/seo/marketing';
+export const metadata = marketingMetadata('/compare', 'Cursis vs Trello, Asana and ClickUp', 'Compare the focus of Cursis, Trello, Asana and ClickUp. Explore a free workspace for teams of up to 10.');
+const alternatives = [
+ { name: 'Trello', focus: 'Boards, lists and cards for organizing work.', url: 'https://developer.atlassian.com/cloud/trello/rest/api-group-lists/' },
+ { name: 'Asana', focus: 'Tasks and projects for tracking team work.', url: 'https://asana.com/features' },
+ { name: 'ClickUp', focus: 'Task management, documents and goals in a workspace.', url: 'https://clickup.com/features' },
+];
+export default function Compare() { return <MarketingPage title="Cursis vs Trello / Asana / ClickUp" intro="Start with the workflow your team needs, then try it with a real project."><section className="marketing-card"><h2>What Cursis brings together</h2><p>A team workspace with Ordis AI, tasks, projects, calendar, meetings, automatic actions and progress reports. Completely free, with up to 10 users per workspace.</p></section><div className="marketing-grid">{alternatives.map(tool => <article key={tool.name} className="marketing-card"><h2>Cursis vs {tool.name}</h2><p>{tool.focus}</p><p>Cursis brings work, conversations and meetings together with Ordis AI. Compare both products using the same team workflow.</p><a href={tool.url} target="_blank" rel="noopener noreferrer">Read {tool.name}’s official documentation ↗</a></article>)}</div><section className="marketing-card"><h2>Try the same task in each tool</h2><ol><li>Create a project and assign a task.</li><li>Review a teammate’s available time.</li><li>Follow a discussion through to a decision.</li><li>Check privacy, migration and workspace limits.</li></ol><p>TODO_CONFIRM_WITH_FOUNDER: Verify migration paths and any detailed feature or plan comparison before adding them. Competitor capabilities and availability can change. Sources reviewed October 19, 2026.</p></section></MarketingPage>; }

@@ -10,6 +10,8 @@ import { getAuthenticatedUser, createSessionToken } from '@/lib/auth/session';
 import { adminAuth } from '@/lib/auth/firebase-admin';
 import { verifySessionToken } from '@/lib/auth/token';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
+import { accountBlocked, recordAccountConsent } from '@/lib/privacy/core';
+import { PRIVACY_VERSION } from '@/lib/privacy/config';
 
 export async function GET(request: Request) {
   try {
@@ -114,6 +116,13 @@ export async function POST(request: Request) {
     }
 
     const isFounder = isFounderEmail(userEmail);
+    if (await accountBlocked(userUid, userEmail)) return apiError('This account is closed or pending erasure.', 403);
+    if (!existing) {
+      if (body.ageConfirmed !== true || body.privacyConsent !== true || body.noticeVersion !== PRIVACY_VERSION) {
+        return apiError('New users must use /signup, confirm they are 18 or older, and consent to the privacy notice.', 400);
+      }
+      await recordAccountConsent(userUid, 'google-signup');
+    }
     const sessionRole = isFounder ? ('owner' as const) : (existing?.role || 'member');
     const sessionWorkspaceId = existing?.activeWorkspaceId || existing?.workspaceIds?.[0] || `ws_${userUid}`;
 
@@ -134,7 +143,7 @@ export async function POST(request: Request) {
       ? existing.workspaceIds
       : [`ws_${userUid}`];
 
-    createUserProfile(userUid, {
+    await createUserProfile(userUid, {
       uid: userUid,
       email: userEmail,
       displayName: userName,
@@ -146,7 +155,7 @@ export async function POST(request: Request) {
       workspaceIds: userWorkspaceIds,
       activeWorkspaceId: sessionWorkspaceId,
       planTier: existing?.planTier || 'standard',
-    }).catch(() => {});
+    });
 
     const host = request.headers.get('host') || '';
     const isCursisDomain = host.includes('cursis.in');

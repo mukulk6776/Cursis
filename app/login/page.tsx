@@ -529,9 +529,9 @@ export default function LoginPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', fontSize: '11px', color: '#968F87' }}>
           <span>Encrypted Connection</span>
           <span>•</span>
-          <span>SOC-2 Type II Certified</span>
+          <Link href="/privacy">Privacy Notice</Link>
           <span>•</span>
-          <span>99.99% Availability Guarantee</span>
+          <span>Free for teams of up to 10</span>
         </div>
         <p style={{ fontSize: '11px', color: '#B8B2AA', marginTop: '8px' }}>
           By continuing, you agree to Cursis{' '}

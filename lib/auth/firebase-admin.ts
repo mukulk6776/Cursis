@@ -6,6 +6,7 @@ export interface DecodedFirebaseToken {
   name: string;
   picture?: string;
   email_verified?: boolean;
+  auth_time?: number;
   firebase?: {
     sign_in_provider?: string;
     [key: string]: any;
@@ -56,7 +57,7 @@ export async function verifyFirebaseIdToken(token: string): Promise<DecodedFireb
     const firebase = (payload.firebase as any) || undefined;
 
     if (uid) {
-      return { uid, email, name, picture, email_verified, firebase };
+      return { uid, email, name, picture, email_verified, firebase, auth_time: typeof payload.auth_time === 'number' ? payload.auth_time : undefined };
     }
   } catch (jwksErr) {
     // Continue to next verification strategy
@@ -83,7 +84,7 @@ export async function verifyFirebaseIdToken(token: string): Promise<DecodedFireb
       const firebase = data.firebase || (data.sub ? { sign_in_provider: 'google.com' } : undefined);
 
       if (uid) {
-        return { uid, email, name, picture, email_verified, firebase };
+        return { uid, email, name, picture, email_verified, firebase, auth_time: typeof data.auth_time === 'number' ? data.auth_time : undefined };
       }
     }
   } catch (tokenInfoErr) {

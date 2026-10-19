@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'motion/react';
-import { animeStaggerIn } from '@/lib/animations';
+
 
 type TabKey = 'agent' | 'sprint' | 'team' | 'pipeline';
 
@@ -26,7 +25,7 @@ export default function HeroSection() {
     {
       label: 'Quick Update',
       prompt: 'How is our work going this week?',
-      result: '84% of the planned work is done. The team finished 24 tasks this week, and deadlines are on track.',
+      result: '84% of the planned work is done. The team finished 21 of 25 planned tasks this week.',
     },
     {
       label: 'Share the Work',
@@ -42,64 +41,42 @@ export default function HeroSection() {
     );
   };
 
-  // Anime.js stagger for task rows in the mockup after mount
-  const mockupRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      animeStaggerIn('.lp-mockup-task-row');
-    }, 700);
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleScrollToOrdis = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const el = document.querySelector('#ordis');
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     }
-  };
-
-  // Stagger variants for hero text lines
-  const container = {
-    animate: { transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
-  };
-  const line = {
-    initial: { opacity: 0, y: 22 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeInOut' as const } },
   };
 
   return (
     <section className="lp-section lp-hero" id="hero">
       {/* Hero Header */}
-      <motion.div
+      <div
         className="lp-hero-header"
-        variants={container}
-        initial="initial"
-        animate="animate"
       >
-        <motion.a
+        <a
           href="#ordis"
           onClick={handleScrollToOrdis}
           className="tano-hero-badge"
-          variants={line}
           style={{ cursor: 'pointer', textDecoration: 'none' }}
         >
           <span className="tano-hero-badge-pill">NEW</span>
           <span className="tano-hero-badge-text">Meet Ordis, your AI assistant</span>
           <span className="tano-hero-badge-arrow">→</span>
-        </motion.a>
+        </a>
 
-        <motion.h1 className="lp-hero-title" variants={line}>
+        <h1 className="lp-hero-title">
           Less chasing.<br />
           <span className="tano-hero-marker">More getting done.</span>
-        </motion.h1>
+        </h1>
 
-        <motion.p className="lp-hero-text" variants={line}>
-          Keep tasks, projects, chat, and video meetings in one place. Ordis AI spots delayed tasks and helps share the work, so your team can stay on track.
-        </motion.p>
+        <p className="lp-hero-text">
+          Your team workspace for tasks, projects, chat, and video meetings. Ordis AI spots delayed tasks and helps share the work, so your team can stay on track.
+        </p>
 
-        <motion.div className="lp-hero-ctas" variants={line}>
-          <Link href="/signup" className="btn btn-primary btn-lg">
+        <div className="lp-hero-ctas">
+          <Link prefetch={false} href="/signup" className="btn btn-primary btn-lg">
             Start Free
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12" />
@@ -107,31 +84,27 @@ export default function HeroSection() {
             </svg>
           </Link>
           <a href="#ordis" onClick={handleScrollToOrdis} className="btn btn-secondary btn-lg">
-            See How It Works
+            Try the Demo
           </a>
-        </motion.div>
+        </div>
 
-        <motion.div className="lp-hero-benefits" variants={line}>
-          <span className="lp-benefit-item">Free for small teams</span>
+        <div className="lp-hero-benefits">
+          <span className="lp-benefit-item">Free for teams of up to 10</span>
           <span className="lp-benefit-sep">•</span>
           <span className="lp-benefit-item">No credit card required</span>
           <span className="lp-benefit-sep">•</span>
           <span className="lp-benefit-item">Setup in 2 minutes</span>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Interactive Centerpiece Agent Console */}
-      <motion.div
+      <div
         className="lp-hero-mockup"
-        ref={mockupRef}
-        initial={{ opacity: 0, y: 40, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.35, duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
       >
         {/* Tano Signature Rotated Washi Tape */}
         <div className="tano-washi-tape" style={{ top: -12, right: 38, transform: 'rotate(2.5deg)' }} aria-hidden="true" />
 
-        {/* Mockup Window Chrome */}
+        <p className="marketing-sample">Sample data · All names, tasks and statistics below are demo content.</p>{/* Mockup Window Chrome */}
         <div className="lp-mockup-topbar">
           <div className="lp-mockup-topbar-left">
             <span className="lp-mockup-dot red" />
@@ -145,7 +118,7 @@ export default function HeroSection() {
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
-            <span>cursis.app/workspace/operations</span>
+            <span>cursis.in/workspace/operations</span>
           </div>
 
           <div className="lp-mockup-status">
@@ -221,10 +194,10 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">Active Tasks</h3>
+                    <h2 className="lp-mockup-view-title">Active Tasks</h2>
                     <span className="lp-mockup-view-subtitle">3 sample tasks • 84% of planned work done</span>
                   </div>
-                  <span className="badge badge-brand">84% ON TRACK</span>
+                  <span className="badge badge-brand">84% PLANNED WORK DONE</span>
                 </div>
 
                 {/* Interactive Task Cards */}
@@ -314,16 +287,16 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">Work Progress</h3>
+                    <h2 className="lp-mockup-view-title">Work Progress</h2>
                     <span className="lp-mockup-view-subtitle">This week’s work • Due Friday at 6:00 PM</span>
                   </div>
-                  <span className="badge badge-brand">ON TRACK (99% ON TIME)</span>
+                  <span className="badge badge-brand">84% OF PLANNED WORK DONE</span>
                 </div>
 
                 <div className="lp-sprint-grid">
                   <div className="lp-metric-card">
                     <span className="lp-metric-label">Tasks Finished</span>
-                    <span className="lp-metric-value">148 / 176</span>
+                    <span className="lp-metric-value">21 / 25</span>
                     <div className="lp-metric-progress">
                       <div className="lp-metric-bar" style={{ width: '84%' }} />
                     </div>
@@ -366,7 +339,7 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">Who Has Room to Help?</h3>
+                    <h2 className="lp-mockup-view-title">Who Has Room to Help?</h2>
                     <span className="lp-mockup-view-subtitle">4 teammates • Work shared evenly</span>
                   </div>
                   <span className="badge badge-brand">WORK SHARED EVENLY</span>
@@ -429,7 +402,7 @@ export default function HeroSection() {
               <div className="lp-mockup-view">
                 <div className="lp-mockup-view-header">
                   <div>
-                    <h3 className="lp-mockup-view-title">From Video Idea to Published</h3>
+                    <h2 className="lp-mockup-view-title">From Video Idea to Published</h2>
                     <span className="lp-mockup-view-subtitle">See what needs writing, recording, review, or publishing</span>
                   </div>
                   <span className="badge badge-brand">5 PROJECTS UNDERWAY</span>
@@ -513,11 +486,11 @@ export default function HeroSection() {
               <span className="lp-widget-title">This Week’s Progress</span>
               <div className="lp-widget-row">
                 <span>Tasks Completed</span>
-                <strong>24 this week</strong>
+                <strong>21 of 25 this week</strong>
               </div>
               <div className="lp-widget-row">
                 <span>Work on Track</span>
-                <strong>94% on track</strong>
+                <strong>84% of planned work done</strong>
               </div>
               <div className="lp-widget-row">
                 <span>Team Status</span>
@@ -546,7 +519,7 @@ export default function HeroSection() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

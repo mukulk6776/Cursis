@@ -79,8 +79,8 @@ function TrustBarBalanced() {
           </div>
           <div className="tano-trust-divider" />
           <div className="tano-trust-stat">
-            <strong>SOC 2</strong>
-            <span>Certified</span>
+            <strong>Privacy</strong>
+            <span>Manage your choices</span>
           </div>
           <div className="tano-trust-divider" />
           <div className="tano-trust-stat">

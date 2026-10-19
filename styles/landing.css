@@ -171,10 +171,10 @@ body.lp-body,
   color: #FFFFFF;
   border: 2.5px solid #0A0A0A;
   border-radius: 8px;
-  padding: 2px 14px;
+  padding: 4px 16px 6px 16px;
   box-shadow: 3.5px 3.5px 0 0 #0A0A0A;
   transform: rotate(-1deg);
-  margin: 2px 4px;
+  margin: 6px 4px 2px 4px;
 }
 
 /* Signature Retro Capsule Badge */
@@ -543,7 +543,7 @@ body.lp-body,
   font-size: clamp(2.8rem, 6.2vw, 4.8rem);
   font-weight: 900;
   letter-spacing: -0.045em;
-  line-height: 1.0;
+  line-height: 1.08;
   color: #0A0A0A;
   max-width: 960px;
   margin-bottom: 22px;
@@ -3931,3 +3931,67 @@ body.lp-body,
 .lp-footer-social-link svg {
   flex-shrink: 0;
 }
+
+/* Public marketing extensions: reuse Cursis type, palette and controls. */
+.marketing-main {max-width:1120px;margin:0 auto;padding:160px 28px 70px;color:#0A0A0A;}
+.marketing-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:28px;margin:36px 0;}
+.marketing-card {background:#fff;border:3px solid #0A0A0A;border-radius:20px;box-shadow:6px 6px 0 #0A0A0A;padding:32px;margin-bottom:30px;overflow-wrap:anywhere;}
+.marketing-card h2,.marketing-card h3 {font-size:clamp(1.3rem,2.8vw,1.8rem);font-weight:800;line-height:1.2;margin-bottom:18px;}
+.marketing-card p,.marketing-prose p {line-height:1.8;margin:16px 0;}
+.marketing-card ul,.marketing-card ol {padding-left:24px;line-height:2;}
+.marketing-card a,.marketing-links a,.marketing-faq a,.marketing-learn {text-decoration:underline;text-underline-offset:4px;font-weight:650;}
+.marketing-faq {margin:32px 0;}
+.marketing-faq details {border:2px solid #0A0A0A;border-radius:14px;background:white;margin:12px 0;padding:20px;}
+.marketing-faq summary {cursor:pointer;font-size:1.08rem;font-weight:750;}
+.marketing-faq p {line-height:1.8;margin-top:16px;overflow-wrap:anywhere;}
+.marketing-form {display:grid;gap:16px;max-width:620px;}
+.marketing-form label {display:grid;gap:7px;font-weight:650;font-size:14px;}
+.marketing-form input:not([type=checkbox]),.marketing-form textarea {width:100%;min-width:0;background:#fff;color:#0A0A0A;border:2px solid #0A0A0A;border-radius:10px;padding:12px;font:inherit;}
+.marketing-form .marketing-consent {display:flex;align-items:flex-start;gap:10px;line-height:1.6;}
+.marketing-consent input {margin-top:5px;flex:none;width:18px;height:18px;accent-color:#0A0A0A;}
+.marketing-form .marketing-honeypot {position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;}
+.marketing-form button {justify-self:start;}
+.marketing-form button:disabled {opacity:.65;cursor:wait;}
+.marketing-newsletter {max-width:1240px;margin:32px auto;padding:28px;border:2px solid #0A0A0A;border-radius:16px;background:#FAF6EE;color:#0A0A0A;}
+.marketing-newsletter h2 {font-size:1.4rem;font-weight:800;}
+.marketing-newsletter p {margin:12px 0;}
+.marketing-sample {font:600 12px var(--font-mono),monospace;line-height:1.6;color:#37312b;background:#fff3d6;border:1px solid #0A0A0A;border-radius:8px;padding:10px 14px;margin:16px auto;max-width:960px;text-align:center;}
+.marketing-learn {display:inline-block;margin:16px 0;font-size:13px;}
+.marketing-video {position:relative;aspect-ratio:1200/630;overflow:hidden;border:3px solid #0A0A0A;border-radius:24px;background:white;box-shadow:8px 8px 0 #0A0A0A;}
+.marketing-video img,.marketing-video video {width:100%;height:100%;object-fit:cover;}
+.marketing-video>div {position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:24px;background:linear-gradient(transparent,#FAF6EE);text-align:center;}
+.marketing-video p {font-size:12px;margin-top:12px;max-width:90%;overflow-wrap:anywhere;}
+.marketing-video button:disabled {background:#FFCC00;opacity:1;color:#0A0A0A;cursor:default;}
+.marketing-exit {position:fixed;bottom:24px;right:24px;max-width:400px;width:calc(100% - 48px);padding:30px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:20px;box-shadow:8px 8px 0 #0A0A0A;z-index:1100;}
+.marketing-exit h2 {font-size:1.25rem;font-weight:800;line-height:1.5;margin:8px 0 18px;}
+.marketing-exit-close {position:absolute;right:8px;top:5px;width:36px;height:36px;font-size:28px;cursor:pointer;}
+.lp-body :focus-visible {outline:3px solid #0A0A0A;outline-offset:5px;}
+.lp-body section[id] {scroll-margin-top:140px;}
+@media(min-width:1101px) {.lp-nav-links {gap:14px;}.lp-nav-link {font-size:12px;}}
+@media(max-width:1100px) {.lp-nav-links {display:none;}.lp-nav-links.lp-nav-open {display:flex;position:absolute;top:calc(100% + 12px);left:0;right:0;flex-direction:column;background:white;border:3px solid #0A0A0A;border-radius:16px;padding:20px;max-height:70vh;overflow-y:auto;}.lp-nav-mobile-toggle {display:flex;}.lp-nav-mobile-actions {display:none;}}
+@media(max-width:768px) {.marketing-main {padding:130px 20px 50px;}.marketing-card {padding:24px;}.marketing-newsletter {margin:24px 12px;}.lp-nav-actions .lp-hide-mobile {display:inline-flex;font-size:11px;padding:8px;}.lp-nav-logo-text {font-size:18px;}.lp-nav-container {gap:8px;padding:8px;}.lp-nav-actions {gap:6px;}.marketing-video>div {padding:12px;}.marketing-video p {font-size:10px;}.marketing-video .btn {padding:8px;font-size:12px;}}
+@media(prefers-reduced-motion:reduce) {.lp-body *,.lp-body *::before,.lp-body *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important;}}
+
+/* Keep the orange surface; use ink text for readable small controls. */
+.lp-body .btn-primary,.lp-body .btn-brand,.lp-body .tano-hero-badge-pill,.lp-body .lp-tab-pulse-badge,.lp-body .lp-prompt-chip.active,.lp-body .lp-ordis-tag {color:#0A0A0A;}
+.lp-body .badge-warning {color:#854d0e;}.lp-body .badge-error {color:#b91c1c;}
+.lp-body .marketing-learn,.lp-body .marketing-card a:not(.btn),.lp-body .marketing-newsletter a:not(.btn) {color:#7c2d12;}
+.lp-body .lp-roster-avatar[style*="10b981"] {color:#0A0A0A;}
+.lp-hero-header,.lp-hero-mockup {opacity:1;transform:none;}
+
+#main-content.marketing-main {max-width:1120px!important;padding:160px 28px 70px;margin-inline:auto;}
+.lp-ordis-section :focus-visible {outline-color:#FFCC00;}
+@media(max-width:1100px) {.lp-nav-mobile-toggle {display:inline-flex!important;}.lp-nav-mobile-actions {display:none!important;}.lp-nav-actions .lp-hide-mobile {display:inline-flex!important;font-size:11px;padding:8px;}}
+@media(max-width:768px) {#main-content.marketing-main {padding:130px 20px 50px;}}
+@media(max-width:360px) {.lp-nav-logo-text {display:none;}}
+
+.lp-body .lp-nav-cta-primary {color:#0A0A0A;}
+.marketing-main a:not(.btn) {color:#7c2d12;}
+.lp-role-tano-avatar {color:#0A0A0A;}
+.lp-role-tano-avatar[style*="2965ff"] {color:#fff;}
+
+.lp-body .lp-reveal,.lp-body .lp-reveal-left,.lp-body .lp-reveal-right,.lp-body .lp-reveal-scale {animation:none;}
+
+.lp-body .lp-reveal,.lp-body .lp-reveal-left,.lp-body .lp-reveal-right,.lp-body .lp-reveal-scale,.lp-body .lp-stagger>* {opacity:1;transform:none;animation:none;will-change:auto;}
+
+.lp-body .tano-module-badge,.lp-body .tano-module-cta .tano-module-name,.lp-body .tano-module-cta .tano-module-desc,.lp-body .tano-module-cta .tano-cta-text {color:#0A0A0A;}

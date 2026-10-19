@@ -126,7 +126,7 @@ export async function signInWithEmail(email: string, pass: string): Promise<Auth
 /**
  * Sign up with Name, Email, and Password using native Cursis Auth API
  */
-export async function signUpWithEmail(email: string, pass: string, displayName: string): Promise<AuthResult> {
+export async function signUpWithEmail(email: string, pass: string, displayName: string, ageConfirmed: boolean = false, privacyConsent: boolean = false): Promise<AuthResult> {
   const res = await fetch('/api/auth/signup', {
     method: 'POST',
     signal: AbortSignal.timeout(15000),
@@ -136,6 +136,9 @@ export async function signUpWithEmail(email: string, pass: string, displayName: 
       name: displayName.trim(),
       email: email.trim(),
       password: pass,
+      ageConfirmed: Boolean(ageConfirmed),
+      privacyConsent: privacyConsent === true,
+      noticeVersion: '2026-10-18',
     }),
   });
 

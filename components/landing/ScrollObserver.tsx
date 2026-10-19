@@ -14,12 +14,9 @@ export default function ScrollObserver() {
     // Immediately reveal elements that are already in or above viewport
     const checkInitialVisibility = () => {
       const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-      reveals.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        if (rect.top <= windowHeight * 0.95) {
-          el.classList.add('lp-visible');
-        }
-      });
+      // Batch reads before writes to avoid a layout flush per reveal element.
+      const visible = Array.from(reveals).filter(el => el.getBoundingClientRect().top <= windowHeight * 0.95);
+      visible.forEach(el => el.classList.add('lp-visible'));
     };
 
     checkInitialVisibility();

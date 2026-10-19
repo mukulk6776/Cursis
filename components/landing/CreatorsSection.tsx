@@ -50,7 +50,7 @@ export default function CreatorsSection() {
               {pipeline.map((item) => (
                 <div
                   key={item.num}
-                  onClick={() => toggleStep(item.num)}
+                  role="button" tabIndex={0} aria-pressed={item.done} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleStep(item.num); } }} onClick={() => toggleStep(item.num)}
                   className={`lp-pipeline-tano-item ${item.done ? 'completed' : ''}`}
                   title={`${item.label}: ${item.desc}`}
                 >
@@ -86,7 +86,7 @@ export default function CreatorsSection() {
                 <div
                   key={r.code}
                   className={`lp-role-tano-item ${selectedRole === r.code ? 'selected' : ''}`}
-                  onClick={() => setSelectedRole(selectedRole === r.code ? null : r.code)}
+                  role="button" tabIndex={0} aria-pressed={selectedRole === r.code} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedRole(selectedRole === r.code ? null : r.code); } }} onClick={() => setSelectedRole(selectedRole === r.code ? null : r.code)}
                 >
                   <span
                     className="lp-role-tano-avatar"
