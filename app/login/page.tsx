@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { signInWithEmail, signInWithGoogle, handleGoogleRedirectResult } from '@/lib/auth/firebase';
 import '@/styles/landing.css';
+import '@/styles/auth.css';
+import { ArrowRight, Eye, EyeOff, X } from 'lucide-react';
 
 export default function LoginPage() {
  const [email, setEmail] = useState('');
@@ -169,178 +171,18 @@ export default function LoginPage() {
   };
 
  return (
-    <main
-      id="main-content"
-      style={{
-        minHeight: '100vh',
-        background: '#F6F4F0',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '32px 16px',
-        position: 'relative',
-      }}
-    >
-      {/* Background Ambience */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '10%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '600px',
-          height: '350px',
-          background: 'radial-gradient(ellipse at center, rgba(255, 85, 0, 0.08) 0%, rgba(246, 244, 240, 0) 70%)',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
-
-      <div style={{ marginBottom: '28px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" width="38" height="38" style={{ borderRadius: '10px', overflow: 'hidden' }}>
-            <path
-              d="M 545 240 A 282 282 0 1 0 782 566"
-              stroke="#1A1612"
-              strokeWidth="142"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <rect
-              x="625"
-              y="196"
-              width="156"
-              height="156"
-              rx="42"
-              transform="rotate(-10 703 274)"
-              fill="#FF5500"
-            />
-          </svg>
-          <span style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em', color: '#1A1612' }}>Cursis</span>
+    <main id="main-content" className="auth-page">
+      <section className="auth-card" aria-labelledby="login-title">
+        <Link href="/" className="auth-close" aria-label="Back to Cursis"><X size={18} /></Link>
+        <Link href="/" className="auth-brand" aria-label="Cursis home">
+          <svg viewBox="0 0 1024 1024" fill="none" width="36" height="36" aria-hidden="true"><path d="M545 240 A282 282 0 1 0 782 566" stroke="currentColor" strokeWidth="142" strokeLinecap="round" /><rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" /></svg>
+          Cursis
         </Link>
-        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 600,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              color: '#1A1612',
-              background: '#EFEBE4',
-              padding: '2px 8px',
-              borderRadius: '9999px',
-            }}
-          >
-            Your Team Workspace
-          </span>
-          <span style={{ fontSize: '12px', color: '#B8B2AA' }}>•</span>
-          <span style={{ fontSize: '12px', color: '#6B655F', fontWeight: 500 }}>
-            Unified Operations Platform
-          </span>
-        </div>
-      </div>
-
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '420px',
-          padding: '36px 32px',
-          background: '#ffffff',
-          borderRadius: '20px',
-          border: '1px solid #E8E4DE',
-          boxShadow: '0 20px 40px -10px rgba(26, 22, 18, 0.08), 0 1px 3px rgba(26, 22, 18, 0.04)',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        <div style={{ marginBottom: '24px', textAlign: 'left' }}>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#1A1612', margin: 0, letterSpacing: '-0.02em' }}>
-            Sign In to Workspace
-          </h1>
-          <p style={{ fontSize: '13px', color: '#6B655F', marginTop: '6px', margin: '6px 0 0 0', lineHeight: 1.5 }}>
-            Sign in to find your tasks, projects, and team conversations in one place.
-          </p>
-        </div>
-
-        {successMsg && (
-          <div
-            role="status"
-            aria-live="polite"
-            style={{
-              background: '#f0fdf4',
-              color: '#166534',
-              border: '1px solid #bbf7d0',
-              padding: '10px 14px',
-              fontSize: '12px',
-              marginBottom: '16px',
-              borderRadius: '10px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span>{successMsg}</span>
-          </div>
-        )}
-
-        {errorMsg && (
-          <div
-            role="alert"
-            aria-live="assertive"
-            style={{
-              background: '#fef2f2',
-              color: '#991b1b',
-              border: '1px solid #fecaca',
-              padding: '10px 14px',
-              fontSize: '12px',
-              marginBottom: '16px',
-              borderRadius: '10px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '8px',
-            }}
-          >
-            <span style={{ color: '#ef4444', fontWeight: 900 }}>!</span>
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
-        {/* Google Single Sign-On */}
-        <button
-          type="button"
-          aria-label="Continue with Google"
-          style={{
-            width: '100%',
-            height: '46px',
-            marginBottom: '18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            fontWeight: 700,
-            fontSize: '13px',
-            color: '#0A0A0A',
-            background: '#ffffff',
-            border: '2px solid #0A0A0A',
-            borderRadius: '9999px',
-            boxShadow: '3px 3px 0 0 #0A0A0A',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translate(-1.5px, -1.5px)';
-            e.currentTarget.style.boxShadow = '4.5px 4.5px 0 0 #0A0A0A';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translate(0, 0)';
-            e.currentTarget.style.boxShadow = '3px 3px 0 0 #0A0A0A';
-          }}
-          onClick={handleGoogleSignIn}
-          disabled={googleLoading || loading}
-        >
+        <h1 id="login-title">Welcome back.</h1>
+        <p className="auth-intro">Your team. Your work. One place.</p>
+        {successMsg && <p className="auth-message auth-success" role="status">{successMsg}</p>}
+        {errorMsg && <p className="auth-message auth-error" role="alert">{errorMsg}</p>}
+        <button type="button" className="auth-google" onClick={handleGoogleSignIn} disabled={googleLoading || loading}>
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
             <path
               fill="#4285F4"
@@ -359,192 +201,23 @@ export default function LoginPage() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          {googleLoading ? 'Authenticating with Google...' : 'Continue with Google'}
+          {googleLoading ? 'Connecting…' : 'Continue with Google'}
         </button>
-
-        <div style={{ textAlign: 'center', margin: '14px 0 16px', position: 'relative' }}>
-          <div style={{ borderTop: '1px solid #E8E4DE', position: 'absolute', top: '50%', width: '100%' }} />
-          <span
-            style={{
-              background: '#ffffff',
-              padding: '0 12px',
-              fontSize: '11px',
-              color: '#968F87',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              letterSpacing: '0.05em',
-              position: 'relative',
-            }}
-          >
-            or continue with email
-          </span>
-        </div>
-
-        <form onSubmit={handleEmailLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div>
-            <label htmlFor="login-email" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1A1612', marginBottom: '6px' }}>
-              Email Address
-            </label>
-            <input
-              id="login-email"
-              type="email"
-              value={email}
-              placeholder="name@gmail.com or name@outlook.com"
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                height: '42px',
-                padding: '0 14px',
-                fontSize: '13px',
-                color: '#1A1612',
-                background: '#ffffff',
-                border: '1px solid #E8E4DE',
-                borderRadius: '12px',
-                outline: 'none',
-                boxSizing: 'border-box',
-                transition: 'border-color 0.15s ease',
-              }}
-            />
-            <span style={{ display: 'block', fontSize: '11px', color: '#968F87', marginTop: '4px' }}>
-              Supported providers: Gmail and Microsoft accounts
-            </span>
+        <div className="auth-divider"><span>or continue with email</span></div>
+        <form onSubmit={handleEmailLogin} className="auth-form">
+          <label htmlFor="login-email">Email address</label>
+          <input id="login-email" type="email" autoComplete="email" value={email} placeholder="you@example.com" onChange={e => setEmail(e.target.value)} required />
+          <div className="auth-password-label"><label htmlFor="login-password">Password</label><button type="button" className="auth-text-button" onClick={() => { setErrorMsg(''); setSuccessMsg('To reset your password, contact your workspace owner or email security@cursis.in.'); }}>Forgot password?</button></div>
+          <div className="auth-password">
+            <input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} placeholder="Enter your password" onChange={e => setPassword(e.target.value)} required />
+            <button type="button" className="auth-eye" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
           </div>
-
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label htmlFor="login-password" style={{ fontSize: '12px', fontWeight: 600, color: '#1A1612' }}>
-                Password
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  setErrorMsg('');
-                  setSuccessMsg('To reset your password, contact your workspace owner or email security@cursis.in.');
-                }}
-                style={{ background: 'none', border: 'none', padding: 0, fontSize: '11px', color: '#FF5500', textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}
-              >
-                Forgot Password?
-              </button>
-            </div>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                placeholder="••••••••••••"
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  padding: '0 38px 0 14px',
-                  fontSize: '13px',
-                  color: '#1A1612',
-                  background: '#ffffff',
-                  border: '1px solid #E8E4DE',
-                  borderRadius: '12px',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.15s ease',
-                }}
-              />
-              <button
-                type="button"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: '10px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#968F87',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {showPassword ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              height: '46px',
-              marginTop: '6px',
-              background: '#0A0A0A',
-              color: '#ffffff',
-              border: '2px solid #0A0A0A',
-              borderRadius: '9999px',
-              boxShadow: '3px 3px 0 0 #0A0A0A',
-              fontWeight: 700,
-              fontSize: '14px',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            disabled={loading || googleLoading}
-          >
-            {loading ? 'Authenticating Workspace...' : 'Sign In to Workspace →'}
-          </button>
+          <button type="submit" className="auth-submit" disabled={loading || googleLoading}>{loading ? 'Signing in…' : 'Continue'}<ArrowRight size={18} aria-hidden="true" /></button>
         </form>
-
-        <div
-          style={{
-            marginTop: '24px',
-            paddingTop: '18px',
-            borderTop: '1px solid #E8E4DE',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '12px',
-            color: '#6B655F',
-          }}
-        >
-          <span>New to Cursis?</span>
-          <Link href="/signup" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'none' }}>
-            Create Workspace →
-          </Link>
-        </div>
-      </div>
-
-      {/* Enterprise Trust & Compliance Footer */}
-      <div style={{ marginTop: '24px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', fontSize: '11px', color: '#968F87' }}>
-          <span>Encrypted Connection</span>
-          <span>•</span>
-          <Link href="/privacy">Privacy Notice</Link>
-          <span>•</span>
-          <span>Free for teams of up to 10</span>
-        </div>
-        <p style={{ fontSize: '11px', color: '#B8B2AA', marginTop: '8px' }}>
-          By continuing, you agree to Cursis{' '}
-          <Link href="/terms" style={{ color: '#6B655F', textDecoration: 'underline' }}>
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link href="/privacy" style={{ color: '#6B655F', textDecoration: 'underline' }}>
-            Privacy Policy
-          </Link>
-          .
-        </p>
-      </div>
+        <p className="auth-signup">New to Cursis? <Link href="/signup">Make my workspace</Link></p>
+        <p className="auth-legal">By continuing, you agree to our <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>
+      </section>
+      <Link href="/" className="auth-back">← Back to Cursis</Link>
     </main>
  );
 }

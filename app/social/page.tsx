@@ -1,4 +1,4 @@
 import MarketingPage from '@/components/landing/MarketingPage';
 import { marketingMetadata, socialProfiles } from '@/lib/seo/marketing';
-export const metadata = marketingMetadata('/social', 'Join the Cursis community', 'Connect with Cursis on Instagram, X, LinkedIn and Discord. Share feedback and discover your free team workspace.');
+export const metadata = marketingMetadata('/social', 'Cursis Community & Social Channels', 'Connect with Cursis on Instagram, X, LinkedIn and Discord. Share feedback and discover your free team workspace.');
 export default function Social() { return <MarketingPage title="Join the community." intro="Share what you’re building. Help shape what comes next."><div className="marketing-grid">{socialProfiles.map(profile => <article className="marketing-card" key={profile.name}><h2>{profile.name}</h2><a href={profile.url} target="_blank" rel="noopener noreferrer">{profile.name === 'Discord' ? 'Join the community' : 'Follow Cursis'} ↗</a></article>)}</div></MarketingPage>; }

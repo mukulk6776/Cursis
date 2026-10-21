@@ -165,13 +165,13 @@ export default function FeaturesSection() {
             <div className="lp-stage-sep">→</div>
             <div className="lp-stage-step active">
               <span className="lp-stage-num">03</span>
-              <strong>Review &amp; Check</strong>
+              <strong>Review</strong>
               <span>Team approval</span>
             </div>
             <div className="lp-stage-sep">→</div>
             <div className="lp-stage-step">
               <span className="lp-stage-num">04</span>
-              <strong>Ready to Share</strong>
+              <strong>Ready</strong>
               <span>Ready to publish</span>
             </div>
             <div className="lp-stage-sep">→</div>

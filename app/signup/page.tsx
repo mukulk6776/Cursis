@@ -581,7 +581,7 @@ export default function SignupPage() {
           <span>•</span>
           <Link href="/privacy">Privacy Notice</Link>
           <span>•</span>
-          <span>Free for teams of up to 10</span>
+          <span>Built for teamwork</span>
         </div>
         <p style={{ fontSize: '11px', color: '#B8B2AA', marginTop: '8px' }}>
           By creating an account, you agree to Cursis{' '}

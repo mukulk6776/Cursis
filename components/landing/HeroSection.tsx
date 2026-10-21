@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 
 type TabKey = 'agent' | 'sprint' | 'team' | 'pipeline';
 
 export default function HeroSection() {
+  const reducedMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState<TabKey>('agent');
   const [tasks, setTasks] = useState([
     { id: 1, title: 'Finish the brand colors and fonts', priority: 'High', status: 'In Progress', assignee: 'Mukul K.', sla: 'Today 5:00 PM' },
@@ -55,17 +57,6 @@ export default function HeroSection() {
       <div
         className="lp-hero-header"
       >
-        <a
-          href="#ordis"
-          onClick={handleScrollToOrdis}
-          className="tano-hero-badge"
-          style={{ cursor: 'pointer', textDecoration: 'none' }}
-        >
-          <span className="tano-hero-badge-pill">NEW</span>
-          <span className="tano-hero-badge-text">Meet Ordis, your AI assistant</span>
-          <span className="tano-hero-badge-arrow">→</span>
-        </a>
-
         <h1 className="lp-hero-title">
           Less chasing.<br />
           <span className="tano-hero-marker">More getting done.</span>
@@ -77,7 +68,7 @@ export default function HeroSection() {
 
         <div className="lp-hero-ctas">
           <Link prefetch={false} href="/signup" className="btn btn-primary btn-lg">
-            Start Free
+            Make my workspace
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
@@ -89,7 +80,7 @@ export default function HeroSection() {
         </div>
 
         <div className="lp-hero-benefits">
-          <span className="lp-benefit-item">Free for teams of up to 10</span>
+          <span className="lp-benefit-item">One connected workspace</span>
           <span className="lp-benefit-sep">•</span>
           <span className="lp-benefit-item">No credit card required</span>
           <span className="lp-benefit-sep">•</span>
@@ -132,7 +123,7 @@ export default function HeroSection() {
           <div className="lp-mockup-tabs">
             <button
               type="button"
-              className={`lp-mockup-tab ${activeTab === 'agent' ? 'active' : ''}`}
+              className={`lp-mockup-tab ${activeTab === 'agent' ? 'active' : ''}`} aria-pressed={activeTab === 'agent'}
               onClick={() => setActiveTab('agent')}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -146,7 +137,7 @@ export default function HeroSection() {
 
             <button
               type="button"
-              className={`lp-mockup-tab ${activeTab === 'sprint' ? 'active' : ''}`}
+              className={`lp-mockup-tab ${activeTab === 'sprint' ? 'active' : ''}`} aria-pressed={activeTab === 'sprint'}
               onClick={() => setActiveTab('sprint')}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -157,7 +148,7 @@ export default function HeroSection() {
 
             <button
               type="button"
-              className={`lp-mockup-tab ${activeTab === 'team' ? 'active' : ''}`}
+              className={`lp-mockup-tab ${activeTab === 'team' ? 'active' : ''}`} aria-pressed={activeTab === 'team'}
               onClick={() => setActiveTab('team')}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -171,7 +162,7 @@ export default function HeroSection() {
 
             <button
               type="button"
-              className={`lp-mockup-tab ${activeTab === 'pipeline' ? 'active' : ''}`}
+              className={`lp-mockup-tab ${activeTab === 'pipeline' ? 'active' : ''}`} aria-pressed={activeTab === 'pipeline'}
               onClick={() => setActiveTab('pipeline')}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -189,6 +180,15 @@ export default function HeroSection() {
         <div className="lp-mockup-body">
           {/* Main Workspace Stage */}
           <div className="lp-mockup-main">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeTab}
+                className="lp-tab-content"
+                initial={{ opacity: 0, height: reducedMotion ? 'auto' : 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: reducedMotion ? 'auto' : 0 }}
+                transition={{ duration: reducedMotion ? 0 : 0.24, ease: [0.16, 1, 0.3, 1] }}
+              >
             {/* Tab 1: Autonomous Ordis Copilot */}
             {activeTab === 'agent' && (
               <div className="lp-mockup-view">
@@ -447,6 +447,8 @@ export default function HeroSection() {
                 </div>
               </div>
             )}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Mockup Right Side Panel: Ordis Live Command Center */}
@@ -500,22 +502,20 @@ export default function HeroSection() {
 
             <div className="lp-ordis-quick-prompts">
               <span className="lp-prompts-label">Quick Views:</span>
-              <div
+              <button
+                type="button"
                 className="lp-prompt-pill"
                 onClick={() => setActiveTab('team')}
-                role="button"
-                tabIndex={0}
               >
                 See Who Is Busy
-              </div>
-              <div
+              </button>
+              <button
+                type="button"
                 className="lp-prompt-pill"
                 onClick={() => setActiveTab('sprint')}
-                role="button"
-                tabIndex={0}
               >
                 View Work Progress
-              </div>
+              </button>
             </div>
           </div>
         </div>

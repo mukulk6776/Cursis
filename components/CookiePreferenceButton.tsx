@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export default function CookiePreferenceButton() {
+export default function CookiePreferenceButton({ className }: { className?: string }) {
   const handleClick = () => {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('cursis_open_cookie_preferences'));
@@ -12,6 +12,7 @@ export default function CookiePreferenceButton() {
   return (
     <button
       type="button"
+      className={className}
       onClick={handleClick}
       style={{
         marginTop: '12px',

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import PolicyLayout from '@/components/landing/PolicyLayout';
 import { privacyContact } from '@/lib/privacy/config';
+import { marketingMetadata } from '@/lib/seo/marketing';
+export const metadata = marketingMetadata('/data-deletion', 'Account and Data Deletion', 'Learn how to request Cursis account closure and personal data erasure, verify your identity, and understand deletion timelines and exceptions.');
 export const dynamic = 'force-dynamic';
 export default function DataDeletionPage() {
   return <PolicyLayout title="Account erasure" badge="Privacy rights" activeSlug="data-deletion" lastUpdated="18 October 2026"

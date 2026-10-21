@@ -49,5 +49,5 @@ export default function MarketingEngagement() {
     document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key);
   }, [open, path]);
   if (!open || path === '/login' || path === '/signup') return null;
-  return <aside className="marketing-exit" aria-label="Start a free workspace"><button ref={closeRef} aria-label="Dismiss signup prompt" className="marketing-exit-close" onClick={() => { setOpen(false); trackMarketing('exit_dismissed', path); }}>×</button><h2>Start your free workspace: up to 10 teammates, no credit card</h2><a className="btn btn-primary" href="/signup" onClick={() => trackMarketing('exit_converted', path)}>Start Free</a></aside>;
+  return <aside className="marketing-exit" aria-label="Start a free workspace"><button ref={closeRef} aria-label="Dismiss signup prompt" className="marketing-exit-close" onClick={() => { setOpen(false); trackMarketing('exit_dismissed', path); }}>×</button><h2>Bring your team’s work together</h2><a className="btn btn-primary" href="/signup" onClick={() => trackMarketing('exit_converted', path)}>Make my workspace</a></aside>;
 }

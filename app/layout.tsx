@@ -4,6 +4,7 @@ import './globals.css';
 import { ClientProviders } from '@/components/ClientProviders';
 import MarketingEngagement from '@/components/landing/MarketingEngagement';
 import { THEME_BOOTSTRAP } from '@/lib/dashboard/theme';
+import { SOCIAL_IMAGE } from '@/lib/seo/marketing';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -64,20 +65,13 @@ export const metadata: Metadata = {
     title: 'Cursis',
     description:
       'Keep tasks, projects, chat, and video meetings together. Ordis AI spots delayed tasks and helps share work so your team can stay on track.',
-    images: [
-      {
-        url: '/marketing-og.png',
-        width: 1200,
-        height: 630,
-        alt: 'Cursis — Your Team’s Work in One Place',
-      },
-    ],
+    images: [SOCIAL_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Cursis — Your Team’s Work in One Place',
     description: 'Keep work together. Catch delayed tasks and share the workload with help from Ordis AI.',
-    images: ['/marketing-og.png'],
+    images: [{ url: SOCIAL_IMAGE.url, alt: SOCIAL_IMAGE.alt }],
     creator: '@cursis_',
   },
   robots: {

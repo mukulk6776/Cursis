@@ -99,59 +99,23 @@ export default function CookieConsent() {
     setShowPreferences(false);
   };
 
-  if (!showBanner) {
-    return (
-      <button
-        type="button"
-        onClick={() => {
-          setShowBanner(true);
-          setShowPreferences(true);
-        }}
-        aria-label="Manage Cookie Preferences"
-        style={{
-          position: 'fixed',
-          bottom: '16px',
-          left: '16px',
-          zIndex: 9998,
-          background: 'rgba(15, 23, 42, 0.85)',
-          color: '#e2e8f0',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          borderRadius: '20px',
-          padding: '6px 12px',
-          fontSize: '11px',
-          fontWeight: 600,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          backdropFilter: 'blur(8px)',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'transform 0.15s ease, background 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(15, 23, 42, 1)';
-          e.currentTarget.style.transform = 'translateY(-1px)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(15, 23, 42, 0.85)';
-          e.currentTarget.style.transform = 'translateY(0)';
-        }}
-      >
-        <Cookie size={13} color="#94a3b8" />
-        <span>Cookie Preferences</span>
-      </button>
-    );
-  }
+  if (!showBanner) return null;
 
   return (
     <>
       {/* Cookie Banner */}
       <div
+        className="cookie-consent"
+        role="region"
+        aria-label="Cookie preferences"
         style={{
           position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
+          bottom: '16px',
+          left: '16px',
+          right: '16px',
+          borderRadius: '18px',
+          maxHeight: 'calc(100dvh - 32px)',
+          overflowY: 'auto',
           background: 'rgba(0, 0, 0, 0.95)',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '20px 24px',
@@ -278,6 +242,7 @@ export default function CookieConsent() {
               <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <input
                   type="checkbox"
+                  aria-label="Essential cookies"
                   checked={true}
                   disabled
                   style={{ marginTop: '2px', cursor: 'not-allowed' }}
@@ -296,6 +261,7 @@ export default function CookieConsent() {
               <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <input
                   type="checkbox"
+                  aria-label="Functional cookies"
                   checked={functional}
                   onChange={(e) => setFunctional(e.target.checked)}
                   style={{ marginTop: '2px', cursor: 'pointer' }}
@@ -314,6 +280,7 @@ export default function CookieConsent() {
               <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <input
                   type="checkbox"
+                  aria-label="Analytics cookies"
                   checked={analytics}
                   onChange={(e) => setAnalytics(e.target.checked)}
                   style={{ marginTop: '2px', cursor: 'pointer' }}

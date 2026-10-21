@@ -1,6 +1,6 @@
 import LandingPage from '@/components/landing/LandingPage';
 import { marketingMetadata, socialProfiles } from '@/lib/seo/marketing';
-export const metadata = marketingMetadata('', 'Cursis – Team Workspace with AI Task & Workload Management', 'Your free team workspace for tasks, projects, chat and meetings. Ordis AI helps catch delayed tasks and share work. Free for teams of up to 10.');
+export const metadata = marketingMetadata('', 'Cursis – Free Team Workspace & AI Task Management', 'Your free team workspace for tasks, projects, chat and meetings. Ordis AI helps catch delayed tasks and share work. Built for teamwork.');
 // TODO_CONFIRM_WITH_FOUNDER: Set SCHEMA_OFFER_CURRENCY to the confirmed ISO currency.
 const currency = process.env.SCHEMA_OFFER_CURRENCY;
 const schema = { '@context': 'https://schema.org', '@graph': [

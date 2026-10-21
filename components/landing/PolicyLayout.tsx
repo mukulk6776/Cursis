@@ -40,7 +40,7 @@ export default function PolicyLayout({
     <div className="lp-body" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#FAF6EE' }}>
       <LandingNav />
 
-      <main style={{ flex: '1 0 auto', maxWidth: '960px', width: '100%', margin: '0 auto', padding: '120px 24px 80px', color: '#0A0A0A' }}>
+      <main id="main-content" className="policy-main" style={{ flex: '1 0 auto', maxWidth: '960px', width: '100%', margin: '0 auto', padding: '120px 24px 80px', color: '#0A0A0A' }}>
         {/* Policy Tab Bar */}
         <div
           style={{

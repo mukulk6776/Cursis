@@ -3987,6 +3987,16 @@ body.lp-body,
 
 .lp-body .lp-nav-cta-primary {color:#0A0A0A;}
 .marketing-main a:not(.btn) {color:#7c2d12;}
+.blog-grid .marketing-card {display:flex;flex-direction:column;min-width:0;padding:28px;margin-bottom:0;}
+.blog-grid .blog-card-status {display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 24px;font-size:11px;line-height:1.5;color:#57534e;}
+.blog-card-status span {padding:4px 10px;border:2px solid #0A0A0A;border-radius:999px;background:#FFC233;color:#0A0A0A;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.blog-grid h2 {font-size:26px;line-height:1.18;letter-spacing:-.03em;margin:0;}
+.lp-body .blog-grid .marketing-card h2 a {color:#0A0A0A;text-decoration:none;font-weight:800;}
+.lp-body .blog-grid .marketing-card h2 a:hover {text-decoration:underline;text-decoration-thickness:2px;}
+.blog-grid .blog-card-description {margin:16px 0 28px;color:#57534e;font-size:15px;line-height:1.75;}
+.lp-body .blog-grid .blog-card-link {display:inline-flex;align-items:center;justify-content:space-between;gap:24px;align-self:flex-start;margin-top:auto;padding:10px 16px;border:2px solid #0A0A0A;border-radius:10px;background:#FF5500;color:#0A0A0A;text-decoration:none;font-size:14px;font-weight:750;box-shadow:3px 3px 0 #0A0A0A;}
+.lp-body .blog-grid .blog-card-link:hover {background:#ff722b;}
+.blog-grid a:focus-visible {outline:3px solid #0A0A0A;outline-offset:5px;border-radius:4px;}
 .lp-role-tano-avatar {color:#0A0A0A;}
 .lp-role-tano-avatar[style*="2965ff"] {color:#fff;}
 
@@ -3995,3 +4005,92 @@ body.lp-body,
 .lp-body .lp-reveal,.lp-body .lp-reveal-left,.lp-body .lp-reveal-right,.lp-body .lp-reveal-scale,.lp-body .lp-stagger>* {opacity:1;transform:none;animation:none;will-change:auto;}
 
 .lp-body .tano-module-badge,.lp-body .tano-module-cta .tano-module-name,.lp-body .tano-module-cta .tano-module-desc,.lp-body .tano-module-cta .tano-cta-text {color:#0A0A0A;}
+
+/* Keep the public pages compact, with consistent controls and readable type. */
+.lp-body {font-family:var(--font-family);}
+.lp-body :is(h1,h2,h3,h4,.lp-section-label,.badge,.tano-module-name,.lp-footer-col-title,.lp-footer-logo-text) {font-family:inherit;}
+.lp-body .lp-section {padding-block:56px;}
+.lp-body .lp-hero {padding-top:54px;padding-bottom:40px;}
+.lp-body .lp-section-header {margin-bottom:32px;}
+.lp-body .lp-section-label {white-space:nowrap;max-width:100%;font-size:clamp(9px,1.5vw,11px);}
+.lp-body :is(.badge,.lp-bento-tag,.lp-live-badge,.lp-sla-rate,.lp-capacity-badge,.tano-module-badge,.lp-mockup-tab,.lp-benefit-item,.lp-ordis-demo-badge) {white-space:nowrap;flex-shrink:0;}
+.lp-body :is(.lp-mockup-view-header,.lp-ordis-demo-header) {flex-wrap:wrap;gap:12px;}
+.lp-body :is(.lp-bento-topbar,.lp-hero-benefits,.lp-bento-tags) {gap:10px;align-items:center;flex-wrap:wrap;}
+.lp-body :is(.lp-benefit-sep,.lp-mockup-dot,.lp-ordis-demo-status-dot) {flex-shrink:0;align-self:center;}
+.lp-body :is(.btn,.lp-nav-cta-primary,.lp-nav-btn-signin,.lp-nav-btn-signout) {display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;white-space:nowrap;}
+.lp-body :is(.btn svg,.lp-mockup-tab svg) {flex-shrink:0;}
+.lp-body button:not(:disabled):hover,.lp-body [role="button"]:hover,.lp-body :is(.btn,.lp-nav-cta-primary,.lp-nav-btn-signin,.lp-footer-social-link,.blog-card-link):hover {background:#0A0A0A!important;color:#fff!important;text-decoration:none;}
+.lp-body button:not(:disabled):hover :is(span,strong),.lp-body [role="button"]:hover :is(span,strong) {color:inherit!important;}
+.lp-body :is(.lp-task-row,.lp-pipeline-card,.lp-stat-box,.lp-bento-log-box,.lp-bento-stat-card,.lp-ordis-action-box,.lp-ordis-stats-widget,.lp-ordis-success-box,.lp-stage-step) {border-radius:12px;}
+.lp-body :is(.tano-washi-tape,.lp-task-priority,.lp-task-status,.lp-bento-tag,.lp-demo-step-highlight) {border-radius:8px;}
+.lp-body .lp-mockup-body {min-height:0;align-items:start;}
+.lp-body .lp-mockup-main {min-width:0;}
+.lp-tab-content {overflow:hidden;}
+.lp-body .lp-bento-card {padding:24px;min-width:0;}
+.lp-body .lp-bento-tags {margin-top:16px;}
+.lp-body .lp-bento-roster-preview {flex:1;justify-content:space-evenly;}
+.lp-body .lp-bento-card>.marketing-learn {margin-top:auto;padding-top:16px;}
+.lp-body .lp-bento-stat-card {flex:1;display:flex;flex-direction:column;justify-content:center;min-height:160px;}
+.lp-body .lp-bento-log-box {flex:1;}
+.lp-bento-stages-row {display:flex;align-items:center;gap:8px;flex:1;margin:12px 0 20px;}
+.lp-bento-stages-row .lp-stage-step {flex:1;min-width:0;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px 8px;background:#FAF6EE;border:2px solid #0A0A0A;border-radius:14px;text-align:center;}
+.lp-stage-step strong {font-size:13px;}
+.lp-stage-step>span:last-child {font-size:11px;color:#57534e;line-height:1.5;}
+.lp-stage-num {display:grid;place-items:center;width:30px;height:30px;background:white;border:2px solid #0A0A0A;border-radius:10px;font-size:11px;font-weight:800;}
+.lp-bento-stages-row .lp-stage-step.active {background:#FFD66B;box-shadow:3px 3px 0 #0A0A0A;}
+.lp-bento-stages-row .lp-stage-step.done {background:#d1fae5;}
+.lp-stage-sep {flex:none;align-self:center;line-height:1;font-weight:800;}
+.lp-body .tano-modules-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+.lp-body .tano-module-featured {grid-column:span 1;}
+.lp-body .tano-module-cta {grid-column:span 2;}
+.lp-body .tano-module-card {min-height:0;padding:22px;}
+.lp-body .tano-module-card .marketing-learn {margin-top:auto;padding-top:18px;margin-bottom:0;}
+.lp-body .lp-workflow-timeline-card {display:flex;flex-direction:column;}
+.lp-body .lp-workflow-timeline-card .marketing-learn {margin-top:auto;padding-top:16px;margin-bottom:0;}
+.lp-body .lp-cta-section {padding-block:40px;}
+.lp-body .lp-cta-inner {padding:40px 24px;background:#fff!important;}
+.lp-body .lp-cta-title {font-size:clamp(28px,4vw,44px);}
+.lp-body .lp-footer {padding-block:40px 24px;}
+.lp-body .lp-footer-inner {grid-template-columns:220px minmax(0,1fr);gap:32px;}
+.lp-body .lp-footer-links-group {grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;}
+.lp-body .lp-footer-bottom .lp-footer-link {margin-bottom:0;}
+.lp-body .lp-footer-cookie {margin:0!important;padding:6px 10px!important;background:#f5f5f0!important;border:1px solid #d6d3d1!important;border-radius:8px!important;color:#292524!important;font:inherit!important;}
+.lp-body .lp-footer-cookie:hover {background:#0A0A0A!important;color:white!important;}
+.lp-body .marketing-newsletter {display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,2fr);gap:8px 28px;padding:24px;margin-block:28px;}
+.lp-body .marketing-newsletter p {margin:0;}
+.lp-body .marketing-newsletter form {grid-column:2;grid-row:1 / span 3;max-width:none;}
+.lp-body .marketing-newsletter>a {align-self:start;font-size:12px;}
+#main-content.policy-main {max-width:960px!important;padding:112px 24px 48px;font-family:var(--font-family);}
+.policy-main :is(h1,h2,h3,p,li,a,button,table) {font-family:inherit;}
+.policy-content h2 {font-size:24px;line-height:1.35;margin-bottom:16px;letter-spacing:-.025em;}
+.policy-content h3 {font-size:18px;line-height:1.4;}
+.policy-content :is(p,li,td,th) {font-size:15px!important;line-height:1.8;}
+.policy-content p+p {margin-top:14px;}
+.policy-content :is(ul,ol) {padding-left:22px;}
+.policy-content section {min-width:0;overflow-wrap:anywhere;}
+.cookie-consent {font-family:var(--font-family);}
+@media(max-width:1100px) {
+  .lp-body .lp-footer-inner {grid-template-columns:1fr;}
+  .lp-body .lp-footer-links-group {grid-template-columns:repeat(5,minmax(0,1fr));}
+}
+@media(max-width:768px) {
+  .lp-body .lp-section {padding:36px 20px;}
+  .lp-body .lp-hero {padding-top:36px;}
+  .lp-body .tano-modules-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .lp-body .lp-footer-links-group {grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;}
+  .lp-body .marketing-newsletter {grid-template-columns:1fr;gap:12px;}
+  .lp-body .marketing-newsletter form {grid-column:auto;grid-row:auto;}
+  .cookie-consent {padding:18px!important;}
+  .cookie-consent>div>div>div {min-width:0!important;}
+}
+@media(max-width:480px) {
+  .lp-body .tano-modules-grid {grid-template-columns:1fr;}
+  .lp-body .tano-module-cta {grid-column:span 1;}
+  .lp-body .lp-hero-benefits {gap:6px;font-size:10px;}
+  .lp-body .lp-benefit-sep {display:none;}
+  .lp-body .lp-benefit-item {padding:3px 7px;border-radius:8px;background:#fff;}
+  .lp-bento-stages-row {flex-direction:column;}
+  .lp-bento-stages-row .lp-stage-step {width:100%;flex-direction:row;justify-content:flex-start;flex-wrap:wrap;text-align:left;padding:12px;}
+  .lp-stage-step>span:last-child {margin-left:auto;}
+  .lp-stage-sep {transform:rotate(90deg);}
+}

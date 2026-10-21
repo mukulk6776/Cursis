@@ -9,12 +9,12 @@ export default function CtaSection() {
           Ready for fewer missed deadlines?
         </h2>
         <p className="lp-cta-subtitle">
-          Bring your team’s work together. Free for teams of up to 10, no credit card required.
+          Bring your tasks, conversations and projects into one workspace.
         </p>
 
         <div className="lp-cta-buttons">
           <Link prefetch={false} href="/signup" className="btn btn-primary btn-lg">
-            Start Free
+            Make my workspace
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
@@ -26,7 +26,7 @@ export default function CtaSection() {
         </div>
 
         <p className="lp-cta-note">
-          100% free • Work together in one place • Fast setup
+          Work together in one place · Set up in minutes
         </p>
       </div>
     </section>

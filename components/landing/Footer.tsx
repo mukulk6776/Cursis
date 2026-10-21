@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import MarketingForm from './MarketingForm';
 import WorkspaceFooterLink from './WorkspaceFooterLink';
+import CookiePreferenceButton from '@/components/CookiePreferenceButton';
 
 export default function Footer() {
   return (
@@ -91,7 +92,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <section className="marketing-newsletter"><h2>Keep up with Cursis</h2><p>Product updates, in your inbox.</p><MarketingForm kind="newsletter" /><Link prefetch={false} href="/unsubscribe">Unsubscribe</Link><p><Link prefetch={false} href="/signup" className="btn btn-primary">Start Free</Link></p></section><div className="lp-footer-bottom">
+      <section className="marketing-newsletter"><h2>Keep up with Cursis</h2><p>Product updates, in your inbox.</p><MarketingForm kind="newsletter" /><Link prefetch={false} href="/unsubscribe">Unsubscribe</Link></section><div className="lp-footer-bottom">
         <div>
           <span>© 2026 Cursis All rights reserved.</span>
         </div>
@@ -104,7 +105,7 @@ export default function Footer() {
           <span style={{ color: 'var(--c-gray-400)' }}>•</span>
           <Link prefetch={false} href="/refund-policy" className="lp-footer-link">Refunds</Link>
           <span style={{ color: 'var(--c-gray-400)' }}>•</span>
-          <Link prefetch={false} href="/cookie-policy" className="lp-footer-link">Cookies</Link>
+          <Link prefetch={false} href="/cookie-policy" className="lp-footer-link">Cookies</Link><CookiePreferenceButton className="lp-footer-cookie" />
         </div>
       </div>
     </footer>

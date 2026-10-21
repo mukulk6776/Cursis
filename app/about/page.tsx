@@ -41,7 +41,7 @@ const teamMembers = [
 ];
 
 const stats = [
- { label: 'Workspace users', value: '10', desc: 'Up to 10 users per team workspace' },
+ { label: 'Workspace', value: 'One', desc: 'Work and conversations together' },
  { label: 'Cost', value: 'Free', desc: 'No credit card required' },
  { label: 'Focus', value: 'Teamwork', desc: 'Work and conversations together' },
 ];
@@ -356,7 +356,7 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <section className="marketing-card" style={{ marginTop: 48 }}><h2>Why we built Cursis</h2><p>Founder story · Draft for review</p><p>We want teams to spend less time chasing updates and switching apps. That is why we are bringing work and conversations together, with Ordis to help catch delays and share work.</p><p>TODO_CONFIRM_WITH_FOUNDER: Add the founding timeline and personal story.</p><Link href="/contact">Talk to the founders →</Link></section>{/* Stats Grid */}
+            <section className="marketing-card" style={{ marginTop: 48 }}><h2>Why we built Cursis</h2><p>Founder story · Draft for review</p><p>We want teams to spend less time chasing updates and switching apps. That is why we are bringing work and conversations together, with Ordis to help catch delays and share work.</p><Link href="/contact">Talk to the founders →</Link></section>{/* Stats Grid */}
             <div className="about-stats-grid">
               {stats.map((stat) => (
                 <div key={stat.label} className="about-stat-card">
@@ -413,7 +413,7 @@ export default function AboutPage() {
                   <div key={member.name} className="about-team-card">
                     <div className="about-avatar" style={{ background: member.color }}>
                       {member.initial}
-                    </div><p>Team photo placeholder · TODO_CONFIRM_WITH_FOUNDER</p>
+                    </div>
                     <div className="about-member-badge">{member.badge}</div>
                     <h3 className="about-member-name">{member.name}</h3>
                     <div className="about-member-role">{member.role}</div>

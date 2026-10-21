@@ -1,7 +1,7 @@
 import { marketingMetadata } from '@/lib/seo/marketing';
 import PolicyLayout from '@/components/landing/PolicyLayout';
 import Link from 'next/link';
-import { collectionMatrix, providers, privacyContact, PRIVACY_VERSION } from '@/lib/privacy/config';
+import { collectionMatrix, privacyContact, PRIVACY_VERSION } from '@/lib/privacy/config';
 export const dynamic = 'force-dynamic';
 export const metadata = { ...marketingMetadata('/privacy', 'Privacy Notice', 'How Cursis handles account, workspace and AI data, consent and privacy rights.') };
 const card = { background: '#fff', border: '2px solid #0A0A0A', borderRadius: 18, padding: 24, boxShadow: '6px 6px 0 #0A0A0A', marginBottom: 24 };
@@ -22,9 +22,6 @@ export default function PrivacyPage() {
     <p>A statutory legitimate use requires a specific Section 7 provision, such as voluntarily supplied details for a requested purpose under 7(a), or legally required disclosure under 7(d). DPDP has no general commercial legitimate-interest basis. Customers assess employment processing independently. Required legal retention is documented separately.</p>
     <p>Where GDPR applies, necessary services may rely on contract, mandatory retention on legal obligation and optional analytics on consent. A security legitimate-interest basis needs a documented balancing assessment.</p>
     <p>You may refuse optional processing and still use the service. <Link href="/privacy/rights">Withdraw consent here</Link> or email us without signing in. Withdrawing essential account processing closes the account. Earlier lawful processing and mandatory retention are unaffected.</p></section>
-    <section style={card}><h2>Recipients and sub-processors</h2><Matrix rows={providers} />
-    <p>Supabase, Razorpay and Upstash were not identified in this implementation. Vercel-compatible code does not establish the actual host. Provider legal entities, contracts, activation and locations must be confirmed.</p>
-    <p>AI requests can contain selected workspace context. Do not upload unauthorised third-party, sensitive or children's data. Provider training terms and zero-retention settings are unverified.</p></section>
     <section style={card}><h2>Transfers outside India</h2>
     <p>Providers may process abroad. Transfers must be checked against restrictions notified under Section 16, applicable Central Government orders under Rule 15 when effective, and stricter sectoral/localisation duties. Further restrictions require review if we become a Significant Data Fiduciary. Provider availability is not government approval. Prohibited flows must stop or be rerouted. Production regions are unverified.</p>
     <p>Where GDPR applies, transfers separately need a valid Chapter V mechanism, such as adequacy or appropriate contractual safeguards, with transfer assessment and supplementary measures where needed.</p></section>
