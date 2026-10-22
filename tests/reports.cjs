@@ -40,7 +40,7 @@ function matches(row, query) {
 function harness({ paused = false, weekly = true, blocked = false, fail = false, daily = false } = {}) {
   const deliveries = [], sends = [];
   const db = { collection(name) {
-    if (name === 'workspaces') return { find: () => [{ id: 'ws_alice', name: 'Real workspace', ownerId: 'alice', createdAt: '2026-10-01' }] };
+    if (name === 'workspaces') return { find: () => [{ id: 'ws_alice', name: 'Real workspace', ownerId: 'alice', createdAt: '2026-10-01' }], findOne: async () => ({ id: 'ws_alice', name: 'Real workspace', ownerId: 'alice' }) };
     if (name === 'tasks') return { find: query => { assert.equal(query.workspaceId, 'ws_alice'); return { toArray: async () => [task] }; } };
     if (name === 'users') return { findOne: async () => ({ uid: 'alice', email: 'alice@example.com' }) };
     if (name === 'workspace_email_preferences') return { findOne: async () => ({ weekly, daily }), find: () => daily ? [{ workspaceId: 'ws_alice', userId: 'alice', daily: true }] : [] };
@@ -81,6 +81,16 @@ test('delivery failures are visible, retries keep the original payload and old a
   assert.equal(h.sends.length, 2);
   assert.equal(h.deliveries[0].needsReview, true);
 });
+test('daily digest is opt-in, assigned-user scoped, unsubscribable and deduplicated', async () => {
+  const h = harness({ weekly: false, daily: true });
+  assert.equal((await h.run()).sent, 1);
+  assert.equal(h.sends[0].payload.subject, 'Your Ordis daily task digest');
+  assert(h.sends[0].payload.text.includes('Due today: 1'));
+  assert(h.sends[0].payload.text.includes('Actual work'));
+  assert.equal((await h.run()).sent, 0);
+  assert.equal((await harness({ weekly: false }).run()).sent, 0);
+  assert.equal((await harness({ daily: true, paused: true }).run()).sent, 0);
+});
 test('report endpoint fails closed without the scheduler secret and provider configuration', async () => {
   const api = { apiError: (error, status) => Response.json({ error }, { status }), apiSuccess: (data, status) => Response.json(data, { status }) };
   let jobs = 0;
@@ -92,4 +102,29 @@ test('report endpoint fails closed without the scheduler secret and provider con
   assert.equal((await route({ CRON_SECRET: secret }).GET(request(secret))).status, 503);
   assert.equal((await route({ CRON_SECRET: secret, RESEND_API_KEY: 'test', RESEND_FROM_EMAIL: 'test@example.com' }).GET(request(secret))).status, 200);
   assert.equal(jobs, 1);
+});
+test('email preferences keep member opt-in separate from owner controls and reject arbitrary identities', async () => {
+  const api = { apiError: (error, status) => Response.json({ error }, { status }), apiSuccess: data => Response.json(data) };
+  const writes = [];
+  let role = 'member';
+  const route = load('app/api/report-preferences/route.ts', {
+    '@/lib/api/response': api, '@/lib/engagement/reports': reports,
+    '@/lib/auth/rbac': { authorizeWorkspaceAccess: async () => ({ user: { uid: 'alice', email: 'alice@example.com' }, workspaceId: 'ws_alice', role }) },
+    '@/lib/mongodb': { getDb: async () => ({ collection: () => ({ findOne: async () => null, updateOne: async (query, update) => writes.push({ query, update }) }) }) },
+    '@/lib/engagement/http': { readAppBody: request => request.json(), engagementFailure: () => api.apiError('Unavailable', 503) },
+  });
+  const patch = body => route.PATCH(new Request('https://cursis.in/api/report-preferences', { method: 'PATCH', body: JSON.stringify(body) }));
+  const data = { workspaceId: 'ws_alice', daily: true, resume: false };
+  assert.equal((await patch({ ...data, weekly: false })).status, 403);
+  assert.equal((await patch({ ...data, userId: 'bob' })).status, 400);
+  assert.equal((await patch({ ...data, daily: 'yes' })).status, 400);
+  assert.equal((await patch(data)).status, 200);
+  assert.equal(writes[0].query._id, 'ws_alice:alice');
+  assert.equal(writes[0].update.$set.daily, true);
+  assert.equal(writes[0].update.$set.weekly, undefined);
+  role = 'owner';
+  assert.equal((await patch({ ...data, weekly: true, capacityHours: 0 })).status, 400);
+  assert.equal((await patch({ ...data, weekly: false, capacityHours: 20, resume: true })).status, 200);
+  assert(Number.isFinite(Date.parse(writes[1].update.$set.consentAt)));
+  assert.equal((await (await route.GET(new Request('https://cursis.in/api/report-preferences?workspaceId=ws_alice'))).json()).daily, false);
 });

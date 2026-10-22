@@ -21,7 +21,7 @@ export const personalScopes = (uid: string, email: string): Record<string, Docum
 const allowed: Record<string, readonly string[]> = {
   users: ['id', 'uid', 'email', 'displayName', 'photoURL', 'title', 'department', 'skills', 'workspaceIds', 'createdAt', 'ageConfirmed', 'signupSource', 'signupSourceConsentAt'],
   workspace_activation: ['workspaceId', 'dismissedAt'],
-  workspace_email_preferences: ['workspaceId', 'weekly', 'capacityHours', 'consentAt'],
+  workspace_email_preferences: ['workspaceId', 'weekly', 'daily', 'capacityHours', 'consentAt'],
   workspace_email_deliveries: ['workspaceId', 'kind', 'period', 'createdAt', 'attemptedAt', 'sentAt', 'needsReview'],
   workspace_memberships: ['workspaceId', 'role', 'createdAt'],
   workspace_teams: ['workspaceId', 'workspaceName', 'name', 'email', 'title', 'department', 'skills', 'joinedAt'],

@@ -13,6 +13,8 @@ Weekly owner reports cover the previous Monday through Sunday in UTC. A new work
 
 Disable weekly reports in the same settings panel. The email's unsubscribe link uses the existing public unsubscribe page and suppresses all non-transactional email. The settings panel can explicitly resume progress reports without resubscribing marketing. Unsubscribe now reports failure if it cannot save, rather than claiming success.
 
+Daily Ordis digest: each member opts in under Progress emails. Default is off. Uses the same daily schedule and current UTC date. Only that member's assigned open tasks due today, overdue or flagged at risk are included. Empty days send nothing. Removed members and blocked accounts are skipped. At most 20 task titles per list are included; the email links back to the full workspace.
+
 Monitor scheduler responses. HTTP 503 with failed > 0 requires a retry; review > 0 requires operator review of workspace_email_deliveries. Retry within 23 hours of the first attempt using the same endpoint. Payloads and provider idempotency keys remain stable. After that window an ambiguous send is held for review because Resend expires idempotency keys after 24 hours; check Resend before any manual requeue. Do not blindly delete delivery records. Delivery records expire after 90 days and participate in account/workspace erasure. Settings and checklist state also participate in account export/erasure.
 
 shortcut: the scheduler streams workspaces in one invocation; move it to a queue if production workload exceeds the host execution limit. Provider submission success is not a guarantee that an email reached the inbox; monitor Resend delivery/bounce events.

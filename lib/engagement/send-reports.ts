@@ -61,5 +61,27 @@ export async function sendWorkspaceReports(db: Db, now = new Date()) {
       result.sent += delivered.sent; result.review += delivered.review;
     } catch { result.failed++; }
   }
+  for await (const preferences of db.collection('workspace_email_preferences').find({ daily: true })) {
+    try {
+      const workspace = await db.collection('workspaces').findOne({ id: preferences.workspaceId });
+      if (!workspace) continue;
+      const user = await db.collection('users').findOne({ $or: [{ uid: preferences.userId }, { id: preferences.userId }] });
+      if (!user?.email || await accountBlocked(preferences.userId, user.email)) continue;
+      if (workspace.ownerId !== preferences.userId && !await db.collection('workspace_memberships').findOne({ workspaceId: workspace.id, userId: preferences.userId })) continue;
+      const unsubscribe = await db.collection('unsubscribes').findOne({ email: user.email.trim().toLowerCase() });
+      if (reportsPaused(unsubscribe?.unsubscribedAt, preferences.consentAt)) continue;
+      const tasks = await db.collection<Task>('tasks').find({ workspaceId: workspace.id, $or: [{ assigneeId: preferences.userId }, { assignees: preferences.userId }] }).toArray();
+      const summary = summarizeTasks(tasks, period.start, period.end, now, null);
+      if (!summary.dueToday.length && !summary.atRisk.length) continue;
+      const list = (values: Task[]) => values.slice(0, 20).map(task => `- ${task.title} (due ${task.dueDate?.slice(0, 10) || 'date not set'})`).join('\n') || 'None';
+      const base = (process.env.NEXT_PUBLIC_APP_URL || SITE_URL).replace(/\/$/, '');
+      const day = now.toISOString().slice(0, 10);
+      const text = `${workspace.name || 'Your workspace'} — Ordis daily digest\n${day} (UTC)\nYour assigned tasks\n\nDue today: ${summary.dueToday.length}\n${list(summary.dueToday)}\n\nAt risk or overdue: ${summary.atRisk.length}\n${list(summary.atRisk)}\n\nUp to 20 tasks per list. Tasks can appear in both lists. Open your workspace for all tasks: ${base}/dashboard\nTurn off this digest: Dashboard → Settings → Notifications → Progress emails\nUnsubscribe from non-transactional email: ${base}/unsubscribe?email=${encodeURIComponent(user.email)}`;
+      const id = createHash('sha256').update(`daily:${workspace.id}:${preferences.userId}:${day}`).digest('hex');
+      const delivered = await deliver(db, { _id: id, workspaceId: workspace.id, userId: preferences.userId, kind: 'daily', period: day,
+        payload: { to: user.email, subject: 'Your Ordis daily task digest', text }, createdAt: now }, now);
+      result.sent += delivered.sent; result.review += delivered.review;
+    } catch { result.failed++; }
+  }
   return result;
 }

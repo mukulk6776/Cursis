@@ -4,7 +4,7 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function ReportEmailSettings() {
   const { activeWorkspace } = useDashboard();
-  const [settings, setSettings] = useState<{ workspaceId: string; owner: boolean; weekly: boolean; capacityHours: number | null; paused: boolean } | null>(null);
+  const [settings, setSettings] = useState<{ workspaceId: string; owner: boolean; weekly: boolean; daily: boolean; capacityHours: number | null; paused: boolean } | null>(null);
   const [resume, setResume] = useState(false);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -23,7 +23,7 @@ export default function ReportEmailSettings() {
     if (!settings || settings.workspaceId !== workspaceId) return;
     setBusy(true); setMessage('');
     try {
-      const response = await fetch('/api/report-preferences', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ workspaceId, weekly: settings.weekly, capacityHours: settings.capacityHours, resume }) });
+      const response = await fetch('/api/report-preferences', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ workspaceId, daily: settings.daily, ...(settings.owner ? { weekly: settings.weekly, capacityHours: settings.capacityHours } : {}), resume }) });
       if (!response.ok) throw new Error();
       setSettings(previous => previous?.workspaceId === workspaceId ? { ...previous, paused: resume ? false : previous.paused } : previous);
       setMessage('Email preferences saved.'); setResume(false);
@@ -40,10 +40,14 @@ export default function ReportEmailSettings() {
         <input type="number" min={1} max={168} value={current.capacityHours ?? ''} onChange={event => setSettings({ ...current, capacityHours: event.target.value === '' ? null : Number(event.target.value) })} style={{ display: 'block', maxWidth: 180 }} />
       </label>
       <p>Overload means open estimated hours exceed this limit. Shared task hours are split evenly. Without a limit, reports say overload has not been assessed.</p>
-      {current.paused && <label style={{ display: 'block', marginBottom: 12 }}><input type="checkbox" checked={resume} onChange={event => setResume(event.target.checked)} /> Resume progress emails after my earlier unsubscribe. Marketing stays unsubscribed.</label>}
-      <button type="button" className="btn btn-primary" disabled={busy || (current.capacityHours !== null && (!Number.isFinite(current.capacityHours) || current.capacityHours < 1 || current.capacityHours > 168))} onClick={save}>{busy ? 'Saving…' : 'Save email preferences'}</button>
     </>}
     {current && !current.owner && <p>Weekly progress reports are managed by the workspace owner.</p>}
+    {current && <>
+      <label style={{ display: 'block', marginBottom: 12 }}><input type="checkbox" checked={current.daily} onChange={event => setSettings({ ...current, daily: event.target.checked })} /> Daily Ordis digest of my assigned tasks due today or at risk (UTC)</label>
+      <p>Off by default. Sent on days with matching tasks, using saved task dates and risk flags.</p>
+      {current.paused && <label style={{ display: 'block', marginBottom: 12 }}><input type="checkbox" checked={resume} onChange={event => setResume(event.target.checked)} /> Resume progress emails after my earlier unsubscribe. Marketing stays unsubscribed.</label>}
+      <button type="button" className="btn btn-primary" disabled={busy || (current.owner && current.capacityHours !== null && (!Number.isFinite(current.capacityHours) || current.capacityHours < 1 || current.capacityHours > 168))} onClick={save}>{busy ? 'Saving…' : 'Save email preferences'}</button>
+    </>}
     {current?.paused && <p>Progress emails are paused by your unsubscribe.</p>}
     <p role="status">{message}</p>
   </section>;
