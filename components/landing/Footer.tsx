@@ -67,6 +67,7 @@ export default function Footer() {
           <div className="lp-footer-col">
             <div className="lp-footer-col-title">Company</div>
             <Link prefetch={false} href="/about" className="lp-footer-link">About Us</Link>
+            <Link prefetch={false} href="/changelog" className="lp-footer-link">Changelog</Link>
             <Link prefetch={false} href="/social" className="lp-footer-link">Social Media</Link><Link prefetch={false} href="/pricing" className="lp-footer-link">Pricing</Link><Link prefetch={false} href="/faq" className="lp-footer-link">Faq</Link><Link prefetch={false} href="/contact" className="lp-footer-link">Contact</Link><Link prefetch={false} href="/blog" className="lp-footer-link">Blog</Link><Link prefetch={false} href="/compare" className="lp-footer-link">Compare</Link>
           </div>
 
