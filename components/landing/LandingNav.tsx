@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { BRAND_NAME } from '@/lib/site';
 
 
 export default function LandingNav() {
@@ -128,7 +129,7 @@ export default function LandingNav() {
                 </g>
               </svg>
             </div>
-            <span className="lp-nav-logo-text">Cursis</span>
+            <span className="lp-nav-logo-text">{BRAND_NAME}</span>
           </Link>
         </div>
 
@@ -141,7 +142,7 @@ export default function LandingNav() {
             { href: '/contact', selector: '#main-content', label: 'Contact' },
             { href: '/blog', selector: '#main-content', label: 'Blog' },
             { href: '/compare', selector: '#main-content', label: 'Compare' },
-          ].map((item, i) => (
+          ].map((item) => (
             <a
               key={item.href}
               href={item.href}

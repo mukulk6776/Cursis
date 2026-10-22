@@ -90,15 +90,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async redirects() {
-    return [
-      {
-        source: '/data-deletion',
-        destination: '/privacy',
-        permanent: false,
-      },
-    ];
-  },
 };
 
 export default nextConfig;

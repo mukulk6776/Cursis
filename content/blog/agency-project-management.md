@@ -1,7 +1,7 @@
 ---
 title: Agency project management without the chase
 description: Give requests, reviews and delivery a shared home.
-status: draft
+status: published
 ---
 
 ## Give every request a home

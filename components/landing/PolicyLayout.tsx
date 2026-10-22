@@ -3,6 +3,7 @@ import Link from 'next/link';
 import LandingNav from '@/components/landing/LandingNav';
 import Footer from '@/components/landing/Footer';
 import '@/styles/landing.css';
+import { SUPPORT_EMAIL } from '@/lib/site';
 
 interface PolicyLayoutProps {
   title: string;
@@ -22,7 +23,7 @@ const POLICY_NAV_ITEMS = [
   { slug: 'terms', label: 'Terms of Service', href: '/terms' },
   { slug: 'cookie-policy', label: 'Cookie Policy', href: '/cookie-policy' },
   { slug: 'dmca', label: 'DMCA Notice', href: '/dmca' },
-  { slug: 'refund-policy', label: 'Refund & Renewal', href: '/refund-policy' },
+  { slug: 'refund-policy', label: 'Refund & Cancellation', href: '/refund-policy' },
 ];
 
 export default function PolicyLayout({
@@ -33,7 +34,7 @@ export default function PolicyLayout({
   summary,
   activeSlug,
   children,
-  contactEmail = 'official@cursis.in',
+  contactEmail = SUPPORT_EMAIL,
   dpoEmail = 'official@cursis.in',
 }: PolicyLayoutProps) {
   return (

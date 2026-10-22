@@ -55,3 +55,8 @@
 .auth-reset-login:hover { background: #0A0A0A; color: #fff; }
 @media (max-width: 480px) { .auth-card { padding: 32px 22px 24px; } }
 @media (prefers-reduced-motion: reduce) { .auth-card button { transition: none; } }
+
+.auth-benefits { display:flex; flex-wrap:wrap; justify-content:center; gap:6px 12px; margin:0 0 20px; padding:0; list-style:none; font-size:11px; line-height:1.6; color:#57534e; }
+.auth-benefits a { color:inherit; text-decoration:underline; }
+.auth-consent { display:flex; align-items:flex-start; gap:10px; line-height:1.6; }
+.auth-form .auth-consent input { width:18px; height:18px; margin-top:2px; flex:none; accent-color:#FF5500; }

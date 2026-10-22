@@ -1,7 +1,7 @@
 ---
 title: Workload balancing for small teams
 description: A practical weekly check-in to make work visible and share it fairly.
-status: draft
+status: published
 ---
 
 ## Start with available time

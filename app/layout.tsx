@@ -5,6 +5,7 @@ import { ClientProviders } from '@/components/ClientProviders';
 import MarketingEngagement from '@/components/landing/MarketingEngagement';
 import { THEME_BOOTSTRAP } from '@/lib/dashboard/theme';
 import { SOCIAL_IMAGE } from '@/lib/seo/marketing';
+import { BRAND_NAME, SITE_URL, TWITTER_HANDLE } from '@/lib/site';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -19,15 +20,15 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://cursis.in'),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Cursis',
+    default: BRAND_NAME,
     template: '%s | Cursis',
   },
   description:
     'Keep tasks, projects, chat, and video meetings together. Ordis AI spots delayed tasks and helps share work so your team can stay on track.',
   keywords: [
-    'Cursis',
+    BRAND_NAME,
     'Ordis AI',
     'Team Workspace',
     'Agency Workspace',
@@ -36,7 +37,6 @@ export const metadata: Metadata = {
     'project management software',
     'team collaboration platform',
     'workflow automation',
-    'enterprise workspace',
     'team workspace privacy',
     'AI project management',
     'AI assistant',
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
     'sprint management',
     'document management system',
   ],
-  authors: [{ name: 'Cursis', url: 'https://cursis.in' }],
-  creator: 'Cursis',
-  publisher: 'Cursis',
+  authors: [{ name: BRAND_NAME, url: SITE_URL }],
+  creator: BRAND_NAME,
+  publisher: BRAND_NAME,
   formatDetection: {
     email: false,
     address: false,
@@ -60,9 +60,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://cursis.in',
-    siteName: 'Cursis',
-    title: 'Cursis',
+    url: SITE_URL,
+    siteName: BRAND_NAME,
+    title: BRAND_NAME,
     description:
       'Keep tasks, projects, chat, and video meetings together. Ordis AI spots delayed tasks and helps share work so your team can stay on track.',
     images: [SOCIAL_IMAGE],
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     title: 'Cursis — Your Team’s Work in One Place',
     description: 'Keep work together. Catch delayed tasks and share the workload with help from Ordis AI.',
     images: [{ url: SOCIAL_IMAGE.url, alt: SOCIAL_IMAGE.alt }],
-    creator: '@cursis_',
+    creator: TWITTER_HANDLE,
   },
   robots: {
     index: true,
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://cursis.in',
+    canonical: SITE_URL,
   },
   verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
@@ -102,7 +102,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="author" href="/humans.txt" />
-        {/* Fonts are fully self-hosted locally via next/font with zero external requests to Google (Munich Court GDPR compliant) */}
+        {/* Fonts are fully self-hosted locally via next/font with zero external requests to Google */}
         {/* Firebase domains - only preconnect, don't prefetch (loaded on-demand) */}
         <link rel="dns-prefetch" href="https://firebaseapp.com" />
         <link rel="dns-prefetch" href="https://googleapis.com" />

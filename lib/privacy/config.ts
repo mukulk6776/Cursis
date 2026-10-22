@@ -29,7 +29,6 @@ export const collectionMatrix = [
   ['Inquiry name/company, email, service, budget, requirements and generated proposal', 'Respond to a custom-build request.', 'Agency contact form/API; MongoDB.'],
   ['Consent choices, version, age attestation, nominee name/email, grievance and erasure requests', 'Record choices and handle privacy rights.', 'Signup and privacy centre; MongoDB.'],
   ['Cookie choices and local application preferences', 'Remember choices; optional analytics only after opt-in.', 'Browser localStorage/cookies. No analytics SDK was identified in this audit.'],
-  ['Contact name/email/message and newsletter email/consent', 'Reply to inquiries; send product updates only after separate newsletter opt-in.', 'Contact form and footer; MongoDB marketing_contacts and marketing_subscribers. Retention duration: TODO_CONFIRM_WITH_FOUNDER.'],
+  ['Contact name/email/message and newsletter email/consent', 'Reply to inquiries; send product updates only after separate newsletter opt-in.', 'Contact form and footer; MongoDB marketing_contacts and marketing_subscribers. See the retention schedule in this notice.'],
   ['Anonymous daily event totals', 'Measure public-page engagement after analytics opt-in; no visitor identifiers or form values.', 'MongoDB marketing_event_totals; operational request logs are controlled separately by the host.'],
-  ['Billing records, if issued', 'Accounting and tax duties.', 'No payment gateway implementation identified; finance system must be inventoried.'],
 ] as const;

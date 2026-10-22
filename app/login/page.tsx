@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { BRAND_NAME, FREE_WORKSPACE_TEXT } from '@/lib/site';
 import { signInWithEmail, signInWithGoogle, handleGoogleRedirectResult } from '@/lib/auth/firebase';
 import '@/styles/landing.css';
 import '@/styles/auth.css';
@@ -176,10 +177,10 @@ export default function LoginPage() {
         <Link href="/" className="auth-close" aria-label="Back to Cursis"><X size={18} /></Link>
         <Link href="/" className="auth-brand" aria-label="Cursis home">
           <svg viewBox="0 0 1024 1024" fill="none" width="36" height="36" aria-hidden="true"><path d="M545 240 A282 282 0 1 0 782 566" stroke="currentColor" strokeWidth="142" strokeLinecap="round" /><rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" /></svg>
-          Cursis
+          {BRAND_NAME}
         </Link>
         <h1 id="login-title">Welcome back.</h1>
-        <p className="auth-intro">Your team. Your work. One place.</p>
+        <p className="auth-intro">{FREE_WORKSPACE_TEXT}. No credit card.</p>
         {successMsg && <p className="auth-message auth-success" role="status">{successMsg}</p>}
         {errorMsg && <p className="auth-message auth-error" role="alert">{errorMsg}</p>}
         <button type="button" className="auth-google" onClick={handleGoogleSignIn} disabled={googleLoading || loading}>

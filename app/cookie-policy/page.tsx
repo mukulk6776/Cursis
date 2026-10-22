@@ -73,7 +73,7 @@ export default function CookiePolicyPage() {
       {/* Section 3 */}
       <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
-          3. Zero Advertising &amp; Tracking Guarantee
+          3. Advertising and optional analytics
         </h2>
         <p style={{ margin: 0 }}>
           Cursis does not use third-party behavioral tracking cookies, ad retargeting pixels, or surveillance scripts. Your workspace content and usage patterns are never shared with advertising brokers or data aggregators.

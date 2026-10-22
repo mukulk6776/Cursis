@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FREE_WORKSPACE_TEXT } from '@/lib/site';
 
 export default function HeroSection() {
   return (
@@ -25,6 +26,7 @@ export default function HeroSection() {
             Try the Demo
           </a>
         </div>
+        <p className="lp-cta-note">{FREE_WORKSPACE_TEXT}</p>
       </div>
     </section>
   );

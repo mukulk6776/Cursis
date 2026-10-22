@@ -26,8 +26,10 @@ const eslintConfig = defineConfig([
     "node_modules/**",
     "scripts/**",
     "tests/**",
-    "*.cjs",
+    "**/*.cjs",
     "*.mjs",
+    "scratch/**",
+    "scratch_*.js",
   ]),
 ]);
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
+import { BRAND_NAME, SITE_URL, SUPPORT_EMAIL, FREE_WORKSPACE_TEXT, TEAM_USER_LIMIT, INCLUDED_TOOLS, TWITTER_HANDLE } from '@/lib/site';
+export { SITE_URL, SOCIAL_PROFILES as socialProfiles } from '@/lib/site';
 
-export const SITE_URL = 'https://cursis.in';
 export const SOCIAL_IMAGE = {
   url: `${SITE_URL}/marketing-og.png`,
   secureUrl: `${SITE_URL}/marketing-og.png`,
@@ -12,7 +13,7 @@ export const SOCIAL_IMAGE = {
 
 export function marketingMetadata(path: string, title: string, description: string): Metadata {
   const url = new URL(path || '/', SITE_URL).href;
-  const pageTitle = /\bCursis\b/.test(title) ? title : `${title} | Cursis`;
+  const pageTitle = title.includes(BRAND_NAME) ? title : `${title} | ${BRAND_NAME}`;
 
   return {
     title: { absolute: pageTitle },
@@ -22,7 +23,7 @@ export function marketingMetadata(path: string, title: string, description: stri
       title: pageTitle,
       description,
       url,
-      siteName: 'Cursis',
+      siteName: BRAND_NAME,
       locale: 'en_US',
       type: 'website',
       images: [SOCIAL_IMAGE],
@@ -31,24 +32,19 @@ export function marketingMetadata(path: string, title: string, description: stri
       card: 'summary_large_image',
       title: pageTitle,
       description,
-      creator: '@cursis_',
+      creator: TWITTER_HANDLE,
       images: [{ url: SOCIAL_IMAGE.url, alt: SOCIAL_IMAGE.alt }],
     },
   };
 }
 
-export const socialProfiles = [
-  { name: 'Instagram', url: 'https://instagram.com/cursis.in' },
-  { name: 'X', url: 'https://x.com/cursis_' },
-  { name: 'LinkedIn', url: 'https://www.linkedin.com/company/cursis/' },
-  { name: 'Discord', url: 'https://discord.gg/AnwFKSsA5e' },
-];
 export const marketingFaqs = [
-  { question: 'Is Cursis really free?', answer: 'Yes. Cursis is completely free, with no paid plans and no credit card required.' },
+  { question: `Is ${BRAND_NAME} really free?`, answer: `Yes. ${BRAND_NAME} is completely free. ${FREE_WORKSPACE_TEXT}. There are no paid plans, no trials and no credit card required.` },
+  { question: `What happens if my team is bigger than ${TEAM_USER_LIMIT}?`, answer: `Each team workspace supports up to ${TEAM_USER_LIMIT} people. You can create separate workspaces or contact us at ${SUPPORT_EMAIL} to discuss your needs.` },
   { question: 'Where can I manage data privacy?', answer: 'Read the Privacy Notice and use the Privacy Centre to manage consent and submit data requests.' },
   { question: 'Does Cursis include video meetings?', answer: 'Yes. Video meetings are included alongside tasks, projects and the calendar.' },
-  { question: 'What is included in a workspace?', answer: 'Ordis AI, tasks, projects, calendar, meetings, automatic actions and progress reports are included.' },
+  { question: 'What is included in a workspace?', answer: `${INCLUDED_TOOLS.join(', ')} are included.` },
   { question: 'How do I delete my account?', answer: 'Use the Privacy Centre at /privacy/rights to submit a deletion request. Read /data-deletion for the published deletion process.' },
-  { question: 'How can I contact the team?', answer: 'Use the Contact page to send a question or feedback, or email cursis.in@gmail.com.' },
-  { question: 'Are the demo names and numbers real customer results?', answer: 'No. Names, tasks and statistics in the interactive demos are sample data, not customer results or performance guarantees.' },
+  { question: 'How can I contact the team?', answer: `Use the Contact page to send a question or feedback, or email ${SUPPORT_EMAIL}.` },
+  { question: 'Are the demo names and numbers real customer results?', answer: 'No. Names, tasks and statistics in the interactive demos are sample data, not customer results or promises about performance.' },
 ];

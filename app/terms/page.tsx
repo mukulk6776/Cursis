@@ -1,3 +1,4 @@
+import { BRAND_NAME, FREE_WORKSPACE_TEXT, INCLUDED_TOOLS } from '@/lib/site';
 import { marketingMetadata } from '@/lib/seo/marketing';
 import React from 'react';
 import type { Metadata } from 'next';
@@ -10,7 +11,7 @@ export default function TermsPage() {
   return (
     <PolicyLayout
       title="Terms of Service"
-      badge="Service Level Agreement & Master Terms"
+      badge="Workspace terms"
       badgeColor="#0F4CFF"
       lastUpdated="Last Updated: September 24, 2026 • Version 2.5"
       activeSlug="terms"
@@ -25,13 +26,13 @@ export default function TermsPage() {
       {/* Section 1 */}
       <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
-          1. Provision of Workspace Services &amp; SLA
+          1. Free workspace services
         </h2>
         <p style={{ margin: '0 0 12px 0' }}>
-          Cursis provides an enterprise workspace platform featuring collaboration, roadmap management, workflow tracking, and Ordis intelligence modules. TODO_CONFIRM_WITH_FOUNDER: Confirm service availability terms. No verified uptime percentage or multi-region failover claim is published here.
+          {BRAND_NAME} is completely free. {FREE_WORKSPACE_TEXT}. {INCLUDED_TOOLS.join(', ')} are included. There are no paid plans, trials or charges.
         </p>
         <p style={{ margin: 0 }}>
-          Scheduled maintenance windows are announced at least 72 hours in advance and executed outside primary business operating hours.
+          Service availability may be affected by maintenance or interruptions.
         </p>
       </section>
 
@@ -41,7 +42,7 @@ export default function TermsPage() {
           2. Acceptable Use &amp; Security Conduct
         </h2>
         <p style={{ margin: '0 0 12px 0' }}>
-          Users and enterprise organizations agree not to:
+          Users and workspace administrators agree not to:
         </p>
         <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <li>Engage in automated extraction, scraping, mining, or vulnerability testing without explicit prior written authorization from our security team.</li>
@@ -76,7 +77,7 @@ export default function TermsPage() {
           5. Limitation of Liability
         </h2>
         <p style={{ margin: 0 }}>
-          To the maximum extent permitted by applicable law, Cursis and its affiliates will not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your access to or inability to use the platform. Our aggregate liability for all claims arising under these Terms shall not exceed the amounts paid by you to Cursis during the twelve (12) months preceding the incident.
+          To the maximum extent permitted by applicable law, Cursis and its affiliates will not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your access to or inability to use the platform.
         </p>
       </section>
     </PolicyLayout>

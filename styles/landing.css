@@ -1822,7 +1822,7 @@ body.lp-body,
 }
 
 .lp-live-badge,
-.lp-sla-rate {
+.lp-progress-rate {
   font-family: 'Inter Tight', sans-serif;
   font-size: 11px;
   font-weight: 900;
@@ -1832,7 +1832,7 @@ body.lp-body,
   box-shadow: 2px 2px 0 0 #0A0A0A;
 }
 .lp-live-badge { background: #9BE7C4; color: #0A0A0A; }
-.lp-sla-rate { background: #FFD66B; color: #0A0A0A; }
+.lp-progress-rate { background: #FFD66B; color: #0A0A0A; }
 
 .lp-bento-title {
   font-family: 'Inter Tight', sans-serif;
@@ -4008,7 +4008,7 @@ body.lp-body,
 .lp-body .lp-hero {padding-top:54px;padding-bottom:40px;}
 .lp-body .lp-section-header {margin-bottom:32px;}
 .lp-body .lp-section-label {white-space:nowrap;max-width:100%;font-size:clamp(9px,1.5vw,11px);}
-.lp-body :is(.badge,.lp-bento-tag,.lp-live-badge,.lp-sla-rate,.lp-capacity-badge,.tano-module-badge,.lp-mockup-tab,.lp-ordis-demo-badge) {white-space:nowrap;flex-shrink:0;}
+.lp-body :is(.badge,.lp-bento-tag,.lp-live-badge,.lp-progress-rate,.lp-capacity-badge,.tano-module-badge,.lp-mockup-tab,.lp-ordis-demo-badge) {white-space:nowrap;flex-shrink:0;}
 .lp-body :is(.lp-mockup-view-header,.lp-ordis-demo-header) {flex-wrap:wrap;gap:12px;}
 .lp-body :is(.lp-bento-topbar,.lp-bento-tags) {gap:10px;align-items:center;flex-wrap:wrap;}
 .lp-body :is(.lp-mockup-dot,.lp-ordis-demo-status-dot) {flex-shrink:0;align-self:center;}
@@ -4087,3 +4087,13 @@ body.lp-body,
   .lp-stage-step>span:last-child {margin-left:auto;}
   .lp-stage-sep {transform:rotate(90deg);}
 }
+
+.marketing-facts { display:flex; flex-wrap:wrap; gap:24px 64px; margin:28px 0 40px; }
+.marketing-facts dt { color:#57534e; font-size:13px; }
+.marketing-facts dd { margin:4px 0 0; font-weight:800; font-size:22px; }
+.marketing-table-scroll { overflow-x:auto; margin:24px 0; border:2px solid #0A0A0A; border-radius:14px; background:#fff; }
+.marketing-comparison { width:100%; min-width:680px; border-collapse:collapse; text-align:left; font-size:13px; }
+.marketing-comparison caption { text-align:left; padding:16px; font-weight:700; }
+.marketing-comparison th,.marketing-comparison td { padding:14px 16px; border-top:1px solid #d6d3d1; vertical-align:top; }
+.marketing-comparison thead { background:#FAF6EE; }
+.marketing-comparison a { text-decoration:underline; text-underline-offset:3px; }

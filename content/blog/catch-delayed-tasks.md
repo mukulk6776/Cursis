@@ -1,7 +1,7 @@
 ---
 title: How to catch delayed tasks before the deadline
 description: Spot missing owners, blocked dependencies and quiet work early.
-status: draft
+status: published
 ---
 
 ## Look for the missing next step

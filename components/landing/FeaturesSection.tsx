@@ -111,11 +111,11 @@ export default function FeaturesSection() {
           </div>
         </div>
 
-        {/* Bento Card 3: Keep Deadlines in Sight & SLA Dial (Span 1) */}
+        {/* Bento Card 3: Keep Deadlines in Sight & Progress Dial (Span 1) */}
         <div className="lp-bento-card lp-bento-span-1">
           <div className="lp-bento-topbar">
             <span className="badge badge-neutral">03 • PROGRESS</span>
-            <span className="lp-sla-rate">84% planned work done</span>
+            <span className="lp-progress-rate">84% planned work done</span>
           </div>
 
           <h3 className="lp-bento-title">Keep Deadlines in Sight</h3>

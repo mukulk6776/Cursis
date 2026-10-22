@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { SUPPORT_EMAIL } from '@/lib/site';
 import { useSearchParams } from 'next/navigation';
 import LandingNav from '@/components/landing/LandingNav';
 import Footer from '@/components/landing/Footer';
@@ -49,7 +50,7 @@ function UnsubscribeContent() {
       setMessage(`You have been successfully unsubscribed from Cursis marketing emails (${cleanEmail}).`);
     } catch (err: any) {
       setStatus('error');
-      setMessage(err?.message || 'Something went wrong. Please email support@cursis.in directly.');
+      setMessage(err?.message || 'Something went wrong. Please email ' + SUPPORT_EMAIL + ' directly.');
     }
   };
 
@@ -211,7 +212,7 @@ function UnsubscribeContent() {
         Cursis<br />
         Business contact address awaiting confirmation<br />
         U.S. Compliance: Agent appointment not confirmed<br />
-        Support Desk: <a href="mailto:support@cursis.in" style={{ color: '#0F4CFF' }}>support@cursis.in</a>
+        Support Desk: <a href={'mailto:' + SUPPORT_EMAIL} style={{ color: '#0F4CFF' }}>{SUPPORT_EMAIL}</a>
       </div>
     </div>
   );

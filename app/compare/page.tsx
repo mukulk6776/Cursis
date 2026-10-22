@@ -1,9 +1,19 @@
+import Link from 'next/link';
 import MarketingPage from '@/components/landing/MarketingPage';
 import { marketingMetadata } from '@/lib/seo/marketing';
-export const metadata = marketingMetadata('/compare', 'Cursis vs Trello, Asana and ClickUp', 'Compare the focus of Cursis, Trello, Asana and ClickUp. Explore a free workspace for teams of up to 10.');
-const alternatives = [
- { name: 'Trello', focus: 'Boards, lists and cards for organizing work.', url: 'https://developer.atlassian.com/cloud/trello/rest/api-group-lists/' },
- { name: 'Asana', focus: 'Tasks and projects for tracking team work.', url: 'https://asana.com/features' },
- { name: 'ClickUp', focus: 'Task management, documents and goals in a workspace.', url: 'https://clickup.com/features' },
+import { BRAND_NAME, FREE_WORKSPACE_TEXT } from '@/lib/site';
+export const metadata = marketingMetadata('/compare', 'Compare Cursis, Trello, Asana and ClickUp', 'Compare workflow fit and documented features. Cursis includes tasks, projects, calendar, video meetings, Ordis AI, automatic actions and reports.');
+const tools = [
+  { name: 'Trello', bestFor: 'Consider Trello for a visual workflow built around boards, lists and cards, with due dates and attachments on cards.', url: 'https://trello.com/tour' },
+  { name: 'Asana', bestFor: 'Consider Asana for coordinating projects with task owners and due dates, different project views and cross-project reporting.', url: 'https://asana.com/features' },
+  { name: 'ClickUp', bestFor: 'Consider ClickUp for organizing tasks, documents and team chat together, with configurable task views and reporting.', url: 'https://clickup.com/features' },
 ];
-export default function Compare() { return <MarketingPage title="Cursis vs Trello / Asana / ClickUp" intro="Start with the workflow your team needs, then try it with a real project."><section className="marketing-card"><h2>What Cursis brings together</h2><p>A team workspace with Ordis AI, tasks, projects, calendar, meetings, automatic actions and progress reports. Completely free, with up to 10 users per workspace.</p></section><div className="marketing-grid">{alternatives.map(tool => <article key={tool.name} className="marketing-card"><h2>Cursis vs {tool.name}</h2><p>{tool.focus}</p><p>Cursis brings work, conversations and meetings together with Ordis AI. Compare both products using the same team workflow.</p><a href={tool.url} target="_blank" rel="noopener noreferrer">Read {tool.name}’s official documentation ↗</a></article>)}</div><section className="marketing-card"><h2>Try the same task in each tool</h2><ol><li>Create a project and assign a task.</li><li>Review a teammate’s available time.</li><li>Follow a discussion through to a decision.</li><li>Check privacy, migration and workspace limits.</li></ol><p>TODO_CONFIRM_WITH_FOUNDER: Verify migration paths and any detailed feature or plan comparison before adding them. Competitor capabilities and availability can change. Sources reviewed October 19, 2026.</p></section></MarketingPage>; }
+const features = ['Tasks', 'Projects', 'Calendar', 'Video meetings', 'Ordis AI', 'Automatic actions', 'Progress reports', FREE_WORKSPACE_TEXT];
+export default function Compare() {
+  return <MarketingPage title="Choose the workspace that fits your team." intro="Start with how your team works, then try the same real project in each tool.">
+    <section className="marketing-prose"><h2>What {BRAND_NAME} is built for</h2><p>A small team that wants tasks, project context, conversations and meetings together, with Ordis AI to help catch delays and share work. {FREE_WORKSPACE_TEXT}.</p></section>
+    <div className="marketing-grid">{tools.map(tool => <article key={tool.name} className="marketing-card"><h2>{tool.name}: a good fit for</h2><p>{tool.bestFor}</p><a href={tool.url} target="_blank" rel="noopener noreferrer">See {tool.name}’s official features ↗</a></article>)}</div>
+    <section><h2>What’s included in {BRAND_NAME}</h2><p>Competitor entries link to their own documentation so you can check current availability for your needs. These links do not imply that a feature is missing.</p><div className="marketing-table-scroll"><table className="marketing-comparison"><caption>Included tools and where to verify alternatives</caption><thead><tr><th scope="col">Feature</th><th scope="col">{BRAND_NAME}</th>{tools.map(tool => <th scope="col" key={tool.name}>{tool.name}</th>)}</tr></thead><tbody>{features.map(feature => <tr key={feature}><th scope="row">{feature}</th><td>Included</td>{tools.map(tool => <td key={tool.name}><a href={tool.url} target="_blank" rel="noopener noreferrer">See their docs<span className="sr-only">: {tool.name}, {feature}</span> ↗</a></td>)}</tr>)}</tbody></table></div><p>Workflow suggestions are based on the official feature pages linked above, reviewed 22 October 2026. Check their sites for current details.</p></section>
+    <p><Link href="/signup" className="btn btn-primary">Make my free workspace</Link></p>
+  </MarketingPage>;
+}

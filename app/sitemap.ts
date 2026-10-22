@@ -1,3 +1,4 @@
 import { getPosts } from '@/lib/seo/blog';
 import type { MetadataRoute } from 'next';
-export default function sitemap(): MetadataRoute.Sitemap { return ["","about","social","signup","login","pricing","faq","contact","blog","compare","privacy","terms","cookie-policy","refund-policy","dmca"].concat(getPosts().filter(post => !post.draft).map(post => 'blog/' + post.slug)).map(path => ({url: 'https://cursis.in/' + path, changeFrequency: 'monthly' as const, priority: path ? 0.6 : 1})); }
+import { SITE_URL } from '@/lib/site';
+export default function sitemap(): MetadataRoute.Sitemap { return ["","about","social","signup","login","pricing","faq","contact","blog","compare","privacy","terms","cookie-policy","refund-policy","data-deletion","privacy/rights","dmca"].concat(getPosts().filter(post => !post.draft).map(post => 'blog/' + post.slug)).map(path => ({url: SITE_URL + '/' + path, changeFrequency: 'monthly' as const, priority: path ? 0.6 : 1})); }
