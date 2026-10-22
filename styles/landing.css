@@ -4097,3 +4097,5 @@ body.lp-body,
 .marketing-comparison th,.marketing-comparison td { padding:14px 16px; border-top:1px solid #d6d3d1; vertical-align:top; }
 .marketing-comparison thead { background:#FAF6EE; }
 .marketing-comparison a { text-decoration:underline; text-underline-offset:3px; }
+.lp-nav-signup[hidden] { display:none!important; }
+@media(max-width:768px) { .lp-nav-actions:has(.lp-nav-signup:not([hidden])) .lp-nav-cta-secondary { display:none!important; } }

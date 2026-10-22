@@ -50,6 +50,11 @@ if (fs.existsSync('app/changelog/page.tsx')) routes.push('/changelog');
         const reject = page.getByRole('button', { name: 'Reject Optional', exact: true });
         if (await reject.isVisible()) await reject.click();
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route + ': overflow at ' + width);
+        if (route === '/') {
+          assert(!(await page.locator('.lp-nav-signup').isVisible()), 'Header signup stays hidden before the hero');
+          await page.locator('#features').scrollIntoViewIfNeeded();
+          await page.locator('.lp-nav-signup').waitFor({ state: 'visible' });
+        }
         if (route === '/signup') {
           assert(await page.getByRole('heading', { name: 'Create your free workspace', exact: true }).isVisible());
           assert(await page.getByRole('button', { name: 'Continue with Google', exact: true }).isVisible());

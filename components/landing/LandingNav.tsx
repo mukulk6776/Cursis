@@ -3,14 +3,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { BRAND_NAME } from '@/lib/site';
+import { usePathname } from 'next/navigation';
 
 
 export default function LandingNav() {
+  const pathname = usePathname();
+  const [pastHero, setPastHero] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const hero = document.getElementById('hero');
+    if (!hero) { setPastHero(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      setPastHero(entry.boundingClientRect.bottom <= 90);
+    }, { rootMargin: '-90px 0px 0px 0px' });
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, [pathname]);
 
   useEffect(() => {
     let ticking = false;
@@ -214,8 +227,8 @@ export default function LandingNav() {
               <Link prefetch={false} href="/login" className="lp-nav-cta-secondary lp-hide-mobile">
                 Sign In
               </Link>
-              <Link prefetch={false} href="/signup" className="lp-nav-cta-primary lp-hide-mobile">
-                Get Started
+              <Link prefetch={false} href="/signup" hidden={!pastHero} className="lp-nav-cta-primary lp-nav-signup lp-hide-mobile">
+                Make my free workspace
               </Link>
             </>
           )}
