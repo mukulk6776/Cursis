@@ -11,6 +11,7 @@ export const personalScopes = (uid: string, email: string): Record<string, Docum
   invitations: { $or: [{ inviteeUserId: uid }, { email }] },
   notifications: { $or: [{ userId: uid }, { userEmail: email }] },
   ordis_conversations: { userId: uid },
+  workspace_activation: { userId: uid }, workspace_email_preferences: { userId: uid }, workspace_email_deliveries: { userId: uid },
   agency_requests: { contactEmail: email },
   privacy_consents: { $or: [{ uid }, { email }] }, privacy_nominees: { uid }, privacy_requests: { uid },
   marketing_contacts: { email }, marketing_subscribers: { email },
@@ -18,7 +19,10 @@ export const personalScopes = (uid: string, email: string): Record<string, Docum
 });
 
 const allowed: Record<string, readonly string[]> = {
-  users: ['id', 'uid', 'email', 'displayName', 'photoURL', 'title', 'department', 'skills', 'workspaceIds', 'createdAt', 'ageConfirmed'],
+  users: ['id', 'uid', 'email', 'displayName', 'photoURL', 'title', 'department', 'skills', 'workspaceIds', 'createdAt', 'ageConfirmed', 'signupSource', 'signupSourceConsentAt'],
+  workspace_activation: ['workspaceId', 'dismissedAt'],
+  workspace_email_preferences: ['workspaceId', 'weekly', 'capacityHours', 'consentAt'],
+  workspace_email_deliveries: ['workspaceId', 'kind', 'period', 'createdAt', 'attemptedAt', 'sentAt', 'needsReview'],
   workspace_memberships: ['workspaceId', 'role', 'createdAt'],
   workspace_teams: ['workspaceId', 'workspaceName', 'name', 'email', 'title', 'department', 'skills', 'joinedAt'],
   invitations: ['id', 'workspaceId', 'email', 'name', 'status', 'sentAt', 'expiresAt'],
@@ -57,7 +61,8 @@ export async function exportAccount(uid: string, email: string) {
 
 export const workspaceCollections = ['tasks', 'projects', 'calendar_events', 'meetings', 'documents', 'departments',
   'automations', 'contacts', 'crm_deals', 'crm_leads', 'deals', 'leads', 'messages', 'integrations', 'settings', 'workflows',
-  'ordis_brain', 'ordis_cards', 'ordis_approvals', 'dynamic_tools', 'goal_plans', 'ordis_conversations', 'agency_requests'];
+  'ordis_brain', 'ordis_cards', 'ordis_approvals', 'dynamic_tools', 'goal_plans', 'ordis_conversations', 'agency_requests',
+  'workspace_activation', 'workspace_email_preferences', 'workspace_email_deliveries'];
 
 export async function requestErasure(uid: string, email: string) {
   const db = await privacyDb();

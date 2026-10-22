@@ -5,6 +5,7 @@ import { setDashboardTheme, readThemePreference, THEME_EVENT, ThemePreference } 
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { OrgSettings } from '@/lib/dashboard/types';
 import { Sun, Moon, Monitor, Pipette } from 'lucide-react';
+import ReportEmailSettings from '@/components/dashboard/ReportEmailSettings';
 
 type SettingsTab = 'workspace' | 'team' | 'notifications' | 'ordis' | 'security';
 
@@ -791,6 +792,7 @@ teamSettings,
  {/* ========================================================================= */}
  {activeTab === 'notifications' && (
  <form onSubmit={handleSaveNotifications} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
+ <ReportEmailSettings />
  <div className="card" style={{ padding: 'var(--sp-5)' }}>
  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
  <div>

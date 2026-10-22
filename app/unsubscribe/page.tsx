@@ -47,7 +47,7 @@ function UnsubscribeContent() {
       }
 
       setStatus('success');
-      setMessage(`You have been successfully unsubscribed from Cursis marketing emails (${cleanEmail}).`);
+      setMessage(`You have been successfully unsubscribed from Cursis marketing and progress emails (${cleanEmail}).`);
     } catch (err: any) {
       setStatus('error');
       setMessage(err?.message || 'Something went wrong. Please email ' + SUPPORT_EMAIL + ' directly.');

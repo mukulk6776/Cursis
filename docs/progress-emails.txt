@@ -1,0 +1,23 @@
+Progress email configuration
+
+Set these server-only environment variables in the deployment:
+RESEND_API_KEY: a Resend key with sending access.
+RESEND_FROM_EMAIL: a sender on your verified domain, for example Cursis <updates@cursis.in>.
+CRON_SECRET: a fresh random secret of at least 32 characters. Do not reuse the session or privacy secrets.
+NEXT_PUBLIC_APP_URL: the deployed application URL, used for workspace and unsubscribe links.
+MongoDB must be available. No in-memory report delivery or preference fallback is used.
+
+vercel.json calls GET /api/reports/send daily at 03:30 UTC. Vercel sends CRON_SECRET as a Bearer authorization header. On another host configure the same daily GET with Authorization: Bearer <CRON_SECRET>. Never expose the secret to browser code. Deploying and configuring production credentials are operator steps; this change does not send email or deploy itself.
+
+Weekly owner reports cover the previous Monday through Sunday in UTC. A new workspace first receives a report after its first week boundary. Each workspace-owner-period combination has a persistent delivery record; later daily runs skip successful deliveries. Completion dates are recorded from this release onward. Older completed tasks without dates are explicitly excluded. Risk and workload reflect the current snapshot. The optional owner-configured open-work hours limit is in Settings > Notifications > Progress emails; this is not a claim about a person's actual availability. Estimates for shared tasks are divided equally.
+
+Disable weekly reports in the same settings panel. The email's unsubscribe link uses the existing public unsubscribe page and suppresses all non-transactional email. The settings panel can explicitly resume progress reports without resubscribing marketing. Unsubscribe now reports failure if it cannot save, rather than claiming success.
+
+Monitor scheduler responses. HTTP 503 with failed > 0 requires a retry; review > 0 requires operator review of workspace_email_deliveries. Retry within 23 hours of the first attempt using the same endpoint. Payloads and provider idempotency keys remain stable. After that window an ambiguous send is held for review because Resend expires idempotency keys after 24 hours; check Resend before any manual requeue. Do not blindly delete delivery records. Delivery records expire after 90 days and participate in account/workspace erasure. Settings and checklist state also participate in account export/erasure.
+
+shortcut: the scheduler streams workspaces in one invocation; move it to a queue if production workload exceeds the host execution limit. Provider submission success is not a guarantee that an email reached the inbox; monitor Resend delivery/bounce events.
+
+Official setup references:
+https://resend.com/docs/dashboard/domains/introduction
+https://resend.com/docs/dashboard/emails/idempotency-keys
+https://vercel.com/docs/cron-jobs/manage-cron-jobs

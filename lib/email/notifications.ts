@@ -5,6 +5,12 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const ADMIN_EMAIL = 'cursis.in@gmail.com';
 export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Cursis <onboarding@resend.dev>';
 
+export async function sendProgressEmail(payload: { to: string; subject: string; text: string }, idempotencyKey: string) {
+  if (!resend || !process.env.RESEND_FROM_EMAIL) throw new Error('Progress email is not configured');
+  const { error } = await resend.emails.send({ from: FROM_EMAIL, ...payload }, { idempotencyKey });
+  if (error) throw new Error('Progress email delivery failed');
+}
+
 export function isPasswordResetEmailConfigured(): boolean {
   return Boolean(resend && process.env.RESEND_FROM_EMAIL);
 }

@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { getCollection } from '@/lib/mongodb';
 import { apiSuccess, apiError } from '@/lib/api/response';
+import { SUPPORT_EMAIL } from '@/lib/site';
 
 interface UnsubscribeRecord {
   email: string;
@@ -26,11 +27,8 @@ export async function POST(request: Request) {
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    memoryUnsubscribes.add(email);
-
-    try {
       const col = await getCollection<UnsubscribeRecord>('unsubscribes');
-      if (col) {
+      if (!col) return apiError('Unsubscribe storage unavailable. Please retry.', 503);
         const subscribers = await getCollection('marketing_subscribers');
         if (subscribers) await subscribers.deleteOne({ email });
         await col.updateOne(
@@ -45,10 +43,7 @@ export async function POST(request: Request) {
           },
           { upsert: true }
         );
-      }
-    } catch (dbErr) {
-      console.warn('Database note for unsubscribe record:', dbErr);
-    }
+    memoryUnsubscribes.add(email);
 
     return apiSuccess({
       message: 'You have been successfully unsubscribed from Cursis marketing and non-transactional emails.',
@@ -57,7 +52,7 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error('Unsubscribe error:', error);
-    return apiError('Unable to process unsubscribe request at this time. Please email support@cursis.in.', 500);
+    return apiError('Unable to record your unsubscribe. Please retry or email ' + SUPPORT_EMAIL + '.', 503);
   }
 }
 

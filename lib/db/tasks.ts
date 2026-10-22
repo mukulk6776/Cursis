@@ -229,6 +229,7 @@ export async function createTask(
     suggestedHelperId,
     createdAt: now,
     updatedAt: now,
+    completedAt: status === 'done' ? now : null,
     ...(assignees.length > 0 ? { assignees } : {}),
   } as any;
 
@@ -360,6 +361,7 @@ export async function updateTask(
     title,
     dueDate,
     status: nextStatus,
+    completedAt: nextStatus === 'done' ? (task.status === 'done' ? task.completedAt : new Date().toISOString()) : null,
     completionPercent,
     isAtRisk,
     subtasks: nextSubtasks,

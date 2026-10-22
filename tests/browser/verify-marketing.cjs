@@ -52,7 +52,7 @@ if (fs.existsSync('app/changelog/page.tsx')) routes.push('/changelog');
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route + ': overflow at ' + width);
         if (route === '/') {
           assert(!(await page.locator('.lp-nav-signup').isVisible()), 'Header signup stays hidden before the hero');
-          await page.locator('#features').scrollIntoViewIfNeeded();
+          await page.evaluate(() => { const hero = document.getElementById('hero'); window.scrollTo(0, hero.offsetTop + hero.offsetHeight + 20); });
           await page.locator('.lp-nav-signup').waitFor({ state: 'visible' });
         }
         if (route === '/signup') {

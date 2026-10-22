@@ -225,6 +225,14 @@ async function runTests() {
     assert.equal(refreshedA.creatorId, 'usr_alpha_lead', 'creatorId must be immutable');
     assert.equal(refreshedA.title, 'Legit Title Change', 'title update must succeed');
 
+    const completed = await updateTask(taskA.id, { status: 'done', completedAt: '1999-01-01' }, 'ws_alpha');
+    assert(Number.isFinite(Date.parse(completed.completedAt)));
+    assert.notEqual(completed.completedAt, '1999-01-01', 'Completion date is recorded by the server');
+    const edited = await updateTask(taskA.id, { title: 'Completed and renamed' }, 'ws_alpha');
+    assert.equal(edited.completedAt, completed.completedAt, 'Editing completed work preserves its completion date');
+    const reopened = await updateTask(taskA.id, { status: 'todo' }, 'ws_alpha');
+    assert.equal(reopened.completedAt, null, 'Reopening clears completion timing');
+
     console.log('✓ TEST 4 PASSED: Task identity and tenant ownership remain strictly immutable');
     passed++;
   } catch (err) {

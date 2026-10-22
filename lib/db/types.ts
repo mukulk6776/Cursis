@@ -156,6 +156,7 @@ export interface Task {
   suggestedHelperId?: string;
   createdAt: string;
   updatedAt: string;
+  completedAt?: string | null;
 }
 
 // ==========================================
