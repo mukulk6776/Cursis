@@ -322,11 +322,11 @@ export default function TasksPage() {
             }}
           >
             <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
-              No tasks found
+              {tasks.length === 0 ? 'Your workspace is ready for its first task' : 'No tasks found'}
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
               {tasks.length === 0
-                ? 'Get started by creating your first task for this workspace.'
+                ? 'Give the work a name, an owner and a due date.'
                 : 'No tasks match the active filter criteria.'}
             </p>
             <button
@@ -335,7 +335,7 @@ export default function TasksPage() {
               onClick={() => openModal('task-modal')}
               style={{ fontWeight: 700 }}
             >
-              + New Task
+              {tasks.length === 0 ? 'Create your first task' : '+ New Task'}
             </button>
           </div>
         ) : (
