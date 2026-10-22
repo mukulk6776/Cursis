@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate, isOverdue, getGreeting } from '@/lib/dashboard/data';
+import ActivationChecklist from '@/components/dashboard/ActivationChecklist';
 
 export default function HomePage() {
   const {
@@ -46,6 +47,7 @@ export default function HomePage() {
 
   return (
     <div className="page active" id="page-home" style={{ maxWidth: '1080px', margin: '0 auto' }}>
+      <ActivationChecklist />
       {/* Header */}
       <div
         style={{
