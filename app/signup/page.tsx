@@ -6,6 +6,7 @@ import { signUpWithEmail, signInWithGoogle, handleGoogleRedirectResult } from '@
 import '@/styles/landing.css';
 import '@/styles/auth.css';
 import { BRAND_NAME, TEAM_USER_LIMIT } from '@/lib/site';
+import CaptureSignupSource from '@/components/landing/CaptureSignupSource';
 
 export default function SignupPage() {
  const [name, setName] = useState('');
@@ -182,6 +183,7 @@ export default function SignupPage() {
 
   return (
     <main id="main-content" className="auth-page">
+      <CaptureSignupSource />
       <section className="auth-card" aria-labelledby="signup-title">
         <Link href="/" className="auth-close" aria-label="Back to Cursis">×</Link>
         <Link href="/" className="auth-brand">{BRAND_NAME}</Link>

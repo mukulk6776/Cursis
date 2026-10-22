@@ -20,6 +20,7 @@ export const providers = [
 ] as const;
 
 export const collectionMatrix = [
+  ['Signup source, when analytics is accepted', 'Attribute a new workspace signup to the Ordis demo.', 'Optional browser sessionStorage for 30 minutes; users.signupSource and consent timestamp after sign-in.'],
   ['Email, name, avatar, user ID', 'Create and identify your account, show your profile and send service messages.', 'Signup, Google sign-in, profile; MongoDB/Firebase.'],
   ['Password hash and random salt', 'Verify password login. Plaintext passwords are transient request inputs and must never be logged.', 'Password signup/login; MongoDB.'],
   ['Session / identity tokens', 'Authenticate requests. Tokens contain identifiers; they are credentials.', 'HTTP-only session cookie, browser auth storage, Firebase verification.'],

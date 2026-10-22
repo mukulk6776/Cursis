@@ -103,7 +103,7 @@ test('one-shot click locks every chip before rendering, streams after 700ms, the
   assert.equal(demo.promptGroup.props['aria-hidden'], true);
   assert.equal(demo.cta.type, 'button');
   demo.cta.props.onClick();
-  assert.deepEqual(demo.routes, ['/signup']);
+  assert.deepEqual(demo.routes, ['/signup?source=ordis-demo']);
   staleChips[2].props.onClick(); demo.render();
   assert.equal(demo.state.prompt.id, 'priorities');
 });

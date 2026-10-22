@@ -1,4 +1,5 @@
 'use client';
+import RecordSignupSource from './RecordSignupSource';
 
 import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -57,6 +58,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
 
   return (
     <div className="cursis-dashboard-root">
+      <RecordSignupSource />
       <div className="app">
         {/* Sidebar */}
         <Sidebar />

@@ -186,8 +186,8 @@ export default function OrdisSection() {
             {state.phase === 'complete' && (
               <div className="lp-ordis-demo-completion">
                 <p>Less chasing updates. More moving forward.</p>
-                <button type="button" className="lp-ordis-demo-cta" onClick={() => router.push('/signup')}>
-                  Create your free workspace in Cursis <span aria-hidden="true">→</span>
+                <button type="button" className="lp-ordis-demo-cta" onClick={() => router.push('/signup?source=ordis-demo')}>
+                  Try this on your real tasks, free <span aria-hidden="true">→</span>
                 </button>
                 <span>Free to start · No credit card required</span>
               </div>
