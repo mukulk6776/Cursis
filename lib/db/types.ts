@@ -50,6 +50,8 @@ export interface UserProfile {
   role: UserRole;
   passwordHash?: string;
   salt?: string;
+  passwordChangedAt?: number;
+  passwordReset?: { hash: string; expiresAt: Date; sentAt: Date; attempts: number };
   department?: string;
   title?: string;
   skills: string[]; // e.g. ["Next.js", "UI/UX", "Copywriting", "Sales", "Accounting"]

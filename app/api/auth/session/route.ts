@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createUserProfile, findUserByEmail } from '@/lib/db/users';
 import { apiSuccess, apiError } from '@/lib/api/response';
-import { getAuthenticatedUser, createSessionToken } from '@/lib/auth/session';
+import { getAuthenticatedUser, createSessionToken, isSessionRevoked } from '@/lib/auth/session';
 import { adminAuth } from '@/lib/auth/firebase-admin';
 import { verifySessionToken } from '@/lib/auth/token';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     // 1. Check if idToken is an existing valid Cursis signed session token
     if (idToken.startsWith('cursis_usr_')) {
       const verified = verifySessionToken(idToken);
-      if (!verified) {
+      if (!verified || await isSessionRevoked(verified)) {
         return apiError('Invalid or expired session token', 401);
       }
       userUid = verified.uid;

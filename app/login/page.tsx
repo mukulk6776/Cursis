@@ -207,7 +207,7 @@ export default function LoginPage() {
         <form onSubmit={handleEmailLogin} className="auth-form">
           <label htmlFor="login-email">Email address</label>
           <input id="login-email" type="email" autoComplete="email" value={email} placeholder="you@example.com" onChange={e => setEmail(e.target.value)} required />
-          <div className="auth-password-label"><label htmlFor="login-password">Password</label><button type="button" className="auth-text-button" onClick={() => { setErrorMsg(''); setSuccessMsg('To reset your password, contact your workspace owner or email security@cursis.in.'); }}>Forgot password?</button></div>
+          <div className="auth-password-label"><label htmlFor="login-password">Password</label><Link href="/forgot-password" className="auth-text-button">Forgot password?</Link></div>
           <div className="auth-password">
             <input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} placeholder="Enter your password" onChange={e => setPassword(e.target.value)} required />
             <button type="button" className="auth-eye" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>

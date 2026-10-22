@@ -25,6 +25,10 @@ export function hashPassword(password: string, salt: string): string {
   return crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 64, 'sha512').toString('hex');
 }
 
+export async function hashPasswordAsync(password: string, salt: string): Promise<string> {
+  return (await pbkdf2Async(password, salt, PBKDF2_ITERATIONS, 64, 'sha512')).toString('hex');
+}
+
 /**
  * Async non-blocking password verification returning validation and rehash migration status.
  */
@@ -148,19 +152,11 @@ function sanitizeFounderIntegrity(user: UserProfile): UserProfile {
 }
 
 /**
- * Find user by email from in-memory cache or MongoDB
+ * Read durable credentials first so a reset takes effect across server instances.
  */
 export async function findUserByEmail(email: string): Promise<UserProfile | null> {
   const normalized = email.trim().toLowerCase();
   
-  // 1. Check in-memory store
-  for (const u of inMemoryStore.users.values()) {
-    if (u.email.toLowerCase() === normalized) {
-      return sanitizeFounderIntegrity(u);
-    }
-  }
-
-  // 2. Query MongoDB
   try {
     const col = await getCollection<UserProfile>('users');
     if (col) {
@@ -171,9 +167,16 @@ export async function findUserByEmail(email: string): Promise<UserProfile | null
         inMemoryStore.users.set(sanitized.uid || sanitized.id, sanitized);
         return sanitized;
       }
+      return null;
     }
   } catch (e) {
     console.warn('MongoDB findUserByEmail notice:', e);
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    for (const u of inMemoryStore.users.values()) {
+      if (u.email.toLowerCase() === normalized) return sanitizeFounderIntegrity(u);
+    }
   }
 
   return null;

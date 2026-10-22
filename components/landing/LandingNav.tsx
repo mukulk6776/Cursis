@@ -141,7 +141,6 @@ export default function LandingNav() {
             { href: '/contact', selector: '#main-content', label: 'Contact' },
             { href: '/blog', selector: '#main-content', label: 'Blog' },
             { href: '/compare', selector: '#main-content', label: 'Compare' },
-            { href: '/creators', selector: '#main-content', label: 'Creators' },
           ].map((item, i) => (
             <a
               key={item.href}

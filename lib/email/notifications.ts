@@ -5,6 +5,22 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const ADMIN_EMAIL = 'cursis.in@gmail.com';
 export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Cursis <onboarding@resend.dev>';
 
+export function isPasswordResetEmailConfigured(): boolean {
+  return Boolean(resend && process.env.RESEND_FROM_EMAIL);
+}
+
+export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
+  if (!resend || !isPasswordResetEmailConfigured()) throw new Error('Reset email is unavailable');
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: 'Your Cursis password reset code',
+    text: `Your Cursis password reset code is ${code}. It expires in 10 minutes and can only be used once. If you did not request this, you can ignore this email. Never share this code.`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A"><h1 style="font-size:24px">Reset your Cursis password.</h1><p>Enter this code on the Forgot Password page:</p><p style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px;background:#FF5500;border:2px solid #0A0A0A;border-radius:12px">${code}</p><p>This code expires in 10 minutes and can only be used once.</p><p>If you did not request this, you can ignore this email. Never share this code.</p></div>`,
+  });
+  if (error) throw new Error('Reset email could not be sent');
+}
+
 export const CURSIS_PHYSICAL_ADDRESS = {
   company: process.env.PRIVACY_LEGAL_ENTITY || 'Saransh Vashistha, operating as Cursis',
   addressLine1: process.env.PRIVACY_POSTAL_ADDRESS || 'Business contact address awaiting confirmation',

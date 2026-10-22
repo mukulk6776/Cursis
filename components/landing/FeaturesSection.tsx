@@ -182,7 +182,7 @@ export default function FeaturesSection() {
             </div>
           </div>
 
-          <Link className="marketing-learn" href="/creators">Learn more about this feature →</Link><div className="lp-bento-tags">
+          <Link className="marketing-learn" href="/#connected">Learn more about this feature →</Link><div className="lp-bento-tags">
             <span className="lp-bento-tag">Clear Next Steps</span>
             <span className="lp-bento-tag">Team Reviews</span>
             <span className="lp-bento-tag">Fast Approvals</span>

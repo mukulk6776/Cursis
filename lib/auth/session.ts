@@ -3,6 +3,7 @@ import { inMemoryStore } from '@/lib/db/store';
 import { UserRole } from '@/lib/db/types';
 import { isFounderEmail } from './founder';
 import { accountBlocked } from '@/lib/privacy/core';
+import { getCollection } from '@/lib/mongodb';
 import {
   SESSION_SECRET,
   SessionPayload,
@@ -31,6 +32,14 @@ export interface AuthenticatedUser {
   skills?: string[];
   planTier?: 'standard';
   isDev?: boolean;
+}
+
+export async function isSessionRevoked(session: SessionPayload): Promise<boolean> {
+  const users = await getCollection('users');
+  if (!users) return process.env.NODE_ENV === 'production';
+  return Boolean(await users.findOne({ email: session.email,
+    passwordChangedAt: { $gte: session.createdAt || 0 },
+  }, { projection: { _id: 1 } }));
 }
 
 /**
@@ -88,7 +97,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
       if (verified) {
         const uid = verified.uid;
         const email = verified.email;
-        if (await accountBlocked(uid, email)) return null;
+        if (await accountBlocked(uid, email) || await isSessionRevoked(verified)) return null;
         const displayName = verified.displayName || email.split('@')[0];
         const isFounder = isFounderEmail(email);
         const role: UserRole = isFounder ? 'owner' : (verified.role !== 'owner' ? (verified.role as UserRole) : 'member');

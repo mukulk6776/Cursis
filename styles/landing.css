@@ -535,7 +535,6 @@ body.lp-body,
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 40px;
 }
 
 .lp-hero-title {
@@ -566,30 +565,8 @@ body.lp-body,
   display: flex;
   gap: 16px;
   align-items: center;
-  margin-bottom: 24px;
   flex-wrap: wrap;
   justify-content: center;
-}
-
-.lp-hero-benefits {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #2E2E2E;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.lp-benefit-item {
-  color: #0A0A0A;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.lp-benefit-sep {
-  color: #0A0A0A;
-  font-weight: 900;
 }
 
 /* Hero Centerpiece Mockup Console */
@@ -3069,15 +3046,6 @@ body.lp-body,
     justify-content: center;
     text-align: center;
   }
-  .lp-hero-benefits {
-    flex-direction: column;
-    gap: 6px;
-    align-items: center;
-  }
-  .lp-benefit-sep {
-    display: none;
-  }
-
   /* Single Column Stacking for Narrower Devices */
   .lp-workflow-timeline { grid-template-columns: 1fr; }
   .lp-bento-grid { grid-template-columns: 1fr; }
@@ -3939,7 +3907,7 @@ body.lp-body,
 .marketing-card h2,.marketing-card h3 {font-size:clamp(1.3rem,2.8vw,1.8rem);font-weight:800;line-height:1.2;margin-bottom:18px;}
 .marketing-card p,.marketing-prose p {line-height:1.8;margin:16px 0;}
 .marketing-card ul,.marketing-card ol {padding-left:24px;line-height:2;}
-.marketing-card a,.marketing-links a,.marketing-faq a,.marketing-learn {text-decoration:underline;text-underline-offset:4px;font-weight:650;}
+.marketing-card a,.marketing-links a,.marketing-faq a {text-decoration:underline;text-underline-offset:4px;font-weight:650;}
 .marketing-faq {margin:32px 0;}
 .marketing-faq details {border:2px solid #0A0A0A;border-radius:14px;background:white;margin:12px 0;padding:20px;}
 .marketing-faq summary {cursor:pointer;font-size:1.08rem;font-weight:750;}
@@ -3956,7 +3924,34 @@ body.lp-body,
 .marketing-newsletter h2 {font-size:1.4rem;font-weight:800;}
 .marketing-newsletter p {margin:12px 0;}
 .marketing-sample {font:600 12px var(--font-mono),monospace;line-height:1.6;color:#37312b;background:#fff3d6;border:1px solid #0A0A0A;border-radius:8px;padding:10px 14px;margin:16px auto;max-width:960px;text-align:center;}
-.marketing-learn {display:inline-block;margin:16px 0;font-size:13px;}
+.lp-body .marketing-learn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 16px 0;
+  padding: 10px 12px;
+  border: 2px solid #0A0A0A;
+  border-radius: 10px;
+  background: #FAF6EE;
+  color: #0A0A0A;
+  box-shadow: 4px 4px 0 #0A0A0A;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.5;
+  text-decoration: none;
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.lp-body .marketing-learn:hover {
+  background: #FF5500;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #0A0A0A;
+}
+.lp-body .marketing-learn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #0A0A0A;
+}
 .marketing-video {position:relative;aspect-ratio:1200/630;overflow:hidden;border:3px solid #0A0A0A;border-radius:24px;background:white;box-shadow:8px 8px 0 #0A0A0A;}
 .marketing-video img,.marketing-video video {width:100%;height:100%;object-fit:cover;}
 .marketing-video>div {position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:24px;background:linear-gradient(transparent,#FAF6EE);text-align:center;}
@@ -3975,7 +3970,7 @@ body.lp-body,
 /* Keep the orange surface; use ink text for readable small controls. */
 .lp-body .btn-primary,.lp-body .btn-brand,.lp-body .tano-hero-badge-pill,.lp-body .lp-tab-pulse-badge,.lp-body .lp-prompt-chip.active,.lp-body .lp-ordis-tag {color:#0A0A0A;}
 .lp-body .badge-warning {color:#854d0e;}.lp-body .badge-error {color:#b91c1c;}
-.lp-body .marketing-learn,.lp-body .marketing-card a:not(.btn),.lp-body .marketing-newsletter a:not(.btn) {color:#7c2d12;}
+.lp-body .marketing-card a:not(.btn),.lp-body .marketing-newsletter a:not(.btn) {color:#7c2d12;}
 .lp-body .lp-roster-avatar[style*="10b981"] {color:#0A0A0A;}
 .lp-hero-header,.lp-hero-mockup {opacity:1;transform:none;}
 
@@ -4013,10 +4008,10 @@ body.lp-body,
 .lp-body .lp-hero {padding-top:54px;padding-bottom:40px;}
 .lp-body .lp-section-header {margin-bottom:32px;}
 .lp-body .lp-section-label {white-space:nowrap;max-width:100%;font-size:clamp(9px,1.5vw,11px);}
-.lp-body :is(.badge,.lp-bento-tag,.lp-live-badge,.lp-sla-rate,.lp-capacity-badge,.tano-module-badge,.lp-mockup-tab,.lp-benefit-item,.lp-ordis-demo-badge) {white-space:nowrap;flex-shrink:0;}
+.lp-body :is(.badge,.lp-bento-tag,.lp-live-badge,.lp-sla-rate,.lp-capacity-badge,.tano-module-badge,.lp-mockup-tab,.lp-ordis-demo-badge) {white-space:nowrap;flex-shrink:0;}
 .lp-body :is(.lp-mockup-view-header,.lp-ordis-demo-header) {flex-wrap:wrap;gap:12px;}
-.lp-body :is(.lp-bento-topbar,.lp-hero-benefits,.lp-bento-tags) {gap:10px;align-items:center;flex-wrap:wrap;}
-.lp-body :is(.lp-benefit-sep,.lp-mockup-dot,.lp-ordis-demo-status-dot) {flex-shrink:0;align-self:center;}
+.lp-body :is(.lp-bento-topbar,.lp-bento-tags) {gap:10px;align-items:center;flex-wrap:wrap;}
+.lp-body :is(.lp-mockup-dot,.lp-ordis-demo-status-dot) {flex-shrink:0;align-self:center;}
 .lp-body :is(.btn,.lp-nav-cta-primary,.lp-nav-btn-signin,.lp-nav-btn-signout) {display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;white-space:nowrap;}
 .lp-body :is(.btn svg,.lp-mockup-tab svg) {flex-shrink:0;}
 .lp-body button:not(:disabled):hover,.lp-body [role="button"]:hover,.lp-body :is(.btn,.lp-nav-cta-primary,.lp-nav-btn-signin,.lp-footer-social-link,.blog-card-link):hover {background:#0A0A0A!important;color:#fff!important;text-decoration:none;}
@@ -4029,7 +4024,7 @@ body.lp-body,
 .lp-body .lp-bento-card {padding:24px;min-width:0;}
 .lp-body .lp-bento-tags {margin-top:16px;}
 .lp-body .lp-bento-roster-preview {flex:1;justify-content:space-evenly;}
-.lp-body .lp-bento-card>.marketing-learn {margin-top:auto;padding-top:16px;}
+.lp-body .lp-bento-card>.marketing-learn {margin-top:auto;}
 .lp-body .lp-bento-stat-card {flex:1;display:flex;flex-direction:column;justify-content:center;min-height:160px;}
 .lp-body .lp-bento-log-box {flex:1;}
 .lp-bento-stages-row {display:flex;align-items:center;gap:8px;flex:1;margin:12px 0 20px;}
@@ -4044,9 +4039,10 @@ body.lp-body,
 .lp-body .tano-module-featured {grid-column:span 1;}
 .lp-body .tano-module-cta {grid-column:span 2;}
 .lp-body .tano-module-card {min-height:0;padding:22px;}
-.lp-body .tano-module-card .marketing-learn {margin-top:auto;padding-top:18px;margin-bottom:0;}
+.lp-body .tano-module-card .marketing-learn {margin-top:auto;margin-bottom:0;}
+.lp-body .tano-module-desc {margin-bottom:18px;}
 .lp-body .lp-workflow-timeline-card {display:flex;flex-direction:column;}
-.lp-body .lp-workflow-timeline-card .marketing-learn {margin-top:auto;padding-top:16px;margin-bottom:0;}
+.lp-body .lp-workflow-timeline-card .marketing-learn {margin-top:auto;margin-bottom:0;}
 .lp-body .lp-cta-section {padding-block:40px;}
 .lp-body .lp-cta-inner {padding:40px 24px;background:#fff!important;}
 .lp-body .lp-cta-title {font-size:clamp(28px,4vw,44px);}
@@ -4086,9 +4082,6 @@ body.lp-body,
 @media(max-width:480px) {
   .lp-body .tano-modules-grid {grid-template-columns:1fr;}
   .lp-body .tano-module-cta {grid-column:span 1;}
-  .lp-body .lp-hero-benefits {gap:6px;font-size:10px;}
-  .lp-body .lp-benefit-sep {display:none;}
-  .lp-body .lp-benefit-item {padding:3px 7px;border-radius:8px;background:#fff;}
   .lp-bento-stages-row {flex-direction:column;}
   .lp-bento-stages-row .lp-stage-step {width:100%;flex-direction:row;justify-content:flex-start;flex-wrap:wrap;text-align:left;padding:12px;}
   .lp-stage-step>span:last-child {margin-left:auto;}

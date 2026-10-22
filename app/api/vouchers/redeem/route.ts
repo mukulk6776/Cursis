@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findVoucherByCode, redeemVoucher } from '@/lib/db/vouchers';
 import { verifySessionToken } from '@/lib/auth/token';
+import { isSessionRevoked } from '@/lib/auth/session';
 import { checkRateLimit, recordAttempt, getClientIP } from '@/lib/auth/rateLimit';
 
 export async function POST(req: NextRequest) {
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     const verified = verifySessionToken(sessionToken);
-    if (!verified) {
+    if (!verified || await isSessionRevoked(verified)) {
       return NextResponse.json(
         { success: false, error: 'Invalid or expired session' },
         { status: 401 }

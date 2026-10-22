@@ -22,7 +22,7 @@
 .auth-brand { display: inline-flex; align-items: center; gap: 6px; color: #0A0A0A; font-size: 22px; font-weight: 800; text-decoration: none; }
 .auth-close { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #57534e; }
 .auth-card h1 { margin: 20px 0 8px; font-size: 30px; letter-spacing: -.04em; font-weight: 750; }
-.auth-intro { margin: 0 0 26px; color: #57534e; font-size: 14px; }
+.auth-intro { margin: 0 0 26px; color: #57534e; font-size: 14px; overflow-wrap: anywhere; }
 .auth-card button, .auth-card input { font: inherit; border-radius: 12px; }
 .auth-google, .auth-submit { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 46px; padding: 10px 16px; font-size: 14px !important; font-weight: 650 !important; border: 1px solid #d6d3d1; background: #fff; color: #0A0A0A; transition: background .2s, color .2s; }
 .auth-divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: #78716c; font-size: 11px; }
@@ -47,5 +47,11 @@
 .auth-message { padding: 12px; margin: 0 0 16px; border: 1px solid; border-radius: 12px; font-size: 12px; line-height: 1.6; text-align: left; }
 .auth-error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
 .auth-success { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+.auth-reset-notice { background: #FAF6EE; color: #0A0A0A; border: 2px solid #0A0A0A; }
+.auth-reset-help { margin: 0 0 8px; color: #57534e; font-size: 12px; line-height: 1.6; }
+.auth-reset-code { letter-spacing: .3em; font-family: var(--font-mono), monospace !important; }
+.auth-reset-actions { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.auth-reset-login { border-radius: 12px; text-decoration: none; }
+.auth-reset-login:hover { background: #0A0A0A; color: #fff; }
 @media (max-width: 480px) { .auth-card { padding: 32px 22px 24px; } }
 @media (prefers-reduced-motion: reduce) { .auth-card button { transition: none; } }

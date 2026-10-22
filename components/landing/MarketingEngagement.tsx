@@ -21,7 +21,7 @@ export default function MarketingEngagement() {
     window.addEventListener('cursis_cookie_consent_updated', consentChange);
     const sent = new Set<number>();
     const show = () => {
-      if (path === '/signup' || path === '/login') return;
+      if (path === '/signup' || path === '/login' || path === '/forgot-password') return;
       try { if (sessionStorage.getItem('cursis_exit_seen')) return; sessionStorage.setItem('cursis_exit_seen', '1'); } catch { return; }
       setOpen(true); trackMarketing('exit_shown', path);
     };
@@ -48,6 +48,6 @@ export default function MarketingEngagement() {
     const key = (event: KeyboardEvent) => { if (event.key === 'Escape') { setOpen(false); trackMarketing('exit_dismissed', path); } };
     document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key);
   }, [open, path]);
-  if (!open || path === '/login' || path === '/signup') return null;
+  if (!open || path === '/login' || path === '/signup' || path === '/forgot-password') return null;
   return <aside className="marketing-exit" aria-label="Start a free workspace"><button ref={closeRef} aria-label="Dismiss signup prompt" className="marketing-exit-close" onClick={() => { setOpen(false); trackMarketing('exit_dismissed', path); }}>×</button><h2>Bring your team’s work together</h2><a className="btn btn-primary" href="/signup" onClick={() => trackMarketing('exit_converted', path)}>Make my workspace</a></aside>;
 }

@@ -14,6 +14,7 @@ function sanitizeTeamUser(u: UserProfile): UserProfile {
   const clone = { ...u };
   delete clone.passwordHash;
   delete clone.salt;
+  delete clone.passwordReset;
   return clone;
 }
 
@@ -658,6 +659,8 @@ export async function updateTeamMember(
       const setDoc: any = { ...cleanUpdates, updatedAt: nowIso };
       delete setDoc.passwordHash;
       delete setDoc.salt;
+      delete setDoc.passwordReset;
+      delete setDoc.passwordChangedAt;
       delete setDoc.id;
       delete setDoc.uid;
       await col.updateOne({ $or: [{ id: userId }, { uid: userId }] }, { $set: setDoc });
@@ -687,6 +690,7 @@ export async function updateTeamMember(
   const sanitized = { ...user };
   delete sanitized.passwordHash;
   delete sanitized.salt;
+  delete sanitized.passwordReset;
   return sanitized;
 }
 

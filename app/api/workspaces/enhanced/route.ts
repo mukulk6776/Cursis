@@ -4,7 +4,7 @@ export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
 import { apiSuccess, apiError } from '@/lib/api/response';
-import { verifySessionToken } from '@/lib/auth/session';
+import { verifySessionToken, isSessionRevoked } from '@/lib/auth/session';
 import {
   createWorkspace,
   getUserWorkspaces,
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     }
 
     const session = verifySessionToken(token);
-    if (!session) {
+    if (!session || await isSessionRevoked(session)) {
       return apiError('Invalid or expired session', 401);
     }
 
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     const session = verifySessionToken(token);
-    if (!session) {
+    if (!session || await isSessionRevoked(session)) {
       return apiError('Invalid or expired session', 401);
     }
 
