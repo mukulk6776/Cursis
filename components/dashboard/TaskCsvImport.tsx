@@ -13,9 +13,9 @@ export default function TaskCsvImport() {
   const [done, setDone] = useState(false);
   const workspaceId = activeWorkspace?.id;
   const currentWorkspace = useRef(workspaceId);
-  currentWorkspace.current = workspaceId;
   const storageKey = `cursis_task_import:${user.id}:${workspaceId}`;
   useEffect(() => {
+    currentWorkspace.current = workspaceId;
     setBatch(null); setAttempted(false); setDone(false); setError('');
     try {
       const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
@@ -47,7 +47,7 @@ export default function TaskCsvImport() {
     {open && <div className="card" style={{ padding: 20, marginTop: 12 }}>
       <h2>Preview your task import</h2>
       <p>Up to 100 tasks, 64 KB. Leave assignee email blank for unassigned tasks. Dates use YYYY-MM-DD. Status: todo, in-progress, review, completed or blocked. Completed imports have no historical completion date and are excluded from weekly completion counts.</p>
-      <p><a download="cursis-tasks.csv" href={'data:text/csv;charset=utf-8,' + encodeURIComponent(CSV_TEMPLATE)}>Download CSV template</a></p>
+      <p><a className="btn btn-secondary btn-sm" download="cursis-tasks.csv" href={'data:text/csv;charset=utf-8,' + encodeURIComponent(CSV_TEMPLATE)}>Download CSV template</a></p>
       <label>Select CSV <input type="file" accept=".csv,text/csv" disabled={busy || (attempted && !done)} onChange={async event => {
         const file = event.target.files?.[0];
         setBatch(null); setError(''); setAttempted(false); setDone(false);
@@ -57,12 +57,13 @@ export default function TaskCsvImport() {
       }} /></label>
       {validation && <p role="alert">{validation}</p>}
       {rows.length > 0 && <>
-        <p>{rows.length} task{rows.length === 1 ? '' : 's'} in this preview. Nothing is saved until you confirm.</p>
-        <div style={{ overflowX: 'auto', maxWidth: '100%' }}><table className="table"><thead><tr>{['Row', 'Name', 'Assignee email', 'Due date', 'Status', 'Validation'].map(label => <th key={label}>{label}</th>)}</tr></thead>
-          <tbody>{rows.map(row => <tr key={row.line}><td>{row.line}</td><td style={{ overflowWrap: 'anywhere' }}>{row.name}</td><td style={{ overflowWrap: 'anywhere' }}>{row.email || 'Unassigned'}</td><td>{row.dueDate}</td><td>{row.status}</td><td>{row.errors.join('; ') || 'Ready'}</td></tr>)}</tbody></table></div>
+        <p>{rows.length} task{rows.length === 1 ? '' : 's'} {done ? 'saved from this import.' : 'in this preview. Nothing is saved until you confirm.'}</p>
+        <p>Scroll the preview to see all columns.</p>
+        <div role="region" aria-label="Task import preview" tabIndex={0} style={{ overflowX: 'auto', maxWidth: '100%' }}><table className="table csv-task-preview" style={{ minWidth: 720 }}><thead><tr>{['Row', 'Name', 'Assignee email', 'Due date', 'Status', 'Validation'].map(label => <th key={label}>{label}</th>)}</tr></thead>
+          <tbody>{rows.map(row => <tr key={row.line}><td>{row.line}</td><td style={{ overflowWrap: 'anywhere' }}>{row.name}</td><td style={{ overflowWrap: 'anywhere' }}>{row.email || 'Unassigned'}</td><td>{row.dueDate}</td><td>{row.status === 'done' ? 'completed' : row.status.replaceAll('_', ' ')}</td><td>{row.errors.join('; ') || 'Ready'}</td></tr>)}</tbody></table></div>
         {!done && <button type="button" className="btn btn-primary" disabled={busy || Boolean(validation) || rows.some(row => row.errors.length > 0)} onClick={importTasks}>{busy ? 'Importing…' : attempted ? 'Retry this import' : `Confirm import of ${rows.length} tasks`}</button>}
       </>}
-      {done && <p role="status">Import complete. Your tasks have been refreshed.</p>}
+      {done && <p role="status">Import complete. Refresh the task list if your saved tasks do not appear.</p>}
       {error && <p role="alert">{error}{attempted && ' Keep this preview open and retry the same batch to avoid duplicates.'}</p>}
       {attempted && !done && <p>This pending batch is saved in this browser tab for safe retries. Do not upload the same file as a new batch after a connection error.</p>}
     </div>}

@@ -45,7 +45,7 @@ if (fs.existsSync('app/changelog/page.tsx')) routes.push('/changelog');
     });
     for (const width of [360, 768, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
-      for (const route of ['/', '/signup', '/login', '/about', '/compare']) {
+      for (const route of routes) {
         await page.goto(base + route, { waitUntil: 'networkidle', timeout: 120000 });
         const reject = page.getByRole('button', { name: 'Reject Optional', exact: true });
         if (await reject.isVisible()) await reject.click();

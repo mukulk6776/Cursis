@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const workspace = await db.collection('workspaces').findOne({ id: auth.workspaceId });
     if (!workspace) return apiError('Workspace not found.', 404);
     const memberships = await db.collection('workspace_memberships').find({ workspaceId: auth.workspaceId }).toArray();
-    const ids = [...new Set([workspace.ownerId, ...memberships.map(member => member.userId)])];
+    const ids = [...new Set([workspace.ownerId, ...memberships.map(member => member.userId)].filter((id): id is string => typeof id === 'string' && Boolean(id.trim())))];
     const members = await db.collection('users').find({ $or: [{ uid: { $in: ids } }, { id: { $in: ids } }] }, { projection: { uid: 1, id: 1, email: 1, displayName: 1 } }).toArray();
     const byEmail = new Map(members.filter(member => typeof member.email === 'string').map(member => [member.email.trim().toLowerCase(), member]));
     let rows;

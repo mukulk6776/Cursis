@@ -128,3 +128,14 @@ test('email preferences keep member opt-in separate from owner controls and reje
   assert(Number.isFinite(Date.parse(writes[1].update.$set.consentAt)));
   assert.equal((await (await route.GET(new Request('https://cursis.in/api/report-preferences?workspaceId=ws_alice'))).json()).daily, false);
 });
+test('unsubscribe confirms only a durable write and reports storage failure', async () => {
+  const api = { apiError: (error, status) => Response.json({ error }, { status }), apiSuccess: data => Response.json(data) };
+  let writes = 0;
+  function route(available) { return load('app/api/email/unsubscribe/route.ts', {
+    'next/server': { NextResponse: { json: data => Response.json(data) } }, '@/lib/api/response': api, '@/lib/site': { SUPPORT_EMAIL: 'support@example.com' },
+    '@/lib/mongodb': { getCollection: async () => available ? { deleteOne: async () => {}, updateOne: async () => { writes++; } } : null },
+  }); }
+  const request = () => new Request('https://cursis.in/api/email/unsubscribe', { method: 'POST', body: JSON.stringify({ email: 'alice@example.com' }) });
+  assert.equal((await route(false).POST(request())).status, 503); assert.equal(writes, 0);
+  assert.equal((await route(true).POST(request())).status, 200); assert.equal(writes, 1);
+});

@@ -1,7 +1,7 @@
 # humanstxt.org
 
 /* TEAM */
-  Company: Cursis Inc.
+  Company: Cursis
   Location: Delhi, India
   Contact: cursis.in@gmail.com
 

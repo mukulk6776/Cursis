@@ -11,12 +11,11 @@
 [![React](https://img.shields.io/badge/React-19.3.0-00d8ff?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x--Strict-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Security](https://img.shields.io/badge/Security-Edge%20WAF%20Shielded-brightgreen?style=for-the-badge&logo=shield)](SECURITY.md)
-[![SLA](https://img.shields.io/badge/SLA-99.99%25%20Uptime-success?style=for-the-badge)](https://cursis.in)
 [![CI Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/mukulk6776/Cursis/actions)
 [![License](https://img.shields.io/badge/License-Commercial%20Enterprise-blue?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <strong>Cursis</strong> is an institutional-grade, zero-subscription-lock autonomous workplace operating system engineered for founders, high-growth enterprise teams, and digital agency deployments.
+  <strong>Cursis</strong> is a free team workspace for up to 10 people per workspace, with Ordis AI, tasks, projects, team, calendar, video meetings, automatic actions and progress reports. No paid plans, trials or billing.
 </p>
 
 <p align="center">
@@ -293,9 +292,8 @@ CMD ["node", "server.js"]
 ## 🔒 Security, Compliance & Governance
 
 - **Edge WAF Protection**: Proactive blocking of directory traversal, script execution, and null-byte injection via `proxy.ts`.
-- **SOC 2 Type II Aligned**: Strict auditing of data access, session invalidation, and role boundaries.
-- **WCAG 2.1 Level AA**: Accessible color contrast, keyboard navigation, and screen reader semantic structures.
-- **GDPR & CCPA Compliant**: Built-in data export and automated deletion request pipelines at `/data-deletion`.
+- **Account controls**: Session invalidation and workspace role boundaries are implemented; no certification is claimed.
+- **Privacy tools**: Data export and deletion request flows are available through `/privacy/rights` and `/data-deletion`. Production compliance requires an operational review.
 - **Vulnerability Disclosure**: Please consult [SECURITY.md](SECURITY.md) for our responsible disclosure guidelines and bounty program.
 
 ---

@@ -799,7 +799,7 @@ body.lp-body,
   background: #FFC233;
   border: 1.5px solid #0A0A0A;
 }
-.lp-sla-tag {
+.lp-progress-tag {
   font-family: 'Inter Tight', sans-serif;
   font-size: 10px;
   font-weight: 800;
@@ -1979,7 +1979,7 @@ body.lp-body,
   border-radius: 9999px;
 }
 
-/* Bento SLA Stat Card */
+/* Bento progress card */
 .lp-bento-stat-card {
   background: #FAF8F5;
   border: 2.5px solid #0A0A0A;

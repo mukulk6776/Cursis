@@ -1,0 +1,182 @@
+Cursis marketing, activation and retention implementation report
+22 October 2026
+Repository: C:\Users\sk396\Desktop\Cursis
+Branch: codex/marketing-accuracy-activation
+Baseline: 101b468 (the earlier landing-page removals, Creators deletion and password reset work).
+
+Scope decisions
+- Creators stays deleted: /creators must return 404 and is absent from navigation and sitemap.
+- Non-auth storage/API changes for Phase 2 were explicitly authorized. Existing authentication, sessions/HMAC, password reset, Firebase handlers, workspace authorization and security controls were preserved.
+- No deployment, new main-branch push or production email send was performed for this request.
+
+Removed or rewritten
+- Shared lib/site.ts now supplies public brand, support address, social profiles, free-workspace wording, included tools and the existing enforced 10-person limit.
+- Removed fabricated customer/uptime/certification claims and unused marketing components/schema fixtures that contained invented plans or metrics.
+- Signup now uses the shared cream/orange auth design, prominent Google sign-in, accurate benefits and the existing name/work-email/password fields and consent/validation/redirect handlers. Login copy matches. Both sets of handlers before their final JSX return are byte-identical to the baseline.
+- About uses the shared header/footer; factual location/founding information replaces invented metrics. No Creators link was restored.
+- Pricing, FAQ, signup, hero and Refund & Cancellation consistently say free and up to 10 people. Removed public trial/billing/refund contradictions; legal rights links remain.
+- Published and proofread the three supplied blog posts. Removed draft/editorial/founder-review labels. Competitor descriptions use official Trello/Asana/ClickUp pages and avoid prices, limits and unsupported competitor cells.
+- Unified canonical URLs, unique metadata, Open Graph image and X handle. Published posts and changelog are in the sitemap. Removed duplicate public/robots.txt so app/robots.ts serves one valid robots response. Removed a redirect that hid the existing /data-deletion page.
+- Removed remaining unverified README uptime/SOC/compliance claims, obsolete testimonial environment flags, the internal schema TODO and Cursis Inc. from public/humans.txt. LICENSE and historical/security documents were not rewritten.
+
+Phase 2, one feature commit per item
+1606d20: Hero free-workspace CTA and microcopy.
+cda0944: Header signup CTA appears after the hero; responsive behavior preserved.
+93b8e19: Ordis demo completion CTA, /signup?source=ordis-demo, optional consented attribution. Source is saved once to a signed-in new user's existing users record, within seven days of account creation; browser handoff expires after 30 minutes. Analytics refusal means attribution is not recorded. Auth handlers are untouched.
+3c65e6e: Testimonials render only from real approved entries in content/testimonials.ts. Empty data renders nothing; no seeded entries.
+d34d594: First-week checklist reads actual projects, invitations and saved Ordis questions. Owner/admin actions use existing project/invitation/Ordis flows; invite permission matches the existing modal. Hidden when complete, dismissed or seven days old. Dismissal is scoped to the current account and workspace.
+89ae7a5: Empty workspace task list has one clear first-task action. Optional sample tasks were omitted.
+251e76e: Weekly owner report, preference setting, real task completion timestamps, configured workload threshold, unsubscribe, protected daily scheduler and durable delivery records. Existing task behavior is otherwise preserved.
+b60d532: Daily assigned-task Ordis digest, off by default, member opt-in and unsubscribe. Removed members and blocked accounts are skipped.
+083d62e: CSV validation/preview/import. 100 tasks / 64 KB, quoted CSV support, current-member email validation, actual date/status checks, scoped writes and stable per-row IDs for safe retries. Pending batches survive reload in this browser tab until confirmed. Imported completed tasks have no invented historical completion date and are excluded from weekly completion counts.
+d99b206: Public /changelog with team-editable content/changelog.ts, metadata, footer and sitemap links. Empty entries are honest; no invented releases.
+Final cleanup adds browser checks, remaining public-text corrections, CSV usability fixes and explicit storage/export disclosures.
+
+Data and email operation
+- New durable collections: workspace_activation, workspace_email_preferences, workspace_email_deliveries. Task.completedAt records subsequent completions; existing records are not fabricated or destructively migrated.
+- Added account export/erasure scopes for the new records and optional signup attribution. Delivery records expire after 90 days.
+- Weekly completion counts cover the previous Monday-Sunday in UTC; undated older completed tasks are explicitly excluded. Risk/workload are current snapshots. No capacity was stored previously: owners may configure an open estimated-hours limit. Without it, the email explicitly says overload cannot be assessed. Shared task estimates are divided equally.
+- Daily digest only includes the recipient's assigned open tasks due today or flagged/overdue, with a maximum of 20 titles per list and a workspace link for the rest. Empty days send nothing.
+- Existing Resend provider is reused. Missing provider/storage configuration fails visibly. Unsubscribe only confirms a durable save; preferences can explicitly resume progress email without resubscribing marketing.
+- Durable send intents, leases and stable Resend keys prevent routine duplicates. Ambiguous attempts older than 23 hours require operator review because provider deduplication expires after 24 hours; monitor 503 responses. The scheduler streams workspaces in one invocation; move to a queue if runtime exceeds the host limit.
+- Setup/runbook: docs/progress-emails.txt. Configure RESEND_API_KEY, RESEND_FROM_EMAIL, CRON_SECRET (a separate random 32+ character secret), deployed app URL and MongoDB. vercel.json schedules the protected report endpoint daily at 03:30 UTC. None of the three email/scheduler variables were configured in the checked local environment.
+
+Verification
+- Phase 1 was verified before Phase 2 and committed as 8f0fc16: 61 tests, lint with zero errors, type check and production build; public routes/auth UI/responsive checks passed.
+- Final automated suite: 77 passed, zero failed. Includes auth/security regressions, Google SDK mocks, team capacity/roles, source consent, activation scope/dismissal, report periods/workload/preferences/unsubscribe/delivery failures, CSV parsing/validation and partial-write retries.
+- Final full lint: zero errors, 78 pre-existing warnings. Changed UI/API files also passed targeted lint.
+- Type check: npx tsc --noEmit passed. The final production build passed, including the final CSV styling/status-label cleanup.
+- Production HTTP/metadata checks: 20 public routes return 200, have unique titles/descriptions, self canonicals, shared OG image and @cursis_ handle; published posts are indexable and included in sitemap. /creators intentionally returns 404. 23 internal links passed.
+- Existing noindex on /forgot-password and /privacy/rights was retained for those account/privacy workflows; neither is a published blog post. /resources remains an existing redirect alias rather than a separate indexed page.
+- Production browser checks passed for consent gating, signup/login error/success states and redirects, checklist dismissal, CSV invalid preview and retry with the same batch ID after reload, and email preference opt-in. APIs used isolated fixtures; no actual accounts, tasks or emails were created by these checks.
+- Responsive checks at 360, 768 and 1440 px passed for all 20 public routes plus the dashboard checklist, CSV preview and report settings. Representative screenshots were visually reviewed. The CSV preview scrolls within its panel with spaced columns rather than compressing cell contents on mobile.
+- No diff in lib/auth, app/api/auth, proxy.ts or lib/db/users.ts relative to the baseline. No dependency was added.
+- Evidence: artifacts/final-tests.log, final-lint.log, final-typecheck.log, final-build.log, production-browser.log, production-auth-ui.log, production-activation-ui.log, auth-handler-check.log and responsive PNGs.
+
+What could not be verified
+- Real Google OAuth with an interactive account, real signup/login against a newly created database account, provider inbox delivery, production DNS, deployed scheduler behavior and actual production credentials were not exercised. Existing auth logic was preserved and its automated/mock checks passed.
+- New MongoDB report/import/preferences paths were tested with fixtures, including errors and isolation; no production data migration or bulk write was run. Build-time existing database reads are not a live integration certification.
+- The site is checked locally from a production build, not a new deployment of cursis.in. External provider delivery/bounce monitoring and host execution limits require operator configuration.
+
+Whole-repository search and flagged exceptions
+Public marketing/legal page output contains none of the requested unsupported SOC/SLA/99.99/500+/Enterprise Workspace/TODO_CONFIRM/editorial-review/Cursis Inc. claims. Broad substring searches also match Social, translations, unsubscribe and technical upgrade code; these are not product claims. Report/test files necessarily quote search terms.
+The whole repository is not claimed to have zero matches. These preserved exceptions are explicit:
+- LICENSE: executed-contract enterprise SLA wording (legal text).
+- SECURITY.md: security response/maintenance SLA terminology.
+- docs/DPDP_COMPLIANCE_AUDIT.md and docs/SEMGREP_SECURITY_AUDIT_2026_10_08.md: historical audit discussion and explicit warnings against unsupported certification claims.
+- scratch_audit_report.html: archived SOC/Enterprise Workspace audit claims; not a public app route.
+- app/api/privacy/maintenance/route.ts: an operational comment about overdue request monitoring.
+- app/api/redeem/route.ts and lib/dashboard/DashboardContext.tsx: existing SOC-2 voucher labels.
+- components/dashboard/modals/AgencyModal.tsx: existing Agency Guarantee/dedicated SLA wording.
+- components/dashboard/pages/AutomationsPage.tsx: customer MSA/SLA document action wording.
+- lib/ordis/engine.ts: existing generated-document examples include 99.99 and SLA/guaranteed-delivery prose.
+- Remaining README/package/license enterprise architecture terminology is not a paid-plan offering and was not used in public marketing metadata.
+
+In-app premium/Pro/billing leftovers (behavior intentionally unchanged)
+- components/dashboard/modals/VoucherModal.tsx: unlock premium features, subscription extension, premium code placeholder, access/expiry success text.
+- lib/db/vouchers.ts: premium/pro/enterprise voucher types, expiry and legacy plan fields.
+- app/api/redeem/route.ts and lib/dashboard/DashboardContext.tsx: existing voucher redemption labels and features.
+- components/dashboard/pages/SettingsPage.tsx: existing team-permission copy mentions adding members to billing.
+- components/dashboard/pages/IntegrationsPage.tsx: Subscription Events integration label.
+- lib/db/crm.ts: renewal intelligence, enterprise retainer pitch and a Cursis renewal proposal draft; lib/db/types.ts retains renewal fields.
+- Additional in-app dashboard/agency generated claims and simulated metrics were not reused for the new reports and remain outside the public-marketing change scope.
+- Password-hash upgrades, event-stream subscriptions and customer CRM renewal dates are technical/customer-work data rather than paid Cursis plans.
+
+Owner decisions
+- Confirm the legal operator name and postal address. Public brand is Cursis; no Cursis Inc. legal identity was invented. Existing privacy operator/contact configuration remains separately identifiable.
+- SUPPORT_EMAIL remains cursis.in@gmail.com. A verified domain support address would be more consistent with the brand; choose it before changing the shared constant. Statutory/privacy contacts remain separate.
+- No certifications, testimonials, customer logos or real user counts are asserted. Supply independent evidence/permission before adding any. Founded 2026 and Delhi, India use the supplied product facts.
+- TODO: provide approved wording for 'How Cursis stays free'. No funding explanation or live TODO was invented on pricing.
+- Add approved changelog releases and real testimonials to their content files when available.
+- Configure/verify the Resend sender, email key and independent scheduler secret, monitor report failures and choose a workload threshold if overload identification is desired. Historical completion dates cannot be inferred reliably.
+
+Files changed (paths relative to the repository root; A added, M modified, D deleted)
+M	.env.example
+M	.github/ISSUE_TEMPLATE/config.yml
+M	README.md
+M	app/about/layout.tsx
+M	app/about/page.tsx
+A	app/api/acquisition/route.ts
+A	app/api/activation/route.ts
+M	app/api/email/unsubscribe/route.ts
+A	app/api/report-preferences/route.ts
+A	app/api/reports/send/route.ts
+A	app/api/tasks/import/route.ts
+M	app/blog/[slug]/page.tsx
+M	app/blog/page.tsx
+A	app/changelog/page.tsx
+M	app/compare/page.tsx
+M	app/contact/page.tsx
+M	app/cookie-policy/page.tsx
+M	app/layout.tsx
+M	app/login/page.tsx
+M	app/page.tsx
+M	app/pricing/page.tsx
+M	app/privacy/page.tsx
+M	app/refund-policy/page.tsx
+M	app/robots.ts
+M	app/signup/layout.tsx
+M	app/signup/page.tsx
+M	app/sitemap.ts
+M	app/terms/page.tsx
+M	app/unsubscribe/page.tsx
+A	components/dashboard/ActivationChecklist.tsx
+M	components/dashboard/DashboardShell.tsx
+A	components/dashboard/RecordSignupSource.tsx
+A	components/dashboard/ReportEmailSettings.tsx
+A	components/dashboard/TaskCsvImport.tsx
+M	components/dashboard/pages/HomePage.tsx
+M	components/dashboard/pages/SettingsPage.tsx
+M	components/dashboard/pages/TasksPage.tsx
+A	components/landing/CaptureSignupSource.tsx
+M	components/landing/CtaSection.tsx
+M	components/landing/FeaturesSection.tsx
+M	components/landing/Footer.tsx
+M	components/landing/HeroSection.tsx
+M	components/landing/LandingNav.tsx
+D	components/landing/LandingPageCondensed.tsx
+M	components/landing/OrdisSection.tsx
+M	components/landing/PolicyLayout.tsx
+D	components/landing/PricingSection.tsx
+M	components/landing/Testimonials.tsx
+M	components/landing/TrustSection.tsx
+M	content/blog/agency-project-management.md
+M	content/blog/catch-delayed-tasks.md
+M	content/blog/workload-balancing-small-teams.md
+A	content/changelog.ts
+A	content/testimonials.ts
+A	docs/marketing-refresh-report.txt
+A	docs/progress-emails.txt
+M	eslint.config.mjs
+M	lib/db/tasks.ts
+M	lib/db/types.ts
+M	lib/email/notifications.ts
+A	lib/engagement/csv.ts
+A	lib/engagement/http.ts
+A	lib/engagement/reports.ts
+A	lib/engagement/send-reports.ts
+M	lib/privacy/config.ts
+M	lib/privacy/data.ts
+D	lib/seo/content-data.ts
+M	lib/seo/marketing.ts
+D	lib/seo/schema.ts
+A	lib/site.ts
+M	next.config.ts
+M	public/humans.txt
+M	public/policies/privacy-policy.md
+M	public/policies/terms-and-conditions.md
+D	public/robots.txt
+M	styles/auth.css
+M	styles/dashboard.css
+M	styles/landing.css
+A	tests/acquisition-source.cjs
+A	tests/activation.cjs
+M	tests/audit-repairs-regression.cjs
+A	tests/browser/verify-activation-ui.cjs
+A	tests/browser/verify-auth-ui.cjs
+A	tests/browser/verify-marketing.cjs
+M	tests/ordis-landing-demo.cjs
+A	tests/reports.cjs
+A	tests/task-csv-import.cjs
+A	tests/testimonials.cjs
+A	vercel.json
