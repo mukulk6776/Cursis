@@ -16,7 +16,7 @@ export default function HeroSection() {
 
         <div className="lp-hero-ctas">
           <Link prefetch={false} href="/signup" className="btn btn-primary btn-lg">
-            Make my workspace
+            Make my free workspace
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
@@ -26,7 +26,7 @@ export default function HeroSection() {
             Try the Demo
           </a>
         </div>
-        <p className="lp-cta-note">{FREE_WORKSPACE_TEXT}</p>
+        <p className="lp-cta-note">{FREE_WORKSPACE_TEXT} · No card · Google sign-in</p>
       </div>
     </section>
   );
