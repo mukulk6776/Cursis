@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { Task, TaskStatus } from '@/lib/dashboard/types';
 import { formatDate, isOverdue } from '@/lib/dashboard/data';
+import TaskCsvImport from '@/components/dashboard/TaskCsvImport';
 
 type ViewMode = 'list' | 'calendar' | 'timeline';
 type FilterMode = 'all' | 'overdue' | 'high-priority' | 'assigned-to-me' | 'upcoming' | 'completed';
@@ -93,6 +94,7 @@ export default function TasksPage() {
 
   return (
     <div className="page active" id="page-tasks" style={{ maxWidth: '1080px', margin: '0 auto' }}>
+      <TaskCsvImport />
       {/* Header */}
       <div
         style={{
