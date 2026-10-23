@@ -149,11 +149,9 @@ export default function LandingNav() {
         {/* Links drawer */}
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           {[
-            { href: '/#features', selector: '#features', label: 'Features' },
-            { href: '/pricing', selector: '#main-content', label: 'Pricing' },
+            { href: '/#ordis', selector: '#ordis', label: 'Try Ordis' },
+            { href: '/pricing', selector: '#main-content', label: 'Free plan' },
             { href: '/faq', selector: '#main-content', label: 'FAQ' },
-            { href: '/contact', selector: '#main-content', label: 'Contact' },
-            { href: '/blog', selector: '#main-content', label: 'Blog' },
             { href: '/compare', selector: '#main-content', label: 'Compare' },
           ].map((item) => (
             <a
@@ -228,7 +226,7 @@ export default function LandingNav() {
                 Sign In
               </Link>
               <Link prefetch={false} href="/signup" hidden={!pastHero} className="lp-nav-cta-primary lp-nav-signup lp-hide-mobile">
-                Make my free workspace
+                Make my workspace
               </Link>
             </>
           )}

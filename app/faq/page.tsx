@@ -1,6 +1,10 @@
+import Link from 'next/link';
 import MarketingPage, { FaqList } from '@/components/landing/MarketingPage';
 import { marketingMetadata, marketingFaqs } from '@/lib/seo/marketing';
-export const metadata = marketingMetadata('/faq', 'FAQs — Workspace, Ordis AI & Privacy', 'Answers about the free Cursis workspace, up to 10 users, Ordis AI, privacy, migration, meetings and account deletion.');
+export const metadata = marketingMetadata('/faq', 'FAQ — Before You Join', 'Practical answers about joining a Cursis workspace, working with a larger team, privacy and account closure.');
 export default function Faq() {
-  return <MarketingPage title="A little clarity before you start." intro="Answers to common questions about Cursis."><FaqList items={marketingFaqs} /><p><a href="/privacy">Privacy Notice</a> · <a href="/privacy/rights">Privacy Centre</a></p><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: marketingFaqs.map(item => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) }) }} /></MarketingPage>;
+  return <MarketingPage title="Before you join." intro="A few practical answers to help you get started." nextStep="Have what you need?">
+    <FaqList items={marketingFaqs} /><div className="marketing-link-list"><Link className="marketing-link" href="/pricing">See the free-plan details</Link><Link className="marketing-link" href="/privacy">Read the Privacy Notice</Link><Link className="marketing-link" href="/contact">Ask another question</Link></div>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: marketingFaqs.map(item => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) }).replace(/</g, '\\u003c') }} />
+  </MarketingPage>;
 }

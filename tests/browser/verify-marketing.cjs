@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 
 const base = process.env.VERIFY_BASE_URL || 'http://127.0.0.1:3000';
 const posts = fs.readdirSync('content/blog').filter(name => name.endsWith('.md')).map(name => '/blog/' + name.slice(0, -3));
-const routes = ['/', '/pricing', '/faq', '/about', '/compare', '/blog', ...posts, '/contact', '/signup', '/login', '/social', '/refund-policy', '/privacy', '/terms', '/cookie-policy', '/dmca', '/data-deletion'];
+const routes = ['/', '/pricing', '/faq', '/about', '/creators', '/compare', '/blog', ...posts, '/contact', '/signup', '/login', '/social', '/refund-policy', '/privacy', '/terms', '/cookie-policy', '/dmca', '/data-deletion'];
 if (fs.existsSync('app/changelog/page.tsx')) routes.push('/changelog');
 
 (async () => {
@@ -31,10 +31,10 @@ if (fs.existsSync('app/changelog/page.tsx')) routes.push('/changelog');
     results.push({ route, status: response.status, title, canonical: $('link[rel="canonical"]').attr('href') });
   }
   for (const href of links) assert((await fetch(base + href)).status < 400, 'Broken internal link: ' + href);
-  assert.equal((await fetch(base + '/creators')).status, 404, 'Creators stays deleted');
+  assert.equal((await fetch(base + '/creators')).status, 200, 'Creators page is available');
   const sitemap = await (await fetch(base + '/sitemap.xml')).text();
   for (const post of posts) assert(sitemap.includes(post), 'Published post in sitemap: ' + post);
-  assert(!sitemap.includes('/creators'));
+  assert(sitemap.includes('/creators'));
   assert((await (await fetch(base + '/robots.txt')).text()).includes('https://cursis.in/sitemap.xml'));
   const browser = await chromium.launch({ headless: true });
   try {

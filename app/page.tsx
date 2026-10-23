@@ -1,6 +1,6 @@
 import LandingPage from '@/components/landing/LandingPage';
 import { marketingMetadata, socialProfiles } from '@/lib/seo/marketing';
-export const metadata = marketingMetadata('', 'Cursis – Free Team Workspace & AI Task Management', 'Your free team workspace for tasks, projects, chat and meetings. Ordis AI helps catch delayed tasks and share work. Built for teamwork.');
+export const metadata = marketingMetadata('', 'Cursis — Less Chasing. More Getting Done.', 'See how Ordis helps a small team decide what to do next. Try an example, then make your Cursis workspace.');
 const currency = process.env.SCHEMA_OFFER_CURRENCY;
 const schema = { '@context': 'https://schema.org', '@graph': [
  { '@type': 'Organization', '@id': 'https://cursis.in/#organization', name: 'Cursis', url: 'https://cursis.in', logo: 'https://cursis.in/icon.png', sameAs: socialProfiles.map(p => p.url) },

@@ -12,6 +12,3 @@ Ask what is blocking progress and what support would help. A late approval or un
 
 ## Choose one intervention
 Reduce scope, get a decision or ask a teammate to help. Record the decision and the next check-in so everyone has the same expectation.
-
-## Use the demo to explore
-Try asking Ordis about delayed tasks in the Cursis homepage demo. The responses use sample data. Use them to understand the interaction, then review actual workspace context with your team before taking action.

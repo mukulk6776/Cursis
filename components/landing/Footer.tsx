@@ -1,115 +1,15 @@
-import React from 'react';
-import { BRAND_NAME, SOCIAL_LINKS } from '@/lib/site';
 import Link from 'next/link';
-import MarketingForm from './MarketingForm';
 import WorkspaceFooterLink from './WorkspaceFooterLink';
 import CookiePreferenceButton from '@/components/CookiePreferenceButton';
 
+const groups = [
+  { title: 'Explore', links: [['/#features', 'Why Cursis'], ['/#ordis', 'Try Ordis'], ['/pricing', 'Free plan'], ['/compare', 'Compare'], ['/faq', 'FAQ']] },
+  { title: 'People & ideas', links: [['/about', 'About'], ['/creators', 'For creators'], ['/blog', 'Blog'], ['/changelog', 'Changelog'], ['/social', 'Community'], ['/contact', 'Contact']] },
+  { title: 'Legal', links: [['/privacy', 'Privacy Notice'], ['/privacy/rights', 'Privacy Centre'], ['/terms', 'Terms'], ['/refund-policy', 'Refund & cancellation'], ['/cookie-policy', 'Cookies'], ['/data-deletion', 'Data deletion'], ['/dmca', 'Copyright']] },
+];
 export default function Footer() {
-  return (
-    <footer className="lp-footer">
-      <div className="lp-footer-inner">
-        <div className="lp-footer-brand">
-          <div className="lp-footer-logo">
-            <svg viewBox="0 0 1024 1024" fill="none" width="28" height="28" role="img" aria-label="Cursis Logo">
-              <path
-                d="M 545 240 A 282 282 0 1 0 782 566"
-                stroke="#0A0A0A"
-                strokeWidth="142"
-                strokeLinecap="round"
-                fill="none"
-              />
-              <rect
-                x="625"
-                y="196"
-                width="156"
-                height="156"
-                rx="42"
-                transform="rotate(-10 703 274)"
-                fill="#FF5500"
-              />
-            </svg>
-            <span className="lp-footer-logo-text">{BRAND_NAME}</span>
-          </div>
-          <p className="lp-footer-tagline">
-            Your team’s work, conversations, and deadlines in one place.
-          </p>
-          <div className="lp-footer-social"><a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" className="lp-footer-social-link" aria-label="Follow Cursis on LinkedIn"><span aria-hidden="true">in</span></a>
-            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" className="lp-footer-social-link" aria-label="Follow us on Instagram">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-              </svg>
-            </a>
-            <a href={SOCIAL_LINKS.x} target="_blank" rel="noopener noreferrer" className="lp-footer-social-link" aria-label="Follow us on X">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-              </svg>
-            </a>
-            <a href={SOCIAL_LINKS.discord} target="_blank" rel="noopener noreferrer" className="lp-footer-social-link" aria-label="Join us on Discord">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
-              </svg>
-            </a>
-          </div>
-        </div>
-
-        <div className="lp-footer-links-group">
-          <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Product</div>
-            <Link prefetch={false} href="/#features" className="lp-footer-link">Features</Link>
-            <Link prefetch={false} href="/#connected" className="lp-footer-link">How It Works</Link>
-            <Link prefetch={false} href="/#ordis" className="lp-footer-link">Ordis AI</Link>
-            <Link prefetch={false} href="/#modules" className="lp-footer-link">Tools</Link>
-          </div>
-
-          <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Company</div>
-            <Link prefetch={false} href="/about" className="lp-footer-link">About Us</Link>
-            <Link prefetch={false} href="/changelog" className="lp-footer-link">Changelog</Link>
-            <Link prefetch={false} href="/social" className="lp-footer-link">Social Media</Link><Link prefetch={false} href="/pricing" className="lp-footer-link">Pricing</Link><Link prefetch={false} href="/faq" className="lp-footer-link">Faq</Link><Link prefetch={false} href="/contact" className="lp-footer-link">Contact</Link><Link prefetch={false} href="/blog" className="lp-footer-link">Blog</Link><Link prefetch={false} href="/compare" className="lp-footer-link">Compare</Link>
-          </div>
-
-          <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Workspace</div>
-            <WorkspaceFooterLink />
-            <Link prefetch={false} href="/signup" className="lp-footer-link">Get Started</Link>
-          </div>
-
-          <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Legal</div>
-            <Link prefetch={false} href="/privacy" className="lp-footer-link">Privacy Policy</Link>
-            <Link prefetch={false} href="/privacy/rights" className="lp-footer-link">Privacy Centre</Link>
-            <Link prefetch={false} href="/terms" className="lp-footer-link">Terms of Service</Link>
-            <Link prefetch={false} href="/dmca" className="lp-footer-link">DMCA Policy</Link>
-            <Link prefetch={false} href="/refund-policy" className="lp-footer-link">Refund &amp; Cancellation</Link>
-            <Link prefetch={false} href="/cookie-policy" className="lp-footer-link">Cookie Policy</Link>
-          </div>
-
-          <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Contact</div>
-            <Link prefetch={false} href="/contact" className="lp-footer-link">Contact &amp; Support</Link>
-          </div>
-        </div>
-      </div>
-
-      <section className="marketing-newsletter"><h2>Keep up with {BRAND_NAME}</h2><p>Product updates, in your inbox.</p><MarketingForm kind="newsletter" /><Link prefetch={false} href="/unsubscribe">Unsubscribe</Link></section><div className="lp-footer-bottom">
-        <div>
-          <span>© 2026 {BRAND_NAME} All rights reserved.</span>
-        </div>
-        <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap', fontSize: '12px' }}>
-          <Link prefetch={false} href="/privacy" className="lp-footer-link">Privacy</Link>
-          <span style={{ color: 'var(--c-gray-400)' }}>•</span>
-          <Link prefetch={false} href="/terms" className="lp-footer-link">Terms</Link>
-          <span style={{ color: 'var(--c-gray-400)' }}>•</span>
-          <Link prefetch={false} href="/dmca" className="lp-footer-link">DMCA</Link>
-          <span style={{ color: 'var(--c-gray-400)' }}>•</span>
-          <Link prefetch={false} href="/refund-policy" className="lp-footer-link">Refunds</Link>
-          <span style={{ color: 'var(--c-gray-400)' }}>•</span>
-          <Link prefetch={false} href="/cookie-policy" className="lp-footer-link">Cookies</Link><CookiePreferenceButton className="lp-footer-cookie" />
-        </div>
-      </div>
-    </footer>
-  );
+  return <footer className="lp-footer"><div className="lp-footer-inner">
+    <div className="lp-footer-brand"><Link href="/" className="lp-footer-logo" aria-label="Cursis home"><svg viewBox="0 0 1024 1024" fill="none" width="28" height="28" aria-hidden="true"><path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#0A0A0A" strokeWidth="142" strokeLinecap="round" /><rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" /></svg><span className="lp-footer-logo-text">Cursis</span></Link><WorkspaceFooterLink /></div>
+    <div className="lp-footer-links-group">{groups.map(group => <nav className="lp-footer-col" key={group.title} aria-label={group.title}><h2 className="lp-footer-col-title">{group.title}</h2>{group.links.map(([href, label]) => <Link prefetch={false} key={href} href={href} className="lp-footer-link">{label}</Link>)}</nav>)}</div>
+  </div><div className="lp-footer-bottom"><span>© 2026 Cursis</span><CookiePreferenceButton className="lp-footer-cookie" /></div></footer>;
 }

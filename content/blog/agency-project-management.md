@@ -14,4 +14,4 @@ A production deadline needs room for feedback. Add a review step with a named re
 Before a task moves from writing to design or from editing to approval, link the latest file and describe what happens next. Avoid a status called done when another person is still waiting for input.
 
 ## Finish with a useful recap
-At the end of each project, review what caused delays and what made delivery easier. Bring the lesson into your next plan. A shared Cursis workspace keeps tasks, conversations and deadlines together for that review.
+At the end of each project, review what caused delays and what made delivery easier. Bring the lesson into your next plan.
