@@ -10,13 +10,13 @@ import '@/styles/landing.css';
 
 export default function LandingPage() {
   return (
-    <div className="lp-body">
+    <div className="lp-body lp-home">
       <LandingNav />
       <main id="main-content" tabIndex={-1}>
         <HeroSection />
         <FeaturesSection />
-        <section className="lp-section lp-ordis-section" id="ordis" aria-labelledby="ordis-demo-heading">
-          <div className="lp-section-header"><p className="lp-section-label">Try Ordis</p><h2 className="lp-section-title" id="ordis-demo-heading">One question. A way forward.</h2><p className="lp-section-subtitle">Demo data · Choose a question for an instant example.</p></div>
+        <section className="lp-section lp-ordis-section lp-product-spotlight" id="ordis" aria-labelledby="ordis-demo-heading">
+          <div className="lp-section-header"><p className="lp-section-label">Meet Ordis</p><h2 className="lp-section-title" id="ordis-demo-heading">Your next step,<br />in plain sight.</h2><p className="lp-section-subtitle">Pick a question. See the answer. Then try it with your own work.</p><p className="lp-spotlight-note">Demo data · These examples use fixed answers.</p></div>
           <LazyOrdisDemo />
         </section>
         <ComparisonSection />

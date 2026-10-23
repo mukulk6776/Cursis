@@ -1,6 +1,4 @@
 import { marketingMetadata } from '@/lib/seo/marketing';
-import React from 'react';
-import type { Metadata } from 'next';
 import PolicyLayout from '@/components/landing/PolicyLayout';
 
 export const metadata = { ...marketingMetadata('/dmca', 'Copyright and DMCA Policy', 'Read how to submit copyright notices and counter-notices to Cursis.') };
@@ -8,8 +6,8 @@ export const metadata = { ...marketingMetadata('/dmca', 'Copyright and DMCA Poli
 export default function DmcaPage() {
   return (
     <PolicyLayout
-      title="DMCA Copyright Policy & Designated Agent"
-      badge="17 U.S.C. § 512(c) Safe Harbor Notice"
+      title="Copyright & DMCA Policy"
+      badge="Copyright complaints"
       badgeColor="#DC2626"
       lastUpdated="Last Updated: October 17, 2026 • Version 2.0"
       activeSlug="dmca"
@@ -22,8 +20,8 @@ export default function DmcaPage() {
       }
     >
       {/* Section 1: Designated Agent Information */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           1. Copyright complaint contact
         </h2>
         <p style={{ margin: '0 0 16px 0', lineHeight: 1.6 }}>
@@ -38,7 +36,7 @@ export default function DmcaPage() {
             padding: '20px',
             boxShadow: '2px 2px 0 0 #0A0A0A',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
             gap: '16px',
           }}
         >
@@ -81,8 +79,8 @@ export default function DmcaPage() {
       </section>
 
       {/* Section 2: Statutory Takedown Requirements */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           2. Requirements for Submitting a DMCA Infringement Notification
         </h2>
         <p style={{ margin: '0 0 12px 0', lineHeight: 1.6 }}>
@@ -111,8 +109,8 @@ export default function DmcaPage() {
       </section>
 
       {/* Section 3: Counter-Notification */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           3. Counter-Notification Procedure
         </h2>
         <p style={{ margin: '0 0 12px 0', lineHeight: 1.6 }}>
@@ -130,8 +128,8 @@ export default function DmcaPage() {
       </section>
 
       {/* Section 4: Repeat Infringer Policy */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           4. Repeat Infringer Policy (17 U.S.C. § 512(i))
         </h2>
         <p style={{ margin: 0, lineHeight: 1.6 }}>

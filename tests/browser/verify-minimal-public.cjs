@@ -22,7 +22,7 @@ const routes = [...sales, ...legal];
       $('main p').each((_, node) => { const paragraph = $(node).clone(); paragraph.find('a').remove(); const body = paragraph.text().trim(); if (body.length > 35) { assert(!prose.has(body) || prose.get(body) === route, route + ': repeated prose from ' + prose.get(body)); prose.set(body, route); } });
       assert(!/Draft for review|TODO_CONFIRM|500\+|99\.99|award.winning|guaranteed results/i.test($('main').text()), route + ': fabricated or unfinished copy');
     }
-    $('a[href]').each((_, node) => { const href = $(node).attr('href'); if (href.startsWith('/') && !href.startsWith('//')) links.add(href); });
+    $('a[href]').each((_, node) => { const href = $(node).attr('href'); if (href.startsWith('#')) links.add(route + href); else if (href.startsWith('/') && !href.startsWith('//')) links.add(href); });
   }
   for (const href of links) {
     const url = new URL(href, base), route = url.pathname;
@@ -46,7 +46,7 @@ const routes = [...sales, ...legal];
       for (const route of routes) {
         await page.goto(base + route, {waitUntil:'networkidle',timeout:120000});
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route + ': page overflow ' + width);
-        assert(await page.evaluate(() => [...document.querySelectorAll('main p, main h1, main h2, main h3, main td, main th, main button, main input, main textarea')].every(el => { if (el.closest('[aria-hidden="true"], .sr-only')) return true; const r = el.getBoundingClientRect(); return !r.width || (r.left >= -1 && r.right <= innerWidth + 1); })), route + ': clipped content ' + width);
+        assert(await page.evaluate(() => [...document.querySelectorAll('main p, main h1, main h2, main h3, main td, main th, main button, main input, main textarea, .policy-table-scroll')].every(el => { if (el.closest('[aria-hidden="true"], .sr-only') || el.closest('.policy-table-scroll') !== el && el.closest('.policy-table-scroll')) return true; const r = el.getBoundingClientRect(); return !r.width || (r.left >= -1 && r.right <= innerWidth + 1); })), route + ': clipped content ' + width);
       }
       await page.goto(base, {waitUntil:'networkidle'});
       assert(!(await page.locator('.lp-nav-signup').isVisible()), 'Sticky signup before hero ends');

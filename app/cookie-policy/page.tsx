@@ -1,7 +1,5 @@
 import { marketingMetadata } from '@/lib/seo/marketing';
 import React from 'react';
-import type { Metadata } from 'next';
-import Link from 'next/link';
 import PolicyLayout from '@/components/landing/PolicyLayout';
 
 export const metadata = { ...marketingMetadata('/cookie-policy', 'Cookie Policy', 'Learn about essential storage and optional consent-based analytics at Cursis.') };
@@ -25,8 +23,8 @@ export default function CookiePolicyPage() {
       }
     >
       {/* Section 1 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           1. What Are Cookies?
         </h2>
         <p style={{ margin: 0 }}>
@@ -35,8 +33,8 @@ export default function CookiePolicyPage() {
       </section>
 
       {/* Section 2 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           2. Types of Cookies We Use
         </h2>
 
@@ -71,8 +69,8 @@ export default function CookiePolicyPage() {
       </section>
 
       {/* Section 3 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           3. Advertising and optional analytics
         </h2>
         <p style={{ margin: 0 }}>
@@ -81,8 +79,8 @@ export default function CookiePolicyPage() {
       </section>
 
       {/* Section 4 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           4. Managing Cookie Settings
         </h2>
         <p style={{ margin: '0 0 12px 0' }}>
@@ -91,7 +89,7 @@ export default function CookiePolicyPage() {
         <div style={{ padding: '14px', background: '#FEF3C7', border: '1.5px solid #D97706', borderRadius: '8px', fontSize: '13px', color: '#92400E', lineHeight: 1.6, marginBottom: '16px' }}>
           <strong>Note:</strong> Cursis fully respects the <em>Do Not Track (DNT)</em> and <em>Global Privacy Control (GPC)</em> browser signals by default.
         </div>
-        <CookiePreferenceButton />
+        <CookiePreferenceButton className="policy-cookie-button" />
       </section>
     </PolicyLayout>
   );

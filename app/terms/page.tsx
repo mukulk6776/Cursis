@@ -1,7 +1,6 @@
 import { BRAND_NAME, FREE_WORKSPACE_TEXT, INCLUDED_TOOLS } from '@/lib/site';
 import { marketingMetadata } from '@/lib/seo/marketing';
 import React from 'react';
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import PolicyLayout from '@/components/landing/PolicyLayout';
 
@@ -24,8 +23,8 @@ export default function TermsPage() {
       }
     >
       {/* Section 1 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           1. Free workspace services
         </h2>
         <p style={{ margin: '0 0 12px 0' }}>
@@ -37,8 +36,8 @@ export default function TermsPage() {
       </section>
 
       {/* Section 2 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           2. Acceptable Use &amp; Security Conduct
         </h2>
         <p style={{ margin: '0 0 12px 0' }}>
@@ -52,8 +51,8 @@ export default function TermsPage() {
       </section>
 
       {/* Section 3 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           3. Ownership of Workspace Data
         </h2>
         <p style={{ margin: 0 }}>
@@ -62,8 +61,8 @@ export default function TermsPage() {
       </section>
 
       {/* Section 4 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           4. Termination &amp; Data Export
         </h2>
         <p style={{ margin: 0 }}>
@@ -72,8 +71,8 @@ export default function TermsPage() {
       </section>
 
       {/* Section 5 */}
-      <section style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #0A0A0A', borderRadius: '12px', padding: '24px 28px', boxShadow: '3px 3px 0 0 #0A0A0A' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 14px 0', borderBottom: '1px solid #E5E0D8', paddingBottom: '8px' }}>
+      <section>
+        <h2>
           5. Limitation of Liability
         </h2>
         <p style={{ margin: 0 }}>
