@@ -10,7 +10,7 @@ import { getAuthenticatedUser, createSessionToken, isSessionRevoked } from '@/li
 import { adminAuth } from '@/lib/auth/firebase-admin';
 import { verifySessionToken } from '@/lib/auth/token';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
-import { accountBlocked, recordAccountConsent } from '@/lib/privacy/core';
+import { PrivacyError, accountBlocked, recordAccountConsent } from '@/lib/privacy/core';
 import { PRIVACY_VERSION } from '@/lib/privacy/config';
 
 export async function GET(request: Request) {
@@ -183,6 +183,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error: any) {
     console.error('Session creation error:', error);
+    if (error instanceof PrivacyError && error.status === 503) return NextResponse.json({ success: false, error: 'Sign-in is temporarily unavailable. Please try again shortly.' }, { status: 503 });
     return apiError(error.message || 'Internal Server Error', 500);
   }
 }

@@ -53,64 +53,51 @@ function getClientOptions(uri: string) {
   };
 }
 
-let client: MongoClient | null = null;
-let clientPromise: Promise<MongoClient | null>;
-let isConnected = false;
-
 declare global {
   var _mongoClientPromise: Promise<MongoClient | null> | undefined;
   var _mongoIsConnected: boolean | undefined;
+  var _mongoRetryAt: number | undefined;
 }
 
-function initClient(): Promise<MongoClient | null> {
-  const uri = getMongoUri();
-  const opts = getClientOptions(uri);
-  const isAtlas = uri.startsWith('mongodb+srv://');
-  const dbName = resolveDbName();
-
+async function initClient(): Promise<MongoClient | null> {
+  let candidate: MongoClient | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    client = new MongoClient(uri, opts);
-    return client.connect().then((c) => {
-      isConnected = true;
-      global._mongoIsConnected = true;
-      console.log(`[MongoDB] Connected successfully to: ${isAtlas ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB Instance'} (DB: ${dbName})`);
-      return c;
-    }).catch((err) => {
-      isConnected = false;
-      global._mongoIsConnected = false;
-      console.warn('Notice: MongoDB connection attempt (falling back to memory store):', err.message || err);
-      return null;
-    });
-  } catch (err) {
-    return Promise.resolve(null);
+    const uri = getMongoUri();
+    candidate = new MongoClient(uri, getClientOptions(uri));
+    // Driver selection timeouts do not include Atlas SRV/TXT DNS lookups.
+    const connected = await Promise.race([
+      candidate.connect(),
+      new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('MongoDB connection timed out')), 6000); }),
+    ]);
+    global._mongoIsConnected = true;
+    global._mongoRetryAt = 0;
+    return connected;
+  } catch (error) {
+    global._mongoIsConnected = false;
+    global._mongoRetryAt = Date.now() + 30_000;
+    // Closing may wait for DNS too; keep cleanup outside the request's timeout.
+    void candidate?.close().catch(() => {});
+    console.warn('[MongoDB] Connection unavailable; retrying after 30 seconds.', error instanceof Error ? error.message : 'Connection failed');
+    return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
-if (!global._mongoClientPromise) {
-  global._mongoClientPromise = initClient();
-}
-clientPromise = global._mongoClientPromise;
+if (!global._mongoClientPromise) global._mongoClientPromise = initClient();
+export default global._mongoClientPromise;
 
-export default clientPromise;
-
-/**
- * Get MongoDB Database instance (re-attempts connection if disconnected)
- */
+/** Share a single connection attempt, including retries after an outage. */
 export async function getDb(): Promise<Db | null> {
   try {
-    let mongoClient = await clientPromise;
-    if (!mongoClient || !global._mongoIsConnected) {
-      const uri = getMongoUri();
-      const opts = getClientOptions(uri);
-      const freshClient = new MongoClient(uri, opts);
-      mongoClient = await freshClient.connect();
-      global._mongoClientPromise = Promise.resolve(mongoClient);
-      clientPromise = global._mongoClientPromise;
-      global._mongoIsConnected = true;
-      isConnected = true;
+    if (global._mongoRetryAt && Date.now() >= global._mongoRetryAt) {
+      global._mongoRetryAt = 0;
+      global._mongoClientPromise = initClient();
     }
-    return mongoClient.db(resolveDbName());
-  } catch (error) {
+    const mongoClient = await global._mongoClientPromise;
+    return mongoClient ? mongoClient.db(resolveDbName()) : null;
+  } catch {
     return null;
   }
 }

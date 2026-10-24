@@ -1,6 +1,6 @@
 'use client';
 
-import { useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { trackMarketing } from '@/lib/analytics/marketing';
 
@@ -21,9 +21,21 @@ export function ordisDemoReducer(state: DemoState, action: { type: 'select'; pro
 export default function OrdisSection() {
   const router = useRouter();
   const [state, dispatch] = useReducer(ordisDemoReducer, INITIAL_DEMO_STATE);
+  const [motionPaused, setMotionPaused] = useState(false);
+  const demo = useRef<HTMLDivElement>(null);
   const submitted = useRef(false);
   const messages = useRef<HTMLDivElement>(null);
   const locked = state.phase === 'complete';
+  useEffect(() => {
+    const element = demo.current;
+    if (!element) return;
+    let inView = false;
+    const update = () => { element.dataset.visible = String(inView && !document.hidden); };
+    const observer = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; update(); });
+    observer.observe(element);
+    document.addEventListener('visibilitychange', update);
+    return () => { observer.disconnect(); document.removeEventListener('visibilitychange', update); };
+  }, []);
   const selectPrompt = (prompt: DemoPrompt) => {
     // Lock before React commits so two rapid clicks still produce one answer.
     if (submitted.current) return;
@@ -33,13 +45,13 @@ export default function OrdisSection() {
     trackMarketing('demo_question_click', '/');
     trackMarketing('demo_completion', '/');
   };
-  return <div className="lp-ordis-demo" data-phase={state.phase}>
-    <header className="lp-ordis-demo-header"><span className="lp-ordis-demo-identity">✳ Ordis AI Assistant</span><span className="lp-ordis-demo-badge">{locked ? 'Answer ready' : 'Interactive demo'}</span></header>
+  return <div ref={demo} className="lp-ordis-demo" data-phase={state.phase} data-visible="false" data-motion={motionPaused ? 'paused' : 'playing'}>
+    <header className="lp-ordis-demo-header"><span className="lp-ordis-demo-identity">✳ Ordis AI Assistant</span><div className="lp-ordis-demo-controls"><button type="button" className="lp-ordis-motion-toggle" aria-pressed={motionPaused} onClick={() => setMotionPaused(!motionPaused)}>{motionPaused ? 'Resume motion' : 'Pause motion'}</button><span className="lp-ordis-demo-badge">{locked ? 'Answer ready' : 'Interactive demo'}</span></div></header>
     <div ref={messages} className="lp-ordis-demo-messages" role="log" aria-label="Ordis demo conversation" aria-live="polite" aria-atomic="true" tabIndex={0}>
       {state.prompt ? <>
         <div className="lp-ordis-demo-message lp-ordis-demo-user"><span className="lp-ordis-demo-sender">You</span><p>{state.prompt.question}</p></div>
         <div className="lp-ordis-demo-message lp-ordis-demo-answer"><span className="lp-ordis-demo-sender">Ordis</span><p>{state.answer}</p></div>
-      </> : <div className="lp-ordis-demo-empty"><span className="lp-ordis-demo-spark" aria-hidden="true">✳</span><p>What would you ask your team?</p></div>}
+      </> : <div className="lp-ordis-demo-empty"><div className="lp-ordis-orbit" aria-hidden="true"><span className="lp-ordis-demo-spark">✳</span><span className="lp-ordis-orbit-label">Plan your day</span><span className="lp-ordis-orbit-label">Balance the work</span><span className="lp-ordis-orbit-label">Spot the blockers</span></div><p>Less chasing. More clarity.</p><span>Choose a question and watch Ordis connect the dots.</span></div>}
     </div>
     <div className="lp-ordis-demo-footer">
       <div className="lp-ordis-demo-prompts" role="group" aria-label="Try a question" aria-hidden={locked} inert={locked}>

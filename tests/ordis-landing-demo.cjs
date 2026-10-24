@@ -11,6 +11,8 @@ function mount() {
   let cursor = 0, tree;
   const viewport = { focused: false, focus() { this.focused = true; } };
   const hooks = {
+    useEffect() {},
+    useState(initial) { const i = cursor++; slots[i] ??= { state: initial }; return [slots[i].state, value => { slots[i].state = value; }]; },
     useReducer(reducer, initial) { const i = cursor++; slots[i] ??= { state: initial }; return [slots[i].state, action => { slots[i].state = reducer(slots[i].state, action); }]; },
     useRef(initial) { const i = cursor++; return slots[i] ??= { current: initial }; },
   };

@@ -8,7 +8,7 @@ import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
-import { accountBlocked, privacyDb, recordAccountConsent } from '@/lib/privacy/core';
+import { PrivacyError, accountBlocked, privacyDb, recordAccountConsent } from '@/lib/privacy/core';
 import { PRIVACY_VERSION } from '@/lib/privacy/config';
 import { passwordValidationError } from '@/lib/auth/password';
 
@@ -124,6 +124,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error: any) {
     console.error('Signup error:', error);
+    if (error instanceof PrivacyError && error.status === 503) return NextResponse.json({ success: false, error: 'Sign-in is temporarily unavailable. Please try again shortly.' }, { status: 503 });
     return apiError('Failed to create workspace account due to an internal server error. Please try again.', 500);
   }
 }

@@ -8,7 +8,7 @@ import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
-import { accountBlocked } from '@/lib/privacy/core';
+import { PrivacyError, accountBlocked, privacyDb } from '@/lib/privacy/core';
 
 export async function POST(request: Request) {
   try {
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
+    await privacyDb();
     if (await accountBlocked('', email)) return apiError('This account is closed or pending erasure. Contact the privacy team for assistance.', 403);
 
     // Credentials Validation
@@ -133,6 +134,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error: any) {
     console.error('Login error:', error);
+    if (error instanceof PrivacyError && error.status === 503) return NextResponse.json({ success: false, error: 'Sign-in is temporarily unavailable. Please try again shortly.' }, { status: 503 });
     return apiError('Authentication failed due to an internal server error. Please try again.', 500);
   }
 }
