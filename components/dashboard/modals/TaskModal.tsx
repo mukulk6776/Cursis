@@ -15,6 +15,7 @@ export default function TaskModal() {
   const [priority, setPriority] = useState<PriorityLevel>('medium');
   const [deadline, setDeadline] = useState(new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]);
   const [tags, setTags] = useState('');
+  const [estimatedHours, setEstimatedHours] = useState(2);
 
   if (activeModal !== 'task-modal') return null;
 
@@ -37,6 +38,7 @@ export default function TaskModal() {
       status: 'todo',
       deadline,
       tags: parsedTags,
+      estimatedHours,
     });
 
     setName('');
@@ -93,6 +95,11 @@ export default function TaskModal() {
             </div>
 
             {/* Description */}
+            <label className="input-group">Effort estimate
+              <select className="input select" value={estimatedHours} onChange={event => setEstimatedHours(Number(event.target.value))}>
+                {[1, 2, 4].map(hours => <option key={hours} value={hours}>{hours}h</option>)}
+              </select>
+            </label>
             <div className="input-group">
               <label className="input-label">Description</label>
               <textarea
@@ -184,7 +191,7 @@ export default function TaskModal() {
                 />
               </div>
 
-              {/* Tags */}
+            {/* Tags */}
               <div className="input-group">
                 <label className="input-label">Tags (comma separated)</label>
                 <input

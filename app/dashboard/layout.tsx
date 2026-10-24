@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { DashboardProvider } from '@/lib/dashboard/DashboardContext';
 import DashboardShell from '@/components/dashboard/DashboardShell';
+import { WorkHubProvider } from '@/lib/work-hub/WorkHubContext';
 import '@/styles/dashboard.css';
 
 export default function DashboardLayout({
@@ -69,7 +70,7 @@ export default function DashboardLayout({
 
   return (
     <DashboardProvider>
-      <DashboardShell>{children}</DashboardShell>
+      <WorkHubProvider><DashboardShell>{children}</DashboardShell></WorkHubProvider>
     </DashboardProvider>
   );
 }

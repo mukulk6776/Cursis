@@ -11,6 +11,7 @@ export const personalScopes = (uid: string, email: string): Record<string, Docum
   invitations: { $or: [{ inviteeUserId: uid }, { email }] },
   notifications: { $or: [{ userId: uid }, { userEmail: email }] },
   ordis_conversations: { userId: uid },
+  day_plans: { userId: uid }, focus_sessions: { userId: uid },
   workspace_activation: { userId: uid }, workspace_email_preferences: { userId: uid }, workspace_email_deliveries: { userId: uid },
   agency_requests: { contactEmail: email },
   privacy_consents: { $or: [{ uid }, { email }] }, privacy_nominees: { uid }, privacy_requests: { uid },
@@ -28,6 +29,8 @@ const allowed: Record<string, readonly string[]> = {
   invitations: ['id', 'workspaceId', 'email', 'name', 'status', 'sentAt', 'expiresAt'],
   notifications: ['id', 'type', 'text', 'read', 'createdAt'],
   ordis_conversations: ['id', 'workspaceId', 'title', 'messages', 'createdAt', 'updatedAt'],
+  day_plans: ['workspaceId', 'date', 'items'],
+  focus_sessions: ['workspaceId', 'taskId', 'taskTitle', 'startedAt', 'expectedEndAt', 'endedAt', 'seconds', 'active'],
   agency_requests: ['id', 'companyName', 'contactEmail', 'requestedService', 'budgetRange', 'requirements', 'status', 'createdAt'],
   privacy_consents: ['purpose', 'granted', 'analytics', 'functional', 'version', 'source', 'age18Attested', 'at'],
   privacy_nominees: ['name', 'email', 'updatedAt'],
@@ -62,7 +65,8 @@ export async function exportAccount(uid: string, email: string) {
 export const workspaceCollections = ['tasks', 'projects', 'calendar_events', 'meetings', 'documents', 'departments',
   'automations', 'contacts', 'crm_deals', 'crm_leads', 'deals', 'leads', 'messages', 'integrations', 'settings', 'workflows',
   'ordis_brain', 'ordis_cards', 'ordis_approvals', 'dynamic_tools', 'goal_plans', 'ordis_conversations', 'agency_requests',
-  'workspace_activation', 'workspace_email_preferences', 'workspace_email_deliveries'];
+  'workspace_activation', 'workspace_email_preferences', 'workspace_email_deliveries',
+  'channel_messages', 'work_files', 'day_plans', 'focus_sessions'];
 
 export async function requestErasure(uid: string, email: string) {
   const db = await privacyDb();

@@ -76,12 +76,6 @@ export async function getTaskById(id: string, workspaceId?: string): Promise<Tas
   const cleanId = (id || '').trim();
   if (!cleanId) return null;
 
-  const task = inMemoryStore.tasks.get(cleanId);
-  if (task) {
-    if (workspaceId && task.workspaceId !== workspaceId) return null;
-    return task;
-  }
-
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
@@ -92,10 +86,12 @@ export async function getTaskById(id: string, workspaceId?: string): Promise<Tas
         inMemoryStore.tasks.set(cleanId, found);
         return found;
       }
+      return null;
     }
   } catch {}
 
-  return null;
+  const cached = inMemoryStore.tasks.get(cleanId);
+  return cached && (!workspaceId || cached.workspaceId === workspaceId) ? cached : null;
 }
 
 /**
@@ -278,6 +274,17 @@ export async function updateTask(
   const task = await getTaskById(id, workspaceId);
   if (!task) return null;
 
+  // Approval history and thread content can only change through the guarded work hub.
+  updates = { ...updates };
+  if (Object.keys(updates).some(key => key.includes('.') || key.startsWith('$'))) throw new Error('Invalid task update field.');
+  delete updates.collaboration;
+  delete (updates as any)._id;
+  delete updates.id;
+  delete updates.workspaceId;
+  delete updates.creatorId;
+  delete updates.createdAt;
+  if (updates.assigneeId !== undefined && updates.assignees === undefined) updates.assignees = updates.assigneeId ? [updates.assigneeId] : [];
+
   // Validate assignee if updated
   if (updates.assigneeId && updates.assigneeId !== task.assigneeId) {
     const isMember = await isWorkspaceMember(updates.assigneeId, task.workspaceId);
@@ -301,11 +308,18 @@ export async function updateTask(
   // Normalize status
   let nextStatus = updates.status || task.status;
   const rawStatus = String(updates.status || '').toLowerCase();
+  if (updates.status !== undefined && !['todo', 'in_progress', 'in-progress', 'in_review', 'review', 'done', 'completed', 'blocked'].includes(rawStatus)) {
+    throw new Error('Unsupported task status. Approved tasks require reviewer sign-off.');
+  }
   if (rawStatus === 'done' || rawStatus === 'completed') nextStatus = 'done';
   else if (rawStatus === 'in-progress' || rawStatus === 'in_progress') nextStatus = 'in_progress';
   else if (rawStatus === 'review' || rawStatus === 'in_review') nextStatus = 'in_review';
   else if (rawStatus === 'blocked') nextStatus = 'blocked';
   else if (rawStatus === 'todo') nextStatus = 'todo';
+
+  if (nextStatus === 'done' && task.collaboration?.approvals.some(approval => approval.status === 'pending')) {
+    throw new Error('Resolve the approval gate before completing this task.');
+  }
 
   // Validate project if updated
   let nextProjectId = task.projectId;
@@ -370,16 +384,26 @@ export async function updateTask(
   } as any;
 
 
-  inMemoryStore.tasks.set(task.id, updated);
-
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      await col.updateOne({ id, workspaceId: task.workspaceId }, { $set: updated });
+      const patch: Partial<Task> = { ...updates, updatedAt: updated.updatedAt };
+      if (updates.title !== undefined || (updates as any).name !== undefined) patch.title = title;
+      if (updates.dueDate !== undefined) patch.dueDate = dueDate;
+      if (updates.projectId !== undefined || (updates as any).project !== undefined) patch.projectId = nextProjectId;
+      if (updates.subtasks !== undefined) patch.subtasks = nextSubtasks;
+      if (updates.status !== undefined) Object.assign(patch, { status: nextStatus, completionPercent, completedAt: updated.completedAt, isAtRisk });
+      const result = await col.updateOne({ id, workspaceId: task.workspaceId,
+        ...(nextStatus === 'done' ? { 'collaboration.approvals': { $not: { $elemMatch: { status: 'pending' } } } } : {}),
+      }, { $set: patch });
+      if (!result.matchedCount) throw new Error('The task changed. Refresh before completing it.');
     }
   } catch (e) {
     console.warn('MongoDB update task error:', e);
+    throw e;
   }
+
+  inMemoryStore.tasks.set(task.id, updated);
 
   return updated;
 }
@@ -448,7 +472,10 @@ export async function reassignOrPairHelper(
   try {
     const col = await getCollection<Task>('tasks');
     if (col) {
-      await col.updateOne({ id: taskId, workspaceId: task.workspaceId }, { $set: task });
+      await col.updateOne({ id: taskId, workspaceId: task.workspaceId }, { $set: {
+        assigneeId: task.assigneeId, assigneeName: task.assigneeName, description: task.description,
+        isAtRisk: task.isAtRisk, riskReason: task.riskReason, suggestedHelperId: task.suggestedHelperId, updatedAt: task.updatedAt,
+      } });
     }
   } catch (e) {
     console.warn('MongoDB reassign task error:', e);

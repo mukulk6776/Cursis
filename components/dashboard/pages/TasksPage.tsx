@@ -5,6 +5,8 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { Task, TaskStatus } from '@/lib/dashboard/types';
 import { formatDate, isOverdue } from '@/lib/dashboard/data';
 import TaskCsvImport from '@/components/dashboard/TaskCsvImport';
+import TaskConversation from '@/components/dashboard/work/TaskConversation';
+import { useWorkHub } from '@/lib/work-hub/WorkHubContext';
 
 type ViewMode = 'list' | 'calendar' | 'timeline';
 type FilterMode = 'all' | 'overdue' | 'high-priority' | 'assigned-to-me' | 'upcoming' | 'completed';
@@ -28,7 +30,10 @@ export default function TasksPage() {
   const [activeFilter, setActiveFilter] = useState<FilterMode>('all');
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('');
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
-  const [selectedTaskDetail, setSelectedTaskDetail] = useState<Task | null>(null);
+  const [selectedTaskSnapshot, setSelectedTaskDetail] = useState<Task | null>(null);
+  const selectedTaskDetail = tasks.find(task => task.id === selectedTaskSnapshot?.id) || selectedTaskSnapshot;
+  const { snapshot } = useWorkHub();
+  const pendingApproval = snapshot?.tasks.find(task => task.id === selectedTaskDetail?.id)?.collaboration?.approvals.some(approval => approval.status === 'pending');
 
   // Filter logic
   const getFilteredTasks = () => {
@@ -607,6 +612,8 @@ export default function TasksPage() {
               borderRadius: '8px',
               border: '1px solid var(--border-color)',
               padding: '20px',
+              maxHeight: '85vh',
+              overflowY: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -653,6 +660,7 @@ export default function TasksPage() {
                   <select
                     className="input select"
                     value={selectedTaskDetail.status}
+                    aria-label="Task status"
                     onChange={(e) => {
                       updateTaskStatus(selectedTaskDetail.id, e.target.value as TaskStatus);
                       setSelectedTaskDetail({ ...selectedTaskDetail, status: e.target.value as TaskStatus });
@@ -662,7 +670,7 @@ export default function TasksPage() {
                     <option value="todo">To Do</option>
                     <option value="in-progress">In Progress</option>
                     <option value="review">Review</option>
-                    <option value="completed">Completed</option>
+                    <option value="completed" disabled={pendingApproval}>Completed</option>
                   </select>
                 </div>
                 <div>
@@ -676,6 +684,7 @@ export default function TasksPage() {
               </div>
             </div>
 
+            <TaskConversation key={selectedTaskDetail.id} taskId={selectedTaskDetail.id} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
               <button
                 type="button"
@@ -701,6 +710,7 @@ export default function TasksPage() {
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
+                  disabled={pendingApproval}
                   onClick={() => {
                     toggleTaskComplete(selectedTaskDetail.id);
                     setSelectedTaskDetail(null);

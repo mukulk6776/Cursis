@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import TaskBoard from '@/components/dashboard/work/TaskBoard';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function ProjectsPage() {
@@ -23,7 +24,6 @@ export default function ProjectsPage() {
   const getTasksForProject = (projectId: string) => tasks.filter((t) => t.project === projectId);
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
-  const projectTasks = selectedProjectId ? getTasksForProject(selectedProjectId) : [];
 
   const handleLoadTemplate = (t: { name: string; desc: string; tasks: number }) => {
     const projId = 'proj_' + Date.now();
@@ -567,74 +567,7 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              {/* Task List */}
-              <div style={{ marginBottom: '16px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-primary)' }}>
-                  Project Tasks ({projectTasks.length})
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {projectTasks.length === 0 ? (
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '12px', padding: '12px 0' }}>No tasks in this project yet.</div>
-                  ) : (
-                    projectTasks.map((t) => {
-                      const assignee = getEmployee(t.assignee);
-                      return (
-                        <div
-                          key={t.id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: '8px 12px',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '6px',
-                            background: 'var(--surface-card)',
-                            fontSize: '12px',
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: '9px',
-                              textTransform: 'uppercase',
-                              fontWeight: 700,
-                              padding: '1px 5px',
-                              borderRadius: '4px',
-                              border: '1px solid var(--border-color)',
-                              background: 'var(--c-surface)',
-                              color: t.priority === 'urgent' || t.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
-                            }}
-                          >
-                            {t.priority}
-                          </span>
-                          <span style={{ flex: 1, fontWeight: 600, color: 'var(--text-primary)' }}>{t.name}</span>
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: 600,
-                              padding: '1px 6px',
-                              borderRadius: '4px',
-                              background: 'var(--c-surface)',
-                              border: '1px solid var(--border-color)',
-                              color: t.status === 'completed' ? '#16a34a' : 'var(--text-secondary)',
-                            }}
-                          >
-                            {t.status}
-                          </span>
-                          {assignee && (
-                            <div
-                              className="avatar avatar-xs"
-                              style={{ background: assignee.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px' }}
-                              title={assignee.name}
-                            >
-                              {assignee.initials}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
+              <TaskBoard projectId={selectedProject.id} />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>

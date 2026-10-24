@@ -799,6 +799,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               deadline: st.dueDate ? st.dueDate.split('T')[0] : (st.deadline || new Date().toISOString().split('T')[0]),
               tags: Array.isArray(st.tags) ? st.tags : [],
               description: st.description || '',
+              estimatedHours: st.estimatedHours || 4,
               subtasks: Array.isArray(st.subtasks)
                 ? st.subtasks.map((s: any) => ({
                     id: s.id || 'sub_' + Math.random().toString(36).substring(2, 6),
@@ -1833,6 +1834,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const newTask: Task = {
  id: 't_' + Date.now(),
  name: taskData.name,
+ estimatedHours: taskData.estimatedHours || 2,
  project: taskData.project || (projects[0]?.id || ''),
  assignee: taskData.assignee || user.id,
  assignees: taskData.assignees || [taskData.assignee || user.id],
@@ -1907,6 +1909,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  body: JSON.stringify({
  id: newTask.id,
  title: newTask.name,
+ estimatedHours: newTask.estimatedHours,
  description: newTask.description || '',
  assigneeId: newTask.assignee,
  assigneeName: assigneeName,

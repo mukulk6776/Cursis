@@ -127,6 +127,7 @@ export interface Project {
 }
 
 export interface Task {
+  estimatedHours?: number;
   id: string;
   workspaceId?: string;
   departmentId?: string;

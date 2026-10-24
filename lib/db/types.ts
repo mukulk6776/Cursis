@@ -127,6 +127,7 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type TaskStatus = 'todo' | 'in_progress' | 'in_review' | 'done' | 'blocked';
 
 export interface Task {
+  collaboration?: import('@/lib/work-hub/types').TaskConversation;
   id: string;
   workspaceId: string;
   projectId?: string;

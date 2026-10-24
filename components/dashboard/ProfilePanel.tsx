@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { getFirebaseAuth } from '@/lib/auth/firebase';
 import { updateProfile } from 'firebase/auth';
+import MemberFocusStatus from './work/MemberFocusStatus';
 
 const processAndCompressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -300,7 +301,7 @@ export default function ProfilePanel() {
  emp.status === 'online' ? 'success' : emp.status === 'busy' ? 'error' : 'neutral'
  }`}
  >
- ● {emp.status}
+ <MemberFocusStatus userId={emp.id} fallback={`● ${emp.status}`} />
  </span>
  </div>
  </div>

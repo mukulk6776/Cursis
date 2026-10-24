@@ -1,5 +1,6 @@
 'use client';
 import RecordSignupSource from './RecordSignupSource';
+import MyDayTray, { FocusStatus } from './work/MyDayTray';
 
 import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -81,6 +82,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         {/* Main Section */}
         <div className="main-wrapper">
           <Topbar />
+          <FocusStatus />
           <motion.main
             key={pathname || 'main'}
             initial={{ opacity: 0, y: 12 }}
@@ -113,6 +115,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
 
       {/* Toast Notifications */}
       <ToastContainer />
+      <MyDayTray />
     </div>
   );
 }

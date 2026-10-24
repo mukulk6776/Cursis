@@ -20,7 +20,8 @@ export type CursisEventType =
   | 'document.created'
   | 'automation.triggered'
   | 'crm.deal_created'
-  | 'crm.deal_updated';
+  | 'crm.deal_updated'
+  | 'work.changed';
 
 export interface RealtimeEvent {
   type: CursisEventType;
@@ -33,6 +34,7 @@ export interface RealtimeEvent {
 type EventHandler = (event: RealtimeEvent) => void;
 
 interface UseRealtimeOptions {
+  endpoint?: string;
   /** Workspace ID to subscribe to */
   workspaceId: string;
   /** Whether to enable the connection (default: true) */
@@ -59,48 +61,50 @@ interface UseRealtimeOptions {
  * });
  * ```
  */
-export function useRealtime({ workspaceId, enabled = true, onEvent, onConnectionChange }: UseRealtimeOptions) {
+export function useRealtime({ workspaceId, enabled = true, endpoint = '/api/sse', onEvent, onConnectionChange }: UseRealtimeOptions) {
   const [connected, setConnected] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const lastEventIdRef = useRef<string | null>(null);
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handlersRef = useRef(onEvent);
+  const connectionRef = useRef(onConnectionChange);
+  const activeRef = useRef(false);
 
   // Keep handlers ref up to date without re-connecting
   useEffect(() => {
     handlersRef.current = onEvent;
-  }, [onEvent]);
+    connectionRef.current = onConnectionChange;
+  }, [onEvent, onConnectionChange]);
 
   const connect = useCallback(() => {
-    if (!workspaceId || !enabled) return;
+    if (!workspaceId || !enabled || !activeRef.current) return;
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
 
     // Close any existing connection
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
     }
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
     const params = new URLSearchParams({ workspaceId });
     if (lastEventIdRef.current) {
       params.set('lastEventId', lastEventIdRef.current);
     }
-    if (token) {
-      params.set('token', token);
-    }
-
-    const es = new EventSource(`/api/sse?${params.toString()}`);
+    // EventSource sends the existing HttpOnly session cookie, keeping tokens out of URLs.
+    const es = new EventSource(`${endpoint}?${params.toString()}`);
     eventSourceRef.current = es;
 
     es.onopen = () => {
+      if (eventSourceRef.current !== es || !activeRef.current) return;
       setConnected(true);
-      onConnectionChange?.(true);
+      connectionRef.current?.(true);
       retryCountRef.current = 0; // Reset retry count on successful connect
     };
 
     es.onerror = () => {
+      if (eventSourceRef.current !== es || !activeRef.current) return;
       setConnected(false);
-      onConnectionChange?.(false);
+      connectionRef.current?.(false);
       es.close();
       eventSourceRef.current = null;
 
@@ -125,10 +129,12 @@ export function useRealtime({ workspaceId, enabled = true, onEvent, onConnection
       'document.created',
       'automation.triggered',
       'crm.deal_created', 'crm.deal_updated',
+      'work.changed',
     ];
 
     for (const eventType of allEventTypes) {
       es.addEventListener(eventType, (e: MessageEvent) => {
+        if (eventSourceRef.current !== es || !activeRef.current) return;
         try {
           const event: RealtimeEvent = JSON.parse(e.data);
           lastEventIdRef.current = e.lastEventId || null;
@@ -142,12 +148,19 @@ export function useRealtime({ workspaceId, enabled = true, onEvent, onConnection
         }
       });
     }
-  }, [workspaceId, enabled, onConnectionChange]);
+  }, [workspaceId, enabled, endpoint]);
 
   useEffect(() => {
+    activeRef.current = true;
+    lastEventIdRef.current = null;
+    retryCountRef.current = 0;
+    setConnected(false);
     connect();
+    window.addEventListener('online', connect);
 
     return () => {
+      activeRef.current = false;
+      window.removeEventListener('online', connect);
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;

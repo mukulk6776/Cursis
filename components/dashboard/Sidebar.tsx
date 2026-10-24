@@ -201,6 +201,10 @@ export default function Sidebar() {
         {!sidebarCollapsed && <div className="sidebar-section-title">Core Workspace</div>}
 
         {/* Tasks */}
+        <button type="button" className={`sidebar-item ${currentPage === 'messages' ? 'active' : ''}`} onClick={() => handleNav('messages')} aria-current={currentPage === 'messages' ? 'page' : undefined} title="Channels & Action Dock" style={btnResetStyle}>
+          <span className="sidebar-item-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M21 11a8 8 0 0 1-8 8H6l-4 3V11a9 9 0 0 1 19 0Z" /></svg></span>
+          <span className="sidebar-item-text">Channels</span>
+        </button>
         <button
           type="button"
           className={`sidebar-item ${currentPage === 'tasks' ? 'active' : ''}`}

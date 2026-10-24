@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate } from '@/lib/dashboard/data';
 import { AlertTriangle } from 'lucide-react';
+import TeamPulse from '@/components/dashboard/work/TeamPulse';
+import MemberFocusStatus from '@/components/dashboard/work/MemberFocusStatus';
 
 type TeamTab = 'directory' | 'invites' | 'org-chart' | 'workload' | 'onboarding';
 
@@ -185,7 +187,7 @@ export default function TeamPage() {
             style={{ fontSize: '12px', padding: '3px 10px', height: '30px', fontWeight: activeTab === 'workload' ? 700 : 500 }}
             onClick={() => setActiveTab('workload')}
           >
-            Workload
+            Team Pulse
           </button>
           <button
             type="button"
@@ -335,7 +337,7 @@ export default function TeamPage() {
                               color: emp.status === 'online' ? '#16a34a' : 'var(--text-secondary)',
                             }}
                           >
-                            {emp.status}
+                            <MemberFocusStatus userId={emp.id} fallback={emp.status} />
                           </span>
                         </div>
 
@@ -655,88 +657,8 @@ export default function TeamPage() {
       )}
 
       {/* 4. WORKLOAD DISTRIBUTION TAB */}
-      {activeTab === 'workload' && (
-        <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div>
-              <h3 style={{ margin: '0 0 2px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Team Task Allocation &amp; Bandwidth
-              </h3>
-              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
-                Active tasks distributed across team members.
-              </p>
-            </div>
-          </div>
+      {activeTab === 'workload' && <TeamPulse />}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '560px', overflowY: 'auto' }}>
-            {employees.slice(0, 30).map((emp) => {
-              const activeCount = tasks.filter((t) => t.assignee === emp.id && t.status !== 'completed').length;
-              const loadPercent = Math.min(100, Math.round((activeCount / 8) * 100));
-              const isHeavy = activeCount >= 6;
-
-              return (
-                <div
-                  key={emp.id}
-                  style={{
-                    padding: '12px 14px',
-                    background: 'var(--surface-card)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '6px',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div
-                        className="avatar avatar-sm"
-                        style={{
-                          background: emp.color || '#0f4cff',
-                          color: emp.color === '#ccff00' ? '#000' : '#fff',
-                          fontWeight: 700,
-                          width: '24px',
-                          height: '24px',
-                          fontSize: '10px',
-                        }}
-                      >
-                        {emp.initials}
-                      </div>
-                      <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{emp.name}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>({emp.role})</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          padding: '1px 6px',
-                          borderRadius: '4px',
-                          background: 'var(--c-surface)',
-                          border: '1px solid var(--border-color)',
-                          color: isHeavy ? '#dc2626' : '#16a34a',
-                        }}
-                      >
-                        {isHeavy ? 'High Load' : 'Available'}
-                      </span>
-                      <span style={{ fontSize: '12px', fontWeight: 600 }}>{activeCount} active tasks</span>
-                    </div>
-                  </div>
-                  <div style={{ width: '100%', height: '8px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        height: '100%',
-                        width: `${loadPercent}%`,
-                        background: isHeavy ? '#dc2626' : '#0f4cff',
-                        transition: 'width 0.3s ease',
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 5. ONBOARDING CHECKLIST TAB */}
       {activeTab === 'onboarding' && (
         <div className="card" style={{ padding: '20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
           <span

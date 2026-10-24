@@ -1,0 +1,117 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { harness } = require('./helpers/work-hub.cjs');
+const day = '2026-10-23';
+async function dock(h, text = 'Homepage UI') {
+  const {message} = await h.command({action:'send',channelId:'general',text,files:[]});
+  const {task} = await h.command({action:'dock',messageId:message.id,assigneeId:'alice',dueDate:day,estimatedHours:2});
+  return {task,message};
+}
+test('commands validate finite estimates, dates, URLs, and request origins before writes', async () => {
+  const h=harness();
+  for (const body of [{action:'plan',date:'2026-02-30',items:[]},{action:'plan',date:day,items:[{taskId:'a',hours:-1}]},{action:'plan',date:day,items:[{taskId:'a',hours:Infinity}]},{action:'request_approval',taskId:'a',reviewerId:'bob',text:'Review',url:'javascript:alert(1)'}]) assert.equal((await h.post(body)).status,400);
+  assert.equal((await h.post({action:'send',channelId:'general',text:'Hi'},'https://evil.example')).status,403);
+  assert.equal(h.stores.size,0);
+});
+test('workspace boundaries, viewers and storage outage fail closed', async () => {
+  const h=harness(); h.act(null);
+  assert.equal((await h.post({action:'send',channelId:'general',text:'Hi'})).status,401);
+  h.act('viewer'); assert.equal((await h.post({action:'send',channelId:'general',text:'Hi'})).status,403);
+  h.act('alice'); assert.equal((await h.post({workspaceId:'ws_B',action:'send',channelId:'general',text:'Hi'})).status,403);
+  h.setAvailable(false); assert.equal((await h.post({action:'send',channelId:'general',text:'Hi'})).status,503);
+  assert.equal(h.store.inMemoryStore.tasks.size,0);
+});
+test('concurrent docking creates one task and shared thread files remain attached', async () => {
+  const h=harness();
+  const {message}=await h.command({action:'send',channelId:'general',text:'Homepage UI',files:[]});
+  const command={action:'dock',messageId:message.id,assigneeId:'alice',dueDate:day,estimatedHours:2};
+  const [a,b]=await Promise.all([h.command(command),h.command(command)]);
+  assert.equal(a.task.id,b.task.id); assert.equal(h.stores.get('tasks').size,1);
+  await h.collection('work_files').insertOne({_id:'file1',id:'file1',workspaceId:'ws_A',name:'Design.pdf',size:20,data:Buffer.from('design')});
+  const result=await h.command({action:'reply',taskId:a.task.id,text:'Design attached',files:['file1']},'bob');
+  assert.equal(result.task.collaboration.messages[0].authorId,'bob');
+  assert.equal(result.task.collaboration.files[0].id,'file1');
+  await assert.rejects(h.command({action:'reply',taskId:a.task.id,text:'Bad file',files:['file_other']}),/attachment/);
+  await assert.rejects(h.command({action:'reply',taskId:a.task.id,text:'Cross workspace',files:[]},'alice','ws_B'),/not found/);
+});
+test('first replies to existing board tasks append without overwriting each other',async () => {
+  const h=harness(),{task}=await dock(h);
+  delete h.stores.get('tasks').get(task._id).collaboration;
+  await Promise.all(['First','Second'].map(text=>h.command({action:'reply',taskId:task.id,text,files:[]})));
+  assert.equal(h.stores.get('tasks').get(task._id).collaboration.messages.length,2);
+});
+test('approval gates require a reviewer, reject self-signoff and atomically record one decision',async () => {
+  const h=harness(),{task}=await dock(h);
+  const request={action:'request_approval',taskId:task.id,reviewerId:'bob',text:'Review the homepage',url:'https://example.com/design',files:[]};
+  await assert.rejects(h.command({...request,reviewerId:'alice'}),/someone else/);
+  await assert.rejects(h.command({...request,reviewerId:'viewer'}),/permission/);
+  const result=await h.command(request);
+  assert.equal(result.task.status,'in_review');
+  const approvalId=result.task.collaboration.approvals[0].id;
+  await assert.rejects(h.command({action:'edit',taskId:task.id,status:'done'}),/approval gate/);
+  await assert.rejects(h.tasks.updateTask(task.id,{status:'done'},'ws_A'),/approval gate/);
+  await assert.rejects(h.tasks.updateTask(task.id,{'collaboration.approvals':[]},'ws_A'),/Invalid task/);
+  await assert.rejects(h.tasks.updateTask(task.id,{status:'approved'},'ws_A'),/reviewer sign-off/);
+  await h.tasks.updateTask(task.id,{title:'Renamed',collaboration:{approvals:[]}},'ws_A');
+  assert.equal(h.stores.get('tasks').get(task._id).collaboration.approvals.length,1);
+  const decision={action:'decide',taskId:task.id,approvalId,decision:'approved'};
+  await assert.rejects(h.command(decision),/requesters/);
+  await assert.rejects(h.command(decision,'carol'),/designated reviewer/);
+  const choices=await Promise.allSettled([h.command(decision,'bob'),h.command({...decision,decision:'changes_requested'},'bob')]);
+  assert.equal(choices.filter(choice=>choice.status==='fulfilled').length,1);
+  const saved=h.stores.get('tasks').get(task._id),approval=saved.collaboration.approvals[0];
+  assert.equal(saved.status,'done'); assert.equal(approval.decidedBy,'bob'); assert(approval.decidedAt);
+  assert.equal(h.types.taskStage(saved),'approved');
+  await h.command({action:'edit',taskId:task.id,status:'in_progress'});
+  assert.equal(h.types.taskStage(h.stores.get('tasks').get(task._id)),'in_progress');
+  await h.command(request); const latest=h.stores.get('tasks').get(task._id).collaboration.approvals.at(-1);
+  const changes=await h.command({...decision,approvalId:latest.id,decision:'changes_requested'},'bob');
+  assert.equal(changes.task.status,'in_progress'); assert.equal(changes.task.collaboration.approvals.length,2);
+});
+test('daily trays isolate users and dates, enforce ownership and five tasks, and use pure math',async () => {
+  const h=harness(),{task}=await dock(h);
+  const plan={action:'plan',date:day,items:[{taskId:task.id,hours:7.5}]};
+  await assert.rejects(h.command(plan,'bob'),/assigned to you/);
+  await assert.rejects(h.command({...plan,items:[...plan.items,...plan.items]}),/only appear once/);
+  assert.throws(()=>h.service.workCommand.parse({...plan,items:Array(6).fill(plan.items[0])}));
+  await h.command(plan);
+  assert.equal((await h.service.workSnapshot(h.auth('alice'),day)).plans.length,1);
+  assert.equal((await h.service.workSnapshot(h.auth('bob'),day)).plans.length,0);
+  assert.equal((await h.service.workSnapshot(h.auth('alice'),'2026-10-24')).plans.length,0);
+  assert.equal(h.types.workload(7.5).label,'Full'); assert.equal(h.types.workload(3).label,'Available'); assert.equal(h.types.workload(9).label,'Overloaded');
+  await h.command({action:'edit',taskId:task.id,status:'done'});
+  await h.command(plan);
+  assert.equal((await h.service.workSnapshot(h.auth('alice'),day)).plans[0].items[0].hours,7.5);
+});
+test('timers survive reload, enforce one active timer per user, and stop idempotently with task-linked time',async () => {
+  const h=harness(),{task}=await dock(h);
+  await h.command({action:'plan',date:day,items:[{taskId:task.id,hours:2}]});
+  const start={action:'start',taskId:task.id,date:day};
+  const results=await Promise.allSettled([h.command(start),h.command(start)]);
+  assert.equal(results.filter(result=>result.status==='fulfilled').length,1);
+  assert(h.indexes.some(index=>index.options.unique && index.options.partialFilterExpression.active));
+  const snapshot=await h.service.workSnapshot(h.auth('alice'),day),session=snapshot.focus[0];
+  assert.equal(session.taskId,task.id); assert(session.expectedEndAt);
+  h.stores.get('focus_sessions').get(session._id).startedAt=new Date(Date.now()-3600000).toISOString();
+  await assert.rejects(h.command({action:'stop',sessionId:session._id},'bob'),/not found/);
+  await h.command({action:'stop',sessionId:session._id});
+  await h.command({action:'stop',sessionId:session._id});
+  const stopped=await h.service.workSnapshot(h.auth('alice'),day);
+  assert.equal(stopped.focus.length,0); assert(stopped.loggedHours[task.id]>=1 && stopped.loggedHours[task.id]<1.01);
+  assert.equal(h.stores.get('focus_sessions').size,1);
+  const resumed=await h.command(start);
+  const elsewhere=await h.service.workSnapshot({...h.auth('alice'),workspaceId:'ws_B'},day);
+  assert.equal(elsewhere.otherFocus.id,resumed.session._id);
+  assert.equal(elsewhere.focus.length,0);
+  await h.command({action:'stop',sessionId:resumed.session._id},'alice','ws_B');
+  assert.equal(h.stores.get('focus_sessions').get(resumed.session._id).active,false);
+});
+test('file upload and download require workspace authorization and serve inert attachment bytes',async()=>{
+  const h=harness();
+  const form=new FormData();form.set('file',new File(['hello'],'design.html',{type:'text/html'}));
+  const uploaded=await h.fileRoute.POST(new Request('https://app.example/api/work-hub/files?workspaceId=ws_A',{method:'POST',headers:{origin:'https://app.example'},body:form}));
+  assert.equal(uploaded.status,201); const {file}=await uploaded.json();
+  const response=await h.fileRoute.GET(new Request('https://app.example/api/work-hub/files?workspaceId=ws_A&id='+file.id));
+  assert.equal(await response.text(),'hello');assert.match(response.headers.get('content-disposition'),/^attachment/);assert.equal(response.headers.get('x-content-type-options'),'nosniff');
+  assert.equal((await h.fileRoute.GET(new Request('https://app.example/api/work-hub/files?workspaceId=ws_B&id='+file.id))).status,403);
+});
