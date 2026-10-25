@@ -19,7 +19,7 @@ if (fs.existsSync('app/changelog/page.tsx')) routes.push('/changelog');
     assert(description && !descriptions.has(description), route + ': unique description'); descriptions.add(description);
     assert.equal(new URL($('link[rel="canonical"]').attr('href')).href, new URL(route, 'https://cursis.in').href, route + ': canonical');
     assert(!($('meta[name="robots"]').attr('content') || '').includes('noindex'), route + ': indexable');
-    assert.equal($('meta[property="og:image"]').first().attr('content'), 'https://cursis.in/marketing-og.png', route + ': image');
+    assert.equal($('meta[property="og:image"]').first().attr('content'), 'https://cursis.in/cursis-og.png', route + ': image');
     assert.equal($('meta[name="twitter:creator"]').attr('content'), '@cursis_', route + ': handle');
     assert.equal($('meta[property="og:title"]').attr('content'), title, route + ': OG title');
     assert.equal($('meta[property="og:description"]').attr('content'), description, route + ': OG description');

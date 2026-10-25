@@ -3,12 +3,12 @@ import { BRAND_NAME, SITE_URL, TEAM_USER_LIMIT, TWITTER_HANDLE } from '@/lib/sit
 export { SITE_URL, SOCIAL_PROFILES as socialProfiles } from '@/lib/site';
 
 export const SOCIAL_IMAGE = {
-  url: `${SITE_URL}/marketing-og.png`,
-  secureUrl: `${SITE_URL}/marketing-og.png`,
+  url: `${SITE_URL}/cursis-og.png`,
+  secureUrl: `${SITE_URL}/cursis-og.png`,
   width: 1200,
   height: 630,
   type: 'image/png',
-  alt: 'Cursis — Your team’s work. Together at last. Tasks, projects, meetings and Ordis AI. Built for teamwork.',
+  alt: 'Cursis — Less chasing. More getting done. Daily priorities, team workload and meeting follow-ups.',
 };
 
 export function marketingMetadata(path: string, title: string, description: string): Metadata {
