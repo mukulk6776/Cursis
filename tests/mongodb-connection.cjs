@@ -36,6 +36,14 @@ test('server selection diagnostics expose nested error codes without credentials
   assert.equal(details.servers[0].causeCode, cause.code);
   assert.doesNotMatch(JSON.stringify(h.warnings), /private-password|private-host/);
 });
+test('a server selection error without a reason still resolves safely', async () => {
+  const h = harness(async () => { throw new MongoServerSelectionError(); });
+  assert.equal(await h.exports.default, null);
+  assert.equal(await h.exports.getDb(), null);
+  assert.equal(h.warnings.length, 1);
+  assert.equal(h.closes, 1);
+});
+
 test('concurrent callers share one connection and one retry after cooldown', async () => {
   const h = harness(async attempt => { if (attempt === 1) throw new Error('Unavailable'); });
   assert.deepEqual(await Promise.all([h.exports.getDb(), h.exports.getDb()]), [null, null]);

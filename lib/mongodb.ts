@@ -79,7 +79,7 @@ async function initClient(): Promise<MongoClient | null> {
     // Closing may wait for DNS too; keep cleanup outside the request's timeout.
     void candidate?.close().catch(() => {});
     console.warn('[MongoDB] Connection unavailable; retrying after 30 seconds.', error instanceof Error ? error.message : 'Connection failed');
-    if (error instanceof MongoServerSelectionError) {
+    if (error instanceof MongoServerSelectionError && error.reason) {
       // Log only diagnostic codes; nested error messages can contain connection credentials.
       console.warn('[MongoDB] Server selection details:', {
         topology: error.reason.type,
