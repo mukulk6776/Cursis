@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection, Document } from 'mongodb';
+import { MongoClient, Db, Collection, Document, MongoServerSelectionError } from 'mongodb';
 import fs from 'fs';
 import path from 'path';
 
@@ -79,6 +79,17 @@ async function initClient(): Promise<MongoClient | null> {
     // Closing may wait for DNS too; keep cleanup outside the request's timeout.
     void candidate?.close().catch(() => {});
     console.warn('[MongoDB] Connection unavailable; retrying after 30 seconds.', error instanceof Error ? error.message : 'Connection failed');
+    if (error instanceof MongoServerSelectionError) {
+      // Log only diagnostic codes; nested error messages can contain connection credentials.
+      console.warn('[MongoDB] Server selection details:', {
+        topology: error.reason.type,
+        servers: Array.from(error.reason.servers.values(), ({ error: serverError }) => ({
+          type: serverError?.name,
+          code: serverError?.code,
+          causeCode: serverError?.cause && 'code' in serverError.cause ? serverError.cause.code : undefined,
+        })),
+      });
+    }
     return null;
   } finally {
     clearTimeout(timer);
