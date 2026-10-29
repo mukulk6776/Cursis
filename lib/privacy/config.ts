@@ -1,8 +1,8 @@
 export const PRIVACY_VERSION = '2026-10-18';
 export const privacyContact = {
-  entity: process.env.PRIVACY_LEGAL_ENTITY || 'Saransh Vashistha, operating as Cursis',
+  entity: process.env.PRIVACY_LEGAL_ENTITY || 'Saransh Vashistha and Mukul Kumar, operating as Cursis',
   address: process.env.PRIVACY_POSTAL_ADDRESS || 'Business contact address awaiting confirmation',
-  name: process.env.PRIVACY_OFFICER_NAME || 'Saransh Vashistha',
+  name: process.env.PRIVACY_OFFICER_NAME || 'Saransh Vashistha and Mukul Kumar',
   title: process.env.PRIVACY_OFFICER_TITLE || 'Operator and Grievance Contact',
   email: process.env.PRIVACY_OFFICER_EMAIL || 'official@cursis.in',
 };

@@ -371,9 +371,9 @@ We comply with cookie laws in all jurisdictions where we operate. Contact us for
 
 ## 13. CHILDREN'S PRIVACY
 
-The Service is not intended for users under 18. We do not knowingly place cookies on devices of children under 18.
+The Service is for users aged 13 or older. We do not knowingly place cookies on devices of children under 13.
 
-If you believe a child has used the Service, please contact us at privacy@cursis.in so we can delete any cookies.
+If you believe a child under 13 has used the Service, please contact us at privacy@cursis.in so we can delete any cookies.
 
 ## 14. CONTACT US
 

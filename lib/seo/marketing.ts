@@ -39,7 +39,7 @@ export function marketingMetadata(path: string, title: string, description: stri
 }
 
 export const marketingFaqs = [
-  { question: 'Do I have to choose a paid plan?', answer: 'There is no paid plan to choose. The Free plan page explains the workspace limit and what is included.' },
+  { question: 'Do I have to choose a paid plan?', answer: 'There is no paid plan to choose. The Plans page explains the workspace limit and what is included.' },
   { question: 'What if we have a larger team?', answer: `A workspace holds up to ${TEAM_USER_LIMIT} people. If your team is larger, ask us about your needs before inviting everyone.` },
   { question: 'Can I sign in with an existing account?', answer: 'Yes. Choose Sign In in the navigation rather than creating another account.' },
   { question: 'Can I type my own question on the homepage?', answer: 'The homepage offers fixed examples. In your workspace, you can ask Ordis about your own work.' },

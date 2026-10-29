@@ -150,7 +150,7 @@ export default function LandingNav() {
         <div className={`lp-nav-links ${mobileOpen ? 'lp-nav-open' : ''}`} id="lp-nav-links">
           {[
             { href: '/#ordis', selector: '#ordis', label: 'Try Ordis' },
-            { href: '/pricing', selector: '#main-content', label: 'Free plan' },
+            { href: '/pricing', selector: '#main-content', label: 'Plans' },
             { href: '/faq', selector: '#main-content', label: 'FAQ' },
             { href: '/compare', selector: '#main-content', label: 'Compare' },
           ].map((item) => (

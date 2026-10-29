@@ -2,7 +2,7 @@
 
 Version 2026-10-18. The current complete notice, itemised data matrix, provider disclosures and retention schedule are available at [cursis.in/privacy](https://cursis.in/privacy), separately from the Terms of Service.
 
-Use the [Privacy Centre](https://cursis.in/privacy/rights) for account JSON, correction, nomination, consent withdrawal, access requests, grievances and erasure. Operator and Grievance Contact: Saransh Vashistha, operating as Cursis. Email: official@cursis.in. Business contact postal address: awaiting confirmation.
+Use the [Privacy Centre](https://cursis.in/privacy/rights) for account JSON, correction, nomination, consent withdrawal, access requests, grievances and erasure. Operator and Grievance Contact: Saransh Vashistha and Mukul Kumar, operating as Cursis. Email: official@cursis.in. Business contact postal address: awaiting confirmation.
 
 Cursis acts as fiduciary for its account and direct inquiry purposes and processor for workspace customer content under instructions. The customer must give its own notices and establish lawful processing.
 

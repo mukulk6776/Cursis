@@ -7,8 +7,8 @@ Prepared 18 October 2026 for an unregistered business operated under the Cursis 
 | Detail or role | Current information | Next action |
 | --- | --- | --- |
 | Trading name | Cursis | Use consistently |
-| Responsible operator / contracting party | Saransh Vashistha, operating as Cursis | Use full legal identity in notices and contracts |
-| Privacy and grievance contact | Saransh Vashistha | Publish with the contact title |
+| Responsible operator / contracting party | Saransh Vashistha and Mukul Kumar, operating as Cursis | Use full legal identity in notices and contracts |
+| Privacy and grievance contact | Saransh Vashistha and Mukul Kumar | Publish with the contact title |
 | Contact title | Operator and Grievance Contact | Do not imply a statutory DPO appointment |
 | Privacy / grievance email | official@cursis.in | Verify delivery, secure the mailbox, and monitor daily |
 | Business postal/contact address | Missing | Provide a real usable service address; never invent one |

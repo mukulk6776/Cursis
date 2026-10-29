@@ -4,7 +4,7 @@ Audit date: 18 October 2026. Scope: this working tree, not a live cloud-account 
 
 The operator confirmed Cursis has not been registered. Registration is not a prerequisite for privacy duties: the actual individual operating the service may be the fiduciary/contracting party under the trading name. Remove corporate “Inc.” labels and fictitious addresses; publish that individual's verified identity, business contact address and grievance contact. Do not invent a company number, registered office or overseas compliance agent. This does not settle tax, business-registration or other applicability questions.
 
-Confirmed by the user: Saransh Vashistha is the operator and designated grievance contact; official@cursis.in is the contact address. These are the notice defaults. A publishable business postal address and actual mailbox delivery/monitoring evidence remain outstanding. No statutory DPO designation is inferred.
+Confirmed by the user: Saransh Vashistha and Mukul Kumar are the operators and designated grievance contacts; official@cursis.in is the contact address. These are the notice defaults. A publishable business postal address and actual mailbox delivery/monitoring evidence remain outstanding. No statutory DPO designation is inferred.
 
 ## Role and responsibility
 

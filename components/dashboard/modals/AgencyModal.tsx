@@ -126,7 +126,7 @@ export default function AgencyModal() {
             </div>
           </div>
 
-          <label style={{ padding: 16, display: 'block' }}><input type="checkbox" required checked={privacyConsent} onChange={event => setPrivacyConsent(event.target.checked)} /> I am at least 18 and consent to processing these details to respond to this inquiry under the <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</a>. Withdraw by contacting the privacy team. No marketing consent is included.</label>
+          <label style={{ padding: 16, display: 'block' }}><input type="checkbox" required checked={privacyConsent} onChange={event => setPrivacyConsent(event.target.checked)} /> I am at least 13 and consent to processing these details to respond to this inquiry under the <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</a>. Withdraw by contacting the privacy team. No marketing consent is included.</label>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={closeModal}>
               Cancel

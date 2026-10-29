@@ -31,7 +31,7 @@ export default function TermsPage() {
           {BRAND_NAME} is completely free. {FREE_WORKSPACE_TEXT}. {INCLUDED_TOOLS.join(', ')} are included. There are no paid plans, trials or charges.
         </p>
         <p style={{ margin: 0 }}>
-          Service availability may be affected by maintenance or interruptions.
+          You must be at least 13 years old to use Cursis. Service availability may be affected by maintenance or interruptions.
         </p>
       </section>
 

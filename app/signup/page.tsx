@@ -134,7 +134,7 @@ export default function SignupPage() {
     }
 
     if (!ageConfirmed || !privacyConsent) {
-      setErrorMsg('Confirm that you are at least 18 and consent to account processing in the privacy notice.');
+      setErrorMsg('Confirm that you are at least 13 and consent to account processing in the privacy notice.');
       return;
     }
 
@@ -160,7 +160,7 @@ export default function SignupPage() {
 
   const handleGoogleSignup = async () => {
     if (!ageConfirmed || !privacyConsent) {
-      setErrorMsg('Confirm that you are at least 18 and consent to account processing before Google sign-up.');
+      setErrorMsg('Confirm that you are at least 13 and consent to account processing before Google sign-up.');
       return;
     }
 
@@ -213,7 +213,7 @@ export default function SignupPage() {
           <div className="auth-password"><input id="signup-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} required minLength={8} maxLength={128} aria-describedby="signup-password-help" /><button type="button" className="auth-eye" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div>
           <p id="signup-password-help" className="auth-reset-help">Use 8–128 characters with uppercase, lowercase, a number and a symbol.</p>
           </>}
-          <label className="auth-consent"><input id="signup-age-gate" type="checkbox" required checked={ageConfirmed} onChange={event => setAgeConfirmed(event.target.checked)} /><span>I confirm that I am at least 18. {BRAND_NAME} does not offer accounts for children.</span></label>
+          <label className="auth-consent"><input id="signup-age-gate" type="checkbox" required checked={ageConfirmed} onChange={event => setAgeConfirmed(event.target.checked)} /><span>I confirm that I am at least 13. {BRAND_NAME} does not offer accounts for anyone under 13.</span></label>
           <label className="auth-consent"><input type="checkbox" required checked={privacyConsent} onChange={event => setPrivacyConsent(event.target.checked)} /><span>I consent to {BRAND_NAME} using my account and authentication details to provide and secure my workspace, as described in the standalone <Link href="/privacy" target="_blank">Privacy Notice</Link>. This does not include marketing or optional analytics. I can withdraw through the privacy centre and close my account.</span></label>
           <button type="submit" className="auth-submit" disabled={loading || googleLoading}>{method === 'google' ? (googleLoading ? 'Connecting to Google…' : 'Continue with Google') : (loading ? 'Creating your workspace…' : 'Create my free workspace')} <ArrowRight size={18} aria-hidden="true" /></button>
         </form>}

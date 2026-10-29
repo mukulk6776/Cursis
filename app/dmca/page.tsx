@@ -25,7 +25,7 @@ export default function DmcaPage() {
           1. Copyright complaint contact
         </h2>
         <p style={{ margin: '0 0 16px 0', lineHeight: 1.6 }}>
-          Contact Saransh Vashistha, operating as Cursis, at official@cursis.in. A business contact postal address is awaiting confirmation.
+          Contact Saransh Vashistha and Mukul Kumar, operating as Cursis, at official@cursis.in. A business contact postal address is awaiting confirmation.
         </p>
 
         <div
@@ -42,7 +42,7 @@ export default function DmcaPage() {
         >
           <div>
             <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Designated Agent &amp; Organization</div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0A0A0A', marginTop: '2px' }}>Saransh Vashistha</div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0A0A0A', marginTop: '2px' }}>Saransh Vashistha and Mukul Kumar</div>
             <div style={{ fontSize: '13px', color: '#333' }}>Cursis</div>
             <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
               Alternate DBAs: Cursis, Cursis.in, Cursis AI, Cursis Agency OS

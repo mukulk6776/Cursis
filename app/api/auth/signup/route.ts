@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     // COPPA & Age Eligibility Verification Check
     if (!ageConfirmed) {
       return apiError(
-        'You must confirm that you are at least 18. Cursis does not offer accounts for children.',
+        'You must confirm that you are at least 13. Cursis does not offer accounts for anyone under 13.',
         400
       );
     }

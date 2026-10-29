@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     if (body.privacyConsent !== true || body.ageConfirmed !== true || body.noticeVersion !== PRIVACY_VERSION) {
-      return apiError('Please confirm you are 18 or older and consent to inquiry processing in the current privacy notice.', 400);
+      return apiError('Please confirm you are 13 or older and consent to inquiry processing in the current privacy notice.', 400);
     }
     const db = await privacyDb();
     const rawWsId = body.workspaceId || '';
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     });
     await db.collection('privacy_consents').insertOne({ inquiryId: customRequest.id,
       email: contactEmail.toLowerCase(), purpose: 'inquiry', granted: true, version: PRIVACY_VERSION,
-      age18Attested: true, source: 'agency-form', at: new Date(), expiresAt: new Date(Date.now() + 365 * 86400000) });
+      age13Attested: true, source: 'agency-form', at: new Date(), expiresAt: new Date(Date.now() + 365 * 86400000) });
 
     return apiSuccess({ request: customRequest }, 201);
   } catch (error: any) {

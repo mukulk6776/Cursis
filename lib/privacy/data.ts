@@ -32,7 +32,7 @@ const allowed: Record<string, readonly string[]> = {
   day_plans: ['workspaceId', 'date', 'items'],
   focus_sessions: ['workspaceId', 'taskId', 'taskTitle', 'startedAt', 'expectedEndAt', 'endedAt', 'seconds', 'active'],
   agency_requests: ['id', 'companyName', 'contactEmail', 'requestedService', 'budgetRange', 'requirements', 'status', 'createdAt'],
-  privacy_consents: ['purpose', 'granted', 'analytics', 'functional', 'version', 'source', 'age18Attested', 'at'],
+  privacy_consents: ['purpose', 'granted', 'analytics', 'functional', 'version', 'source', 'age18Attested', 'age13Attested', 'at'],
   privacy_nominees: ['name', 'email', 'updatedAt'],
   privacy_requests: ['id', 'kind', 'message', 'status', 'receivedAt', 'acknowledgedAt', 'acknowledgeBy', 'resolveBy'],
   marketing_contacts: ['name', 'email', 'message', 'consentAt', 'createdAt'],

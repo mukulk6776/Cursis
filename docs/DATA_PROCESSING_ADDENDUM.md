@@ -4,7 +4,7 @@ This draft supports customer contracting. It requires the parties' verified lega
 
 ## Parties and purposes
 
-Customer: [legal entity and address]. Processor: Saransh Vashistha, operating as Cursis, at [business contact address to be supplied], contact official@cursis.in. Term: service term plus the documented return/deletion period. Customer is Data Fiduciary/controller for employee, contractor, client, supplier and other individual data submitted to the workspace. Cursis processes it only to supply the contracted workspace, authorised AI features, integrations, support and security on documented instructions. Account administration and Cursis's own legal/security obligations are separately described in its Privacy Notice.
+Customer: [legal entity and address]. Processor: Saransh Vashistha and Mukul Kumar, operating as Cursis, at [business contact address to be supplied], contact official@cursis.in. Term: service term plus the documented return/deletion period. Customer is Data Fiduciary/controller for employee, contractor, client, supplier and other individual data submitted to the workspace. Cursis processes it only to supply the contracted workspace, authorised AI features, integrations, support and security on documented instructions. Account administration and Cursis's own legal/security obligations are separately described in its Privacy Notice.
 
 ## Customer obligations
 

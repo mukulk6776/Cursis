@@ -28,7 +28,7 @@ export async function sendPasswordResetEmail(email: string, code: string): Promi
 }
 
 export const CURSIS_PHYSICAL_ADDRESS = {
-  company: process.env.PRIVACY_LEGAL_ENTITY || 'Saransh Vashistha, operating as Cursis',
+  company: process.env.PRIVACY_LEGAL_ENTITY || 'Saransh Vashistha and Mukul Kumar, operating as Cursis',
   addressLine1: process.env.PRIVACY_POSTAL_ADDRESS || 'Business contact address awaiting confirmation',
   city: '',
   region: '',

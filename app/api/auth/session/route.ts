@@ -119,7 +119,7 @@ export async function POST(request: Request) {
     if (await accountBlocked(userUid, userEmail)) return apiError('This account is closed or pending erasure.', 403);
     if (!existing) {
       if (body.ageConfirmed !== true || body.privacyConsent !== true || body.noticeVersion !== PRIVACY_VERSION) {
-        return apiError('New users must use /signup, confirm they are 18 or older, and consent to the privacy notice.', 400);
+        return apiError('New users must use /signup, confirm they are 13 or older, and consent to the privacy notice.', 400);
       }
       await recordAccountConsent(userUid, 'google-signup');
     }

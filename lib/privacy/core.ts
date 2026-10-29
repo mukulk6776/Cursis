@@ -55,7 +55,7 @@ export function privacyFailure(error: unknown) {
 export async function recordAccountConsent(uid: string, source: string) {
   const db = await privacyDb();
   await db.collection('privacy_consents').insertOne({ uid, purpose: 'account', granted: true,
-    version: PRIVACY_VERSION, source, age18Attested: true, at: new Date(),
+    version: PRIVACY_VERSION, source, age13Attested: true, at: new Date(),
     expiresAt: new Date(Date.now() + 365 * 86400000) });
 }
 export function requestDeadlines(now = new Date()) {
