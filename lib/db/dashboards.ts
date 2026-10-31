@@ -137,7 +137,7 @@ export async function getWorkspaceMetricSummary(workspaceId: string): Promise<Me
     // 3. Compute derived metrics
     const now = Date.now();
     const activeProjects = projects.filter(
-      (p) => p.health !== 'completed' && (p.status as any) !== 'Completed' && (p.status as any) !== 'completed'
+      (p) => p.health !== 'completed' && ((p as { status?: string }).status !== 'Completed') && ((p as { status?: string }).status !== 'completed')
     ).length;
 
     const overdueTasks = tasks.filter(
@@ -243,7 +243,7 @@ export async function getDashboardOverview(
     .slice(0, 8);
 
   const activeProjects = (projects || [])
-    .filter((p) => p.health !== 'completed' && (p.status as any) !== 'Completed')
+    .filter((p) => p.health !== 'completed' && ((p as { status?: string }).status !== 'Completed'))
     .slice(0, 6);
 
   const now = Date.now();
@@ -297,7 +297,7 @@ export async function generateExecutiveReport(
       risk: `Task "${t.title}" is ${t.completionPercent || 0}% done with imminent deadline (${t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'Unspecified'}).`,
       impact: 'high',
       proposedAction: helperUser
-        ? `Pair with ${helperUser.displayName || helperUser.name || 'team member'} immediately.`
+        ? `Pair with ${helperUser.displayName || (helperUser as { name?: string }).name || 'team member'} immediately.`
         : 'Reassign or extend deadline.',
     });
   }
@@ -325,9 +325,9 @@ export async function generateExecutiveReport(
 
     workloadRebalancing.push({
       overloadedUserId: overId,
-      overloadedUserName: overloaded.displayName || overloaded.name || 'Team Member',
+      overloadedUserName: overloaded.displayName || (overloaded as { name?: string }).name || 'Team Member',
       suggestedHelperId: helperId,
-      suggestedHelperName: helper.displayName || helper.name || 'Available Helper',
+      suggestedHelperName: helper.displayName || (helper as { name?: string }).name || 'Available Helper',
       tasksToReassign: userTaskIds.slice(0, 1),
     });
   }
