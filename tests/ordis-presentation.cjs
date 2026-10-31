@@ -81,5 +81,39 @@ test('task names preserve escaped punctuation without turning record text into l
   assert.doesNotMatch(html, /<a |<table|\\\[/);
 });
 
+test('sanitizeTaskTable converts markdown table with IDs into clean bullet list', () => {
+  const { sanitizeTaskTable } = require(path.join(sourceRoot, 'lib/ordis/task-presentation.ts'));
+  const tableContent = `Here’s a snapshot of every active task in the workspace right now:\n\n| ID | Title | Status | Priority | Due | Assignee |\n|---|---|---|---|---|---|\n| **t_1792345092152** | *[Bug Report] New Task* | Todo | High | 2026-10-25 | Saransh Vashistha |\n| **t_1793280020757** | **fn** | Todo | Medium | 2026-11-05 | Mukul |`;
+  const result = sanitizeTaskTable(tableContent, []);
+  assert.ok(result);
+  assert.doesNotMatch(result, /\| ID \|/);
+  assert.doesNotMatch(result, /t_1792345092152/);
+  assert.match(result, /- \*\*\[Bug Report\] New Task\*\*/);
+  assert.match(result, /- \*\*fn\*\*/);
+  assert.match(result, /To do/);
+  assert.match(result, /High priority/);
+  assert.match(result, /Saransh Vashistha/);
+});
+
+test('sanitizeTaskTable uses list_tasks action data when available to bypass raw table text', () => {
+  const { sanitizeTaskTable } = require(path.join(sourceRoot, 'lib/ordis/task-presentation.ts'));
+  const tableContent = `| ID | Title |\n|---|---|\n| t_123 | Something |`;
+  const actions = [{
+    ok: true,
+    operation: 'list_tasks',
+    data: {
+      tasks: [
+        { title: 'Clean Task Title', status: 'in_progress', priority: 'high', assigneeName: 'Alice' }
+      ]
+    }
+  }];
+  const result = sanitizeTaskTable(tableContent, actions);
+  assert.ok(result);
+  assert.doesNotMatch(result, /t_123/);
+  assert.match(result, /Clean Task Title/);
+  assert.match(result, /In progress/);
+  assert.match(result, /Alice/);
+});
+
 for (const { name, fn } of tests) { fn(); console.log(`PASS ${name}`); }
 console.log(`${tests.length} presentation tests passed.`);

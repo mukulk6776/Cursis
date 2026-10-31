@@ -1159,11 +1159,13 @@ export default function OrdisPage() {
           color: var(--text-secondary, #1F2937);
           word-break: break-word;
           overflow-wrap: break-word;
+          max-width: 100%;
+          overflow-x: auto;
         }
 
         .ordis-ai-body table {
           width: 100%;
-          min-width: max-content;
+          min-width: 520px;
           border-collapse: collapse;
           word-break: normal;
           overflow-wrap: normal;
@@ -1174,10 +1176,18 @@ export default function OrdisPage() {
           white-space: nowrap;
           word-break: normal;
           font-weight: 700;
+          padding: 8px 12px;
         }
 
         .ordis-ai-body td {
           word-break: normal;
+          white-space: nowrap;
+          padding: 8px 12px;
+        }
+
+        .ordis-ai-body td:nth-child(2) {
+          white-space: normal;
+          min-width: 160px;
         }
 
         .ordis-ai-body p {
