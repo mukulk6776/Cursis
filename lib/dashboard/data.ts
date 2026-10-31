@@ -403,12 +403,17 @@ export function formatChatMarkdown(raw?: string | null): string {
   if (line.includes('|') && i + 1 < lines.length && isDivider(lines[i + 1])) {
    flushParagraph();
    const header = cells(line);
-   const cellStyle = 'border:1px solid rgba(127,127,127,0.3);padding:8px 10px;color:inherit;text-align:left;vertical-align:top;';
-   let table = `<div style="max-width:100%;overflow-x:auto;margin:8px 0 12px;"><table style="width:100%;border-collapse:collapse;font-size:inherit;color:inherit;"><thead><tr>${header.map(cell => `<th scope="col" style="${cellStyle}background:rgba(127,127,127,0.08);font-weight:600;">${inline(cell)}</th>`).join('')}</tr></thead><tbody>`;
+   const baseCellStyle = 'border:1px solid rgba(127,127,127,0.3);padding:8px 12px;color:inherit;text-align:left;vertical-align:middle;word-break:normal;overflow-wrap:normal;';
+   let table = `<div style="max-width:100%;overflow-x:auto;margin:8px 0 12px;-webkit-overflow-scrolling:touch;"><table style="width:100%;min-width:max-content;border-collapse:collapse;font-size:inherit;color:inherit;word-break:normal;"><thead><tr>${header.map(cell => `<th scope="col" style="${baseCellStyle}background:rgba(127,127,127,0.08);font-weight:600;white-space:nowrap;">${inline(cell)}</th>`).join('')}</tr></thead><tbody>`;
    i++;
    while (i + 1 < lines.length && lines[i + 1].trim() && lines[i + 1].includes('|')) {
     const row = cells(lines[++i]);
-    table += `<tr>${header.map((_, index) => `<td style="${cellStyle}">${inline(row[index] || '')}</td>`).join('')}</tr>`;
+    table += `<tr>${header.map((_, index) => {
+     const cellContent = row[index] || '';
+     const isShortData = /^(?:todo|done|completed|in[-_ ]progress|in[-_ ]review|blocked|high|medium|low|urgent|\d{4}-\d{2}-\d{2}|t_\w+|dock_\w+|#\w+)$/i.test(cellContent.trim());
+     const extra = isShortData ? 'white-space:nowrap;' : '';
+     return `<td style="${baseCellStyle}${extra}">${inline(cellContent)}</td>`;
+    }).join('')}</tr>`;
    }
    blocks.push(`${table}</tbody></table></div>`);
    continue;

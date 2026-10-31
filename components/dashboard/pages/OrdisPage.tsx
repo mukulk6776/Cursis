@@ -1161,6 +1161,25 @@ export default function OrdisPage() {
           overflow-wrap: break-word;
         }
 
+        .ordis-ai-body table {
+          width: 100%;
+          min-width: max-content;
+          border-collapse: collapse;
+          word-break: normal;
+          overflow-wrap: normal;
+          font-size: 13.5px;
+        }
+
+        .ordis-ai-body th {
+          white-space: nowrap;
+          word-break: normal;
+          font-weight: 700;
+        }
+
+        .ordis-ai-body td {
+          word-break: normal;
+        }
+
         .ordis-ai-body p {
           margin: 0 0 12px;
         }

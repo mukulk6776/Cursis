@@ -5,7 +5,7 @@ export type WorkspaceTier = 'free' | 'paid';
 export type OrdisMode = 'chill' | 'full_power'; // Chill Mode = Free (Cards/Approval), Full Power = Paid (Autonomous)
 export type UserRole = 'owner' | 'admin' | 'manager' | 'member' | 'viewer' | 'guest' | 'client';
 
-export const MAX_TEAM_MEMBERS = 10;
+export const MAX_TEAM_MEMBERS = 4;
 
 // ==========================================
 // 1. WORKSPACE CORE MODULE
@@ -408,6 +408,30 @@ export interface MetricSummary {
   teamWorkloadAverage: number; // percentage
   ordisActionsSavedHours: number;
   pendingApprovalsCount: number;
+  memberLimit?: number;
+  activeMemberCount?: number;
+  availableMemberSlots?: number;
+  isAtMemberLimit?: boolean;
+}
+
+export interface TeamCapacitySummary {
+  currentMembers: number;
+  maxMembers: number;
+  availableSlots: number;
+  pendingInvitations: number;
+  isAtMemberLimit: boolean;
+  isAtTotalCapacity: boolean;
+}
+
+export interface DashboardOverview {
+  workspaceId: string;
+  metrics: MetricSummary;
+  capacity: TeamCapacitySummary;
+  recentTasks: Task[];
+  activeProjects: Project[];
+  upcomingMeetings: Meeting[];
+  unreadNotificationsCount: number;
+  generatedAt: string;
 }
 
 export interface ExecutiveReport {

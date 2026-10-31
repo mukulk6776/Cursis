@@ -1,6 +1,9 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
-import { getWorkspaceMetricSummary } from '@/lib/db/dashboards';
+import { getWorkspaceMetricSummary, getWorkspaceTeamCapacity } from '@/lib/db/dashboards';
+import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
@@ -13,8 +16,20 @@ export async function GET(request: Request) {
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
-    const stats = await getWorkspaceMetricSummary(wsAuth.workspaceId);
-    return apiSuccess({ stats });
+    const [stats, capacity] = await Promise.all([
+      getWorkspaceMetricSummary(wsAuth.workspaceId),
+      getWorkspaceTeamCapacity(wsAuth.workspaceId),
+    ]);
+
+    return apiSuccess(
+      {
+        stats,
+        capacity,
+        memberLimit: MAX_TEAM_MEMBERS,
+      },
+      200,
+      { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' }
+    );
   } catch (error: any) {
     return apiError(error.message || 'Failed to retrieve workspace metrics', 500);
   }

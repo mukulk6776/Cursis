@@ -5,7 +5,7 @@ import CookiePreferenceButton from '@/components/CookiePreferenceButton';
 const groups = [
   { title: 'Explore', links: [['/#features', 'Why Cursis'], ['/#ordis', 'Try Ordis'], ['/pricing', 'Plans'], ['/compare', 'Compare'], ['/faq', 'FAQ']] },
   { title: 'People & ideas', links: [['/about', 'About'], ['/creators', 'For creators'], ['/blog', 'Blog'], ['/changelog', 'Changelog'], ['/social', 'Community'], ['/contact', 'Contact']] },
-  { title: 'Legal', links: [['/privacy', 'Privacy Notice'], ['/privacy/rights', 'Privacy Centre'], ['/terms', 'Terms'], ['/refund-policy', 'Refund & cancellation'], ['/cookie-policy', 'Cookies'], ['/data-deletion', 'Data deletion'], ['/dmca', 'Copyright']] },
+  { title: 'Legal', links: [['/privacy', 'Privacy Notice'], ['/privacy/rights', 'Privacy Centre'], ['/terms', 'Terms'], ['/cancellation-policy', 'Cancellation'], ['/cookie-policy', 'Cookies'], ['/data-deletion', 'Data deletion'], ['/dmca', 'Copyright']] },
 ];
 export default function Footer() {
   return <footer className="lp-footer"><div className="lp-footer-inner">

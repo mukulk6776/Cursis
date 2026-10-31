@@ -81,7 +81,7 @@ export async function ensureWorkspaceExists(
     tier: 'free',
     ordisMode: 'chill',
     industry: 'Technology',
-    teamSize: '1-10',
+    teamSize: '1-4',
     features: ['workspace_core', 'team'],
     settings: {
       ambientMonitoring: true,
@@ -189,7 +189,7 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
         tier: 'free',
         ordisMode: 'chill',
         industry: 'Technology',
-        teamSize: '1-10',
+        teamSize: '1-4',
         features: ['workspace_core', 'team'],
         settings: {
           ambientMonitoring: true,
@@ -251,7 +251,7 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
     tier: data.tier || 'free',
     ordisMode: data.tier === 'paid' ? 'full_power' : 'chill',
     industry: data.industry || 'Technology',
-    teamSize: data.teamSize || '1-10',
+    teamSize: data.teamSize || '1-4',
     features: data.features || [
       'workspace_core',
       'communication',

@@ -778,8 +778,8 @@ function DisabledOrdisFloatingChat() {
  <div
  dangerouslySetInnerHTML={{
    __html: DOMPurify.sanitize(formattedText, {
-     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'code', 'pre', 'ul', 'ol', 'li'],
-     ALLOWED_ATTR: ['href', 'target', 'class']
+     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'code', 'pre', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'blockquote'],
+     ALLOWED_ATTR: ['href', 'target', 'class', 'style', 'scope', 'role', 'aria-label']
    })
  }}
  style={{ wordBreak: 'break-word' }}

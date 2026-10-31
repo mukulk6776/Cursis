@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 
 const base = process.env.VERIFY_BASE_URL || 'http://127.0.0.1:3000';
 const posts = fs.readdirSync('content/blog').filter(name => name.endsWith('.md')).map(name => '/blog/' + name.slice(0, -3));
-const routes = ['/', '/pricing', '/faq', '/about', '/creators', '/compare', '/blog', ...posts, '/contact', '/signup', '/login', '/social', '/refund-policy', '/privacy', '/terms', '/cookie-policy', '/dmca', '/data-deletion'];
+const routes = ['/', '/pricing', '/faq', '/about', '/creators', '/compare', '/blog', ...posts, '/contact', '/signup', '/login', '/social', '/cancellation-policy', '/privacy', '/terms', '/cookie-policy', '/dmca', '/data-deletion'];
 if (fs.existsSync('app/changelog/page.tsx')) routes.push('/changelog');
 
 (async () => {

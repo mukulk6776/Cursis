@@ -3,7 +3,7 @@ import type { ChatCompletionMessageParam, ChatCompletionTool } from 'groq-sdk/re
 import type { DashboardPageType } from '@/lib/dashboard/types';
 import { capabilities, pages, parseDirectAction } from './capabilities';
 import { distressResponse } from './safety';
-import { presentTaskList } from './task-presentation';
+import { presentTaskList, sanitizeTaskTable } from './task-presentation';
 import { executeWorkspaceAction, type ActionResult } from './workspace-actions';
 
 export interface AssistantResult {
@@ -66,7 +66,7 @@ Use workspace_action for requested website operations. Use open_page for all web
 Read actual records to resolve IDs and ambiguity. Ask for missing details, timezone, or which of multiple matching records to use. Never guess email domain suffixes, member IDs, dates, or credentials. Invitations do not create active members. Never say an address is unregistered without a website error establishing that fact.
 Only confirm success after a successful tool result. Report failures clearly; preserve partial successes. Do not repeat a successful mutation. Unsupported operations must be explained honestly, with navigation to their page. Do not claim to upload files, send messages, connect integrations, generate API credentials, execute automations, or deploy new software without an implemented tool that does so.
 After tools return, summarize the actual outcomes and relevant names concisely. Do not expose invitation tokens or secrets.
-For task-list requests, use a short introduction and one bullet per task: bold title, readable status (To do, In progress, In review, Blocked, Done), priority, owner name, and a date such as Sep 15, 2026. Omit internal IDs, database fields, JSON, and tables unless explicitly requested. Never substitute an assignee ID for a person's name. Preserve the actual task titles; do not invent better names. Ongoing/active/current tasks means all unfinished tasks (todo, in_progress, in_review, blocked): call list_tasks without a status filter unless the user specifies a particular stage, then exclude done tasks. Respect other requested filters. Say clearly when no matching tasks exist. Only claim overdue when supported by the current date and task status.` }];
+For task-list requests, use a short introduction and one bullet per task: bold title, readable status (To do, In progress, In review, Blocked, Done), priority, owner name, and a date such as Sep 15, 2026. Do NOT use markdown tables to display tasks. Omit internal database IDs (t_..., dock_...), raw codes, and JSON. Never substitute an assignee ID for a person's name. Preserve the actual task titles; do not invent better names. Ongoing/active/current tasks means all unfinished tasks (todo, in_progress, in_review, blocked): call list_tasks without a status filter unless the user specifies a particular stage, then exclude done tasks. Respect other requested filters. Say clearly when no matching tasks exist. Only claim overdue when supported by the current date and task status.` }];
   const recentHistory: ChatCompletionMessageParam[] = [];
   let historyBudget = 48000;
   // Keep the newest conversation turns and their order while bounding prompt size.
@@ -87,7 +87,9 @@ For task-list requests, use a short introduction and one bullet per task: bold t
       const answer = await complete(messages);
       if (!answer.tool_calls?.length) return {
         // API failures take precedence over model prose, including hallucinated success.
-        responseText: actions.some(action => !action.ok) ? receipts(actions) : presentTaskList(options.message, actions) || answer.content?.trim() || receipts(actions) || 'What would you like to do in your workspace?',
+        responseText: actions.some(action => !action.ok)
+          ? receipts(actions)
+          : presentTaskList(options.message, actions) || sanitizeTaskTable(answer.content?.trim(), actions) || answer.content?.trim() || receipts(actions) || 'What would you like to do in your workspace?',
         navigateToPage, refreshWorkspace: actions.some(action => action.ok && action.changed), actions,
       };
       messages.push({ role: 'assistant', content: answer.content || null, tool_calls: answer.tool_calls });

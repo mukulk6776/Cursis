@@ -38,7 +38,7 @@ const { inMemoryStore } = require('@/lib/db/store');
 
 async function runTests() {
   console.log(`Starting Team Limit Tests (MAX_TEAM_MEMBERS = ${MAX_TEAM_MEMBERS})...`);
-  assert.equal(MAX_TEAM_MEMBERS, 10, 'MAX_TEAM_MEMBERS should equal 10');
+  assert.equal(MAX_TEAM_MEMBERS, 4, 'MAX_TEAM_MEMBERS should equal 4');
 
   const wsId = `ws_test_limit_${Date.now()}`;
   inMemoryStore.workspaces.set(wsId, {
@@ -48,7 +48,7 @@ async function runTests() {
     tier: 'free',
     ordisMode: 'chill',
     industry: 'tech',
-    teamSize: '1-10',
+    teamSize: '1-4',
     features: [],
     settings: { ambientMonitoring: true, approvalRequiredForActions: true, simulationMode: false, riskTolerance: 'medium' },
     ownerId: 'owner_usr',
@@ -80,8 +80,8 @@ async function runTests() {
   assert.equal(team.length, 1, 'Initial team should have 1 member');
   console.log(`✓ Workspace initialized with ${team.length} member`);
 
-  // 2. Add members up to 10
-  for (let i = 2; i <= 10; i++) {
+  // 2. Add members up to 4
+  for (let i = 2; i <= 4; i++) {
     const member = await addTeamMember(wsId, {
       email: `member${i}@example.com`,
       displayName: `Member ${i}`,
@@ -92,26 +92,26 @@ async function runTests() {
   }
 
   team = await getWorkspaceTeam(wsId);
-  assert.equal(team.length, 10, 'Team should now have exactly 10 members');
-  console.log(`✓ Filled team to 10 members`);
+  assert.equal(team.length, 4, 'Team should now have exactly 4 members');
+  console.log(`✓ Filled team to 4 members`);
 
-  // 3. Attempt to add an 11th member directly via addTeamMember -> should throw
-  let add11Failed = false;
+  // 3. Attempt to add a 5th member directly via addTeamMember -> should throw
+  let add5Failed = false;
   try {
     await addTeamMember(wsId, {
-      email: 'member11@example.com',
-      displayName: 'Member 11',
+      email: 'member5@example.com',
+      displayName: 'Member 5',
       role: 'member',
       department: 'Engineering',
     });
   } catch (err) {
-    add11Failed = true;
-    assert(err.message.includes('10 members'), 'Error message should mention 10 members limit');
+    add5Failed = true;
+    assert(err.message.includes('4 members'), 'Error message should mention 4 members limit');
   }
-  assert(add11Failed, 'addTeamMember should throw when team has 10 members');
-  console.log(`✓ Adding 11th member via addTeamMember was rejected`);
+  assert(add5Failed, 'addTeamMember should throw when team has 4 members');
+  console.log(`✓ Adding 5th member via addTeamMember was rejected`);
 
-  // 4. Attempt to create an invitation when team has 10 members -> should throw
+  // 4. Attempt to create an invitation when team has 4 members -> should throw
   inMemoryStore.users.set('invitee_usr', {
     id: 'invitee_usr',
     uid: 'invitee_usr',
@@ -137,13 +137,13 @@ async function runTests() {
     });
   } catch (err) {
     inviteFailed = true;
-    assert(err.message.includes('10 members') || err.message.includes('capacity'), 'Error message should mention 10 members or capacity');
+    assert(err.message.includes('4 members') || err.message.includes('capacity'), 'Error message should mention 4 members or capacity');
   }
-  assert(inviteFailed, 'createTeamInvitation should throw when team has 10 members');
-  console.log(`✓ Invitation creation was rejected when team is at 10 members`);
+  assert(inviteFailed, 'createTeamInvitation should throw when team has 4 members');
+  console.log(`✓ Invitation creation was rejected when team is at 4 members`);
 
   // 5. Test capacity limit with pending invitations:
-  // Create a new workspace with 8 members
+  // Create a new workspace with 3 members (owner + 2 members)
   const wsId2 = `ws_capacity_test_${Date.now()}`;
   inMemoryStore.workspaces.set(wsId2, {
     id: wsId2,
@@ -152,7 +152,7 @@ async function runTests() {
     tier: 'free',
     ordisMode: 'chill',
     industry: 'tech',
-    teamSize: '1-10',
+    teamSize: '1-4',
     features: [],
     settings: { ambientMonitoring: true, approvalRequiredForActions: true, simulationMode: false, riskTolerance: 'medium' },
     ownerId: 'owner_usr2',
@@ -176,8 +176,8 @@ async function runTests() {
     createdAt: new Date().toISOString(),
   });
 
-  // Add 8 more members (total = 9)
-  for (let i = 2; i <= 9; i++) {
+  // Add 2 more members (total = 3)
+  for (let i = 2; i <= 3; i++) {
     await addTeamMember(wsId2, {
       email: `w2_member${i}@example.com`,
       displayName: `W2 Member ${i}`,
@@ -185,7 +185,7 @@ async function runTests() {
     });
   }
   const w2Team = await getWorkspaceTeam(wsId2);
-  assert.equal(w2Team.length, 9, 'W2 should have 9 members');
+  assert.equal(w2Team.length, 3, 'W2 should have 3 members');
 
   // Register 2 candidate users
   inMemoryStore.users.set('cand_1', {
@@ -215,16 +215,16 @@ async function runTests() {
     createdAt: new Date().toISOString(),
   });
 
-  // 1st invite (9 members + 1 pending invite = 10 capacity) -> should succeed
+  // 1st invite (3 members + 1 pending invite = 4 capacity) -> should succeed
   const inv1 = await createTeamInvitation({
     workspaceId: wsId2,
     inviterUser: { uid: 'owner_usr2', email: 'owner2@cursis.io', displayName: 'Owner 2', role: 'owner' },
     inviteeEmail: 'cand1@example.com',
   });
   assert(inv1, '1st invite should succeed');
-  console.log(`✓ 1st invite succeeded (now 9 members + 1 invite = 10 capacity)`);
+  console.log(`✓ 1st invite succeeded (now 3 members + 1 invite = 4 capacity)`);
 
-  // 2nd invite -> should fail because 9 members + 1 pending = 10 max
+  // 2nd invite -> should fail because 3 members + 1 pending = 4 max
   let invite2Failed = false;
   try {
     await createTeamInvitation({
@@ -234,12 +234,12 @@ async function runTests() {
     });
   } catch (err) {
     invite2Failed = true;
-    assert(err.message.includes('10'), 'Error message should mention capacity limit of 10');
+    assert(err.message.includes('4'), 'Error message should mention capacity limit of 4');
   }
   assert(invite2Failed, '2nd invite should be blocked by capacity check');
-  console.log(`✓ 2nd invite was blocked because workspace is at 10 member capacity`);
+  console.log(`✓ 2nd invite was blocked because workspace is at 4 member capacity`);
 
-  // 6. Cand 1 accepts invitation -> members becomes 10
+  // 6. Cand 1 accepts invitation -> members becomes 4
   const acceptResult = await acceptWorkspaceInvitation(inv1.id, {
     uid: 'cand_1',
     email: 'cand1@example.com',
@@ -247,8 +247,8 @@ async function runTests() {
   });
   assert.equal(acceptResult.success, true);
   const w2FinalTeam = await getWorkspaceTeam(wsId2);
-  assert.equal(w2FinalTeam.length, 10, 'W2 should now have 10 members');
-  console.log(`✓ Cand 1 accepted invitation, workspace now has 10 members`);
+  assert.equal(w2FinalTeam.length, 4, 'W2 should now have 4 members');
+  console.log(`✓ Cand 1 accepted invitation, workspace now has 4 members`);
 
   console.log('\nAll Team Member Limit tests PASSED successfully! 🚀');
 }

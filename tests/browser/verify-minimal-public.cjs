@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 const base = process.env.VERIFY_BASE_URL || 'http://127.0.0.1:3100';
 const posts = fs.readdirSync('content/blog').filter(f => f.endsWith('.md')).map(f => '/blog/' + f.slice(0,-3));
 const sales = ['/', '/pricing', '/faq', '/contact', '/blog', ...posts, '/compare', '/creators', '/about', '/social', '/changelog'];
-const legal = ['/privacy', '/privacy/rights', '/terms', '/cookie-policy', '/refund-policy', '/data-deletion', '/dmca'];
+const legal = ['/privacy', '/privacy/rights', '/terms', '/cookie-policy', '/cancellation-policy', '/data-deletion', '/dmca'];
 const routes = [...sales, ...legal];
 (async () => {
   const pages = new Map(), links = new Set(), titles = new Set(), intros = new Set(), prose = new Map();

@@ -79,6 +79,7 @@ import { executeOrdisCommand, OrdisContextState } from '@/lib/ordis/engine';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { useOrdisConversations, type ChatHistoryStatus } from '@/lib/ordis/use-ordis-conversations';
 import type { OrdisConversation } from '@/lib/ordis/conversation-types';
+import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 
 interface ToastItem {
  id: string;
@@ -142,6 +143,7 @@ interface DashboardContextType {
 
  // Entities & Data
  user: User;
+ memberLimit: number;
  employees: Employee[];
  departments: Department[];
  teams: Team[];
@@ -481,6 +483,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   // Derive permissions on every render so a workspace switch cannot retain the previous role.
   const user = userForWorkspace(userProfile, workspaces, activeWorkspaceId);
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
+  const [memberLimit, setMemberLimit] = useState<number>(MAX_TEAM_MEMBERS);
   const removedMemberIdsRef = useRef<Set<string>>(new Set());
   const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
  const [teams] = useState<Team[]>(INITIAL_TEAMS);
@@ -661,6 +664,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         if (teamData) {
           const serverTeam = teamData.data?.team || teamData.team;
           const serverInvs = teamData.data?.invitations || teamData.invitations;
+          const srvLimit = teamData.data?.memberLimit ?? teamData.memberLimit;
+          if (typeof srvLimit === 'number') {
+            setMemberLimit(srvLimit);
+          }
 
           if (Array.isArray(serverTeam) && serverTeam.length > 0) {
             setEmployees((prev) => {
@@ -3690,6 +3697,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  showToast,
  removeToast,
  user,
+ memberLimit,
  employees,
  departments,
  teams,

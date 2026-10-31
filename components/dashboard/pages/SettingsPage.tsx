@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { setDashboardTheme, readThemePreference, THEME_EVENT, ThemePreference } from '@/lib/dashboard/theme';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { OrgSettings } from '@/lib/dashboard/types';
+import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 import { Sun, Moon, Monitor, Pipette } from 'lucide-react';
 import ReportEmailSettings from '@/components/dashboard/ReportEmailSettings';
 
@@ -528,25 +529,25 @@ teamSettings,
  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>          <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <h3 style={{ fontSize: 'var(--fs-base)', fontWeight: 'var(--fw-bold)', margin: 0 }}>
-                Active Team Members ({employees.length} / 10)
+                Active Team Members ({employees.length} / {MAX_TEAM_MEMBERS})
               </h3>
-              {employees.length >= 10 && (
+              {employees.length >= MAX_TEAM_MEMBERS && (
                 <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--c-error)', border: '1px solid var(--c-error)', textTransform: 'uppercase' }}>
                   Limit Reached
                 </span>
               )}
             </div>
             <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-              Manage access, adjust permission roles, or inspect workloads. Max 10 team members per workspace.
+              Manage access, adjust permission roles, or inspect workloads. Max {MAX_TEAM_MEMBERS} team members per workspace.
             </p>
           </div>
           <button
             type="button"
-            className={`btn ${employees.length >= 10 ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+            className={`btn ${employees.length >= MAX_TEAM_MEMBERS ? 'btn-secondary' : 'btn-primary'} btn-sm`}
             onClick={() => openModal('invite-modal')}
-            title={employees.length >= 10 ? 'Team limit reached (max 10 members)' : undefined}
+            title={employees.length >= MAX_TEAM_MEMBERS ? `Team limit reached (max ${MAX_TEAM_MEMBERS} members)` : undefined}
           >
-            + Invite New Member {employees.length >= 10 ? '(Max 10)' : ''}
+            + Invite New Member {employees.length >= MAX_TEAM_MEMBERS ? `(Max ${MAX_TEAM_MEMBERS})` : ''}
           </button>
         </div>
 

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 
 export default function InviteModal() {
   const { activeModal, closeModal, activeWorkspaceId, workspaces, user, showToast, syncTeamAndNotifications, employees = [], invitations = [] } = useDashboard();
@@ -9,8 +10,8 @@ export default function InviteModal() {
   const activeCount = employees.length;
   const pendingInvs = invitations.filter((i) => i.status === 'pending');
   const pendingCount = pendingInvs.length;
-  const isAtMemberLimit = activeCount >= 10;
-  const isAtCapacity = activeCount + pendingCount >= 10;
+  const isAtMemberLimit = activeCount >= MAX_TEAM_MEMBERS;
+  const isAtCapacity = activeCount + pendingCount >= MAX_TEAM_MEMBERS;
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'member' | 'admin' | 'viewer'>('member');
@@ -33,11 +34,11 @@ export default function InviteModal() {
     setErrorMsg('');
 
     if (isAtMemberLimit) {
-      setErrorMsg('Workspace team member limit reached (max 10 members). Please remove a member before sending invitations.');
+      setErrorMsg(`Workspace team member limit reached (max ${MAX_TEAM_MEMBERS} members). Please remove a member before sending invitations.`);
       return;
     }
     if (isAtCapacity) {
-      setErrorMsg(`Workspace team capacity reached (${activeCount} members + ${pendingCount} pending invites = 10 max). Please revoke a pending invite or remove a member.`);
+      setErrorMsg(`Workspace team capacity reached (${activeCount} members + ${pendingCount} pending invites = ${MAX_TEAM_MEMBERS} max). Please revoke a pending invite or remove a member.`);
       return;
     }
 
@@ -148,7 +149,7 @@ export default function InviteModal() {
                   border: `1px solid ${isAtCapacity ? 'var(--c-error)' : 'var(--border-color)'}`,
                 }}
               >
-                {activeCount} / 10 Members {pendingCount > 0 ? `(${pendingCount} pending)` : ''}
+                {activeCount} / {MAX_TEAM_MEMBERS} Members {pendingCount > 0 ? `(${pendingCount} pending)` : ''}
               </span>
             </div>
             <p style={{ margin: '4px 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
@@ -181,7 +182,7 @@ export default function InviteModal() {
                 lineHeight: 1.4,
               }}
             >
-              <strong>Team Limit Reached (10 / 10 members):</strong> This workspace has reached the maximum allowed limit of 10 team members. Please remove an existing member before sending new invitations.
+              <strong>Team Limit Reached ({MAX_TEAM_MEMBERS} / {MAX_TEAM_MEMBERS} members):</strong> This workspace has reached the maximum allowed limit of {MAX_TEAM_MEMBERS} team members. Please remove an existing member before sending new invitations.
             </div>
           ) : isAtCapacity ? (
             <div
@@ -196,7 +197,7 @@ export default function InviteModal() {
                 lineHeight: 1.4,
               }}
             >
-              <strong>Capacity Limit Reached (10 max):</strong> Workspace has {activeCount} active member{activeCount === 1 ? '' : 's'} and {pendingCount} pending invitation{pendingCount === 1 ? '' : 's'}. Revoke a pending invitation or remove a member to invite someone else.
+              <strong>Capacity Limit Reached ({MAX_TEAM_MEMBERS} max):</strong> Workspace has {activeCount} active member{activeCount === 1 ? '' : 's'} and {pendingCount} pending invitation{pendingCount === 1 ? '' : 's'}. Revoke a pending invitation or remove a member to invite someone else.
             </div>
           ) : null}
 
@@ -349,7 +350,7 @@ export default function InviteModal() {
               disabled={isSubmitting || isAtCapacity}
               style={{ minWidth: '120px' }}
             >
-              {isSubmitting ? 'Sending...' : isAtCapacity ? 'Limit Reached (10 max)' : 'Send Invitation'}
+              {isSubmitting ? 'Sending...' : isAtCapacity ? `Limit Reached (${MAX_TEAM_MEMBERS} max)` : 'Send Invitation'}
             </button>
           </div>
         </form>

@@ -82,6 +82,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/refund',
+        destination: '/cancellation-policy',
+        permanent: true,
+      },
+      {
+        source: '/refund-policy',
+        destination: '/cancellation-policy',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

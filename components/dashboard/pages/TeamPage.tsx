@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate } from '@/lib/dashboard/data';
+import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 import { AlertTriangle } from 'lucide-react';
 import TeamPulse from '@/components/dashboard/work/TeamPulse';
 import MemberFocusStatus from '@/components/dashboard/work/MemberFocusStatus';
@@ -84,13 +85,13 @@ export default function TeamPage() {
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: '4px',
-                background: employees.length >= 10 ? 'rgba(239, 68, 68, 0.1)' : 'var(--c-surface)',
-                color: employees.length >= 10 ? 'var(--c-error)' : 'var(--text-secondary)',
-                border: `1px solid ${employees.length >= 10 ? 'var(--c-error)' : 'var(--border-color)'}`,
+                background: employees.length >= MAX_TEAM_MEMBERS ? 'rgba(239, 68, 68, 0.1)' : 'var(--c-surface)',
+                color: employees.length >= MAX_TEAM_MEMBERS ? 'var(--c-error)' : 'var(--text-secondary)',
+                border: `1px solid ${employees.length >= MAX_TEAM_MEMBERS ? 'var(--c-error)' : 'var(--border-color)'}`,
                 textTransform: 'uppercase',
               }}
             >
-              {employees.length} / 10 members {employees.length >= 10 ? '• Limit Reached' : ''}
+              {employees.length} / {MAX_TEAM_MEMBERS} members {employees.length >= MAX_TEAM_MEMBERS ? '• Limit Reached' : ''}
             </span>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
@@ -101,18 +102,18 @@ export default function TeamPage() {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
             type="button"
-            className={`btn ${employees.length >= 10 ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+            className={`btn ${employees.length >= MAX_TEAM_MEMBERS ? 'btn-secondary' : 'btn-primary'} btn-sm`}
             disabled={!canManage}
             onClick={() => openModal('invite-modal')}
             style={{ fontWeight: 700 }}
-            title={employees.length >= 10 ? 'Team limit reached (max 10 members)' : undefined}
+            title={employees.length >= MAX_TEAM_MEMBERS ? `Team limit reached (max ${MAX_TEAM_MEMBERS} members)` : undefined}
           >
-            + Invite Member {employees.length >= 10 ? '(Max 10)' : ''}
+            + Invite Member {employees.length >= MAX_TEAM_MEMBERS ? `(Max ${MAX_TEAM_MEMBERS})` : ''}
           </button>
         </div>
       </div>
 
-      {employees.length >= 10 && (
+      {employees.length >= MAX_TEAM_MEMBERS && (
         <div
           style={{
             padding: '10px 16px',
@@ -131,7 +132,7 @@ export default function TeamPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <AlertTriangle size={16} color="var(--c-error)" />
             <span>
-              <strong>Team limit reached (10 / 10 members):</strong> This workspace is at maximum member capacity. Remove a member before inviting someone new.
+              <strong>Team limit reached ({MAX_TEAM_MEMBERS} / {MAX_TEAM_MEMBERS} members):</strong> This workspace is at maximum member capacity. Remove a member before inviting someone new.
             </span>
           </div>
           <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '4px', background: 'var(--c-error)', color: '#fff' }}>
