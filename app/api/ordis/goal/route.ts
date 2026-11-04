@@ -2,6 +2,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 import { inMemoryStore } from '@/lib/db/store';
+import { getDb } from '@/lib/mongodb';
 
 export async function GET(request: Request) {
   try {
@@ -11,7 +12,19 @@ export async function GET(request: Request) {
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
-    const goals = Array.from(inMemoryStore.goalPlans.values()).filter((g) => g.workspaceId === wsAuth.workspaceId);
+    let goals: any[] = [];
+    try {
+      const db = await getDb();
+      if (db) {
+        goals = await db.collection('goal_plans').find({ workspaceId: wsAuth.workspaceId }).toArray();
+      }
+    } catch (e) {
+      console.warn('MongoDB goal plans fetch notice:', e);
+    }
+    if (goals.length === 0) {
+      goals = Array.from(inMemoryStore.goalPlans.values()).filter((g) => g.workspaceId === wsAuth.workspaceId);
+    }
+
     return apiSuccess({ goals });
   } catch (error: any) {
     return apiError(error.message || 'Internal Server Error', 500);

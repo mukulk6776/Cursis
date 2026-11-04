@@ -2,8 +2,7 @@ import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getTasks, createTask } from '@/lib/db/tasks';
 import { createProject } from '@/lib/db/projects';
-import { getCollection } from '@/lib/mongodb';
-import { AuditLogEntry } from '@/lib/db/types';
+import { logAuditEvent } from '@/lib/db/audit';
 
 export async function POST(request: Request) {
  try {
@@ -39,7 +38,8 @@ export async function POST(request: Request) {
  });
  actionExecuted = 'task.created';
  resultPayload = { task: newTask };
- responseText = ` **Task Created in MongoDB**\n\n• **Title**: "${newTask.title}"\n• **ID**: \`${newTask.id}\`\n• **Priority**: ${newTask.priority.toUpperCase()}\n• **Status**: TODO\n\n Persisted to MongoDB tasks collection.`;
+ const dueStr = newTask.dueDate ? ` · Due ${new Date(newTask.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}` : '';
+ responseText = `**Task Created**\n\n- **${newTask.title}** — To do · ${newTask.priority.charAt(0).toUpperCase() + newTask.priority.slice(1)} priority · Assigned${dueStr}`;
  }
  // 2. Project Creation
  else if (lower.includes('create project') || lower.includes('new project')) {
@@ -50,14 +50,25 @@ export async function POST(request: Request) {
  });
  actionExecuted = 'project.created';
  resultPayload = { project: newProj };
- responseText = ` **Project Initialized in MongoDB**\n\n• **Name**: "${newProj.name}"\n• **ID**: \`${newProj.id}\`\n• **Budget**: ₹${newProj.budget.toLocaleString()}\n\n Stored in MongoDB projects collection.`;
+ responseText = `**Project Initialized**\n\n- **${newProj.name}** — In planning · Budget ₹${(newProj.budget || 0).toLocaleString()}`;
  }
  // 3. Query Tasks / Telemetry
  else if (lower.includes('tasks') || lower.includes('deadlines')) {
  const tasks = await getTasks(workspaceId);
  actionExecuted = 'tasks.query';
  resultPayload = { count: tasks.length, tasks };
- responseText = ` **Active Workspace Tasks (${tasks.length})**\n\n${tasks.slice(0, 5).map((t, i) => `${i + 1}. **${t.title}** (${t.status.toUpperCase()} - Due: ${t.dueDate.split('T')[0]})`).join('\n') || 'No tasks found. Create your first task to start tracking velocity.'}`;
+ if (tasks.length === 0) {
+    responseText = 'No tasks found. Create your first task to start tracking velocity.';
+  } else {
+    const taskLines = tasks.slice(0, 5).map((t) => {
+      const dueStr = t.dueDate ? ` · Due ${new Date(t.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}` : '';
+      const statusStr = (t.status || 'todo').replace(/_/g, ' ');
+      const capStatus = statusStr.charAt(0).toUpperCase() + statusStr.slice(1);
+      const prioStr = (t.priority || 'medium').charAt(0).toUpperCase() + (t.priority || 'medium').slice(1) + ' priority';
+      return `- **${t.title}** — ${capStatus} · ${prioStr}${dueStr}`;
+    });
+    responseText = `Here are your ${Math.min(5, tasks.length)} active tasks:\n\n${taskLines.join('\n')}`;
+  }
  }
  // 4. Default / Knowledge Synthesis
  else {
@@ -65,27 +76,21 @@ export async function POST(request: Request) {
  responseText = `**Ordis Intelligence Engine**\n\nParsed request: "${text}".\nSupported operations: Task creation, project initialization, meeting booking, CRM lead tracking, and automated document generation.`;
  }
 
- // Record audit log entry in MongoDB
- try {
- const auditCol = await getCollection<AuditLogEntry>('audit_logs');
- if (auditCol) {
- await auditCol.insertOne({
- id: 'aud_' + Date.now(),
- workspaceId,
- actorType: 'ordis_assisted',
- actorId: authUser.uid,
- actorName: authUser.displayName,
- action: actionExecuted,
- targetType: 'ordis_command',
- targetId: text.substring(0, 40),
- details: { command: text, result: resultPayload },
- isRollbackable: false,
- createdAt: new Date().toISOString(),
- });
- }
- } catch (e) {
- console.warn('MongoDB audit logging notice:', e);
- }
+  // Record audit log entry
+  try {
+    await logAuditEvent(workspaceId, {
+      actorType: 'ordis_assisted',
+      actorId: authUser.uid,
+      actorName: authUser.displayName || 'Ordis User',
+      action: actionExecuted,
+      targetType: 'ordis_command',
+      targetId: text.substring(0, 40),
+      details: { command: text, result: resultPayload },
+      isRollbackable: false,
+    });
+  } catch (e) {
+    console.warn('Ordis execute audit logging notice:', e);
+  }
 
  return apiSuccess({
  responseText,

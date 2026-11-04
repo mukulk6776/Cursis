@@ -7,6 +7,7 @@ import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 import { AlertTriangle } from 'lucide-react';
 import TeamPulse from '@/components/dashboard/work/TeamPulse';
 import MemberFocusStatus from '@/components/dashboard/work/MemberFocusStatus';
+import EmptyState from '@/components/dashboard/EmptyState';
 
 type TeamTab = 'directory' | 'invites' | 'org-chart' | 'workload' | 'onboarding';
 
@@ -230,48 +231,18 @@ export default function TeamPage() {
       {activeTab === 'directory' && (
         <>
           {filteredEmployees.length === 0 ? (
-            <div
-              className="card"
-              style={{
-                padding: '48px 24px',
-                textAlign: 'center',
-                background: 'var(--surface-card)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-              }}
-            >
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
-                No team members found
-              </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
-                {searchQuery || deptFilter !== 'all'
-                  ? 'No members match the active filters. Try clearing search or department filters.'
-                  : 'Start building your company structure by inviting team members.'}
-              </p>
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                {(searchQuery || deptFilter !== 'all') && (
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setDeptFilter('all');
-                      setCurrentPage(1);
-                    }}
-                  >
-                    Clear Filters
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => openModal('invite-modal')}
-                  style={{ fontWeight: 700 }}
-                >
-                  + Invite Member
-                </button>
-              </div>
-            </div>
+            <EmptyState
+              title={employees.length === 0 ? 'No team members in roster' : 'No team members found'}
+              description={
+                employees.length === 0
+                  ? 'Start building your company structure by inviting team members to this workspace.'
+                  : 'No members match the active filters. Try clearing search or department filters.'
+              }
+              actionLabel="+ Invite Member"
+              onAction={() => openModal('invite-modal')}
+              secondaryActionLabel={searchQuery || deptFilter !== 'all' ? 'Clear Filters' : undefined}
+              onSecondaryAction={() => { setSearchQuery(''); setDeptFilter('all'); setCurrentPage(1); }}
+            />
           ) : (
             <>
               {/* Member Cards Grid */}
@@ -306,7 +277,7 @@ export default function TeamPage() {
                             <div
                               className="avatar avatar-lg"
                               style={{
-                                background: emp.color || '#0f4cff',
+                                background: emp.color || '#FF5500',
                                 color: emp.color === '#ccff00' ? '#000' : '#fff',
                                 fontWeight: 700,
                                 width: '38px',
@@ -350,9 +321,9 @@ export default function TeamPage() {
                               fontWeight: 600,
                               padding: '1px 6px',
                               borderRadius: '4px',
-                              background: 'rgba(15, 76, 255, 0.08)',
+                              background: 'rgba(255, 85, 0, 0.08)',
                               color: 'var(--c-brand-text)',
-                              border: '1px solid rgba(15, 76, 255, 0.2)',
+                              border: '1px solid rgba(255, 85, 0, 0.2)',
                             }}
                           >
                             {emp.role}
@@ -630,7 +601,7 @@ export default function TeamPage() {
                       <div
                         className="avatar avatar-sm"
                         style={{
-                          background: m.color || '#0f4cff',
+                          background: m.color || '#FF5500',
                           color: m.color === '#ccff00' ? '#000' : '#fff',
                           fontSize: '10px',
                           fontWeight: 700,
@@ -708,7 +679,7 @@ export default function TeamPage() {
                   style={{
                     width: '24px',
                     height: '24px',
-                    background: '#0f4cff',
+                    background: '#10B981',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',

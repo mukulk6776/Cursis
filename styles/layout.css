@@ -250,7 +250,7 @@
 }
 
 .sidebar-add-module:hover {
-  background: rgba(15, 76, 255, 0.04);
+  background: rgba(255, 85, 0, 0.08);
   color: var(--c-brand);
   border-color: var(--c-brand);
   border-style: dashed;

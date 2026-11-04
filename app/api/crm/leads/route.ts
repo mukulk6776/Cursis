@@ -1,6 +1,7 @@
 import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getLeads, getLeadById, createLead, updateLead } from '@/lib/db/crm';
+import { EMAIL_REGEX } from '@/lib/db/team';
 
 export async function GET(request: Request) {
   try {
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
-    if (!body.name || !body.company || !body.email) {
+    if (!body.name || !body.company || !body.email || !EMAIL_REGEX.test(String(body.email).trim().toLowerCase())) {
       return apiError('Lead name, company, and email are required', 400);
     }
 
@@ -54,7 +55,10 @@ export async function PATCH(request: Request) {
       return apiError('Lead id is required', 400);
     }
 
-    const existing = await getLeadById(body.id);
+    const { searchParams } = new URL(request.url);
+    const rawWorkspaceId = searchParams.get('workspaceId') || body.workspaceId || '';
+
+    const existing = await getLeadById(body.id, rawWorkspaceId || undefined);
     if (!existing) {
       return apiError('Lead not found', 404);
     }
@@ -62,7 +66,10 @@ export async function PATCH(request: Request) {
     const wsAuth = await authorizeWorkspaceAccess(request, existing.workspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
-    const updated = await updateLead(body.id, body);
+    // Strip immutable multi-tenant identifiers from client payload
+    const { id: _ignoredId, workspaceId: _ignoredWsId, createdAt: _ignoredCreatedAt, ...safeUpdates } = body;
+
+    const updated = await updateLead(body.id, safeUpdates, wsAuth.workspaceId);
     if (!updated) {
       return apiError('Lead not found', 404);
     }

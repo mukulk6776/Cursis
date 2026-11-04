@@ -6,7 +6,7 @@
 
 ### Autonomous AI Workplace & Agency Operating System
 
-[![Release](https://img.shields.io/badge/Release-v1.0.0--Enterprise-0f4cff?style=for-the-badge&logo=rocket)](https://github.com/mukulk6776/Cursis/releases)
+[![Release](https://img.shields.io/badge/Release-v1.0.0--Enterprise-FF5500?style=for-the-badge&logo=rocket)](https://github.com/mukulk6776/Cursis/releases)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.3.0-00d8ff?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x--Strict-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)

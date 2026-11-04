@@ -201,6 +201,7 @@ interface DashboardContextType {
  toggleAutomation: (id: string) => void;
  addAutomation: (auto: Partial<AutomationRule> & { name: string; when: string; then: string }) => void;
  updateAutomation: (id: string, updates: Partial<AutomationRule>) => void;
+ deleteAutomation: (id: string) => void;
 
  // CRM
  crm: CustomCrm;
@@ -460,20 +461,41 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const switchWorkspace = (workspaceId: string) => {
+  const switchWorkspace = async (workspaceId: string) => {
     if (workspaces.some((w) => w.id === workspaceId)) {
       setActiveWorkspaceId(workspaceId);
       // Persist active workspace to localStorage for page refresh persistence
       if (typeof window !== 'undefined') {
         localStorage.setItem('cursis_active_workspace_id', workspaceId);
       }
+      // Feature 8: Reset ALL tenant-scoped state immediately to prevent ghost data or stale entities leaking
+      setEmployees([]);
+      setInvitations([]);
+      setCrm({ deals: [], contacts: [] });
+      setAutomations([]);
+      setApiKeys([]);
+      setWebhooks([]);
+      setAuditLogs([]);
       setTasks([]);
       setDepartments([]);
       setProjects([]);
       setDocuments([]);
       setMeetings([]);
+
       const ws = workspaces.find((w) => w.id === workspaceId);
       showToast(`Switched to ${ws?.name || 'workspace'}`);
+
+      // Feature 9: Synchronize active workspace to server session and MongoDB user profile
+      try {
+        await fetch('/api/workspaces/switch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workspaceId }),
+        });
+      } catch (err) {
+        console.warn('Failed to synchronize workspace switch to server:', err);
+      }
+
       syncTeamAndNotifications(workspaceId);
     }
   };
@@ -632,7 +654,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       const authToken = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
 
       // Parallelize live MongoDB queries concurrently for fast dashboard response
-      const [teamRes, notifRes, taskRes, deptRes, mtgRes, projRes, docRes] = await Promise.all([
+      const [teamRes, notifRes, taskRes, deptRes, mtgRes, projRes, docRes, autoRes] = await Promise.all([
         fetch(url, { credentials: 'include' }).catch(() => null),
         fetch(`/api/notifications?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
         fetch(`/api/tasks?workspaceId=${encodeURIComponent(targetWsId)}`, {
@@ -652,6 +674,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           credentials: 'include',
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         }).catch(() => null),
+        fetch(`/api/automations?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
       ]);
 
       if (currentGen !== (syncTeamAndNotifications as any)._gen) {
@@ -719,7 +742,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                       }
                       return (u.presence === 'online' || u.presence === 'away' || u.presence === 'busy') ? u.presence : 'offline';
                     })(),
-                    color: u.color || (isMemFounder ? '#0f4cff' : '#f59e0b'),
+                    color: u.color || (isMemFounder ? '#FF5500' : '#f59e0b'),
                     tasks: typeof u.tasks === 'number' ? u.tasks : 0,
                     projects: typeof u.projects === 'number' ? u.projects : 0,
                     email: cleanEmail,
@@ -838,7 +861,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               membersCount: d.membersCount ?? d.memberCount ?? 0,
               activeTaskCount: d.activeTaskCount ?? 0,
               description: d.description || '',
-              color: d.color || '#0f4cff',
+              color: d.color || '#FF5500',
               budget: d.budget,
               tags: d.tags || [],
               createdAt: d.createdAt,
@@ -898,7 +921,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             id: p.id,
             name: p.name,
             icon: p.icon || 'folder',
-            color: p.color || '#0f4cff',
+            color: p.color || '#FF5500',
             desc: p.description || p.desc || '',
             progress: p.progressPercent ?? p.progress ?? 0,
             status: p.health || p.status || 'Planning',
@@ -943,6 +966,27 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             fileSize: d.fileSize,
             category: d.category,
             content: d.content || '',
+          })));
+        }
+      }
+
+      // 7. Workspace automations
+      if (autoRes && autoRes.ok) {
+        const autoData = await autoRes.json().catch(() => null);
+        const serverAutos = autoData?.automations || autoData?.data?.automations;
+        if (Array.isArray(serverAutos)) {
+          setAutomations(serverAutos.map((a: any) => ({
+            id: a.id || a._id,
+            name: a.name,
+            active: a.active !== undefined ? a.active : (a.isActive !== undefined ? a.isActive : true),
+            when: a.when || a.trigger?.event || a.trigger?.type || 'Trigger',
+            condition: a.condition || null,
+            then: a.then || (Array.isArray(a.actions) ? a.actions.map((act: any) => act.type).join(', ') : 'Action'),
+            icon: a.icon || '',
+            color: a.color || '#FF5500',
+            type: a.type || 'standard',
+            executionCount: a.executionCount || a.runCount || 0,
+            lastRun: a.lastRun || a.lastRunAt || 'Never',
           })));
         }
       }
@@ -995,7 +1039,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           initials,
           role: userRoleTitle,
           avatar: resolvedPhotoURL,
-          color: isFounder ? '#0f4cff' : '#f59e0b',
+          color: isFounder ? '#FF5500' : '#f59e0b',
           photoURL: resolvedPhotoURL,
           planTier: userPlanTier,
           workspaceRole: userWorkspaceRole,
@@ -1070,7 +1114,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 teamIds: ['team_core'],
                 workspaceRole: userWorkspaceRole,
                 status: 'online',
-                color: isFounder ? '#0f4cff' : '#f59e0b',
+                color: isFounder ? '#FF5500' : '#f59e0b',
                 tasks: 0,
                 projects: 0,
                 email: activeUser.email,
@@ -1801,7 +1845,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
  const addAuditEntry = (actorOrAction: string, actionOrTarget: string, targetOrDetails?: string, maybeDetails?: string) => {
- let actor = user.name;
+ let actor = user?.name || user?.email || 'System';
  let action = actorOrAction;
  let target = actionOrTarget;
  let details = targetOrDetails || '';
@@ -1871,7 +1915,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  // Add activity
  const emp = employees.find((e) => e.id === newTask.assignee);
  const actText = `Task "${newTask.name}" created for ${emp ? emp.name : 'team'}`;
- setActivity((prev) => [{ id: 'act_' + Date.now(), text: actText, time: 'Just now', dot: '#0f4cff' }, ...prev]);
+ setActivity((prev) => [{ id: 'act_' + Date.now(), text: actText, time: 'Just now', dot: '#FF5500' }, ...prev]);
 
  if (notificationSettings.tasksEnabled) {
  setNotifications((prev) => [
@@ -2111,7 +2155,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  id: projData.id || ('p_' + Date.now()),
  name: projData.name,
  icon: projData.icon || '',
- color: projData.color || '#0f4cff',
+ color: projData.color || '#FF5500',
  desc: projData.desc || 'New workspace initiative',
  progress: projData.progress ?? 0,
  status: projData.status || 'Planning',
@@ -2371,7 +2415,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       teamIds: empData.teamIds || ['team_core'],
       workspaceRole: sanitizedWorkspaceRole,
       status: empData.status || 'online',
-      color: empData.color || '#0f4cff',
+      color: empData.color || '#FF5500',
       tasks: 0,
       projects: 0,
       email: cleanEmpEmail,
@@ -2521,7 +2565,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 teamIds: ['team_core'],
                 workspaceRole: user.workspaceRole || 'member',
                 status: 'online',
-                color: '#0f4cff',
+                color: '#FF5500',
                 tasks: 0,
                 projects: 0,
                 email: user.email,
@@ -2875,7 +2919,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    const refreshed = await Promise.allSettled([read('projects'), read('documents'), read('automations'), read('crm/deals')]);
    const projectData = refreshed[0].status === 'fulfilled' ? refreshed[0].value : null;
    if (Array.isArray(projectData?.projects)) setProjects(projectData.projects.map((p: any) => ({
-     id: p.id, name: p.name, icon: 'folder', color: '#0f4cff', desc: p.description || '',
+     id: p.id, name: p.name, icon: 'folder', color: '#FF5500', desc: p.description || '',
      progress: p.progressPercent || 0, status: p.status || 'Planning', deadline: p.deadline || '',
      team: p.teamMemberIds || [], tasks: p.taskCount || 0, completed: p.completedTaskCount || 0,
    })));
@@ -2888,7 +2932,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    const automationData = refreshed[2].status === 'fulfilled' ? refreshed[2].value : null;
    if (Array.isArray(automationData?.automations)) setAutomations(automationData.automations.map((a: any) => ({
      ...a, active: a.isActive ?? a.enabled ?? a.active ?? true, when: typeof a.trigger === 'string' ? a.trigger : JSON.stringify(a.trigger),
-     condition: a.conditions ? JSON.stringify(a.conditions) : null, then: JSON.stringify(a.actions || []), icon: 'zap', color: '#0f4cff',
+     condition: a.conditions ? JSON.stringify(a.conditions) : null, then: JSON.stringify(a.actions || []), icon: 'zap', color: '#FF5500',
    })));
    const dealData = refreshed[3].status === 'fulfilled' ? refreshed[3].value : null;
    if (Array.isArray(dealData?.deals)) setCrm(prev => ({ ...prev, deals: dealData.deals.map((d: any) => ({
@@ -3141,40 +3185,63 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  );
  };
 
- const addWebhook = (whData: Omit<WebhookItem, 'id' | 'lastTriggered'>) => {
- const newWh: WebhookItem = {
- id: 'wh_' + Date.now(),
- name: whData.name,
- url: whData.url,
- events: whData.events,
- status: whData.status || 'active',
- secret: whData.secret || 'whsec_' + Math.random().toString(36).substring(2, 10),
- lastTriggered: 'Just now',
+ // Helper for cryptographically secure webhook secret generation (>= 32 chars)
+ const generateSecureWebhookSecret = (): string => {
+   if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+     const bytes = new Uint8Array(32);
+     window.crypto.getRandomValues(bytes);
+     return 'whsec_' + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+   }
+   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+     const bytes = new Uint8Array(32);
+     crypto.getRandomValues(bytes);
+     return 'whsec_' + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+   }
+   return 'whsec_' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
  };
- setWebhooks((prev) => [newWh, ...prev]);
- addAuditEntry('Alex Morgan', 'webhook.created', newWh.name, `Created webhook for ${newWh.url}`);
- showToast(`Webhook "${newWh.name}" created `);
+
+ const addWebhook = (whData: Omit<WebhookItem, 'id' | 'lastTriggered'>) => {
+   const actorName = user?.name || user?.email || 'System';
+   const newWh: WebhookItem = {
+     id: 'wh_' + Date.now(),
+     name: whData.name,
+     url: whData.url,
+     events: whData.events,
+     status: whData.status || 'active',
+     secret: whData.secret && whData.secret.length >= 32 ? whData.secret : generateSecureWebhookSecret(),
+     lastTriggered: 'Just now',
+   };
+   setWebhooks((prev) => [newWh, ...prev]);
+   addAuditEntry(actorName, 'webhook.created', newWh.name, `Created webhook for ${newWh.url}`);
+   showToast(`Webhook "${newWh.name}" created `);
  };
 
  const addApiKey = (name: string, scopes: string[]) => {
- const randomSuffix = Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12);
- const key = `crs_live_${randomSuffix}`;
- const prefix = key.substring(0, 13);
- const newKey: ApiKeyItem = {
- id: 'key_' + Date.now(),
- name,
- key,
- prefix,
- created: new Date().toISOString().split('T')[0],
- lastUsed: 'Never',
- status: 'active',
- scopes,
- permissions: scopes,
- createdBy: user.name,
- };
- setApiKeys((prev) => [newKey, ...prev]);
- addAuditEntry('Alex Morgan', 'apikey.created', name, `Generated API key with ${scopes.length} scopes`);
- showToast(`API Key "${name}" generated `);
+   const actorName = user?.name || user?.email || 'System';
+   const keyBytes = new Uint8Array(24);
+   if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+     window.crypto.getRandomValues(keyBytes);
+   } else {
+     for (let i = 0; i < 24; i++) keyBytes[i] = Math.floor(Math.random() * 256);
+   }
+   const randomSuffix = Array.from(keyBytes, (b) => b.toString(16).padStart(2, '0')).join('');
+   const key = `crs_live_${randomSuffix}`;
+   const prefix = key.substring(0, 13);
+   const newKey: ApiKeyItem = {
+     id: 'key_' + Date.now(),
+     name,
+     key,
+     prefix,
+     created: new Date().toISOString().split('T')[0],
+     lastUsed: 'Never',
+     status: 'active',
+     scopes,
+     permissions: scopes,
+     createdBy: actorName,
+   };
+   setApiKeys((prev) => [newKey, ...prev]);
+   addAuditEntry(actorName, 'apikey.created', name, `Generated API key with ${scopes.length} scopes`);
+   showToast(`API Key "${name}" generated `);
  };
 
  const revokeApiKey = (id: string) => {
@@ -3314,7 +3381,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       lead: deptData.lead || user.name,
       membersCount: 0,
       budget: deptData.budget || '$150,000 / yr',
-      color: deptData.color || '#0f4cff',
+      color: deptData.color || '#FF5500',
       tags: deptData.tags || ['Core Team'],
     };
     setDepartments((prev) => [...prev, newDept]);
@@ -3439,10 +3506,23 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  // ---- Automation Mutations ----
  const toggleAutomation = (id: string) => {
+ let nextState = false;
  setAutomations((prev) =>
- prev.map((a) => (a.id === id ? { ...a, active: !a.active } : a))
+ prev.map((a) => {
+ if (a.id === id) {
+ nextState = !a.active;
+ return { ...a, active: nextState };
+ }
+ return a;
+ })
  );
- showToast('Automation rule toggled ');
+ fetch(`/api/automations/${id}`, {
+ method: 'PATCH',
+ headers: { 'Content-Type': 'application/json' },
+ credentials: 'include',
+ body: JSON.stringify({ active: nextState }),
+ }).catch(() => {});
+ showToast('Automation rule toggled ⚡');
  };
 
  const addAutomation = (autoData: Partial<AutomationRule> & { name: string; when: string; then: string }) => {
@@ -3454,17 +3534,38 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  condition: autoData.condition || null,
  then: autoData.then,
  icon: autoData.icon || '',
- color: autoData.color || '#0f4cff',
+ color: autoData.color || '#FF5500',
  type: autoData.type || 'standard',
  executionCount: autoData.executionCount || 0,
  lastRun: autoData.lastRun || 'Never',
  };
  setAutomations((prev) => [newAuto, ...prev]);
- showToast(`Automation "${newAuto.name}" created `);
+ fetch('/api/automations', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ credentials: 'include',
+ body: JSON.stringify(newAuto),
+ }).catch(() => {});
+ showToast(`Automation "${newAuto.name}" created ⚡`);
  };
 
  const updateAutomation = (id: string, updates: Partial<AutomationRule>) => {
  setAutomations((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)));
+ fetch(`/api/automations/${id}`, {
+ method: 'PATCH',
+ headers: { 'Content-Type': 'application/json' },
+ credentials: 'include',
+ body: JSON.stringify(updates),
+ }).catch(() => {});
+ };
+
+ const deleteAutomation = (id: string) => {
+ setAutomations((prev) => prev.filter((a) => a.id !== id));
+ fetch(`/api/automations/${id}`, {
+ method: 'DELETE',
+ credentials: 'include',
+ }).catch(() => {});
+ showToast('Automation deleted');
  };
 
  const addDeal = (dealData: Omit<CrmDeal, 'id' | 'lastActivity'>) => {
@@ -3711,6 +3812,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  toggleAutomation,
  addAutomation,
  updateAutomation,
+ deleteAutomation,
  documents,
  addDocument,
  updateDocument,

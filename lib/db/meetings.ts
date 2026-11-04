@@ -21,16 +21,24 @@ export async function getMeetings(workspaceId: string): Promise<Meeting[]> {
     .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
 }
 
-export async function getMeetingById(id: string): Promise<Meeting | null> {
-  const mem = inMemoryStore.meetings.get(id);
-  if (mem) return mem;
+export async function getMeetingById(id: string, workspaceId?: string): Promise<Meeting | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const mem = inMemoryStore.meetings.get(cleanId);
+  if (mem) {
+    if (workspaceId && mem.workspaceId !== workspaceId) return null;
+    return mem;
+  }
 
   try {
     const col = await getCollection<Meeting>('meetings');
     if (col) {
-      const found = await col.findOne({ id });
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const found = await col.findOne(query);
       if (found) {
-        inMemoryStore.meetings.set(id, found);
+        inMemoryStore.meetings.set(cleanId, found);
         return found;
       }
     }
@@ -99,13 +107,23 @@ export async function createMeeting(workspaceId: string, data: Partial<Meeting>)
   return meeting;
 }
 
-export async function deleteMeeting(id: string): Promise<boolean> {
-  const deletedMem = inMemoryStore.meetings.delete(id);
+export async function deleteMeeting(id: string, workspaceId?: string): Promise<boolean> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return false;
+
+  if (workspaceId) {
+    const existing = await getMeetingById(cleanId, workspaceId);
+    if (!existing) return false;
+  }
+
+  const deletedMem = inMemoryStore.meetings.delete(cleanId);
   let deletedMongo = false;
   try {
     const col = await getCollection<Meeting>('meetings');
     if (col) {
-      const res = await col.deleteOne({ id });
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const res = await col.deleteOne(query);
       deletedMongo = res.deletedCount > 0;
     }
   } catch (e) {
@@ -114,12 +132,27 @@ export async function deleteMeeting(id: string): Promise<boolean> {
   return deletedMem || deletedMongo;
 }
 
-export async function updateMeeting(id: string, updates: Partial<Meeting>): Promise<Meeting | null> {
-  const existing = inMemoryStore.meetings.get(id);
+export async function updateMeeting(
+  id: string,
+  updates: Partial<Meeting>,
+  workspaceId?: string
+): Promise<Meeting | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  let existing = inMemoryStore.meetings.get(cleanId);
+  if (!existing) {
+    existing = (await getMeetingById(cleanId, workspaceId)) || undefined;
+  }
   if (!existing) return null;
+  if (workspaceId && existing.workspaceId !== workspaceId) return null;
+
+  if (Object.keys(updates).some((key) => key.includes('.') || key.startsWith('$'))) {
+    throw new Error('Invalid meeting update field');
+  }
 
   // Protect immutable identifiers: id, workspaceId, hostId, createdAt
-  const { id: _id, workspaceId: _wsId, hostId: _hostId, createdAt: _createdAt, ...allowedUpdates } = updates as any;
+  const { id: _id, _id: _rawId, workspaceId: _wsId, hostId: _hostId, createdAt: _createdAt, ...allowedUpdates } = updates as any;
 
   const title = allowedUpdates.title || allowedUpdates.name || existing.title;
   const scheduledAt = allowedUpdates.scheduledAt || existing.scheduledAt;
@@ -138,12 +171,15 @@ export async function updateMeeting(id: string, updates: Partial<Meeting>): Prom
     updatedAt: new Date().toISOString(),
   };
 
-  inMemoryStore.meetings.set(id, updated);
+  inMemoryStore.meetings.set(cleanId, updated);
 
   try {
     const col = await getCollection<Meeting>('meetings');
     if (col) {
-      await col.updateOne({ id, workspaceId: existing.workspaceId }, { $set: updated });
+      await col.updateOne(
+        { id: cleanId, workspaceId: existing.workspaceId },
+        { $set: { ...allowedUpdates, updatedAt: updated.updatedAt } }
+      );
     }
   } catch (e) {
     console.warn('MongoDB update meeting notice:', e);
@@ -158,8 +194,8 @@ export async function processMeetingWithOrdis(
   meetingId: string,
   workspaceId: string
 ): Promise<{ meeting: Meeting; createdTasks: Task[] }> {
-  const meeting = await getMeetingById(meetingId);
-  if (!meeting) throw new Error('Meeting not found');
+  const meeting = await getMeetingById(meetingId, workspaceId);
+  if (!meeting || meeting.workspaceId !== workspaceId) throw new Error('Meeting not found in active workspace');
 
   // 1. Summary from genuine notes or transcript
   if (!meeting.summary) {
@@ -225,7 +261,7 @@ export async function processMeetingWithOrdis(
   try {
     const col = await getCollection<Meeting>('meetings');
     if (col) {
-      await col.updateOne({ id: meetingId }, { $set: meeting }, { upsert: true });
+      await col.updateOne({ id: meetingId, workspaceId }, { $set: meeting });
     }
   } catch (e) {
     console.warn('MongoDB processMeetingWithOrdis notice:', e);

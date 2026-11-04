@@ -2,18 +2,35 @@
  * ==============================================================================
  * CURSIS WORKSPACE GOVERNANCE & SOVEREIGN FOUNDER IDENTITY
  * ==============================================================================
- * Strictly designates mukulk3962364@gmail.com as the exclusive Founder & CEO
- * of Cursis. All other accounts registered or authenticated are regular Users.
+ * Configures the sovereign Founder & CEO identity of Cursis via environment
+ * variable SOVEREIGN_FOUNDER_EMAIL with fallback to mukulk3962364@gmail.com.
  */
 
-export const SOVEREIGN_FOUNDER_EMAIL = 'mukulk3962364@gmail.com';
+export const DEFAULT_SOVEREIGN_FOUNDER_EMAIL = 'mukulk3962364@gmail.com';
+
+/**
+ * Dynamically retrieves the sovereign founder email from the environment.
+ */
+export function getSovereignFounderEmail(): string {
+  const envEmail =
+    typeof process !== 'undefined'
+      ? (process.env?.SOVEREIGN_FOUNDER_EMAIL || process.env?.NEXT_PUBLIC_SOVEREIGN_FOUNDER_EMAIL)
+      : undefined;
+
+  if (envEmail && typeof envEmail === 'string' && envEmail.trim().length > 0) {
+    return envEmail.trim().toLowerCase();
+  }
+  return DEFAULT_SOVEREIGN_FOUNDER_EMAIL.toLowerCase();
+}
+
+export const SOVEREIGN_FOUNDER_EMAIL = getSovereignFounderEmail();
 
 /**
  * Validates if an email belongs to the sovereign Founder & CEO.
  */
 export function isFounderEmail(email?: string | null): boolean {
   if (!email) return false;
-  return email.trim().toLowerCase() === SOVEREIGN_FOUNDER_EMAIL.toLowerCase();
+  return email.trim().toLowerCase() === getSovereignFounderEmail();
 }
 
 /**

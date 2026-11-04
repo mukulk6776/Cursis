@@ -276,7 +276,7 @@ export const ordisToolDeclarations: FunctionDeclaration[] = [
  parameters: {
  type: Type.OBJECT,
  properties: {
- accentColor: { type: Type.STRING, description: 'Hex accent color (e.g. "#0f4cff", "#6366f1", "#10b981")' },
+ accentColor: { type: Type.STRING, description: 'Hex accent color (e.g. "#FF5500", "#6366f1", "#10b981")' },
  tone: {
  type: Type.STRING,
  enum: ['concise', 'executive', 'detailed', 'friendly'],
@@ -323,7 +323,7 @@ export function buildOrdisSystemPrompt(state: OrdisContextState, tone: string = 
   const workspaceName = state.workspace?.name || 'Cursis Production';
   const taskCount = state.tasks?.length || 0;
   const projectCount = state.projects?.length || 0;
-  const memberNames = state.employees?.map((e) => `${e.name} (${e.role})`).join(', ') || 'Sarah Chen, Alex Morgan';
+  const memberNames = state.employees?.map((e) => `${e.name} (${e.role})`).join(', ') || 'No team members registered';
   const openTasks = state.tasks?.slice(0, 8).map((t) => `"${t.name}" [${t.priority}]`).join(', ') || 'None';
 
   return `You are ORDIS, the intelligent, articulate, and autonomous AI Workspace Copilot embedded inside Cursis.
@@ -417,7 +417,7 @@ export function processGeminiToolCalls(
  title: newTask.name,
  subtitle: `Assigned to ${assignedEmployee.name} • Priority: ${newTask.priority.toUpperCase()}`,
  badge: newTask.priority.toUpperCase(),
- badgeColor: newTask.priority === 'urgent' ? '#ef4444' : '#0f4cff',
+ badgeColor: newTask.priority === 'urgent' ? '#ef4444' : '#FF5500',
  meta: { taskId: newTask.id, deadline: newTask.deadline },
  primaryAction: { label: 'Open in Kanban', actionType: 'navigate', target: 'tasks' },
  });
@@ -508,7 +508,7 @@ export function processGeminiToolCalls(
  status: 'In Progress',
  deadline: args.deadline || 'In 30 days',
  icon: '',
- color: '#0f4cff',
+ color: '#FF5500',
  team: state.employees.slice(0, 3).map((e) => e.id),
  tasks: 0,
  completed: 0,
@@ -584,7 +584,7 @@ export function processGeminiToolCalls(
  lead: args.lead || state.user.name,
  membersCount: 0,
  budget: args.budget || '$150,000 / yr',
- color: args.color || '#0f4cff',
+ color: args.color || '#FF5500',
  tags: Array.isArray(args.tags) ? args.tags : ['Core Team'],
  };
  mutations.createdDepartment = newDept;
@@ -606,7 +606,7 @@ export function processGeminiToolCalls(
  condition: null,
  then: args.action || 'Notify team channel and log activity',
  icon: '',
- color: '#0f4cff',
+ color: '#FF5500',
  executionCount: 0,
  lastRun: 'Never',
  };
@@ -617,7 +617,7 @@ export function processGeminiToolCalls(
  title: newAuto.name,
  subtitle: `When ${newAuto.when} → Then ${newAuto.then}`,
  badge: 'ACTIVE RULE',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  primaryAction: { label: 'View Automations', actionType: 'navigate', target: 'automations' },
  });
  } else if (fnName === 'invite_team_member' || fnName === 'add_team_member') {

@@ -1,10 +1,30 @@
 import { inMemoryMemberships, invitationRole } from './memberships';
-import { getUserWorkspaceRole } from '@/lib/auth/rbac';
 import { inMemoryStore } from './store';
 import { UserProfile, UserRole, Workspace, WorkspaceMembership, WorkspaceTeamMember, MAX_TEAM_MEMBERS } from './types';
 export { MAX_TEAM_MEMBERS };
 import { getCollection } from '@/lib/mongodb';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
+import { ensureWorkspaceExists, getWorkspace } from './workspaces';
+import { getWorkspaceInvitations } from './invitations';
+import { withWorkspaceLock } from './workspace-lock';
+
+export const EMAIL_REGEX = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+[a-zA-Z0-9]$/;
+
+async function resolveUserRole(userId: string, workspaceId: string): Promise<UserRole> {
+  const ws = inMemoryStore.workspaces.get(workspaceId);
+  if (ws && ws.ownerId === userId) return 'owner';
+  const mem = inMemoryMemberships.get(`${workspaceId}_${userId}`);
+  if (mem) return invitationRole(mem.role);
+  try {
+    const wsCol = await getCollection<Workspace>('workspaces');
+    const wsDoc = wsCol ? await wsCol.findOne({ id: workspaceId }) : null;
+    if (wsDoc && wsDoc.ownerId === userId) return 'owner';
+    const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
+    const memDoc = memCol ? await memCol.findOne({ workspaceId, userId }) : null;
+    if (memDoc) return invitationRole(memDoc.role);
+  } catch {}
+  return 'member';
+}
 
 export function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -17,8 +37,6 @@ function sanitizeTeamUser(u: UserProfile): UserProfile {
   delete clone.passwordReset;
   return clone;
 }
-
-import { ensureWorkspaceExists } from './workspaces';
 
 export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile[]> {
   const targetWsId = (workspaceId || '').trim();
@@ -199,18 +217,77 @@ export async function getWorkspaceTeam(workspaceId: string): Promise<UserProfile
     console.warn('MongoDB getWorkspaceTeam notice:', e);
   }
 
-  return Promise.all(Array.from(inMemoryStore.users.values())
-    .filter((u) => u.workspaceIds?.includes(targetWsId) || u.activeWorkspaceId === targetWsId)
-    .map(async (u) => {
-      const sanitized = sanitizeTeamUser(u);
-      sanitized.role = await getUserWorkspaceRole(u.uid || u.id, targetWsId) || 'member';
-      const lastActiveMs = sanitized.lastActiveAt ? new Date(sanitized.lastActiveAt).getTime() : 0;
-      const isRecentlyActive = lastActiveMs > 0 && (Date.now() - lastActiveMs) < 120000;
-      if (!isRecentlyActive || sanitized.presence === 'offline') {
-        sanitized.presence = 'offline';
+  const memUsers = Array.from(inMemoryStore.users.values())
+    .filter((u) => u.workspaceIds?.includes(targetWsId) || u.activeWorkspaceId === targetWsId);
+
+  // Also include members recorded in inMemoryMemberships
+  const memoryMembers = Array.from(inMemoryMemberships.values()).filter((m) => m.workspaceId === targetWsId);
+  const userMap = new Map<string, UserProfile>();
+
+  memUsers.forEach((u) => userMap.set(u.uid || u.id, u));
+
+  for (const m of memoryMembers) {
+    if (!userMap.has(m.userId)) {
+      const u = inMemoryStore.users.get(m.userId);
+      if (u) {
+        userMap.set(m.userId, u);
+      } else {
+        userMap.set(m.userId, {
+          id: m.userId,
+          uid: m.userId,
+          email: `${m.userId}@cursis.in`,
+          displayName: m.userId,
+          role: m.role || 'member',
+          department: 'Engineering',
+          title: 'Team Member',
+          skills: ['General'],
+          workspaceIds: [targetWsId],
+          activeWorkspaceId: targetWsId,
+          presence: 'online',
+          createdAt: m.createdAt || new Date().toISOString(),
+          onboardingStatus: 'completed',
+          onboardingChecklist: [],
+        });
       }
-      return sanitized;
-    }));
+    }
+  }
+
+  // Include owner if not present
+  const ws = inMemoryStore.workspaces.get(targetWsId);
+  if (ws?.ownerId && !userMap.has(ws.ownerId)) {
+    const ownerUser = inMemoryStore.users.get(ws.ownerId);
+    if (ownerUser) {
+      userMap.set(ws.ownerId, ownerUser);
+    } else {
+      userMap.set(ws.ownerId, {
+        id: ws.ownerId,
+        uid: ws.ownerId,
+        email: `${ws.ownerId}@cursis.in`,
+        displayName: 'Workspace Owner',
+        role: 'owner',
+        department: 'Leadership',
+        title: 'Workspace Owner',
+        skills: ['Leadership'],
+        workspaceIds: [targetWsId],
+        activeWorkspaceId: targetWsId,
+        presence: 'online',
+        createdAt: ws.createdAt || new Date().toISOString(),
+        onboardingStatus: 'completed',
+        onboardingChecklist: [],
+      });
+    }
+  }
+
+  return Promise.all(Array.from(userMap.values()).map(async (u) => {
+    const sanitized = sanitizeTeamUser(u);
+    sanitized.role = await resolveUserRole(u.uid || u.id, targetWsId);
+    const lastActiveMs = sanitized.lastActiveAt ? new Date(sanitized.lastActiveAt).getTime() : 0;
+    const isRecentlyActive = lastActiveMs > 0 && (Date.now() - lastActiveMs) < 120000;
+    if (!isRecentlyActive || sanitized.presence === 'offline') {
+      sanitized.presence = 'offline';
+    }
+    return sanitized;
+  }));
 }
 
 
@@ -228,9 +305,15 @@ export async function addTeamMember(
     planTier?: 'standard';
   }
 ): Promise<UserProfile> {
-  const cleanEmail = memberData.email.toLowerCase().trim();
-  const isFounder = isFounderEmail(cleanEmail);
-  const assignedRole: UserRole = invitationRole(memberData.role);
+  return withWorkspaceLock(workspaceId, async () => {
+    const cleanEmail = (memberData.email || '').toLowerCase().trim();
+    if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) {
+      const err: any = new Error('A valid email address is required.');
+      err.statusCode = 400;
+      throw err;
+    }
+    const isFounder = isFounderEmail(cleanEmail);
+    const assignedRole: UserRole = invitationRole(memberData.role);
   const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, memberData.title || 'Team Member');
   const assignedDept = isFounder ? 'Leadership' : getAuthorizedDepartment(cleanEmail, memberData.department || 'Engineering');
   const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (memberData.skills || ['General']);
@@ -262,7 +345,10 @@ export async function addTeamMember(
 
   if (!isAlreadyInWs) {
     const currentTeam = await getWorkspaceTeam(workspaceId);
-    if (currentTeam.length >= MAX_TEAM_MEMBERS) {
+    const ws = await getWorkspace(workspaceId);
+    const activeCount = Math.max(currentTeam.length, ws?.memberCount || 0);
+    const pendingInvitations = await getWorkspaceInvitations(workspaceId);
+    if (activeCount >= MAX_TEAM_MEMBERS || (activeCount + pendingInvitations.length) >= MAX_TEAM_MEMBERS) {
       const err: any = new Error(`Workspace has reached the maximum team limit of ${MAX_TEAM_MEMBERS} members.`);
       err.statusCode = 400;
       throw err;
@@ -352,6 +438,7 @@ export async function addTeamMember(
   }
 
   return newMember;
+  });
 }
 
 export async function removeTeamMember(
@@ -359,17 +446,18 @@ export async function removeTeamMember(
   userId: string,
   emailHint?: string
 ): Promise<boolean> {
-  const targetId = (userId || '').trim();
-  let cleanEmail = (emailHint || '').toLowerCase().trim();
-  let targetWsId = (workspaceId || '').trim();
+  return withWorkspaceLock(workspaceId, async () => {
+    const targetId = (userId || '').trim();
+    let cleanEmail = (emailHint || '').toLowerCase().trim();
+    let targetWsId = (workspaceId || '').trim();
 
-  // Resolve fallback workspace if needed
-  if (!targetWsId || targetWsId === 'ws_default' || targetWsId === 'ws_public') {
-    const memWs = Array.from(inMemoryStore.workspaces.values()).find((w) => w.id !== 'ws_default' && w.id !== 'ws_public');
-    if (memWs) targetWsId = memWs.id;
-  }
+    // Resolve fallback workspace if needed
+    if (!targetWsId || targetWsId === 'ws_default' || targetWsId === 'ws_public') {
+      const memWs = Array.from(inMemoryStore.workspaces.values()).find((w) => w.id !== 'ws_default' && w.id !== 'ws_public');
+      if (memWs) targetWsId = memWs.id;
+    }
 
-  if (targetId && await getUserWorkspaceRole(targetId, targetWsId) === 'owner') return false;
+    if (targetId && await resolveUserRole(targetId, targetWsId) === 'owner') return false;
 
   // Founder protection: cannot remove founder
   if (cleanEmail && isFounderEmail(cleanEmail)) {
@@ -605,6 +693,7 @@ export async function removeTeamMember(
   }
 
   return true;
+  });
 }
 
 
@@ -622,7 +711,7 @@ export async function updateTeamMember(
 
   if (updates.role !== undefined) {
     if (!workspaceId) throw new Error('Workspace is required for role updates.');
-    const currentRole = await getUserWorkspaceRole(userId, workspaceId);
+    const currentRole = await resolveUserRole(userId, workspaceId);
     if (currentRole === 'owner' || updates.role === 'owner') throw new Error('Ownership requires an explicit transfer.');
     const role = invitationRole(updates.role);
     const membership: WorkspaceMembership = { id: `mem_${workspaceId}_${userId}`, workspaceId, userId, role, createdAt: new Date().toISOString() };

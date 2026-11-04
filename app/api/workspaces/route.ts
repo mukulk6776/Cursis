@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         tagline: (w as any).tagline || 'Intelligent Workspace for Modern Teams',
         isCustomClient: Boolean((w as any).isCustomClient),
         badge: workspaceRole ? workspaceRole.charAt(0).toUpperCase() + workspaceRole.slice(1) : 'No access',
-        color: (w as any).color || '#0f4cff',
+        color: (w as any).color || '#FF5500',
         ownerId: w.ownerId,
         memberCount: w.memberCount || 1,
         createdAt: w.createdAt,
@@ -72,7 +72,17 @@ export async function PATCH(request: Request) {
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     const name = body.name ? String(body.name).trim() : undefined;
-    if (!name && !body.tagline && !body.settings && !body.industry && !body.accentColor && !body.securityPolicies) {
+    if (
+      !name &&
+      !body.tagline &&
+      !body.settings &&
+      !body.industry &&
+      !body.accentColor &&
+      !body.securityPolicies &&
+      body.tier === undefined &&
+      body.ordisMode === undefined &&
+      body.teamSize === undefined
+    ) {
       return apiError('At least one workspace attribute must be updated', 400);
     }
 
@@ -84,6 +94,8 @@ export async function PATCH(request: Request) {
     if (body.tagline !== undefined) updates.tagline = body.tagline;
     if (body.industry !== undefined) updates.industry = body.industry;
     if (body.teamSize !== undefined) updates.teamSize = body.teamSize;
+    if (body.tier !== undefined) updates.tier = body.tier;
+    if (body.ordisMode !== undefined) updates.ordisMode = body.ordisMode;
     if (body.settings) updates.settings = body.settings;
     if (body.securityPolicies) {
       updates.securityPolicies = body.securityPolicies;
@@ -102,7 +114,7 @@ export async function PATCH(request: Request) {
         name: updated.name,
         shortName: (updated as any).shortName || generateWorkspaceAbbreviation(updated.name || 'Workspace'),
         tagline: (updated as any).tagline || 'Intelligent Workspace for Modern Teams',
-        color: (updated as any).color || '#0f4cff',
+        color: (updated as any).color || '#FF5500',
         updatedAt: updated.updatedAt,
       },
       message: 'Workspace updated successfully',

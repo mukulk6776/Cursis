@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         lead: body.lead || authUser.displayName || 'Lead',
         head: body.head || body.lead || authUser.displayName || 'Lead',
         createdBy: authUser.uid,
-        color: body.color || '#0f4cff',
+        color: body.color || '#FF5500',
         tags: Array.isArray(body.tags) ? body.tags : [],
       });
 

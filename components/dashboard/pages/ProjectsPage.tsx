@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import TaskBoard from '@/components/dashboard/work/TaskBoard';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import EmptyState from '@/components/dashboard/EmptyState';
 
 export default function ProjectsPage() {
   const {
@@ -31,7 +32,7 @@ export default function ProjectsPage() {
       id: projId,
       name: t.name,
       desc: t.desc,
-      color: '#0f4cff',
+      color: '#FF5500',
       icon: 'folder',
       status: 'In Progress',
       progress: 0,
@@ -132,31 +133,12 @@ export default function ProjectsPage() {
       </div>
 
       {projects.length === 0 ? (
-        <div
-          className="card"
-          style={{
-            padding: '48px 24px',
-            textAlign: 'center',
-            background: 'var(--surface-card)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-          }}
-        >
-          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
-            No active projects
-          </h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
-            Organize your deliverables into projects, track milestones, and assign team members.
-          </p>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => openModal('project-modal')}
-            style={{ fontWeight: 700 }}
-          >
-            + Create Your First Project
-          </button>
-        </div>
+        <EmptyState
+          title="No active projects yet"
+          description="Organize your deliverables into projects, track milestones, and assign team members."
+          actionLabel="+ Create Your First Project"
+          onAction={() => openModal('project-modal')}
+        />
       ) : (
         <>
           {/* VIEW: GRID */}
@@ -200,7 +182,7 @@ export default function ProjectsPage() {
                     >
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff', flexShrink: 0 }} />
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#FF5500', flexShrink: 0 }} />
                           <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>{p.name}</span>
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', marginLeft: '16px' }}>
@@ -216,7 +198,7 @@ export default function ProjectsPage() {
                           borderRadius: '4px',
                           background: 'var(--c-surface)',
                           border: '1px solid var(--border-color)',
-                          color: p.status === 'In Progress' ? '#0f4cff' : 'var(--text-secondary)',
+                          color: p.status === 'In Progress' ? '#FF5500' : 'var(--text-secondary)',
                           flexShrink: 0,
                         }}
                       >
@@ -241,7 +223,7 @@ export default function ProjectsPage() {
                         <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{p.progress}%</span>
                       </div>
                       <div style={{ height: '6px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%`, transition: 'width 0.3s ease' }} />
+                        <div style={{ height: '100%', background: p.color || '#10B981', width: `${p.progress}%`, transition: 'width 0.3s ease' }} />
                       </div>
                     </div>
 
@@ -277,7 +259,7 @@ export default function ProjectsPage() {
                           <div
                             key={i}
                             className="avatar avatar-xs"
-                            style={{ background: m?.color || '#0f4cff', fontSize: '9px', width: '22px', height: '22px' }}
+                            style={{ background: m?.color || '#FF5500', fontSize: '9px', width: '22px', height: '22px' }}
                             title={m?.name}
                           >
                             {m?.initials}
@@ -322,7 +304,7 @@ export default function ProjectsPage() {
                       >
                         <td style={{ padding: '10px 14px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff', flexShrink: 0 }} />
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#FF5500', flexShrink: 0 }} />
                             <div>
                               <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{p.name}</div>
                               <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
@@ -340,7 +322,7 @@ export default function ProjectsPage() {
                               borderRadius: '4px',
                               background: 'var(--c-surface)',
                               border: '1px solid var(--border-color)',
-                              color: p.status === 'In Progress' ? '#0f4cff' : 'var(--text-secondary)',
+                              color: p.status === 'In Progress' ? '#FF5500' : 'var(--text-secondary)',
                             }}
                           >
                             {p.status}
@@ -349,7 +331,7 @@ export default function ProjectsPage() {
                         <td style={{ padding: '10px 14px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div style={{ width: '80px', height: '6px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
-                              <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%` }} />
+                              <div style={{ height: '100%', background: p.color || '#10B981', width: `${p.progress}%` }} />
                             </div>
                             <span style={{ fontSize: '11px', fontWeight: 700 }}>{p.progress}%</span>
                           </div>
@@ -366,7 +348,7 @@ export default function ProjectsPage() {
                               <div
                                 key={i}
                                 className="avatar avatar-xs"
-                                style={{ background: m?.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px' }}
+                                style={{ background: m?.color || '#FF5500', fontSize: '9px', width: '20px', height: '20px' }}
                               >
                                 {m?.initials}
                               </div>
@@ -434,11 +416,11 @@ export default function ProjectsPage() {
                           onClick={() => setSelectedProjectId(p.id)}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#0f4cff' }} />
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color || '#FF5500' }} />
                             <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{p.name}</span>
                           </div>
                           <div style={{ height: '4px', background: 'var(--c-surface)', borderRadius: '2px', overflow: 'hidden', marginBottom: '6px' }}>
-                            <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%` }} />
+                            <div style={{ height: '100%', background: p.color || '#10B981', width: `${p.progress}%` }} />
                           </div>
                           <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                             {p.completed}/{p.tasks} tasks — Due {p.deadline}
@@ -503,7 +485,7 @@ export default function ProjectsPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: selectedProject.color || '#0f4cff' }} />
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: selectedProject.color || '#FF5500' }} />
                   <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedProject.name}</span>
                   <span
                     style={{

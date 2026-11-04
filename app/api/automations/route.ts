@@ -34,11 +34,18 @@ export async function POST(request: Request) {
     const wsAuth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
-    if (!body.name || !body.trigger || !body.actions) {
+    const trigger = body.trigger || (body.when ? { type: body.when } : { type: 'custom' });
+    const actions = body.actions || (body.then ? [{ type: body.then, config: {} }] : (body.action ? [{ type: body.action, config: {} }] : []));
+
+    if (!body.name || (!body.trigger && !body.when) || (!body.actions && !body.then && !body.action)) {
       return apiError('Automation name, trigger, and actions are required', 400);
     }
 
-    const automation = await createAutomation(workspaceId, body);
+    const automation = await createAutomation(workspaceId, {
+      ...body,
+      trigger,
+      actions,
+    });
     return apiSuccess({ automation }, 201);
   } catch (error: any) {
     return apiError(error.message || 'Failed to create automation', 500);

@@ -40,9 +40,11 @@ export function textField(value: unknown, max: number, label: string) {
   if (typeof value !== 'string' || !value.trim() || value.length > max) throw new PrivacyError(`Invalid ${label}`);
   return value.trim();
 }
+export const EMAIL_REGEX = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+[a-zA-Z0-9]$/;
+
 export function emailField(value: unknown) {
   const email = textField(value, 254, 'email').toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new PrivacyError('Invalid email');
+  if (!EMAIL_REGEX.test(email)) throw new PrivacyError('Invalid email');
   return email;
 }
 export function privacyJSON(data: unknown, status = 200) {

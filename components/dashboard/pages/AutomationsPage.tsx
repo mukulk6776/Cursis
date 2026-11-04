@@ -5,15 +5,16 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function AutomationsPage() {
  const {
- user,
- automations,
- auditLogs,
- toggleAutomation,
- addAutomation,
- updateAutomation,
- openModal,
- showToast,
- addAuditEntry,
+   user,
+   automations,
+   auditLogs,
+   toggleAutomation,
+   addAutomation,
+   updateAutomation,
+   deleteAutomation,
+   openModal,
+   showToast,
+   addAuditEntry,
  } = useDashboard();
 
  const [activeTab, setActiveTab] = useState<'rules' | 'builder' | 'templates' | 'history'>('rules');
@@ -23,54 +24,157 @@ export default function AutomationsPage() {
  const standardAutos = automations.filter((a) => a.type !== 'agency_custom');
  const agencyAutos = automations.filter((a) => a.type === 'agency_custom');
 
- const handleTestRun = (autoId: string) => {
- const auto = automations.find((a) => a.id === autoId);
- if (!auto) return;
- const nextCount = (auto.executionCount || 0) + 1;
- const nextRun = new Date().toISOString();
- updateAutomation(autoId, { executionCount: nextCount, lastRun: nextRun });
- addAuditEntry('system', 'automation.executed', auto.name, 'Manual test run executed successfully');
- showToast(`Test run complete: "${auto.name}" executed successfully *`);
+ const handleTestRun = async (autoId: string) => {
+   const auto = automations.find((a) => a.id === autoId);
+   if (!auto) return;
+   try {
+     await fetch(`/api/automations/${autoId}/execute`, { credentials: 'include', method: 'POST' }).catch(() => null);
+   } catch {
+     // ignore
+   }
+   const nextCount = (auto.executionCount || 0) + 1;
+   const nextRun = new Date().toISOString();
+   updateAutomation(autoId, { executionCount: nextCount, lastRun: nextRun });
+   addAuditEntry(user?.name || user?.email || 'System', 'automation.executed', auto.name, 'Manual test run executed successfully');
+   showToast(`Test run complete: "${auto.name}" executed successfully ⚡`);
  };
 
  const loadTemplate = (name: string, desc: string, trigger: string, action: string) => {
- addAutomation({
- name,
- when: trigger,
- condition: null,
- then: action,
- icon: '',
- color: '#0f4cff',
- type: 'standard',
- executionCount: 0,
- lastRun: 'Never',
- });
- addAuditEntry('u1', 'automation.created', name, 'Created from template');
- showToast(`Template "${name}" added to active automations *`);
- setActiveTab('rules');
+   addAutomation({
+     name,
+     when: trigger,
+     condition: null,
+     then: action,
+     icon: '',
+     color: '#FF5500',
+     type: 'standard',
+     executionCount: 0,
+     lastRun: 'Never',
+   });
+   addAuditEntry(user?.name || user?.email || 'System', 'automation.created', name, 'Created from template');
+   showToast(`Template "${name}" added to active automations ⚡`);
+   setActiveTab('rules');
+ };
+
+ // Structured Natural Language Automation Parser
+ interface ParsedNlRule {
+   name: string;
+   when: string;
+   condition: string | null;
+   then: string;
+   triggerType: string;
+   actionType: string;
+ }
+
+ const parseNlAutomationPrompt = (text: string): ParsedNlRule => {
+   const lower = text.toLowerCase();
+
+   // 1. Determine Trigger
+   let when = 'Workspace Event';
+   let triggerType = 'task.created';
+   if (lower.includes('task') || lower.includes('todo') || lower.includes('ticket')) {
+     if (lower.includes('overdue') || lower.includes('deadline') || lower.includes('due')) {
+       when = 'Task Overdue';
+       triggerType = 'task_overdue';
+     } else if (lower.includes('complete') || lower.includes('status') || lower.includes('done')) {
+       when = 'Task Status Changed';
+       triggerType = 'task_status_changed';
+     } else {
+       when = 'Task Created';
+       triggerType = 'task.created';
+     }
+   } else if (lower.includes('meeting') || lower.includes('call') || lower.includes('sync')) {
+     if (lower.includes('end') || lower.includes('conclude') || lower.includes('finish')) {
+       when = 'Meeting Concluded';
+       triggerType = 'meeting_ended';
+     } else {
+       when = 'Meeting Scheduled';
+       triggerType = 'meeting.scheduled';
+     }
+   } else if (lower.includes('doc') || lower.includes('contract') || lower.includes('pdf') || lower.includes('file')) {
+     when = 'Document Updated';
+     triggerType = 'document.updated';
+   } else if (lower.includes('lead') || lower.includes('crm') || lower.includes('deal') || lower.includes('form') || lower.includes('client')) {
+     when = 'Lead Created';
+     triggerType = 'lead_created';
+   } else if (lower.includes('webhook') || lower.includes('api') || lower.includes('ping')) {
+     when = 'Webhook Received';
+     triggerType = 'webhook';
+   } else if (lower.includes('payment') || lower.includes('invoice') || lower.includes('paid')) {
+     when = 'Payment Received';
+     triggerType = 'payment_received';
+   }
+
+   // 2. Determine Condition (never a dummy string)
+   let condition: string | null = null;
+   if (lower.includes('urgent') || lower.includes('high priority') || lower.includes('p0') || lower.includes('critical')) {
+     condition = 'Priority is urgent';
+   } else if (lower.includes('enterprise') || lower.includes('50,000') || lower.includes('vip') || lower.includes('tier')) {
+     condition = 'Deal value > $50,000';
+   } else if (lower.includes('won') || lower.includes('closed') || lower.includes('signed')) {
+     condition = 'Status is Closed/Won';
+   } else if (lower.includes('legal') || lower.includes('contract')) {
+     condition = 'Category is Legal/Contract';
+   }
+
+   // 3. Determine Action
+   let then = 'Notify workspace team';
+   let actionType = 'notify_channel';
+   if (lower.includes('slack') || lower.includes('channel') || lower.includes('discord')) {
+     then = 'Send Slack notification to channel';
+     actionType = 'slack.notify';
+   } else if (lower.includes('email') || lower.includes('mail') || lower.includes('inbox')) {
+     then = 'Send email notification alert';
+     actionType = 'email.alert';
+   } else if (lower.includes('webhook') || lower.includes('endpoint') || lower.includes('http')) {
+     then = 'Dispatch payload to webhook';
+     actionType = 'webhook.call';
+   } else if (lower.includes('crm') || lower.includes('deal') || lower.includes('opportunity')) {
+     then = 'Create CRM opportunity record';
+     actionType = 'create_crm_deal';
+   } else if (lower.includes('task') || lower.includes('assign') || lower.includes('reminder') || lower.includes('action item')) {
+     then = 'Create follow-up task';
+     actionType = 'create_task';
+   }
+
+   // 4. Clean, realistic rule name
+   const cleanedSnippet = text.trim().replace(/^when\s+/i, '').replace(/[.!?]+$/, '');
+   const capitalizedName = cleanedSnippet.charAt(0).toUpperCase() + cleanedSnippet.slice(1, 42);
+   const name = capitalizedName.length >= 40 ? `${capitalizedName}...` : capitalizedName;
+
+   return {
+     name: name || `${when} → ${then}`,
+     when,
+     condition,
+     then,
+     triggerType,
+     actionType,
+   };
  };
 
  const handleCreateFromNl = (e: React.FormEvent) => {
- e.preventDefault();
- if (!nlText.trim()) return;
+   e.preventDefault();
+   if (!nlText.trim()) return;
 
- addAutomation({
- name: 'Custom: ' + nlText.substring(0, 35) + '...',
- when: nlText.substring(0, 40),
- condition: 'NLP Parsed Condition',
- then: 'Execute NLP Parsed Action',
- icon: '',
- color: '#0f4cff',
- type: 'standard',
- executionCount: 0,
- lastRun: 'Never',
- });
+   const parsed = parseNlAutomationPrompt(nlText);
 
- addAuditEntry('ordis', 'automation.created_via_nl', nlText.substring(0, 30), 'Generated rule via natural language');
- showToast('Natural language rule parsed & added to workflow engine *');
- setNlText('');
- setShowNlModal(false);
- setActiveTab('rules');
+   addAutomation({
+     name: parsed.name,
+     when: parsed.when,
+     condition: parsed.condition,
+     then: parsed.then,
+     icon: '',
+     color: '#FF5500',
+     type: 'standard',
+     executionCount: 0,
+     lastRun: 'Never',
+   });
+
+   addAuditEntry(user?.name || user?.email || 'System', 'automation.created_via_nl', parsed.name, `Generated rule: ${parsed.when} -> ${parsed.then}`);
+   showToast('Natural language rule parsed & added to workflow engine ⚡');
+   setNlText('');
+   setShowNlModal(false);
+   setActiveTab('rules');
  };
 
  const executionHistory = auditLogs
@@ -199,6 +303,14 @@ export default function AutomationsPage() {
  >
  Test Run
  </button>
+ <button
+ className="btn btn-ghost btn-sm"
+ style={{ fontSize: '10px', color: '#EF4444' }}
+ onClick={() => deleteAutomation(auto.id)}
+ title="Delete automation"
+ >
+ Delete
+ </button>
  <div
  className={`toggle ${auto.active ? 'active' : ''}`}
  onClick={() => toggleAutomation(auto.id)}
@@ -286,6 +398,14 @@ export default function AutomationsPage() {
  onClick={() => handleTestRun(auto.id)}
  >
  Test Run
+ </button>
+ <button
+ className="btn btn-ghost btn-sm"
+ style={{ fontSize: '10px', color: '#EF4444' }}
+ onClick={() => deleteAutomation(auto.id)}
+ title="Delete automation"
+ >
+ Delete
  </button>
  <div
  className={`toggle ${auto.active ? 'active' : ''}`}

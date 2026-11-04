@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate, isOverdue, getGreeting } from '@/lib/dashboard/data';
 import ActivationChecklist from '@/components/dashboard/ActivationChecklist';
+import EmptyState from '@/components/dashboard/EmptyState';
 
 export default function HomePage() {
   const {
@@ -108,11 +109,12 @@ export default function HomePage() {
       <div
         className="card"
         style={{
-          padding: '16px 20px',
+          padding: '18px 20px',
           marginBottom: '20px',
-          background: 'var(--surface-card)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '8px',
+          background: '#FFFFFF',
+          border: '3px solid #0A0A0A',
+          borderRadius: '16px',
+          boxShadow: '6px 6px 0px #0A0A0A',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
@@ -126,9 +128,9 @@ export default function HomePage() {
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: '4px',
-                background: 'rgba(15, 76, 255, 0.08)',
+                background: 'rgba(255, 85, 0, 0.08)',
                 color: 'var(--c-brand-text)',
-                border: '1px solid rgba(15, 76, 255, 0.2)',
+                border: '1px solid rgba(255, 85, 0, 0.2)',
                 textTransform: 'uppercase',
               }}
             >
@@ -221,13 +223,14 @@ export default function HomePage() {
         }}
       >
         <div
-          className="card"
+          className="card stat-card"
           style={{
-            padding: '16px 18px',
+            padding: '18px 20px',
             cursor: 'pointer',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            background: 'var(--surface-card)',
+            border: '3px solid #0A0A0A',
+            borderRadius: '16px',
+            boxShadow: '6px 6px 0px #0A0A0A',
+            background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('tasks')}
         >
@@ -243,13 +246,14 @@ export default function HomePage() {
         </div>
 
         <div
-          className="card"
+          className="card stat-card"
           style={{
-            padding: '16px 18px',
+            padding: '18px 20px',
             cursor: 'pointer',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            background: 'var(--surface-card)',
+            border: '3px solid #0A0A0A',
+            borderRadius: '16px',
+            boxShadow: '6px 6px 0px #0A0A0A',
+            background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('tasks')}
         >
@@ -279,13 +283,14 @@ export default function HomePage() {
         </div>
 
         <div
-          className="card"
+          className="card stat-card"
           style={{
-            padding: '16px 18px',
+            padding: '18px 20px',
             cursor: 'pointer',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            background: 'var(--surface-card)',
+            border: '3px solid #0A0A0A',
+            borderRadius: '16px',
+            boxShadow: '6px 6px 0px #0A0A0A',
+            background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('projects')}
         >
@@ -303,13 +308,14 @@ export default function HomePage() {
         </div>
 
         <div
-          className="card"
+          className="card stat-card"
           style={{
-            padding: '16px 18px',
+            padding: '18px 20px',
             cursor: 'pointer',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            background: 'var(--surface-card)',
+            border: '3px solid #0A0A0A',
+            borderRadius: '16px',
+            boxShadow: '6px 6px 0px #0A0A0A',
+            background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('team')}
         >
@@ -332,9 +338,10 @@ export default function HomePage() {
           className="card"
           style={{
             padding: '18px 20px',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            background: 'var(--surface-card)',
+            border: '3px solid #0A0A0A',
+            borderRadius: '16px',
+            boxShadow: '6px 6px 0px #0A0A0A',
+            background: '#FFFFFF',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -369,9 +376,13 @@ export default function HomePage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {filteredTasks.length === 0 ? (
-              <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
-                No tasks in this view.
-              </div>
+              <EmptyState
+                compact
+                title="No tasks in this view"
+                description={tasks.length === 0 ? "Get started by adding your team's first deliverable." : "All tasks in this view are completed or cleared."}
+                actionLabel="+ Create Task"
+                onAction={() => openModal('task-modal')}
+              />
             ) : (
               filteredTasks.slice(0, 6).map((task) => {
                 const proj = getProject(task.project);
@@ -455,9 +466,10 @@ export default function HomePage() {
             className="card"
             style={{
               padding: '18px 20px',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              background: 'var(--surface-card)',
+              border: '3px solid #0A0A0A',
+              borderRadius: '16px',
+              boxShadow: '6px 6px 0px #0A0A0A',
+              background: '#FFFFFF',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -474,9 +486,13 @@ export default function HomePage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {upcomingMeetings.length === 0 ? (
-                <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
-                  No upcoming meetings scheduled today.
-                </div>
+                <EmptyState
+                  compact
+                  title="No upcoming syncs today"
+                  description="Coordinate with team members by scheduling a video sync."
+                  actionLabel="+ Schedule Sync"
+                  onAction={() => openModal('meeting-modal')}
+                />
               ) : (
                 upcomingMeetings.slice(0, 3).map((m) => (
                   <div
@@ -520,9 +536,10 @@ export default function HomePage() {
             className="card"
             style={{
               padding: '18px 20px',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              background: 'var(--surface-card)',
+              border: '3px solid #0A0A0A',
+              borderRadius: '16px',
+              boxShadow: '6px 6px 0px #0A0A0A',
+              background: '#FFFFFF',
             }}
           >
             <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '14px' }}>
@@ -531,13 +548,15 @@ export default function HomePage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {activity.length === 0 ? (
-                <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '12px' }}>
-                  No recent activity recorded.
-                </div>
+                <EmptyState
+                  compact
+                  title="No recent activity"
+                  description="Actions, task completions, and meetings will show up in this audit log."
+                />
               ) : (
                 activity.slice(0, 4).map((act) => (
                   <div key={act.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: act.dot || '#0f4cff', flexShrink: 0 }} />
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: act.dot || '#FF5500', flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)', fontWeight: 500 }}>
                       {act.text}
                     </div>

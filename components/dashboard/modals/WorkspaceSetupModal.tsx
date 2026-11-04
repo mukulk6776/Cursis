@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 const ACCENT_COLORS = [
-  { color: '#0f4cff', label: 'Somba Blue' },
+  { color: '#FF5500', label: 'Electric Orange' },
   { color: '#10b981', label: 'Emerald' },
   { color: '#8b5cf6', label: 'Royal Purple' },
   { color: '#f59e0b', label: 'Sunset Amber' },
   { color: '#334155', label: 'Midnight Slate' },
   { color: '#f43f5e', label: 'Crimson Rose' },
-  { color: '#ff5500', label: 'Cursis Orange' },
+  { color: '#0A0A0A', label: 'Ink Black' },
 ];
 
 const INDUSTRIES = [
@@ -45,7 +45,7 @@ export default function WorkspaceSetupModal() {
   const [wsName, setWsName] = useState('');
   const [tagline, setTagline] = useState('');
   const [industry, setIndustry] = useState('Software & Technology');
-  const [accentColor, setAccentColor] = useState('#0f4cff');
+  const [accentColor, setAccentColor] = useState('#FF5500');
   const [density, setDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,7 +56,7 @@ export default function WorkspaceSetupModal() {
       setWsName(currentName);
       setTagline(workspaceSettings.tagline || 'Empowering modern teams to operate with unified intelligence');
       setIndustry(workspaceSettings.industry || 'Software & Technology');
-      setAccentColor(workspaceSettings.accentColor || '#0f4cff');
+      setAccentColor(workspaceSettings.accentColor || '#FF5500');
       setDensity(workspaceSettings.density || 'comfortable');
     }
   }, [activeModal, workspaceSettings, user.name]);
@@ -148,24 +148,28 @@ export default function WorkspaceSetupModal() {
           maxWidth: '680px',
           width: '100%',
           maxHeight: '92vh',
-          background: 'var(--surface-modal, #ffffff)',
-          borderRadius: '24px',
-          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+          background: '#FFFFFF',
+          borderRadius: '20px',
+          border: '4px solid #0A0A0A',
+          boxShadow: '12px 12px 0px #0A0A0A',
           overflowY: 'auto',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          border: '1px solid rgba(255, 255, 255, 0.8)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Banner */}
         <div
+          className="modal-header"
           style={{
-            padding: '28px 32px 24px',
-            background: 'linear-gradient(135deg, rgba(15, 76, 255, 0.07) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(255, 85, 0, 0.04) 100%)',
-            borderBottom: '1px solid var(--border-color, #e2e8f0)',
+            padding: '24px 32px 20px',
+            background: 'linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, rgba(255, 194, 51, 0.06) 50%, #FAF6EE 100%)',
+            borderBottom: '3px solid #0A0A0A',
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
             position: 'relative',
+            display: 'block',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -176,11 +180,12 @@ export default function WorkspaceSetupModal() {
                   height: '28px',
                   borderRadius: '8px',
                   background: accentColor,
+                  border: '2px solid #0A0A0A',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#fff',
-                  boxShadow: `0 4px 10px ${accentColor}40`,
+                  boxShadow: '2px 2px 0px #0A0A0A',
                   transition: 'background-color 0.2s ease',
                 }}
               >
@@ -210,24 +215,11 @@ export default function WorkspaceSetupModal() {
             <button
               type="button"
               onClick={handleSkip}
-              className="btn btn-ghost btn-sm"
+              className="modal-close"
               aria-label="Skip workspace setup"
-              style={{
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                padding: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-tertiary, #94a3b8)',
-              }}
               title="Skip for now"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
+              ✕
             </button>
           </div>
 
@@ -263,7 +255,7 @@ export default function WorkspaceSetupModal() {
               <span style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary, #475569)' }}>
                 1. Workspace Identity
               </span>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-color, #e2e8f0)' }} />
+              <div style={{ flex: 1, height: '2px', background: '#0A0A0A' }} />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -377,7 +369,7 @@ export default function WorkspaceSetupModal() {
               <span style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary, #475569)' }}>
                 2. Primary Settings
               </span>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-color, #e2e8f0)' }} />
+              <div style={{ flex: 1, height: '2px', background: '#0A0A0A' }} />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -403,9 +395,10 @@ export default function WorkspaceSetupModal() {
                           height: '36px',
                           borderRadius: '50%',
                           backgroundColor: color,
-                          border: isSelected ? '3px solid #ffffff' : '2px solid transparent',
-                          outline: isSelected ? `2.5px solid ${color}` : 'none',
-                          boxShadow: isSelected ? `0 4px 12px ${color}66` : '0 2px 4px rgba(0,0,0,0.1)',
+                          border: '2px solid #0A0A0A',
+                          boxShadow: isSelected ? '3px 3px 0px #0A0A0A' : 'none',
+                          outline: isSelected ? '2px solid #0A0A0A' : 'none',
+                          outlineOffset: '2px',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
@@ -444,8 +437,9 @@ export default function WorkspaceSetupModal() {
                         aria-checked={isSelected}
                         onClick={() => setDensity(opt.id)}
                         style={{
-                          border: isSelected ? `2px solid ${accentColor}` : '1px solid var(--border-color, #e2e8f0)',
-                          background: isSelected ? `${accentColor}08` : 'var(--bg-secondary, #f8fafc)',
+                          border: isSelected ? '3px solid #0A0A0A' : '2px solid #0A0A0A',
+                          background: isSelected ? '#FAF6EE' : '#FFFFFF',
+                          boxShadow: isSelected ? '4px 4px 0px #0A0A0A' : 'none',
                           borderRadius: '12px',
                           padding: '12px 14px',
                           cursor: 'pointer',
@@ -482,29 +476,16 @@ export default function WorkspaceSetupModal() {
           {/* Live Preview Card */}
           <div
             style={{
-              padding: '16px 20px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+              padding: '18px 20px',
+              borderRadius: '16px',
+              background: '#0A0A0A',
               color: '#ffffff',
-              boxShadow: '0 8px 20px -5px rgba(15, 23, 42, 0.3)',
+              border: '3px solid #0A0A0A',
+              boxShadow: '6px 6px 0px #0A0A0A',
               position: 'relative',
               overflow: 'hidden',
             }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: '-20px',
-                right: '-20px',
-                width: '120px',
-                height: '120px',
-                borderRadius: '50%',
-                background: accentColor,
-                opacity: 0.25,
-                filter: 'blur(30px)',
-              }}
-            />
-
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>
                 Live Workspace Preview
@@ -517,7 +498,7 @@ export default function WorkspaceSetupModal() {
                   borderRadius: '999px',
                   background: `${accentColor}33`,
                   color: '#ffffff',
-                  border: `1px solid ${accentColor}`,
+                  border: `1.5px solid ${accentColor}`,
                 }}
               >
                 {industry}
@@ -531,13 +512,14 @@ export default function WorkspaceSetupModal() {
                   height: '32px',
                   borderRadius: '8px',
                   background: accentColor,
+                  border: '2px solid #0A0A0A',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontWeight: 900,
                   fontSize: '14px',
                   color: '#ffffff',
-                  boxShadow: `0 4px 10px ${accentColor}40`,
+                  boxShadow: '2px 2px 0px #0A0A0A',
                 }}
               >
                 {wsName ? wsName.slice(0, 2).toUpperCase() : 'CU'}
@@ -556,19 +538,24 @@ export default function WorkspaceSetupModal() {
 
           {/* Action Footer */}
           <div
+            className="modal-footer"
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              paddingTop: '8px',
-              borderTop: '1px solid var(--border-color, #e2e8f0)',
+              padding: '16px 32px',
+              borderTop: '3px solid #0A0A0A',
+              background: '#FAF6EE',
+              borderBottomLeftRadius: '16px',
+              borderBottomRightRadius: '16px',
+              margin: '0 -32px -28px -32px',
             }}
           >
             <button
               type="button"
               onClick={handleSkip}
               className="btn btn-ghost"
-              style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary, #64748b)' }}
+              style={{ fontSize: '13px', fontWeight: 700, color: '#0A0A0A' }}
             >
               Skip for Now
             </button>
@@ -579,12 +566,12 @@ export default function WorkspaceSetupModal() {
               className="btn btn-primary"
               style={{
                 background: accentColor,
-                borderColor: accentColor,
-                padding: '10px 24px',
+                border: '3px solid #0A0A0A',
+                padding: '12px 24px',
                 fontSize: '13px',
                 fontWeight: 700,
                 borderRadius: '12px',
-                boxShadow: `0 6px 16px ${accentColor}40`,
+                boxShadow: '4px 4px 0px #0A0A0A',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',

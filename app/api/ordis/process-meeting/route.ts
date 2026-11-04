@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     const result = await OrdisEngine.processMeeting(body.meetingId, wsAuth.workspaceId);
     return apiSuccess({ ...result });
   } catch (error: any) {
-    return apiError(error.message || 'Internal Server Error', 500);
+    const isNotFound = /not found/i.test(error?.message || '');
+    return apiError(error.message || 'Internal Server Error', isNotFound ? 404 : 500);
   }
 }

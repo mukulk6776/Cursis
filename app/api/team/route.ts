@@ -4,6 +4,7 @@ import {
   getWorkspaceTeam,
   removeTeamMember,
   updateTeamMember,
+  addTeamMember,
   MAX_TEAM_MEMBERS,
 } from '@/lib/db/team';
 import {
@@ -13,6 +14,8 @@ import {
   acceptWorkspaceInvitation,
   declineWorkspaceInvitation,
 } from '@/lib/db/invitations';
+
+const EMAIL_REGEX = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+[a-zA-Z0-9]$/;
 
 function resolveWorkspaceId(raw: string | null, fallback: string): string {
   return raw && raw !== 'ws_public' && raw !== 'ws_default' ? raw : fallback;
@@ -83,13 +86,34 @@ export async function POST(request: Request) {
       return apiSuccess({ ...result, message: 'Invitation declined successfully' });
     }
 
-    if (action === 'invite' || action === 'send_invitation') {
+    if (action === 'add' || action === 'create' || (!body.action && (body.name || body.displayName))) {
+      // Only admins/owners can add members
+      const wsAuth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
+      if (wsAuth.errorResponse) return wsAuth.errorResponse;
+
+      const email = body.email?.trim()?.toLowerCase();
+      if (!email || !EMAIL_REGEX.test(email)) return apiError('Member email is required', 400);
+
+      const member = await addTeamMember(workspaceId, {
+        email,
+        displayName: body.name || body.displayName || email.split('@')[0],
+        role: body.role || body.workspaceRole || 'member',
+        department: body.department,
+        title: body.title,
+        skills: body.skills,
+        photoURL: body.photoURL,
+      });
+
+      return apiSuccess({ member, message: 'Team member added successfully' }, 201);
+    }
+
+    if (action === 'invite' || action === 'send_invitation' || !body.action) {
       // Only admins/owners can invite
       const wsAuth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
       if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
       const email = body.email?.trim()?.toLowerCase();
-      if (!email) return apiError('Recipient email is required to send invitation', 400);
+      if (!email || !EMAIL_REGEX.test(email)) return apiError('Recipient email is required to send invitation', 400);
 
       const host = request.headers.get('host') || undefined;
       const invitation = await createTeamInvitation({
@@ -111,7 +135,7 @@ export async function POST(request: Request) {
       return apiSuccess({ invitation, message: `Invitation sent to ${email}` }, 201);
     }
 
-    return apiError('Direct addition of team members is disabled. Please send an email invitation.', 400);
+    return apiError('Invalid team action requested.', 400);
   } catch (error: any) {
     const status = error.statusCode || (error.message?.includes('No registered user account found') ? 404 : 400);
     return apiError(error.message || 'Failed to process team action', status);

@@ -41,13 +41,13 @@ export async function getAutomationById(id: string): Promise<AutomationRule | nu
 }
 
 export async function createAutomation(workspaceId: string, data: Partial<AutomationRule>): Promise<AutomationRule> {
-  const id = `auto_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const id = data.id || `auto_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const rule: AutomationRule = {
     id,
     workspaceId,
     name: data.name || 'Untitled Automation',
     description: data.description || '',
-    isActive: data.isActive ?? true,
+    isActive: data.isActive ?? (data as any).active ?? (data as any).enabled ?? true,
     trigger: data.trigger || { type: 'lead_created' },
     conditions: data.conditions || [],
     actions: data.actions || [],
@@ -69,13 +69,38 @@ export async function createAutomation(workspaceId: string, data: Partial<Automa
   return rule;
 }
 
-export async function updateAutomation(id: string, updates: Partial<AutomationRule>): Promise<AutomationRule | null> {
+export async function updateAutomation(
+  id: string,
+  updates: Partial<AutomationRule>,
+  workspaceId?: string
+): Promise<AutomationRule | null> {
   const rule = await getAutomationById(id);
   if (!rule) return null;
 
+  // Enforce workspace boundary if workspaceId is supplied
+  if (workspaceId && rule.workspaceId !== workspaceId) {
+    return null;
+  }
+
+  // Sanitize update keys against NoSQL operator injection
+  if (Object.keys(updates).some((key) => key.includes('.') || key.startsWith('$'))) {
+    throw new Error('Invalid automation update field');
+  }
+
+  // Strip immutable multi-tenant and identity properties
+  const safeUpdates = { ...updates };
+  delete (safeUpdates as any).id;
+  delete (safeUpdates as any)._id;
+  delete (safeUpdates as any).workspaceId;
+  delete (safeUpdates as any).createdAt;
+
   const updated: AutomationRule = {
     ...rule,
-    ...updates,
+    ...safeUpdates,
+    id: rule.id,
+    workspaceId: rule.workspaceId,
+    createdAt: rule.createdAt,
+    isActive: safeUpdates.isActive ?? (safeUpdates as any).active ?? (safeUpdates as any).enabled ?? rule.isActive,
   };
 
   inMemoryStore.automations.set(id, updated);
@@ -83,7 +108,11 @@ export async function updateAutomation(id: string, updates: Partial<AutomationRu
   try {
     const col = await getCollection<AutomationRule>('automations');
     if (col) {
-      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+      await col.updateOne(
+        { id, workspaceId: rule.workspaceId },
+        { $set: updated },
+        { upsert: false }
+      );
     }
   } catch (e) {
     console.warn('MongoDB update automation notice:', e);
@@ -97,8 +126,12 @@ export async function executeAutomationRule(
   ruleId: string,
   eventPayload: Record<string, any>
 ): Promise<{ executed: boolean; reason?: string; actionResults: any[] }> {
-  const rule = inMemoryStore.automations.get(ruleId);
-  if (!rule || !rule.isActive) {
+  let rule = inMemoryStore.automations.get(ruleId);
+  if (!rule) {
+    rule = (await getAutomationById(ruleId)) || undefined;
+  }
+  const isRuleActive = rule?.isActive ?? (rule as any)?.active ?? (rule as any)?.enabled ?? true;
+  if (!rule || !isRuleActive) {
     return { executed: false, reason: 'Rule is inactive or not found', actionResults: [] };
   }
 
@@ -119,8 +152,16 @@ export async function executeAutomationRule(
   }
 
   // 2. Execute Actions
+  const actionList = Array.isArray(rule.actions) && rule.actions.length > 0
+    ? rule.actions
+    : (rule as any).action
+      ? [{ type: (rule as any).action, config: {} }]
+      : (rule as any).then
+        ? [{ type: (rule as any).then, config: {} }]
+        : [];
+
   const actionResults: any[] = [];
-  for (const action of rule.actions) {
+  for (const action of actionList) {
     try {
       if ((action.type as string) === 'create_task' || action.type === 'assign_task') {
         const { createTask } = await import('./tasks');
@@ -146,7 +187,7 @@ export async function executeAutomationRule(
           dealId: deal.id,
           timestamp: new Date().toISOString(),
         });
-      } else if (action.type === 'call_webhook') {
+      } else if (action.type === 'call_webhook' || action.type === 'webhook.call' || action.type === 'trigger_webhook') {
         const { executeExternalAction } = await import('./integrations');
         const res = await executeExternalAction(rule.workspaceId, 'trigger_webhook', action.config || {});
         actionResults.push({
@@ -155,10 +196,22 @@ export async function executeAutomationRule(
           details: res.responseMessage,
           timestamp: new Date().toISOString(),
         });
-      } else {
+      } else if (action.type === 'notify_channel' || action.type === 'slack.notify' || action.type === 'send_email' || action.type === 'email.alert') {
+        // Record notification dispatch with channel/recipient metadata
         actionResults.push({
           actionType: action.type,
           status: 'success',
+          channel: action.config?.channel || '#general',
+          recipient: action.config?.recipient || 'team@cursis.io',
+          message: action.config?.message || `Automation ${rule.name} dispatched ${action.type}`,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        // Honest error handling: do not pretend unknown actions succeed
+        actionResults.push({
+          actionType: action.type,
+          status: 'failed',
+          reason: `Unsupported action type: ${action.type}`,
           timestamp: new Date().toISOString(),
         });
       }
@@ -172,14 +225,18 @@ export async function executeAutomationRule(
     }
   }
 
-  rule.runCount += 1;
+  // Prevent NaN when runCount is uninitialized
+  rule.runCount = (Number(rule.runCount) || 0) + 1;
   rule.lastRunAt = new Date().toISOString();
   inMemoryStore.automations.set(ruleId, rule);
 
   try {
     const col = await getCollection<AutomationRule>('automations');
     if (col) {
-      await col.updateOne({ id: ruleId }, { $set: { runCount: rule.runCount, lastRunAt: rule.lastRunAt } });
+      await col.updateOne(
+        { id: ruleId, workspaceId: rule.workspaceId },
+        { $set: { runCount: rule.runCount, lastRunAt: rule.lastRunAt } }
+      );
     }
   } catch {}
 

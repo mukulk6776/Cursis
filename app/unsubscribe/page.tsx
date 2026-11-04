@@ -212,7 +212,7 @@ function UnsubscribeContent() {
         Cursis<br />
         Business contact address awaiting confirmation<br />
         U.S. Compliance: Agent appointment not confirmed<br />
-        Support Desk: <a href={'mailto:' + SUPPORT_EMAIL} style={{ color: '#0F4CFF' }}>{SUPPORT_EMAIL}</a>
+        Support Desk: <a href={'mailto:' + SUPPORT_EMAIL} style={{ color: '#FF5500' }}>{SUPPORT_EMAIL}</a>
       </div>
     </div>
   );

@@ -124,7 +124,7 @@ export default function DocumentModal() {
                   borderRadius: '8px',
                   padding: 'var(--sp-5)',
                   textAlign: 'center',
-                  background: selectedFile ? 'rgba(15, 76, 255, 0.04)' : 'var(--c-surface)',
+                  background: selectedFile ? 'var(--c-brand-bg)' : 'var(--c-surface)',
                   cursor: 'pointer',
                   transition: 'border-color 0.2s, background 0.2s',
                 }}

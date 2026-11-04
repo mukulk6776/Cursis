@@ -7,6 +7,7 @@ import { formatDate, isOverdue } from '@/lib/dashboard/data';
 import TaskCsvImport from '@/components/dashboard/TaskCsvImport';
 import TaskConversation from '@/components/dashboard/work/TaskConversation';
 import { useWorkHub } from '@/lib/work-hub/WorkHubContext';
+import EmptyState from '@/components/dashboard/EmptyState';
 
 type ViewMode = 'list' | 'calendar' | 'timeline';
 type FilterMode = 'all' | 'overdue' | 'high-priority' | 'assigned-to-me' | 'upcoming' | 'completed';
@@ -138,7 +139,7 @@ export default function TasksPage() {
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {/* View Switcher */}
-          <div style={{ display: 'flex', background: 'var(--surface-secondary)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '2px' }}>
+          <div style={{ display: 'flex', background: 'var(--surface-secondary)', padding: '3px', borderRadius: '10px', border: '2px solid #0A0A0A', boxShadow: '2px 2px 0px #0A0A0A', gap: '2px' }}>
             {(['list', 'calendar', 'timeline'] as ViewMode[]).map((v) => (
               <button
                 key={v}
@@ -149,11 +150,11 @@ export default function TasksPage() {
                   padding: '4px 12px',
                   borderRadius: '6px',
                   height: '28px',
-                  fontWeight: currentView === v ? 600 : 500,
-                  background: currentView === v ? 'var(--surface-card)' : 'transparent',
-                  color: currentView === v ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  border: currentView === v ? '1px solid var(--border-color)' : '1px solid transparent',
-                  boxShadow: currentView === v ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+                  fontWeight: currentView === v ? 700 : 500,
+                  background: currentView === v ? '#FAF6EE' : 'transparent',
+                  color: currentView === v ? '#0A0A0A' : 'var(--text-secondary)',
+                  border: currentView === v ? '2px solid #0A0A0A' : '2px solid transparent',
+                  boxShadow: currentView === v ? '2px 2px 0px #0A0A0A' : 'none',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -216,8 +217,8 @@ export default function TasksPage() {
                   gap: '6px',
                   background: isActive ? 'var(--c-brand)' : 'var(--surface-card)',
                   color: isActive ? 'var(--c-on-brand)' : 'var(--text-secondary)',
-                  border: `1px solid ${isActive ? 'var(--c-brand)' : 'var(--border-color)'}`,
-                  boxShadow: isActive ? '0 2px 4px rgba(255, 85, 0, 0.2)' : '0 1px 2px rgba(0, 0, 0, 0.03)',
+                  border: '2px solid #0A0A0A',
+                  boxShadow: isActive ? '2px 2px 0px #0A0A0A' : 'none',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -318,38 +319,25 @@ export default function TasksPage() {
       {/* View Content */}
       <div id="task-view-content">
         {filteredTasks.length === 0 ? (
-          <div
-            className="card"
-            style={{
-              padding: '48px 24px',
-              textAlign: 'center',
-              background: 'var(--surface-card)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-            }}
-          >
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
-              {tasks.length === 0 ? 'Your workspace is ready for its first task' : 'No tasks found'}
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
-              {tasks.length === 0
-                ? 'Give the work a name, an owner and a due date.'
-                : 'No tasks match the active filter criteria.'}
-            </p>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => openModal('task-modal')}
-              style={{ fontWeight: 700 }}
-            >
-              {tasks.length === 0 ? 'Create your first task' : '+ New Task'}
-            </button>
-          </div>
+          <EmptyState
+            title={tasks.length === 0 ? 'No tasks in this workspace yet' : 'No tasks match active filters'}
+            description={
+              tasks.length === 0
+                ? 'Start organizing your sprint deliverables. Give the work a name, assign an owner, and set a deadline.'
+                : 'No tasks match your selected filter criteria. Try clearing filters or switching department views.'
+            }
+            actionLabel={tasks.length === 0 ? '+ Create Your First Task' : 'Reset Filters'}
+            onAction={
+              tasks.length === 0
+                ? () => openModal('task-modal')
+                : () => { setActiveFilter('all'); setSelectedDeptFilter(''); }
+            }
+          />
         ) : (
           <>
             {/* List View */}
             {currentView === 'list' && (
-              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
+              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '3px solid #0A0A0A', borderRadius: '16px', boxShadow: '6px 6px 0px #0A0A0A', background: '#FFFFFF' }}>
                 <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
@@ -409,9 +397,9 @@ export default function TasksPage() {
                             {dept ? (
                               <span
                                 style={{
-                                  background: 'rgba(15, 76, 255, 0.08)',
+                                  background: 'rgba(255, 85, 0, 0.08)',
                                   color: 'var(--c-brand-text)',
-                                  border: '1px solid rgba(15, 76, 255, 0.2)',
+                                  border: '1px solid rgba(255, 85, 0, 0.2)',
                                   fontSize: '11px',
                                   fontWeight: 600,
                                   padding: '2px 8px',
@@ -427,7 +415,7 @@ export default function TasksPage() {
                           <td style={{ padding: '10px 14px', fontSize: '12px' }}>
                             {emp ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <div className="avatar avatar-sm" style={{ background: emp.color || '#0f4cff', width: '20px', height: '20px', fontSize: '9px' }}>
+                                <div className="avatar avatar-sm" style={{ background: emp.color || '#FF5500', width: '20px', height: '20px', fontSize: '9px' }}>
                                   {emp.initials}
                                 </div>
                                 <span>{emp.name}</span>
@@ -492,38 +480,48 @@ export default function TasksPage() {
 
             {/* 3. Calendar View */}
             {currentView === 'calendar' && (
-              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
+              <div className="card" style={{ padding: '18px 20px', border: '3px solid #0A0A0A', borderRadius: '16px', boxShadow: '6px 6px 0px #0A0A0A', background: '#FFFFFF' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Tasks by Due Date
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-                  {Array.from(new Set(filteredTasks.map((t) => t.deadline))).sort().map((dateStr) => {
-                    const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
-                    return (
-                      <div key={dateStr} className="card" style={{ background: 'var(--surface-card)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: 'var(--c-brand)' }}>
-                          {formatDate(dateStr)} ({dayTasks.length})
-                        </div>
-                        {dayTasks.map((t) => (
-                          <div
-                            key={t.id}
-                            style={{ padding: '6px 8px', background: 'var(--surface-secondary)', border: '1px solid var(--border-color)', borderRadius: '4px', marginBottom: '4px', fontSize: '12px', cursor: 'pointer' }}
-                            onClick={() => setSelectedTaskDetail(t)}
-                          >
-                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t.name}</div>
-                            <div style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{t.status} · {t.priority}</div>
+                {Array.from(new Set(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline))).length === 0 ? (
+                  <EmptyState
+                    compact
+                    title="No scheduled tasks on the calendar"
+                    description="None of your active tasks have deadlines set. Assign due dates to view them on the calendar."
+                    actionLabel="+ Schedule Task"
+                    onAction={() => openModal('task-modal')}
+                  />
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    {Array.from(new Set(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline))).sort().map((dateStr) => {
+                      const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
+                      return (
+                        <div key={dateStr} className="card" style={{ background: '#FFFFFF', padding: '14px', border: '2px solid #0A0A0A', borderRadius: '12px', boxShadow: '3px 3px 0px #0A0A0A' }}>
+                          <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '8px', color: 'var(--c-brand)' }}>
+                            {formatDate(dateStr)} ({dayTasks.length})
                           </div>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
+                          {dayTasks.map((t) => (
+                            <div
+                              key={t.id}
+                              style={{ padding: '8px 10px', background: '#FAF6EE', border: '2px solid #0A0A0A', borderRadius: '8px', marginBottom: '6px', fontSize: '12px', cursor: 'pointer' }}
+                              onClick={() => setSelectedTaskDetail(t)}
+                            >
+                              <div style={{ fontWeight: 700, color: '#0A0A0A' }}>{t.name}</div>
+                              <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600 }}>{t.status} · {t.priority}</div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
             {/* 4. Timeline / Progress View */}
             {currentView === 'timeline' && (
-              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
+              <div className="card" style={{ padding: '18px 20px', border: '3px solid #0A0A0A', borderRadius: '16px', boxShadow: '6px 6px 0px #0A0A0A', background: '#FFFFFF' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Sprint Progress
                 </h3>

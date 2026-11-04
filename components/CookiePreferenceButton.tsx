@@ -17,7 +17,7 @@ export default function CookiePreferenceButton({ className }: { className?: stri
       style={{
         marginTop: '12px',
         padding: '8px 16px',
-        backgroundColor: '#0F4CFF',
+        backgroundColor: '#FF5500',
         color: '#FFFFFF',
         border: 'none',
         borderRadius: '6px',

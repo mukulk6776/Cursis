@@ -7,6 +7,7 @@ import {
   getWorkspaceInvitations,
   revokeWorkspaceInvitation,
   isWorkspaceAdminOrOwner,
+  EMAIL_REGEX,
 } from '@/lib/db/invitations';
 
 export async function GET(
@@ -73,8 +74,8 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const email = body.email?.trim()?.toLowerCase();
 
-    if (!email) {
-      return apiError('Recipient email is required', 400);
+    if (!email || !EMAIL_REGEX.test(email)) {
+      return apiError('A valid email address is required to send an invitation', 400);
     }
 
     const host = request.headers.get('host') || undefined;

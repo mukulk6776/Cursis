@@ -33,16 +33,24 @@ export async function getDocuments(
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 }
 
-export async function getDocumentById(id: string): Promise<DocumentItem | null> {
-  const doc = inMemoryStore.documents.get(id);
-  if (doc) return doc;
+export async function getDocumentById(id: string, workspaceId?: string): Promise<DocumentItem | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const doc = inMemoryStore.documents.get(cleanId);
+  if (doc) {
+    if (workspaceId && doc.workspaceId !== workspaceId) return null;
+    return doc;
+  }
 
   try {
     const col = await getCollection<DocumentItem>('documents');
     if (col) {
-      const found = await col.findOne({ id });
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const found = await col.findOne(query);
       if (found) {
-        inMemoryStore.documents.set(id, found);
+        inMemoryStore.documents.set(cleanId, found);
         return found;
       }
     }
@@ -87,16 +95,29 @@ export async function createDocument(workspaceId: string, data: Partial<Document
   return doc;
 }
 
-export async function updateDocument(id: string, updates: Partial<DocumentItem>): Promise<DocumentItem | null> {
-  let doc: DocumentItem | null | undefined = inMemoryStore.documents.get(id);
+export async function updateDocument(
+  id: string,
+  updates: Partial<DocumentItem>,
+  workspaceId?: string
+): Promise<DocumentItem | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  let doc: DocumentItem | null | undefined = inMemoryStore.documents.get(cleanId);
   if (!doc) {
-    doc = await getDocumentById(id);
+    doc = await getDocumentById(cleanId, workspaceId);
     if (!doc) return null;
+  }
+  if (workspaceId && doc.workspaceId !== workspaceId) return null;
+
+  if (Object.keys(updates).some((key) => key.includes('.') || key.startsWith('$'))) {
+    throw new Error('Invalid document update field');
   }
 
   // Prevent immutable fields from being overwritten
   const safeUpdates = { ...updates };
   delete (safeUpdates as any).id;
+  delete (safeUpdates as any)._id;
   delete (safeUpdates as any).workspaceId;
   delete (safeUpdates as any).authorId;
   delete (safeUpdates as any).createdAt;
@@ -104,16 +125,22 @@ export async function updateDocument(id: string, updates: Partial<DocumentItem>)
   const updated: DocumentItem = {
     ...doc,
     ...safeUpdates,
+    id: doc.id,
+    workspaceId: doc.workspaceId,
+    createdAt: doc.createdAt,
     version: updates.version !== undefined ? updates.version : (doc.version || 1) + 1,
     updatedAt: new Date().toISOString(),
   };
 
-  inMemoryStore.documents.set(id, updated);
+  inMemoryStore.documents.set(cleanId, updated);
 
   try {
     const col = await getCollection<DocumentItem>('documents');
     if (col) {
-      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+      await col.updateOne(
+        { id: cleanId, workspaceId: doc.workspaceId },
+        { $set: { ...safeUpdates, version: updated.version, updatedAt: updated.updatedAt } }
+      );
     }
   } catch (e) {
     console.warn('MongoDB update document notice:', e);
@@ -122,13 +149,23 @@ export async function updateDocument(id: string, updates: Partial<DocumentItem>)
   return updated;
 }
 
-export async function deleteDocument(id: string): Promise<boolean> {
-  const existed = inMemoryStore.documents.delete(id);
+export async function deleteDocument(id: string, workspaceId?: string): Promise<boolean> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return false;
+
+  if (workspaceId) {
+    const existing = await getDocumentById(cleanId, workspaceId);
+    if (!existing) return false;
+  }
+
+  const existed = inMemoryStore.documents.delete(cleanId);
 
   try {
     const col = await getCollection<DocumentItem>('documents');
     if (col) {
-      const res = await col.deleteOne({ id });
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const res = await col.deleteOne(query);
       return res.deletedCount > 0 || existed;
     }
   } catch (e) {

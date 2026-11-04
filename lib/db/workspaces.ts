@@ -2,7 +2,6 @@ import { inMemoryMemberships } from './memberships';
 import { inMemoryStore } from './store';
 import { Workspace, WorkspaceMembership } from './types';
 import { getCollection } from '@/lib/mongodb';
-import { notifyAdminCustomClientWorkspace, sendWorkspaceWelcomeEmail } from '@/lib/email/notifications';
 
 export async function getWorkspace(id: string): Promise<Workspace | null> {
   const ws = inMemoryStore.workspaces.get(id);
@@ -271,8 +270,8 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
     ],
     settings: {
       ambientMonitoring: data.settings?.ambientMonitoring ?? true,
-      approvalRequiredForActions: data.tier === 'paid' ? false : true,
-      simulationMode: data.settings?.simulationMode ?? (data.tier === 'paid'),
+      approvalRequiredForActions: data.settings?.approvalRequiredForActions ?? true,
+      simulationMode: data.settings?.simulationMode ?? false,
       riskTolerance: data.settings?.riskTolerance || 'medium',
       companyTone: data.settings?.companyTone || 'Professional, concise, proactive.',
       pricingFormula: data.settings?.pricingFormula || 'Standard custom tier quote formula.',
@@ -330,29 +329,34 @@ export async function createWorkspace(userId: string, data: Partial<Workspace>):
     // Check if this is a custom client workspace (paid tier or has isCustomClient flag)
     const isCustomClient = Boolean((data as any).isCustomClient) || newWorkspace.tier === 'paid';
 
-    if (isCustomClient) {
-      // Send admin notification email
-      await notifyAdminCustomClientWorkspace({
-        workspaceId: id,
-        workspaceName: newWorkspace.name,
-        ownerUserId: userId,
-        ownerEmail: ownerData?.email,
-        ownerName: ownerData?.displayName || ownerData?.name,
-        industry: newWorkspace.industry,
-        teamSize: newWorkspace.teamSize,
-        features: newWorkspace.features,
-        tier: newWorkspace.tier,
-        createdAt: newWorkspace.createdAt,
-      });
-    }
+    try {
+      const { notifyAdminCustomClientWorkspace, sendWorkspaceWelcomeEmail } = await import('@/lib/email/notifications');
+      if (isCustomClient) {
+        // Send admin notification email
+        await notifyAdminCustomClientWorkspace({
+          workspaceId: id,
+          workspaceName: newWorkspace.name,
+          ownerUserId: userId,
+          ownerEmail: ownerData?.email,
+          ownerName: ownerData?.displayName || ownerData?.name,
+          industry: newWorkspace.industry,
+          teamSize: newWorkspace.teamSize,
+          features: newWorkspace.features,
+          tier: newWorkspace.tier,
+          createdAt: newWorkspace.createdAt,
+        });
+      }
 
-    // Send welcome email to the workspace owner
-    if (ownerData?.email) {
-      await sendWorkspaceWelcomeEmail(
-        ownerData.email,
-        newWorkspace.name,
-        ownerData.displayName || ownerData.name
-      );
+      // Send welcome email to the workspace owner
+      if (ownerData?.email) {
+        await sendWorkspaceWelcomeEmail(
+          ownerData.email,
+          newWorkspace.name,
+          ownerData.displayName || ownerData.name
+        );
+      }
+    } catch (emailErr) {
+      console.warn('Workspace creation email notice:', emailErr);
     }
   } catch (e) {
     console.warn('MongoDB insert workspace notice:', e);
@@ -399,13 +403,14 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
     updatedAt: new Date().toISOString(),
   };
 
-  // If tier is updated, auto-sync Ordis mode accordingly
+  // If tier is updated, auto-sync Ordis mode accordingly, but strictly preserve safety gates
   if (updates.tier) {
-    updated.ordisMode = updates.tier === 'paid' ? 'full_power' : 'chill';
-    if (updates.tier === 'paid') {
-      updated.settings.approvalRequiredForActions = false;
+    const isPaid = updates.tier === 'paid' || updates.tier === 'pro' || updates.tier === 'enterprise';
+    updated.ordisMode = isPaid ? 'full_power' : 'chill';
+    if (updates.settings && typeof updates.settings.approvalRequiredForActions === 'boolean') {
+      updated.settings.approvalRequiredForActions = updates.settings.approvalRequiredForActions;
     } else {
-      updated.settings.approvalRequiredForActions = true;
+      updated.settings.approvalRequiredForActions = ws.settings?.approvalRequiredForActions ?? true;
     }
   }
 

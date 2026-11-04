@@ -226,10 +226,9 @@ function DisabledOrdisFloatingChat() {
  display: 'flex',
  flexDirection: 'column',
  background: 'rgba(9, 13, 22, 0.97)',
- border: '1px solid rgba(255, 255, 255, 0.15)',
+ border: '3px solid #0A0A0A',
  borderRadius: '20px',
- boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 45px rgba(15, 76, 255, 0.3)',
- backdropFilter: 'blur(28px)',
+ boxShadow: '8px 8px 0px #0A0A0A',
  overflow: 'hidden',
  transition: 'width 0.2s ease, height 0.2s ease',
  }}
@@ -253,11 +252,11 @@ function DisabledOrdisFloatingChat() {
               height: '34px',
               borderRadius: '10px',
               background: '#0A0A0A',
-              border: '1.5px solid rgba(255, 255, 255, 0.15)',
+              border: '2px solid #FFFFFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 14px rgba(255, 85, 0, 0.35)',
+              boxShadow: '2px 2px 0px #FF5500',
             }}
           >
             <svg width="18" height="18" viewBox="0 0 1024 1024" fill="none">
@@ -309,8 +308,7 @@ function DisabledOrdisFloatingChat() {
                     width: '5px',
                     height: '5px',
                     borderRadius: '50%',
-                    background: aiEngineStatus === 'groq' ? '#f97316' : '#38bdf8',
-                    boxShadow: `0 0 6px ${aiEngineStatus === 'groq' ? '#f97316' : '#38bdf8'}`,
+                    background: aiEngineStatus === 'groq' ? '#f97316' : '#FF5500',
                   }}
                 />
                 {aiEngineStatus === 'groq'
@@ -333,10 +331,10 @@ function DisabledOrdisFloatingChat() {
             title="AI Settings (API Key & Model)"
             style={{
               padding: '6px 8px',
-              borderRadius: '7px',
-              background: settingsOpen ? 'rgba(15, 76, 255, 0.3)' : 'rgba(255, 255, 255, 0.06)',
-              border: `1px solid ${settingsOpen ? '#38bdf8' : 'rgba(255, 255, 255, 0.12)'}`,
-              color: settingsOpen ? '#38bdf8' : '#9ca3af',
+              borderRadius: '8px',
+              background: settingsOpen ? 'rgba(255, 85, 0, 0.25)' : 'rgba(255, 255, 255, 0.06)',
+              border: `1px solid ${settingsOpen ? '#FF5500' : 'rgba(255, 255, 255, 0.12)'}`,
+              color: settingsOpen ? '#FF5500' : '#9ca3af',
               cursor: 'pointer',
               fontSize: '12px',
               display: 'flex',
@@ -617,7 +615,7 @@ function DisabledOrdisFloatingChat() {
  <div
  style={{
  padding: '10px 16px',
- background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(15, 76, 255, 0.15) 100%)',
+ background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(255, 85, 0, 0.15) 100%)',
  borderBottom: '1px solid rgba(239, 68, 68, 0.4)',
  display: 'flex',
  alignItems: 'center',
@@ -680,8 +678,8 @@ function DisabledOrdisFloatingChat() {
  background: 'rgba(255, 255, 255, 0.05)',
  borderRadius: '12px',
  width: 'fit-content',
- border: '1px solid rgba(56, 189, 248, 0.3)',
- boxShadow: '0 0 15px rgba(15, 76, 255, 0.2)',
+ border: '2px solid #0A0A0A',
+ boxShadow: '3px 3px 0px #0A0A0A',
  }}
  >
  <span style={{ fontSize: '12px', color: '#93c5fd', fontStyle: 'italic' }}>
@@ -709,12 +707,12 @@ function DisabledOrdisFloatingChat() {
  borderRadius: isAi ? '14px 14px 14px 2px' : '14px 14px 2px 14px',
  background: isAi
  ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.03) 100%)'
- : 'linear-gradient(135deg, #0f4cff 0%, #2563eb 100%)',
- border: `1px solid ${isAi ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 76, 255, 0.5)'}`,
+ : 'linear-gradient(135deg, #FF5500 0%, #ff8c00 100%)',
+ border: '2px solid #0A0A0A',
  color: '#f9fafb',
  fontSize: '12.5px',
  lineHeight: '1.55',
- boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+ boxShadow: '3px 3px 0px #0A0A0A',
  }}
  >
  {isAi && (
@@ -809,19 +807,19 @@ function DisabledOrdisFloatingChat() {
  fontSize: '11px',
  fontWeight: 600,
  borderRadius: '9999px',
- background: 'rgba(15, 76, 255, 0.14)',
- color: '#93c5fd',
- border: '1px solid rgba(15, 76, 255, 0.35)',
+ background: 'rgba(255, 85, 0, 0.12)',
+ color: '#FF8844',
+ border: '1px solid rgba(255, 85, 0, 0.35)',
  cursor: 'pointer',
  transition: 'all 0.15s ease',
  }}
  onMouseEnter={(e) => {
- e.currentTarget.style.background = 'rgba(15, 76, 255, 0.3)';
- e.currentTarget.style.borderColor = '#38bdf8';
+ e.currentTarget.style.background = 'rgba(255, 85, 0, 0.25)';
+ e.currentTarget.style.borderColor = '#FF5500';
  }}
  onMouseLeave={(e) => {
- e.currentTarget.style.background = 'rgba(15, 76, 255, 0.14)';
- e.currentTarget.style.borderColor = 'rgba(15, 76, 255, 0.35)';
+ e.currentTarget.style.background = 'rgba(255, 85, 0, 0.12)';
+ e.currentTarget.style.borderColor = 'rgba(255, 85, 0, 0.35)';
  }}
  >
  {chip} 
@@ -906,7 +904,7 @@ function DisabledOrdisFloatingChat() {
  color: '#ffffff',
  outline: 'none',
  }}
- onFocus={(e) => (e.currentTarget.style.borderColor = '#0f4cff')}
+ onFocus={(e) => (e.currentTarget.style.borderColor = '#FF5500')}
  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)')}
  />
 
@@ -935,7 +933,7 @@ function DisabledOrdisFloatingChat() {
  disabled={!inputVal.trim()}
  style={{
  padding: '9px 16px',
- background: inputVal.trim() ? '#0f4cff' : 'rgba(255, 255, 255, 0.1)',
+ background: inputVal.trim() ? '#FF5500' : 'rgba(255, 255, 255, 0.1)',
  border: 'none',
  borderRadius: '8px',
  color: '#ffffff',
@@ -966,22 +964,22 @@ function DisabledOrdisFloatingChat() {
           height: '52px',
           borderRadius: '16px',
           background: '#0A0A0A',
-          border: '1.5px solid rgba(255, 255, 255, 0.18)',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(255, 85, 0, 0.45)',
+          border: '3px solid #0A0A0A',
+          boxShadow: '4px 4px 0px #FF5500',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
           zIndex: 9998,
-          transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease',
+          transition: 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.08)';
-          e.currentTarget.style.boxShadow = '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 28px rgba(255, 85, 0, 0.7)';
+          e.currentTarget.style.transform = 'translate(-2px, -2px)';
+          e.currentTarget.style.boxShadow = '6px 6px 0px #FF5500';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(255, 85, 0, 0.45)';
+          e.currentTarget.style.transform = 'none';
+          e.currentTarget.style.boxShadow = '4px 4px 0px #FF5500';
         }}
       >
         <svg width="26" height="26" viewBox="0 0 1024 1024" fill="none">

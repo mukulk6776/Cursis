@@ -20,7 +20,10 @@ export async function getProjects(workspaceId: string): Promise<Project[]> {
 }
 
 export async function getProjectById(id: string, workspaceId?: string): Promise<Project | null> {
-  const project = inMemoryStore.projects.get(id);
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const project = inMemoryStore.projects.get(cleanId);
   if (project) {
     if (workspaceId && project.workspaceId !== workspaceId) return null;
     return project;
@@ -29,11 +32,11 @@ export async function getProjectById(id: string, workspaceId?: string): Promise<
   try {
     const col = await getCollection<Project>('projects');
     if (col) {
-      const query: any = { id };
+      const query: any = { id: cleanId };
       if (workspaceId) query.workspaceId = workspaceId;
       const found = await col.findOne(query);
       if (found) {
-        inMemoryStore.projects.set(id, found);
+        inMemoryStore.projects.set(cleanId, found);
         return found;
       }
     }
@@ -88,29 +91,52 @@ export async function createProject(workspaceId: string, data: Partial<Project>)
   return project;
 }
 
-export async function updateProject(id: string, updates: Partial<Project>): Promise<Project | null> {
-  let project = inMemoryStore.projects.get(id);
+export async function updateProject(
+  id: string,
+  updates: Partial<Project>,
+  workspaceId?: string
+): Promise<Project | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  let project = inMemoryStore.projects.get(cleanId);
 
   if (!project) {
     try {
       const col = await getCollection<Project>('projects');
       if (col) {
-        const found = await col.findOne({ id });
+        const query: any = { id: cleanId };
+        if (workspaceId) query.workspaceId = workspaceId;
+        const found = await col.findOne(query);
         if (found) project = found;
       }
     } catch {}
   }
 
-  if (!project) return null;
+  if (!project || (workspaceId && project.workspaceId !== workspaceId)) return null;
+
+  // Sanitize update keys against NoSQL operator injection
+  if (Object.keys(updates).some((key) => key.includes('.') || key.startsWith('$'))) {
+    throw new Error('Invalid project update field');
+  }
+
+  const safeUpdates = { ...updates };
+  delete (safeUpdates as any).id;
+  delete (safeUpdates as any)._id;
+  delete (safeUpdates as any).workspaceId;
+  delete (safeUpdates as any).createdAt;
 
   const updated: Project = {
     ...project,
-    ...updates,
+    ...safeUpdates,
+    id: project.id,
+    workspaceId: project.workspaceId,
+    createdAt: project.createdAt,
     updatedAt: new Date().toISOString(),
   };
 
   // Recalculate health based on linked tasks
-  const projectTasks = Array.from(inMemoryStore.tasks.values()).filter((t) => t.projectId === id);
+  const projectTasks = Array.from(inMemoryStore.tasks.values()).filter((t) => t.projectId === cleanId);
   if (projectTasks.length > 0) {
     const atRiskCount = projectTasks.filter((t) => t.isAtRisk).length;
     const completedCount = projectTasks.filter((t) => t.status === 'done').length;
@@ -130,12 +156,23 @@ export async function updateProject(id: string, updates: Partial<Project>): Prom
     }
   }
 
-  inMemoryStore.projects.set(id, updated);
+  inMemoryStore.projects.set(cleanId, updated);
 
   try {
     const col = await getCollection<Project>('projects');
     if (col) {
-      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+      await col.updateOne(
+        { id: cleanId, workspaceId: project.workspaceId },
+        {
+          $set: {
+            ...safeUpdates,
+            progressPercent: updated.progressPercent,
+            health: updated.health,
+            healthReason: updated.healthReason,
+            updatedAt: updated.updatedAt,
+          },
+        }
+      );
     }
   } catch (e) {
     console.warn('MongoDB update project notice:', e);
@@ -144,12 +181,22 @@ export async function updateProject(id: string, updates: Partial<Project>): Prom
   return updated;
 }
 
-export async function deleteProject(id: string): Promise<boolean> {
-  const deleted = inMemoryStore.projects.delete(id);
+export async function deleteProject(id: string, workspaceId?: string): Promise<boolean> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return false;
+
+  if (workspaceId) {
+    const project = await getProjectById(cleanId, workspaceId);
+    if (!project) return false;
+  }
+
+  const deleted = inMemoryStore.projects.delete(cleanId);
   try {
     const col = await getCollection<Project>('projects');
     if (col) {
-      await col.deleteOne({ id });
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      await col.deleteOne(query);
     }
   } catch (e) {
     console.warn('MongoDB delete project notice:', e);

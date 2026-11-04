@@ -86,56 +86,29 @@ export default function InviteModal() {
   };
 
   return (
-    <>
-      {/* Backdrop */}
+    <div
+      className="modal-overlay active"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
+    >
       <div
-        className="modal-backdrop"
-        onClick={handleClose}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: 'blur(3px)',
-          zIndex: 1000,
-        }}
-      />
-
-      {/* Modal Dialog */}
-      <div
-        className="modal open"
+        className="modal"
         id="invite-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="invite-modal-title"
         style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
           maxWidth: '480px',
           width: '92%',
-          background: 'var(--c-surface)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '12px',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
-          zIndex: 1001,
-          padding: 0,
-          overflow: 'hidden',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div
-          style={{
-            padding: 'var(--sp-4) var(--sp-5)',
-            borderBottom: '1px solid var(--border-color)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="modal-header">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 id="invite-modal-title" style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 'var(--fw-bold)' }}>
+              <h3 id="invite-modal-title" className="modal-title">
                 Invite to Workspace
               </h3>
               <span
@@ -143,10 +116,11 @@ export default function InviteModal() {
                   fontSize: '11px',
                   fontWeight: 700,
                   padding: '2px 8px',
-                  borderRadius: '4px',
-                  background: isAtCapacity ? 'rgba(239, 68, 68, 0.1)' : 'var(--c-surface)',
-                  color: isAtCapacity ? 'var(--c-error)' : 'var(--text-secondary)',
-                  border: `1px solid ${isAtCapacity ? 'var(--c-error)' : 'var(--border-color)'}`,
+                  borderRadius: '6px',
+                  background: isAtCapacity ? '#FEE2E2' : '#FFFFFF',
+                  color: isAtCapacity ? '#DC2626' : '#0A0A0A',
+                  border: '2px solid #0A0A0A',
+                  boxShadow: '2px 2px 0px #0A0A0A',
                 }}
               >
                 {activeCount} / {MAX_TEAM_MEMBERS} Members {pendingCount > 0 ? `(${pendingCount} pending)` : ''}
@@ -158,17 +132,16 @@ export default function InviteModal() {
           </div>
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="modal-close"
             onClick={handleClose}
             aria-label="Close modal"
-            style={{ padding: '4px 8px' }}
           >
             ✕
           </button>
         </div>
 
         {/* Body Form */}
-        <form onSubmit={handleSubmit} style={{ padding: 'var(--sp-5)' }}>
+        <form onSubmit={handleSubmit} className="modal-body">
           {isAtMemberLimit ? (
             <div
               style={{
@@ -355,6 +328,6 @@ export default function InviteModal() {
           </div>
         </form>
       </div>
-    </>
+    </div>
   );
 }

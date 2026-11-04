@@ -96,7 +96,7 @@ export const INITIAL_WORKSPACES: Workspace[] = [
     description: 'Autonomous AI workspace for projects, sprint execution, and team collaboration.',
     isCustomClient: false,
     badge: 'Production',
-    color: '#0f4cff',
+    color: '#FF5500',
     ownerId: 'u_owner',
     createdAt: new Date().toISOString().split('T')[0],
   },
@@ -117,7 +117,7 @@ export const INITIAL_USER: User = {
  email: 'user@cursis.io',
  role: 'User',
  avatar: null,
- color: '#0f4cff',
+ color: '#FF5500',
  workspaceRole: 'member',
 };
 
@@ -129,7 +129,7 @@ export const INITIAL_WORKSPACE_SETTINGS: WorkspaceSettings = {
  timezone: 'UTC+5:30 (IST)',
  language: 'English',
  dateFormat: 'DD MMM YYYY',
- accentColor: '#0f4cff',
+ accentColor: '#FF5500',
  density: 'comfortable',
  layoutDensity: 'comfortable',
  allowGuestAccess: true,
@@ -205,7 +205,7 @@ export const INITIAL_ORG_SETTINGS: OrgSettings = {
  ipWhitelisting: false,
  },
  branding: {
- primaryColor: '#0f4cff',
+ primaryColor: '#FF5500',
  accentColor: '#ccff00',
  logoUrl: '/assets/logo.svg',
  },
@@ -300,7 +300,7 @@ export const INITIAL_WORKFLOWS: PaperworkWorkflow[] = [];
 export const INITIAL_CRM: CustomCrm = {
  pipeline: [
  { id: 'stage_lead', name: 'Lead Qualified', color: '#8800ff' },
- { id: 'stage_discovery', name: 'Discovery Call', color: '#0f4cff' },
+ { id: 'stage_discovery', name: 'Discovery Call', color: '#93C5FD' },
  { id: 'stage_proposal', name: 'Proposal Sent', color: '#ff7700' },
  { id: 'stage_won', name: 'Closed Won', color: '#00b341' },
  ],

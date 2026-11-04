@@ -32,11 +32,14 @@ function formatTaskItems(tasks: Record<string, unknown>[]): string[] {
     const rawPriority = String(task.priority || '').toLowerCase();
     const priorityLabel = priorities[rawPriority] || (task.priority ? `${task.priority} priority` : 'Medium priority');
 
-    const assignee =
-      text(task.assigneeName) ||
-      text(task.assignee) ||
-      text(task.ownerName) ||
-      (task.assigneeId ? 'Assigned' : 'Unassigned');
+    const rawAssignee =
+      (typeof task.assigneeName === 'string' && task.assigneeName) ||
+      (typeof task.assignee === 'string' && task.assignee) ||
+      (typeof task.ownerName === 'string' && task.ownerName) ||
+      (typeof task.assignee === 'object' && task.assignee !== null && ((task.assignee as any).name || (task.assignee as any).displayName)) ||
+      '';
+    const isIdLike = /^(?:usr_|mem_|t_|dock_|tsk_|[0-9a-fA-F]{24})/i.test(String(rawAssignee).trim());
+    const assignee = (!isIdLike && text(rawAssignee)) || (task.assigneeId || isIdLike ? 'Assigned' : 'Unassigned');
 
     const details = [statusLabel, priorityLabel, assignee];
 
@@ -126,8 +129,8 @@ export function sanitizeTaskTable(content: string | undefined | null, actions: A
   if (!hasMarkdownTable) return content;
 
   // Detect task-related tables: either has ID header, raw IDs in cells, or task-like columns
-  const hasIdColumn = /\|\s*(?:ID|Task\s*ID|id)\s*\|/i.test(content);
-  const hasRawIds = /\|\s*(?:t_\w+|dock_\w+)\s*\|/i.test(content);
+  const hasIdColumn = /\|\s*(?:ID|Task\s*ID|id|_id)\s*\|/i.test(content);
+  const hasRawIds = /\|\s*(?:\*{0,2}(?:t_\w+|dock_\w+|tsk_\w+|[0-9a-fA-F]{24})\*{0,2})\s*\|/i.test(content);
   const hasTaskColumns = /\|\s*(?:Title|Task|Name)\s*\|.*?(?:Status|Priority|Due|Assignee)/i.test(content);
   const isTaskTable = hasIdColumn || hasRawIds || hasTaskColumns;
 
@@ -174,17 +177,26 @@ export function sanitizeTaskTable(content: string | undefined | null, actions: A
       let title = '';
       for (let ci = 0; ci < cells.length && ci < headerCells.length; ci++) {
         const header = headerCells[ci].toLowerCase();
-        const value = cells[ci];
+        const value = cells[ci]?.trim();
         if (!value) continue;
+        const cleanVal = value.replace(/^[*_`]+|[*_`]+$/g, '').trim();
         // Skip ID columns and raw ID values
-        if (/^(?:id|task\s*id|#)$/i.test(header)) continue;
-        if (/^(?:t_|dock_)\w+$/i.test(value)) continue;
+        if (/^(?:id|_id|task\s*id|project\s*id|#)$/i.test(header)) continue;
+        if (/^(?:t_|dock_|tsk_|aud_|ws_|usr_|proj_|dep_|mem_|inv_)\w+$/i.test(cleanVal)) continue;
+        if (/^[0-9a-fA-F]{24}$/.test(cleanVal) || /^ObjectId\([0-9a-fA-F]{24}\)$/i.test(cleanVal)) continue;
         if (/^(?:title|task|name)$/i.test(header)) {
-          title = value;
+          title = cleanVal;
         } else {
-          const statusLabel = statuses[value.toLowerCase().replace(/[\s-]+/g, '_')];
-          const priorityLabel = priorities[value.toLowerCase()];
-          parts.push(statusLabel || priorityLabel || value);
+          const statusLabel = statuses[cleanVal.toLowerCase().replace(/[\s-]+/g, '_')];
+          const priorityLabel = priorities[cleanVal.toLowerCase()];
+          let dateLabel: string | undefined;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(cleanVal) || /^(?:due|deadline|date)$/i.test(header)) {
+            const parsed = new Date(`${cleanVal.slice(0, 10)}T00:00:00Z`);
+            if (Number.isFinite(parsed.getTime())) {
+              dateLabel = `Due ${parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`;
+            }
+          }
+          parts.push(statusLabel || priorityLabel || dateLabel || cleanVal);
         }
       }
       if (title || parts.length) {

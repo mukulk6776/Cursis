@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { Meeting, MeetingPlatform } from '@/lib/dashboard/types';
 import { formatDate } from '@/lib/dashboard/data';
+import EmptyState from '@/components/dashboard/EmptyState';
 
 export default function MeetingsPage() {
   const {
@@ -197,33 +198,20 @@ export default function MeetingsPage() {
 
       {/* Meetings Grid / List */}
       {filteredMeetings.length === 0 ? (
-        <div
-          className="card"
-          style={{
-            padding: '48px 24px',
-            textAlign: 'center',
-            background: 'var(--surface-card)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-          }}
-        >
-          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
-            No meetings found
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '420px', margin: '0 auto 16px' }}>
-            {searchQuery
-              ? 'No meetings match your search query. Try clearing filters.'
-              : 'Schedule a conference call with your Google Meet link to coordinate with team members.'}
-          </p>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => openModal('meeting-modal')}
-            style={{ fontWeight: 700 }}
-          >
-            + Schedule Meeting
-          </button>
-        </div>
+        <EmptyState
+          title={meetings.length === 0 ? 'No meetings scheduled' : 'No matching meetings found'}
+          description={
+            meetings.length === 0
+              ? 'Schedule a conference call or 1:1 sync with Google Meet, Zoom, or Teams to collaborate with team members.'
+              : 'No meetings match your search query or filter. Try clearing filters.'
+          }
+          actionLabel={meetings.length === 0 ? '+ Schedule Meeting' : 'Clear Filters'}
+          onAction={
+            meetings.length === 0
+              ? () => openModal('meeting-modal')
+              : () => { setSearchQuery(''); setPlatformFilter('all'); setCurrentTab('all'); }
+          }
+        />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '12px' }}>
           {filteredMeetings.map((m) => {
@@ -256,9 +244,9 @@ export default function MeetingsPage() {
                         fontWeight: 700,
                         padding: '1px 6px',
                         borderRadius: '4px',
-                        background: 'rgba(15, 76, 255, 0.08)',
+                        background: 'rgba(255, 85, 0, 0.08)',
                         color: 'var(--c-brand-text)',
-                        border: '1px solid rgba(15, 76, 255, 0.2)',
+                        border: '1px solid rgba(255, 85, 0, 0.2)',
                         textTransform: 'uppercase',
                       }}
                     >
@@ -314,7 +302,7 @@ export default function MeetingsPage() {
                         <div
                           key={pId}
                           className="avatar avatar-xs"
-                          style={{ background: emp?.color || '#0f4cff', fontSize: '9px', width: '20px', height: '20px' }}
+                          style={{ background: emp?.color || '#FF5500', fontSize: '9px', width: '20px', height: '20px' }}
                           title={emp?.name || pId}
                         >
                           {emp?.initials || 'U'}

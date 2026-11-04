@@ -47,7 +47,7 @@ export default function RedeemCodeModal() {
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
+    <div className="modal-overlay active" onClick={handleClose}>
       <div
         className="modal"
         role="dialog"
@@ -56,44 +56,31 @@ export default function RedeemCodeModal() {
         style={{
           maxWidth: '540px',
           width: '95%',
-          background: 'var(--surface-card)',
-          borderRadius: 'var(--border-radius-lg)',
-          boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
-          overflow: 'hidden',
-          border: '1px solid rgba(124, 58, 237, 0.25)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div
-          style={{
-            padding: 'var(--sp-4) var(--sp-5)',
-            borderBottom: '1px solid var(--border-color)',
-            background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.06) 0%, rgba(15, 76, 255, 0.04) 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
                 width: '36px',
                 height: '36px',
                 borderRadius: '10px',
-                background: 'linear-gradient(135deg, #7c3aed, #0f4cff)',
+                background: '#FF5500',
+                border: '2px solid #0A0A0A',
+                boxShadow: '2px 2px 0px #0A0A0A',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '18px',
-                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
               }}
             >
               ★
             </div>
             <div>
-              <h3 id="redeem-modal-title" style={{ margin: 0, fontSize: 'var(--fs-md)', fontWeight: 800 }}>
+              <h3 id="redeem-modal-title" className="modal-title">
                 Redeem Voucher &amp; Activation Key
               </h3>
               <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-tertiary)' }}>
@@ -104,8 +91,7 @@ export default function RedeemCodeModal() {
 
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ fontSize: '16px', padding: '2px 8px', color: 'var(--text-tertiary)' }}
+            className="modal-close"
             onClick={handleClose}
             aria-label="Close modal"
           >
@@ -114,7 +100,7 @@ export default function RedeemCodeModal() {
         </div>
 
         {/* Modal Content */}
-        <div style={{ padding: 'var(--sp-5)' }}>
+        <div className="modal-body">
           {redeemResult ? (
             /* Success View */
             <div style={{ textAlign: 'center', padding: 'var(--sp-2) 0' }}>
@@ -178,7 +164,7 @@ export default function RedeemCodeModal() {
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
-                  style={{ background: 'linear-gradient(135deg, #7c3aed, #0f4cff)', border: 'none' }}
+                  style={{ background: 'linear-gradient(135deg, #7c3aed, #FF5500)', border: 'none' }}
                   onClick={() => {
                     handleClose();
                     setCurrentPage('ordis');
@@ -275,13 +261,6 @@ export default function RedeemCodeModal() {
                 <button
                   type="submit"
                   className="btn btn-primary btn-sm"
-                  style={{
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #0f4cff 100%)',
-                    border: 'none',
-                    fontWeight: 700,
-                    padding: '8px 18px',
-                    boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
-                  }}
                   disabled={!inputCode.trim()}
                 >
                   Claim Feature Perks →

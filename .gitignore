@@ -74,3 +74,10 @@ beats/
 remotion/
 scratch/
 
+
+# Agent coordination metadata (auto-generated, not source code)
+.agents/teamwork/
+
+# Test infrastructure docs (development only)
+TEST_READY.md
+TEST_INFRA.md

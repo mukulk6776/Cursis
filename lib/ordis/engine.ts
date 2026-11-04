@@ -431,7 +431,7 @@ export function executeOrdisCommand(
       lead: user.name || 'Lead Officer',
       membersCount: 0,
       budget: '$150,000 / yr',
-      color: '#0f4cff',
+      color: '#FF5500',
       tags: ['Core Team', deptName],
     };
 
@@ -452,7 +452,7 @@ export function executeOrdisCommand(
         title: newDept.name,
         subtitle: `${newDept.description} • Lead: ${newDept.lead}`,
         badge: 'NEW DEPARTMENT',
-        badgeColor: '#0f4cff',
+        badgeColor: '#FF5500',
         primaryAction: { label: 'View Departments', actionType: 'navigate', target: 'departments' },
       },
     };
@@ -518,7 +518,7 @@ export function executeOrdisCommand(
         title: newDoc.name,
         subtitle: `${docCategory.toUpperCase()} • ${newDoc.aiSummary}`,
         badge: 'NEW DOCUMENT',
-        badgeColor: '#0f4cff',
+        badgeColor: '#FF5500',
         primaryAction: { label: 'Open in Docs', actionType: 'navigate', target: 'documents' },
       },
     };
@@ -559,7 +559,7 @@ export function executeOrdisCommand(
       status: 'In Progress',
       deadline,
       icon: '',
-      color: '#0f4cff',
+      color: '#FF5500',
       team: employees.slice(0, 3).map((e) => e.id),
       tasks: 0,
       completed: 0,
@@ -582,7 +582,7 @@ export function executeOrdisCommand(
         title: newProj.name,
         subtitle: `Budget: $${budget.toLocaleString()} • Deadline: ${deadline}`,
         badge: 'NEW PROJECT',
-        badgeColor: '#0f4cff',
+        badgeColor: '#FF5500',
         primaryAction: { label: 'View Projects', actionType: 'navigate', target: 'projects' },
       },
     };
@@ -644,7 +644,7 @@ export function executeOrdisCommand(
         title: newTask.name,
         subtitle: `Assigned to ${assignedEmp.name} • Priority: ${priority.toUpperCase()}`,
         badge: priority.toUpperCase(),
-        badgeColor: priority === 'urgent' ? '#ef4444' : '#0f4cff',
+        badgeColor: priority === 'urgent' ? '#ef4444' : '#FF5500',
         primaryAction: { label: 'Open in Kanban', actionType: 'navigate', target: 'tasks' },
       },
     };
@@ -1027,7 +1027,7 @@ export function executeOrdisCommand(
  title: newFeature.name,
  subtitle: `${newFeature.category} · Dynamically Built by Ordis Pro`,
  badge: 'ACTIVE DYNAMIC FEATURE',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  meta: {
  featureId: newFeature.id,
  category: newFeature.category,
@@ -1075,7 +1075,7 @@ export function executeOrdisCommand(
  title: 'Tasks & Kanban Board',
  subtitle: 'Full Sprint & Deliverables Management',
  badge: 'FEATURE GUIDE',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  primaryAction: { label: 'Open Tasks Kanban', actionType: 'navigate', target: 'tasks' },
  },
  };
@@ -1665,7 +1665,7 @@ export function executeOrdisCommand(
  title: 'Daily Strategic Priorities',
  subtitle: `${activeTasks.length} Active Tasks · ${upcomingSyncs.length} Meetings`,
  badge: 'ACTION PLAN',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  primaryAction: {
  label: 'View Tasks',
  actionType: 'navigate',
@@ -1930,7 +1930,7 @@ export function executeOrdisCommand(
  title: newTask.name,
  subtitle: `Assigned to ${assignedEmployee ? assignedEmployee.name : 'You'} · Due ${formatDate(newTask.deadline)}`,
  badge: priority.toUpperCase(),
- badgeColor: priority === 'urgent' ? '#ef4444' : priority === 'high' ? '#f59e0b' : '#0f4cff',
+ badgeColor: priority === 'urgent' ? '#ef4444' : priority === 'high' ? '#f59e0b' : '#FF5500',
  primaryAction: {
  label: 'View in Kanban',
  actionType: 'navigate',
@@ -2011,7 +2011,7 @@ export function executeOrdisCommand(
  id: 'p_' + Date.now(),
  name: projName,
  icon: '',
- color: '#0f4cff',
+ color: '#FF5500',
  desc: `Created by Ordis Copilot for ${projName}`,
  progress: 0,
  status: 'In Progress',
@@ -2048,7 +2048,7 @@ export function executeOrdisCommand(
  title: newProj.name,
  subtitle: `3 Milestones · Due ${formatDate(newProj.deadline)}`,
  badge: 'INITIALIZED',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  primaryAction: {
  label: 'Open Project',
  actionType: 'navigate',
@@ -2087,7 +2087,7 @@ export function executeOrdisCommand(
  title: `${projects.length} Active Initiatives`,
  subtitle: `Lead: ${projects[0]?.name || 'Core Operations'}`,
  badge: 'PROJECT DIRECTORY',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  primaryAction: {
  label: 'View All Projects',
  actionType: 'navigate',
@@ -2201,7 +2201,7 @@ export function executeOrdisCommand(
  title: `${meetings.length} Scheduled Calls`,
  subtitle: `Next: ${meetings[0]?.name} (${formatDate(meetings[0]?.date || '')})`,
  badge: 'CALENDAR SYNC',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  primaryAction: {
  label: 'Open Calendar',
  actionType: 'navigate',
@@ -2313,7 +2313,7 @@ export function executeOrdisCommand(
  role,
  department: dept,
  status: 'offline',
- color: '#0f4cff',
+ color: '#FF5500',
  tasks: 0,
  projects: 0,
  email,
@@ -2556,7 +2556,7 @@ export function executeOrdisCommand(
  title: newDoc.name,
  subtitle: `${newDoc.type.toUpperCase()} · Authored by ${user.name}`,
  badge: 'PUBLISHED',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  primaryAction: {
  label: 'Open Document',
  actionType: 'navigate',
@@ -2577,7 +2577,7 @@ export function executeOrdisCommand(
  title: `${documents.length} Indexed Documents`,
  subtitle: 'Engineering · Product · Operations Vault',
  badge: 'DOC VAULT',
- badgeColor: '#0f4cff',
+ badgeColor: '#FF5500',
  primaryAction: {
  label: 'Open Documents',
  actionType: 'navigate',
@@ -2617,7 +2617,7 @@ export function executeOrdisCommand(
  condition: 'Priority == Urgent',
  then: thenAction,
  icon: '',
- color: '#0f4cff',
+ color: '#FF5500',
  executionCount: 0,
  lastRun: 'Never',
  };

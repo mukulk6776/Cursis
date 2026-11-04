@@ -53,11 +53,11 @@ export default function DmcaPage() {
             <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Direct Contact</div>
             <div style={{ fontSize: '13px', color: '#0A0A0A', marginTop: '2px' }}>
               <strong>Dedicated Email:</strong>{' '}
-              <a href="mailto:official@cursis.in" style={{ color: '#0F4CFF', fontWeight: 700 }}>official@cursis.in</a>
+              <a href="mailto:official@cursis.in" style={{ color: '#FF5500', fontWeight: 700 }}>official@cursis.in</a>
             </div>
             <div style={{ fontSize: '13px', color: '#0A0A0A', marginTop: '2px' }}>
               <strong>Secondary:</strong>{' '}
-              <a href="mailto:official@cursis.in" style={{ color: '#0F4CFF' }}>official@cursis.in</a>
+              <a href="mailto:official@cursis.in" style={{ color: '#FF5500' }}>official@cursis.in</a>
             </div>
             <div style={{ fontSize: '13px', color: '#0A0A0A', marginTop: '2px' }}>
               <strong>Contact method:</strong> Email

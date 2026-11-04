@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAuthOrError } from '@/lib/api/response';
+import { getAuthOrError, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { findSmartOpenSlots } from '@/lib/db/calendar';
 
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, slots });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error?.message || 'Failed to calculate smart slots', 500);
   }
 }
 
@@ -57,6 +57,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, slots });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error?.message || 'Failed to calculate smart slots', 500);
   }
 }

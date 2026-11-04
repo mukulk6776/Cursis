@@ -51,6 +51,46 @@ export async function POST(request: Request) {
     const clientPhoto = body.photoURL || undefined;
 
     if (!idToken) {
+      // Support session workspace refresh for authenticated user (PROJECT.md line 51 & E2E 9.1)
+      const authUser = await getAuthenticatedUser(request);
+      if (authUser && body.workspaceId) {
+        const targetWsId = String(body.workspaceId).trim();
+        const wsRole = (await getUserWorkspaceRole(authUser.uid, targetWsId, authUser.email)) || authUser.role;
+        const refreshedPayload = {
+          uid: authUser.uid,
+          email: authUser.email,
+          displayName: authUser.displayName,
+          photoURL: authUser.photoURL,
+          role: wsRole,
+          workspaceId: targetWsId,
+          createdAt: Date.now(),
+        };
+        const refreshedToken = createSessionToken(refreshedPayload);
+        const maxAgeSeconds = 60 * 60 * 24 * 7;
+        const host = request.headers.get('host') || '';
+        const isCursisDomain = host.includes('cursis.in');
+        const cookieOptions = {
+          maxAge: maxAgeSeconds,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          sameSite: 'lax' as const,
+          ...(isCursisDomain ? { domain: '.cursis.in' } : {}),
+        };
+        try {
+          const cookieStore = await cookies();
+          cookieStore.set('cursis_session', refreshedToken, cookieOptions);
+        } catch {}
+        const response = apiSuccess({
+          message: 'Session refreshed with updated workspace',
+          user: refreshedPayload,
+          token: refreshedToken,
+        });
+        if (response.cookies?.set) {
+          response.cookies.set('cursis_session', refreshedToken, cookieOptions);
+        }
+        return response;
+      }
       return apiError('Authentication token is required to establish a session', 401);
     }
 

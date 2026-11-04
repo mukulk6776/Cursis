@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/response';
 import { getAgencyServiceCatalog } from '@/lib/db/agency';
 
 export async function GET() {
@@ -9,6 +10,6 @@ export async function GET() {
       services: catalog,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error?.message || 'Failed to fetch agency service catalog', 500);
   }
 }

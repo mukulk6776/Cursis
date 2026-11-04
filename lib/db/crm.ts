@@ -26,16 +26,24 @@ export async function getLeads(workspaceId: string, status?: LeadStatus): Promis
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export async function getLeadById(id: string): Promise<Lead | null> {
-  const mem = inMemoryStore.leads.get(id);
-  if (mem) return mem;
+export async function getLeadById(id: string, workspaceId?: string): Promise<Lead | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const mem = inMemoryStore.leads.get(cleanId);
+  if (mem) {
+    if (workspaceId && mem.workspaceId !== workspaceId) return null;
+    return mem;
+  }
 
   try {
     const col = await getCollection<Lead>('leads');
     if (col) {
-      const found = await col.findOne({ id });
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const found = await col.findOne(query);
       if (found) {
-        inMemoryStore.leads.set(id, found);
+        inMemoryStore.leads.set(cleanId, found);
         return found;
       }
     }
@@ -98,28 +106,77 @@ export async function createLead(workspaceId: string, data: Partial<Lead>): Prom
   return lead;
 }
 
-export async function updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
-  const lead = await getLeadById(id);
-  if (!lead) return null;
+export async function updateLead(
+  id: string,
+  updates: Partial<Lead>,
+  workspaceId?: string
+): Promise<Lead | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const lead = await getLeadById(cleanId, workspaceId);
+  if (!lead || (workspaceId && lead.workspaceId !== workspaceId)) return null;
+
+  // Sanitize update keys against NoSQL operator injection
+  if (Object.keys(updates).some((key) => key.includes('.') || key.startsWith('$'))) {
+    throw new Error('Invalid lead update field');
+  }
+
+  // Strip immutable multi-tenant and identity properties
+  const safeUpdates = { ...updates };
+  delete (safeUpdates as any).id;
+  delete (safeUpdates as any)._id;
+  delete (safeUpdates as any).workspaceId;
+  delete (safeUpdates as any).createdAt;
 
   const updated: Lead = {
     ...lead,
-    ...updates,
+    ...safeUpdates,
+    id: lead.id,
+    workspaceId: lead.workspaceId,
+    createdAt: lead.createdAt,
     updatedAt: new Date().toISOString(),
   };
 
-  inMemoryStore.leads.set(id, updated);
+  inMemoryStore.leads.set(cleanId, updated);
 
   try {
     const col = await getCollection<Lead>('leads');
     if (col) {
-      await col.updateOne({ id }, { $set: updated }, { upsert: true });
+      await col.updateOne(
+        { id: cleanId, workspaceId: lead.workspaceId },
+        { $set: { ...safeUpdates, updatedAt: updated.updatedAt } }
+      );
     }
   } catch (e) {
     console.warn('MongoDB update lead notice:', e);
   }
 
   return updated;
+}
+
+export async function deleteLead(id: string, workspaceId?: string): Promise<boolean> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return false;
+
+  if (workspaceId) {
+    const lead = await getLeadById(cleanId, workspaceId);
+    if (!lead) return false;
+  }
+
+  const existed = inMemoryStore.leads.delete(cleanId);
+  try {
+    const col = await getCollection<Lead>('leads');
+    if (col) {
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const res = await col.deleteOne(query);
+      return res.deletedCount > 0 || existed;
+    }
+  } catch (e) {
+    console.warn('MongoDB delete lead notice:', e);
+  }
+  return existed;
 }
 
 export async function getDeals(workspaceId: string): Promise<Deal[]> {
@@ -218,6 +275,204 @@ export async function createDeal(workspaceId: string, data: Partial<Deal>): Prom
   }
 
   return deal;
+}
+
+export async function getDealById(id: string, workspaceId?: string): Promise<Deal | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const mem = inMemoryStore.deals.get(cleanId);
+  if (mem) {
+    if (workspaceId && mem.workspaceId !== workspaceId) return null;
+    return mem;
+  }
+
+  try {
+    const col = await getCollection<Deal>('deals');
+    if (col) {
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const found = await col.findOne(query);
+      if (found) {
+        inMemoryStore.deals.set(cleanId, found);
+        return found;
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getDealById notice:', e);
+  }
+
+  return null;
+}
+
+export async function updateDeal(
+  id: string,
+  updates: Partial<Deal>,
+  workspaceId?: string
+): Promise<Deal | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const deal = await getDealById(cleanId, workspaceId);
+  if (!deal || (workspaceId && deal.workspaceId !== workspaceId)) return null;
+
+  if (Object.keys(updates).some((key) => key.includes('.') || key.startsWith('$'))) {
+    throw new Error('Invalid deal update field');
+  }
+
+  const safeUpdates = { ...updates };
+  delete (safeUpdates as any).id;
+  delete (safeUpdates as any)._id;
+  delete (safeUpdates as any).workspaceId;
+  delete (safeUpdates as any).createdAt;
+
+  const updated: Deal = {
+    ...deal,
+    ...safeUpdates,
+    id: deal.id,
+    workspaceId: deal.workspaceId,
+    createdAt: deal.createdAt,
+    updatedAt: new Date().toISOString(),
+  };
+
+  inMemoryStore.deals.set(cleanId, updated);
+
+  try {
+    const col = await getCollection<Deal>('deals');
+    if (col) {
+      await col.updateOne(
+        { id: cleanId, workspaceId: deal.workspaceId },
+        { $set: { ...safeUpdates, updatedAt: updated.updatedAt } }
+      );
+    }
+  } catch (e) {
+    console.warn('MongoDB update deal notice:', e);
+  }
+
+  return updated;
+}
+
+export async function deleteDeal(id: string, workspaceId?: string): Promise<boolean> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return false;
+
+  if (workspaceId) {
+    const deal = await getDealById(cleanId, workspaceId);
+    if (!deal) return false;
+  }
+
+  const existed = inMemoryStore.deals.delete(cleanId);
+  try {
+    const col = await getCollection<Deal>('deals');
+    if (col) {
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const res = await col.deleteOne(query);
+      return res.deletedCount > 0 || existed;
+    }
+  } catch (e) {
+    console.warn('MongoDB delete deal notice:', e);
+  }
+  return existed;
+}
+
+export async function getContactById(id: string, workspaceId?: string): Promise<Contact | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const mem = inMemoryStore.contacts.get(cleanId);
+  if (mem) {
+    if (workspaceId && mem.workspaceId !== workspaceId) return null;
+    return mem;
+  }
+
+  try {
+    const col = await getCollection<Contact>('contacts');
+    if (col) {
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const found = await col.findOne(query);
+      if (found) {
+        inMemoryStore.contacts.set(cleanId, found);
+        return found;
+      }
+    }
+  } catch (e) {
+    console.warn('MongoDB getContactById notice:', e);
+  }
+
+  return null;
+}
+
+export async function updateContact(
+  id: string,
+  updates: Partial<Contact>,
+  workspaceId?: string
+): Promise<Contact | null> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return null;
+
+  const contact = await getContactById(cleanId, workspaceId);
+  if (!contact || (workspaceId && contact.workspaceId !== workspaceId)) return null;
+
+  if (Object.keys(updates).some((key) => key.includes('.') || key.startsWith('$'))) {
+    throw new Error('Invalid contact update field');
+  }
+
+  const safeUpdates = { ...updates };
+  delete (safeUpdates as any).id;
+  delete (safeUpdates as any)._id;
+  delete (safeUpdates as any).workspaceId;
+  delete (safeUpdates as any).createdAt;
+
+  const updated: Contact = {
+    ...contact,
+    ...safeUpdates,
+    id: contact.id,
+    workspaceId: contact.workspaceId,
+    createdAt: contact.createdAt,
+    updatedAt: new Date().toISOString(),
+  };
+
+  inMemoryStore.contacts.set(cleanId, updated);
+
+  try {
+    const col = await getCollection<Contact>('contacts');
+    if (col) {
+      await col.updateOne(
+        { id: cleanId, workspaceId: contact.workspaceId },
+        { $set: { ...safeUpdates, updatedAt: updated.updatedAt } }
+      );
+    }
+  } catch (e) {
+    console.warn('MongoDB update contact notice:', e);
+  }
+
+  return updated;
+}
+
+export async function deleteContact(id: string, workspaceId?: string): Promise<boolean> {
+  const cleanId = (id || '').trim();
+  if (!cleanId) return false;
+
+  if (workspaceId) {
+    const contact = await getContactById(cleanId, workspaceId);
+    if (!contact) return false;
+  }
+
+  const existed = inMemoryStore.contacts.delete(cleanId);
+  try {
+    const col = await getCollection<Contact>('contacts');
+    if (col) {
+      const query: any = { id: cleanId };
+      if (workspaceId) query.workspaceId = workspaceId;
+      const res = await col.deleteOne(query);
+      return res.deletedCount > 0 || existed;
+    }
+  } catch (e) {
+    console.warn('MongoDB delete contact notice:', e);
+  }
+  return existed;
 }
 
 // Ordis Renewal Intelligence Scanner

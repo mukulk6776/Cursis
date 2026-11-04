@@ -149,7 +149,7 @@ export default function NotificationPanel() {
                   <div
                     className="notif-item-icon"
                     style={{
-                      background: isInvite ? 'rgba(15, 76, 255, 0.1)' : 'var(--c-gray-100)',
+                      background: isInvite ? 'var(--c-brand-bg)' : 'var(--c-gray-100)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { getCollection } from '@/lib/mongodb';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { SUPPORT_EMAIL } from '@/lib/site';
+import { EMAIL_REGEX } from '@/lib/db/team';
 
 interface UnsubscribeRecord {
   email: string;
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const email = String(body.email || '').trim().toLowerCase();
 
-    if (!email || !email.includes('@')) {
+    if (!email || !EMAIL_REGEX.test(email)) {
       return apiError('A valid email address is required to process the unsubscribe request.', 400);
     }
 
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get('email')?.trim().toLowerCase();
 
-  if (!email) {
+  if (!email || !EMAIL_REGEX.test(email)) {
     return NextResponse.json({ unsubscribed: false });
   }
 

@@ -64,7 +64,7 @@ export function validateAction(operation: string, input: Record<string, unknown>
   for (const key of spec.required || []) {
     if (input[key] === undefined || input[key] === null || input[key] === '') return `Please provide ${key} for ${operation.replaceAll('_', ' ')}.`;
   }
-  if (operation === 'invite_member' && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(input.email))) {
+  if (operation === 'invite_member' && !/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+[a-zA-Z0-9]$/.test(String(input.email))) {
     return `Please provide the complete email address for ${String(input.email)} (for example, name@gmail.com). I haven't sent an invitation.`;
   }
   if (operation === 'remove_member' && !input.userId && !input.invitationId) return 'Choose a member or invitation first.';

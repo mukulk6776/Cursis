@@ -93,17 +93,12 @@ export default function EventModal() {
         style={{
           maxWidth: '520px',
           width: '100%',
-          background: 'var(--surface-modal, var(--surface-card))',
-          borderRadius: '10px',
-          border: '1px solid var(--border-color)',
-          boxShadow: 'var(--shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.3))',
-          padding: '24px',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+        <div className="modal-header">
           <div>
-            <h3 id="event-modal-title" style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+            <h3 id="event-modal-title" className="modal-title">
               Create Calendar Event
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
@@ -112,17 +107,16 @@ export default function EventModal() {
           </div>
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="modal-close"
             onClick={closeModal}
             aria-label="Close modal"
-            style={{ fontSize: '16px', padding: '2px 8px', color: 'var(--text-secondary)' }}
           >
             ✕
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="modal-body">
             {/* Title */}
             <div>
               <label htmlFor="event-modal-title-input" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '5px' }}>
@@ -139,13 +133,9 @@ export default function EventModal() {
                 autoFocus
                 style={{
                   width: '100%',
-                  height: '36px',
+                  height: '38px',
                   padding: '0 12px',
                   fontSize: '13px',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '6px',
-                  background: 'var(--surface-secondary)',
-                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -163,13 +153,9 @@ export default function EventModal() {
                   onChange={(e) => setEventType(e.target.value as any)}
                   style={{
                     width: '100%',
-                    height: '36px',
+                    height: '38px',
                     padding: '0 10px',
                     fontSize: '13px',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '6px',
-                    background: 'var(--surface-secondary)',
-                    color: 'var(--text-primary)',
                   }}
                 >
                   <option value="event">General Event</option>
@@ -191,13 +177,9 @@ export default function EventModal() {
                   onChange={(e) => setProjectId(e.target.value)}
                   style={{
                     width: '100%',
-                    height: '36px',
+                    height: '38px',
                     padding: '0 10px',
                     fontSize: '13px',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '6px',
-                    background: 'var(--surface-secondary)',
-                    color: 'var(--text-primary)',
                   }}
                 >
                   <option value="">None / General Workspace</option>
@@ -225,13 +207,9 @@ export default function EventModal() {
                   required
                   style={{
                     width: '100%',
-                    height: '36px',
+                    height: '38px',
                     padding: '0 10px',
                     fontSize: '12px',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '6px',
-                    background: 'var(--surface-secondary)',
-                    color: 'var(--text-primary)',
                   }}
                 />
               </div>
@@ -248,13 +226,9 @@ export default function EventModal() {
                   onChange={(e) => setTime(e.target.value)}
                   style={{
                     width: '100%',
-                    height: '36px',
+                    height: '38px',
                     padding: '0 10px',
                     fontSize: '12px',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '6px',
-                    background: 'var(--surface-secondary)',
-                    color: 'var(--text-primary)',
                   }}
                 />
               </div>
@@ -270,13 +244,9 @@ export default function EventModal() {
                   onChange={(e) => setDurationMinutes(Number(e.target.value))}
                   style={{
                     width: '100%',
-                    height: '36px',
+                    height: '38px',
                     padding: '0 10px',
                     fontSize: '12px',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '6px',
-                    background: 'var(--surface-secondary)',
-                    color: 'var(--text-primary)',
                   }}
                 >
                   <option value={15}>15 mins</option>
@@ -305,13 +275,9 @@ export default function EventModal() {
                 onChange={(e) => setLocation(e.target.value)}
                 style={{
                   width: '100%',
-                  height: '36px',
+                  height: '38px',
                   padding: '0 12px',
                   fontSize: '13px',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '6px',
-                  background: 'var(--surface-secondary)',
-                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -332,26 +298,13 @@ export default function EventModal() {
                   width: '100%',
                   padding: '8px 12px',
                   fontSize: '13px',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '6px',
                   resize: 'vertical',
-                  background: 'var(--surface-secondary)',
-                  color: 'var(--text-primary)',
                 }}
               />
             </div>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '10px',
-              marginTop: '20px',
-              paddingTop: '16px',
-              borderTop: '1px solid var(--border-color)',
-            }}
-          >
+          <div className="modal-footer">
             <button
               type="button"
               className="btn btn-secondary btn-sm"

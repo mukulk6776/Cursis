@@ -11,14 +11,14 @@ export default function TermsPage() {
     <PolicyLayout
       title="Terms of Service"
       badge="Workspace terms"
-      badgeColor="#0F4CFF"
+      badgeColor="#FF5500"
       lastUpdated="Last Updated: September 24, 2026 • Version 2.5"
       activeSlug="terms"
       contactEmail="official@cursis.in"
       dpoEmail="official@cursis.in"
       summary={
         <p style={{ margin: 0 }}>
-          These Terms govern use of Cursis at <Link href="/" style={{ color: '#0F4CFF', textDecoration: 'underline', fontWeight: 600 }}>cursis.in</Link>. Personal data handling is explained separately in our <Link href="/privacy" style={{ color: '#0F4CFF', textDecoration: 'underline', fontWeight: 600 }}>Privacy Notice</Link>. Accepting these Terms does not itself grant consent to personal data processing or optional analytics.
+          These Terms govern use of Cursis at <Link href="/" style={{ color: '#FF5500', textDecoration: 'underline', fontWeight: 600 }}>cursis.in</Link>. Personal data handling is explained separately in our <Link href="/privacy" style={{ color: '#FF5500', textDecoration: 'underline', fontWeight: 600 }}>Privacy Notice</Link>. Accepting these Terms does not itself grant consent to personal data processing or optional analytics.
         </p>
       }
     >
@@ -66,7 +66,7 @@ export default function TermsPage() {
           4. Termination &amp; Data Export
         </h2>
         <p style={{ margin: 0 }}>
-          You may terminate your account at any time. Upon workspace deactivation, you are entitled to export complete snapshots of your workspace data in open data formats. Deletion schedules follow the timelines established in our <Link href="/data-deletion" style={{ color: '#0F4CFF', textDecoration: 'underline', fontWeight: 600 }}>Data Deletion Policy</Link>.
+          You may terminate your account at any time. Upon workspace deactivation, you are entitled to export complete snapshots of your workspace data in open data formats. Deletion schedules follow the timelines established in our <Link href="/data-deletion" style={{ color: '#FF5500', textDecoration: 'underline', fontWeight: 600 }}>Data Deletion Policy</Link>.
         </p>
       </section>
 

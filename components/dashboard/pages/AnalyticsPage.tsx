@@ -265,9 +265,9 @@ export default function AnalyticsPage() {
                   fontWeight: 700,
                   padding: '2px 8px',
                   borderRadius: '4px',
-                  background: 'rgba(15, 76, 255, 0.08)',
+                  background: 'rgba(255, 85, 0, 0.08)',
                   color: 'var(--c-brand-text)',
-                  border: '1px solid rgba(15, 76, 255, 0.2)',
+                  border: '1px solid rgba(255, 85, 0, 0.2)',
                   textTransform: 'uppercase',
                 }}
               >
@@ -322,7 +322,7 @@ export default function AnalyticsPage() {
                 key={idx}
                 style={{
                   height: `${Math.max((w.tasks / maxTasks) * 100, 15)}%`,
-                  background: w.color || '#0f4cff',
+                  background: w.color || '#FF5500',
                   borderRadius: '4px 4px 0 0',
                   flex: 1,
                   position: 'relative',
@@ -397,7 +397,7 @@ export default function AnalyticsPage() {
                     <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{p.progress}%</span>
                   </div>
                   <div style={{ height: '6px', background: 'var(--c-surface)', border: '1px solid var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', background: p.color || '#0f4cff', width: `${p.progress}%` }} />
+                    <div style={{ height: '100%', background: p.color || '#10B981', width: `${p.progress}%` }} />
                   </div>
                 </div>
               ))

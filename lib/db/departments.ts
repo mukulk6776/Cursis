@@ -175,7 +175,7 @@ export async function createDepartment(
     membersCount: 0,
     memberCount: 0,
     activeTaskCount: 0,
-    color: data.color || '#0f4cff',
+    color: data.color || '#FF5500',
     tags: Array.isArray(data.tags) ? data.tags : [],
     createdAt: now,
     updatedAt: now,

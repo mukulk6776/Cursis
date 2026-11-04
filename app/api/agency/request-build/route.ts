@@ -3,6 +3,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { createCustomBuildRequest } from '@/lib/db/agency';
 import { privacyDb } from '@/lib/privacy/core';
 import { PRIVACY_VERSION } from '@/lib/privacy/config';
+import { EMAIL_REGEX } from '@/lib/db/team';
 
 export async function POST(request: Request) {
   try {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     const contactEmail = (body.contactEmail || body.email || userEmail || '').trim();
     const requestedService = (body.requestedService || body.solutionType || body.service || '').trim();
 
-    if (!companyName || !contactEmail || !requestedService) {
+    if (!companyName || !contactEmail || !requestedService || !EMAIL_REGEX.test(contactEmail)) {
       return apiError('Company name / your name, contact email, and requested service are required', 400);
     }
 

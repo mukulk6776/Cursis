@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { findUserByEmail, registerUser } from '@/lib/db/users';
 import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
+import { EMAIL_REGEX } from '@/lib/db/team';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
 import { PrivacyError, accountBlocked, privacyDb, recordAccountConsent } from '@/lib/privacy/core';
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     if (!name) {
       return apiError('Full name is required', 400);
     }
-    if (!email || !email.includes('@')) {
+    if (!email || !EMAIL_REGEX.test(email)) {
       return apiError('A valid email address is required', 400);
     }
 

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 import { inMemoryStore } from '@/lib/db/store';
@@ -11,31 +11,41 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
-    const action = body.action || 'approve'; // 'approve' | 'reject'
+
+    if (!body.action || (body.action !== 'approve' && body.action !== 'reject')) {
+      return apiError('Invalid action. Must be approve or reject', 400);
+    }
+    const action = body.action;
 
     let targetWsId = body.workspaceId;
     let existingItem: any = inMemoryStore.approvalQueue.get(id);
     if (!existingItem) {
-      const db = await getDb();
-      if (db) {
-        existingItem = await db.collection('ordis_approvals').findOne({ id });
+      try {
+        const db = await getDb();
+        if (db) {
+          existingItem = await db.collection('ordis_approvals').findOne({ id });
+        }
+      } catch (e) {
+        console.warn('MongoDB approval fetch fallback notice:', e);
       }
     }
-    if (existingItem) {
-      targetWsId = existingItem.workspaceId;
+    if (!existingItem) {
+      return apiError('Approval item not found', 404);
     }
+    targetWsId = existingItem.workspaceId;
 
-    const wsAuth = await authorizeWorkspaceAccess(request, targetWsId);
+    // Strictly restrict approval resolution to workspace owner or admin
+    const wsAuth = await authorizeWorkspaceAccess(request, targetWsId, ['owner', 'admin']);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
     const resolved = await OrdisEngine.resolveApprovalItem(id, action, wsAuth.user.uid, wsAuth.workspaceId);
     if (!resolved) {
-      return NextResponse.json({ error: 'Approval item not found or unauthorized' }, { status: 404 });
+      return apiError('Approval item not found or unauthorized', 404);
     }
 
-    return NextResponse.json({ success: true, item: resolved });
+    return apiSuccess({ item: resolved });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error?.message || 'Failed to resolve approval item', 500);
   }
 }
 

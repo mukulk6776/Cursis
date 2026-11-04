@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/response';
 import crypto from 'node:crypto';
 import { executeAutomationRule, getAutomations } from '@/lib/db/automations';
 import { createLead } from '@/lib/db/crm';
@@ -127,6 +128,6 @@ export async function POST(request: Request) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError(error?.message || 'Failed to process webhook integration', 500);
   }
 }

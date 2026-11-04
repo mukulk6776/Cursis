@@ -1,5 +1,4 @@
 import { inMemoryMemberships, invitationRole } from './memberships';
-import { getUserWorkspaceRole } from '@/lib/auth/rbac';
 import { getCollection } from '@/lib/mongodb';
 import { inMemoryStore } from './store';
 import {
@@ -14,7 +13,9 @@ import {
 } from './types';
 import { ensureWorkspaceExists, getWorkspace } from './workspaces';
 import { getWorkspaceTeam } from './team';
-import { sendWorkspaceInvitationEmail } from '@/lib/email/notifications';
+import { withWorkspaceLock } from './workspace-lock';
+
+export const EMAIL_REGEX = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+[a-zA-Z0-9]$/;
 
 // In-memory fallback map for invitations
 export const inMemoryInvitations = new Map<string, WorkspaceInvitation>();
@@ -27,11 +28,27 @@ export interface ActingUser {
   role?: string;
 }
 
+async function resolveUserRole(userId: string, workspaceId: string): Promise<UserRole | null> {
+  const ws = inMemoryStore.workspaces.get(workspaceId);
+  if (ws && ws.ownerId === userId) return 'owner';
+  const mem = inMemoryMemberships.get(`${workspaceId}_${userId}`);
+  if (mem) return invitationRole(mem.role);
+  try {
+    const wsCol = await getCollection<Workspace>('workspaces');
+    const wsDoc = wsCol ? await wsCol.findOne({ id: workspaceId }) : null;
+    if (wsDoc && wsDoc.ownerId === userId) return 'owner';
+    const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
+    const memDoc = memCol ? await memCol.findOne({ workspaceId, userId }) : null;
+    if (memDoc) return invitationRole(memDoc.role);
+  } catch {}
+  return null;
+}
+
 /**
  * Checks if a user is an Owner or Admin of a given workspace.
  */
 export async function isWorkspaceAdminOrOwner(workspaceId: string, user: ActingUser): Promise<boolean> {
-  const role = await getUserWorkspaceRole(user.uid, workspaceId);
+  const role = await resolveUserRole(user.uid, workspaceId);
   return role === 'owner' || role === 'admin';
 }
 
@@ -53,12 +70,16 @@ export async function createTeamInvitation(params: {
   if (!workspaceId || workspaceId === 'ws_default' || workspaceId === 'ws_public') {
     workspaceId = (inviterUser as any).workspaceId || ('ws_' + inviterUser.uid);
   }
-  const cleanInviteEmail = (params.inviteeEmail || '').toLowerCase().trim();
-  const assignedRole: UserRole = invitationRole(params.role);
 
-  if (!cleanInviteEmail || !cleanInviteEmail.includes('@')) {
-    throw new Error('A valid email address is required.');
-  }
+  return withWorkspaceLock(workspaceId, async () => {
+    const cleanInviteEmail = (params.inviteeEmail || '').toLowerCase().trim();
+    const assignedRole: UserRole = invitationRole(params.role);
+
+    if (!cleanInviteEmail || !EMAIL_REGEX.test(cleanInviteEmail)) {
+      const err: any = new Error('A valid email address is required.');
+      err.statusCode = 400;
+      throw err;
+    }
 
   // Ensure workspace exists
   try {
@@ -73,9 +94,11 @@ export async function createTeamInvitation(params: {
     throw err;
   }
 
-  // 1b. Check team capacity limit (max 10 members)
+  // 1b. Check team capacity limit (max 4 members)
   const currentTeam = await getWorkspaceTeam(workspaceId);
-  if (currentTeam.length >= MAX_TEAM_MEMBERS) {
+  const ws = await getWorkspace(workspaceId);
+  const activeCount = Math.max(currentTeam.length, ws?.memberCount || 0);
+  if (activeCount >= MAX_TEAM_MEMBERS) {
     const err: any = new Error(
       `Workspace has reached the maximum team limit of ${MAX_TEAM_MEMBERS} members. You cannot send more invitations.`
     );
@@ -84,9 +107,9 @@ export async function createTeamInvitation(params: {
   }
 
   const pendingInvitations = await getWorkspaceInvitations(workspaceId);
-  if (currentTeam.length + pendingInvitations.length >= MAX_TEAM_MEMBERS) {
+  if (activeCount + pendingInvitations.length >= MAX_TEAM_MEMBERS) {
     const err: any = new Error(
-      `Workspace team capacity limit reached (max ${MAX_TEAM_MEMBERS} members). Currently there are ${currentTeam.length} active member${currentTeam.length === 1 ? '' : 's'} and ${pendingInvitations.length} pending invitation${pendingInvitations.length === 1 ? '' : 's'}. Revoke a pending invitation or remove a member to invite more.`
+      `Workspace team capacity limit reached (max ${MAX_TEAM_MEMBERS} members). Currently there are ${activeCount} active member${activeCount === 1 ? '' : 's'} and ${pendingInvitations.length} pending invitation${pendingInvitations.length === 1 ? '' : 's'}. Revoke a pending invitation or remove a member to invite more.`
     );
     err.statusCode = 400;
     throw err;
@@ -109,32 +132,46 @@ export async function createTeamInvitation(params: {
     ) || null;
   }
 
-  if (!registeredUser) {
-    const err: any = new Error(
-      `No registered user account found for "${cleanInviteEmail}". Users must create an account on Cursis before receiving a workspace invite.`
-    );
-    err.statusCode = 404;
+  // 3. Prevent self-invitation
+  if (cleanInviteEmail === inviterUser.email.toLowerCase()) {
+    const err: any = new Error('You cannot invite yourself to your own workspace.');
+    err.statusCode = 400;
     throw err;
   }
 
-  const inviteeUserId = registeredUser.uid || registeredUser.id;
+  const inviteeUserId = registeredUser ? (registeredUser.uid || registeredUser.id) : '';
 
-  // 3. Prevent self-invitation
-  if (inviteeUserId === inviterUser.uid || cleanInviteEmail === inviterUser.email.toLowerCase()) {
+  if (inviteeUserId && inviteeUserId === inviterUser.uid) {
     const err: any = new Error('You cannot invite yourself to your own workspace.');
     err.statusCode = 400;
     throw err;
   }
 
   // 4. Check if invitee is already an active member of the workspace
-  const isAlreadyMember =
-    (registeredUser.workspaceIds && registeredUser.workspaceIds.includes(workspaceId)) ||
-    registeredUser.activeWorkspaceId === workspaceId;
+  if (registeredUser) {
+    const isAlreadyMember =
+      (registeredUser.workspaceIds && registeredUser.workspaceIds.includes(workspaceId)) ||
+      registeredUser.activeWorkspaceId === workspaceId;
 
-  if (isAlreadyMember) {
-    const err: any = new Error(`User "${cleanInviteEmail}" is already an active member of this workspace.`);
-    err.statusCode = 400;
-    throw err;
+    if (isAlreadyMember) {
+      const err: any = new Error(`User "${cleanInviteEmail}" is already an active member of this workspace.`);
+      err.statusCode = 400;
+      throw err;
+    }
+
+    try {
+      const memCol = await getCollection<WorkspaceMembership>('workspace_memberships');
+      if (memCol) {
+        const existingMembership = await memCol.findOne({ workspaceId, userId: inviteeUserId });
+        if (existingMembership) {
+          const err: any = new Error(`User "${cleanInviteEmail}" is already a member of this workspace.`);
+          err.statusCode = 400;
+          throw err;
+        }
+      }
+    } catch (e) {
+      if ((e as any).statusCode) throw e;
+    }
   }
 
   // Check workspace_memberships collection
@@ -209,7 +246,7 @@ export async function createTeamInvitation(params: {
     inviterUserId: inviterUser.uid,
     inviteeUserId,
     email: cleanInviteEmail,
-    name: registeredUser.displayName || cleanInviteEmail.split('@')[0],
+    name: registeredUser ? (registeredUser.displayName || cleanInviteEmail.split('@')[0]) : cleanInviteEmail.split('@')[0],
     roleTitle: assignedRole === 'admin' ? 'Workspace Admin' : assignedRole === 'viewer' ? 'Viewer' : 'Team Member',
     workspaceRole: assignedRole,
     department: department || 'Engineering',
@@ -235,50 +272,57 @@ export async function createTeamInvitation(params: {
   }
   inMemoryInvitations.set(invId, invitation);
 
-  // 8. Create notification for invitee in notifications collection
-  const notifId = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-  const notif: DbNotification = {
-    id: notifId,
-    userId: inviteeUserId,
-    userEmail: cleanInviteEmail,
-    workspaceId,
-    type: 'workspace_invite',
-    referenceId: invId,
-    text: `<strong>${inviterUser.displayName || 'Workspace Admin'}</strong> invited you to join <strong>${wsName}</strong> as <strong>${assignedRole.charAt(0).toUpperCase() + assignedRole.slice(1)}</strong>.`,
-    read: false,
-    icon: 'mail',
-    createdAt: now,
-    invitationData: {
+  // 8. Create notification for invitee in notifications collection if registered
+  if (inviteeUserId) {
+    const notifId = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const notif: DbNotification = {
+      id: notifId,
+      userId: inviteeUserId,
+      userEmail: cleanInviteEmail,
       workspaceId,
-      workspaceName: wsName,
-      inviterName: inviterUser.displayName || 'Workspace Admin',
-      role: assignedRole,
-      status: 'pending',
-    },
-  };
+      type: 'workspace_invite',
+      referenceId: invId,
+      text: `<strong>${inviterUser.displayName || 'Workspace Admin'}</strong> invited you to join <strong>${wsName}</strong> as <strong>${assignedRole.charAt(0).toUpperCase() + assignedRole.slice(1)}</strong>.`,
+      read: false,
+      icon: 'mail',
+      createdAt: now,
+      invitationData: {
+        workspaceId,
+        workspaceName: wsName,
+        inviterName: inviterUser.displayName || 'Workspace Admin',
+        role: assignedRole,
+        status: 'pending',
+      },
+    };
 
-  try {
-    const notifCol = await getCollection<DbNotification>('notifications');
-    if (notifCol) {
-      await notifCol.insertOne(notif);
+    try {
+      const notifCol = await getCollection<DbNotification>('notifications');
+      if (notifCol) {
+        await notifCol.insertOne(notif);
+      }
+    } catch (e) {
+      console.warn('MongoDB insert notification error:', e);
     }
-  } catch (e) {
-    console.warn('MongoDB insert notification error:', e);
   }
 
   // 9. Dispatch Email if Resend configured
-  sendWorkspaceInvitationEmail({
-    to: cleanInviteEmail,
-    workspaceName: wsName,
-    recipientName: registeredUser.displayName,
-    inviterName: inviterUser.displayName,
-    assignedRole,
-    reqHost,
-  }).catch((err) => {
-    console.warn('Workspace invitation email dispatch exception:', err);
-  });
+  import('@/lib/email/notifications')
+    .then(({ sendWorkspaceInvitationEmail }) => {
+      sendWorkspaceInvitationEmail({
+        to: cleanInviteEmail,
+        workspaceName: wsName,
+        recipientName: registeredUser?.displayName,
+        inviterName: inviterUser.displayName,
+        assignedRole,
+        reqHost,
+      }).catch((err) => {
+        console.warn('Workspace invitation email dispatch exception:', err);
+      });
+    })
+    .catch(() => {});
 
   return invitation;
+  });
 }
 
 /**
@@ -314,45 +358,47 @@ export async function revokeWorkspaceInvitation(
   invitationId: string,
   actingUser: ActingUser
 ): Promise<boolean> {
-  const isAuthorized = await isWorkspaceAdminOrOwner(workspaceId, actingUser);
-  if (!isAuthorized) {
-    const err: any = new Error('Forbidden: Only Workspace Owners or Admins can revoke invitations.');
-    err.statusCode = 403;
-    throw err;
-  }
-
-  const now = new Date().toISOString();
-
-  try {
-    const invCol = await getCollection<WorkspaceInvitation>('invitations');
-    if (invCol) {
-      await invCol.updateOne(
-        { id: invitationId, workspaceId },
-        { $set: { status: 'revoked', respondedAt: now } }
-      );
+  return withWorkspaceLock(workspaceId, async () => {
+    const isAuthorized = await isWorkspaceAdminOrOwner(workspaceId, actingUser);
+    if (!isAuthorized) {
+      const err: any = new Error('Forbidden: Only Workspace Owners or Admins can revoke invitations.');
+      err.statusCode = 403;
+      throw err;
     }
-  } catch (e) {
-    console.warn('MongoDB revoke invitation error:', e);
-  }
 
-  // Update notification if one exists
-  try {
-    const notifCol = await getCollection<DbNotification>('notifications');
-    if (notifCol) {
-      await notifCol.updateMany(
-        { referenceId: invitationId },
-        { $set: { read: true, 'invitationData.status': 'revoked' } }
-      );
+    const now = new Date().toISOString();
+
+    try {
+      const invCol = await getCollection<WorkspaceInvitation>('invitations');
+      if (invCol) {
+        await invCol.updateOne(
+          { id: invitationId, workspaceId },
+          { $set: { status: 'revoked', respondedAt: now } }
+        );
+      }
+    } catch (e) {
+      console.warn('MongoDB revoke invitation error:', e);
     }
-  } catch {}
 
-  const memInv = inMemoryInvitations.get(invitationId);
-  if (memInv && memInv.workspaceId === workspaceId) {
-    memInv.status = 'revoked';
-    memInv.respondedAt = now;
-  }
+    // Update notification if one exists
+    try {
+      const notifCol = await getCollection<DbNotification>('notifications');
+      if (notifCol) {
+        await notifCol.updateMany(
+          { referenceId: invitationId },
+          { $set: { read: true, 'invitationData.status': 'revoked' } }
+        );
+      }
+    } catch {}
 
-  return true;
+    const memInv = inMemoryInvitations.get(invitationId);
+    if (memInv && memInv.workspaceId === workspaceId) {
+      memInv.status = 'revoked';
+      memInv.respondedAt = now;
+    }
+
+    return true;
+  });
 }
 
 /**
@@ -363,7 +409,24 @@ export async function acceptWorkspaceInvitation(
   invitationId: string,
   actingUser: ActingUser
 ): Promise<{ success: boolean; workspaceId: string; role: UserRole }> {
-  const now = new Date().toISOString();
+  let peekWorkspaceId: string | null = null;
+  const peekMem = inMemoryInvitations.get(invitationId);
+  if (peekMem?.workspaceId) {
+    peekWorkspaceId = peekMem.workspaceId;
+  } else {
+    try {
+      const invCol = await getCollection<WorkspaceInvitation>('invitations');
+      if (invCol) {
+        const doc = await invCol.findOne({ id: invitationId }, { projection: { workspaceId: 1 } });
+        if (doc?.workspaceId) peekWorkspaceId = doc.workspaceId;
+      }
+    } catch {}
+  }
+
+  const lockKey = peekWorkspaceId || `inv_lock_${invitationId}`;
+
+  return withWorkspaceLock(lockKey, async () => {
+    const now = new Date().toISOString();
   let invitation: WorkspaceInvitation | null = null;
   let mongoAvailable = false;
 
@@ -631,6 +694,7 @@ export async function acceptWorkspaceInvitation(
   } catch {}
 
   return { success: true, workspaceId, role };
+  });
 }
 
 /**
@@ -640,7 +704,24 @@ export async function declineWorkspaceInvitation(
   invitationId: string,
   actingUser: ActingUser
 ): Promise<{ success: boolean; message: string }> {
-  let invitation: WorkspaceInvitation | null = null;
+  let peekWorkspaceId: string | null = null;
+  const peekMem = inMemoryInvitations.get(invitationId);
+  if (peekMem?.workspaceId) {
+    peekWorkspaceId = peekMem.workspaceId;
+  } else {
+    try {
+      const invCol = await getCollection<WorkspaceInvitation>('invitations');
+      if (invCol) {
+        const doc = await invCol.findOne({ id: invitationId }, { projection: { workspaceId: 1 } });
+        if (doc?.workspaceId) peekWorkspaceId = doc.workspaceId;
+      }
+    } catch {}
+  }
+
+  const lockKey = peekWorkspaceId || `inv_lock_${invitationId}`;
+
+  return withWorkspaceLock(lockKey, async () => {
+    let invitation: WorkspaceInvitation | null = null;
 
   try {
     const invCol = await getCollection<WorkspaceInvitation>('invitations');
@@ -709,4 +790,5 @@ export async function declineWorkspaceInvitation(
   } catch {}
 
   return { success: true, message: 'Invitation declined successfully' };
+  });
 }

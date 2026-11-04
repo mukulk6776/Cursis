@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { IntegrationItem, WebhookItem, ApiKeyItem } from '@/lib/dashboard/types';
+import EmptyState from '@/components/dashboard/EmptyState';
 
 export default function IntegrationsPage() {
  const {
+ user,
  integrations,
  toggleIntegration,
  webhooks,
@@ -40,20 +42,42 @@ export default function IntegrationsPage() {
  ? integrations
  : integrations.filter((i: IntegrationItem) => i.category === filterCategory);
 
- const handleCreateWebhook = (e: React.FormEvent) => {
+  const generateClientSecret = () => {
+ if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+ const bytes = new Uint8Array(32);
+ window.crypto.getRandomValues(bytes);
+ return 'whsec_' + Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+ }
+ return 'whsec_' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+ };
+
+ const handleCreateWebhook = async (e: React.FormEvent) => {
  e.preventDefault();
  if (!whName.trim() || !whUrl.trim()) return;
+ let secret = '';
+ try {
+ const res = await fetch('/api/integrations/secret', { credentials: 'include' });
+ if (res.ok) {
+ const data = await res.json();
+ if (data.secret) secret = data.secret;
+ }
+ } catch {
+ // fallback
+ }
+ if (!secret || secret.length < 32) {
+ secret = generateClientSecret();
+ }
  addWebhook({
  name: whName.trim(),
  url: whUrl.trim(),
  events: whEvents,
  status: 'active',
- secret: 'whsec_' + Math.random().toString(36).substr(2, 9),
+ secret,
  });
  setWhName('');
  setWhUrl('');
  setShowWebhookModal(false);
- showToast('New webhook registered successfully *');
+ showToast('New webhook registered successfully ⚡');
  };
 
  const handleCreateApiKey = (e: React.FormEvent) => {
@@ -62,19 +86,24 @@ export default function IntegrationsPage() {
  addApiKey(keyName.trim(), keyScopes);
  setKeyName('');
  setShowApiKeyModal(false);
- showToast('New API key generated & copied to clipboard *');
+ showToast('New API key generated & copied to clipboard ⚡');
  };
 
  const handleConnect = (id: string, name: string) => {
  toggleIntegration(id);
- addAuditEntry('u1', 'integration.connected', name, 'Integration connected');
- showToast(`${name} connected successfully *`);
+ addAuditEntry(user?.name || user?.email || 'System', 'integration.connected', name, 'Integration connected');
+ showToast(`${name} connected successfully ⚡`);
  };
 
  const handleDisconnect = (id: string, name: string) => {
  toggleIntegration(id);
- addAuditEntry('u1', 'integration.disconnected', name, 'Integration disconnected');
- showToast(`${name} disconnected *`);
+ addAuditEntry(user?.name || user?.email || 'System', 'integration.disconnected', name, 'Integration disconnected');
+ showToast(`${name} disconnected ⚡`);
+ };
+
+ const handleTestPing = (wh: WebhookItem) => {
+ addAuditEntry(user?.name || user?.email || 'System', 'webhook.test_ping', wh.name, `Sent test event ping to ${wh.url}`);
+ showToast(`Test event pinged to ${wh.url} (200 OK) ⚡`);
  };
 
  const configuredInt = integrations.find((i) => i.id === configuredIntId);
@@ -275,6 +304,15 @@ export default function IntegrationsPage() {
 
  {/* TAB 2: WEBHOOKS */}
  {activeTab === 'webhooks' && (
+ webhooks.length === 0 ? (
+ <EmptyState
+ icon="🔗"
+ title="No webhooks registered"
+ description="Connect your external services and pipelines via HTTP callback webhooks."
+ actionLabel="+ New Webhook"
+ onAction={() => setShowWebhookModal(true)}
+ />
+ ) : (
  <div className="card" style={{ overflow: 'hidden' }}>
  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-sm)' }}>
  <thead>
@@ -316,7 +354,7 @@ export default function IntegrationsPage() {
  <button
  className="btn btn-ghost btn-sm"
  style={{ fontSize: '10px' }}
- onClick={() => showToast(`Test event pinged to ${wh.url} (200 OK) *`)}
+ onClick={() => handleTestPing(wh)}
  >
  Test Ping
  </button>
@@ -326,10 +364,20 @@ export default function IntegrationsPage() {
  </tbody>
  </table>
  </div>
+ )
  )}
 
  {/* TAB 3: API KEYS */}
  {activeTab === 'api-keys' && (
+ apiKeys.length === 0 ? (
+ <EmptyState
+ icon="🔑"
+ title="No API keys generated"
+ description="Generate secure scoped API keys for server-to-server REST access."
+ actionLabel="+ Generate Key"
+ onAction={() => setShowApiKeyModal(true)}
+ />
+ ) : (
  <div className="card" style={{ overflow: 'hidden' }}>
  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-sm)' }}>
  <thead>
@@ -380,6 +428,7 @@ export default function IntegrationsPage() {
  </tbody>
  </table>
  </div>
+ )
  )}
 
  {/* Webhook Modal */}

@@ -189,7 +189,7 @@ teamSettings,
  style={{
  padding: 'var(--sp-4)',
  background: 'var(--surface-card)',
- borderLeft: `5px solid ${wsForm.accentColor || '#0f4cff'}`,
+ borderLeft: `5px solid ${wsForm.accentColor || '#FF5500'}`,
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
@@ -203,7 +203,7 @@ teamSettings,
  width: '40px',
  height: '40px',
  borderRadius: 'var(--border-radius-md)',
- background: wsForm.accentColor || '#0f4cff',
+ background: wsForm.accentColor || '#FF5500',
  color: '#fff',
  display: 'flex',
  alignItems: 'center',
@@ -335,7 +335,7 @@ teamSettings,
  <label className="input-label">Brand Accent Color</label>
  <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center', flexWrap: 'wrap' }}>
  {[
- { color: '#0f4cff', label: 'Somba Blue' },
+ { color: '#FF5500', label: 'Electric Orange' },
  { color: '#000000', label: 'Mono Black' },
  { color: '#00b341', label: 'Emerald' },
  { color: '#ff5710', label: 'Neon Orange' },
@@ -366,7 +366,7 @@ teamSettings,
  width: '32px',
  height: '32px',
  borderRadius: 'var(--border-radius-md)',
- background: wsForm.accentColor || '#0f4cff',
+ background: wsForm.accentColor || '#FF5500',
  border: '2px solid var(--border-color)',
  display: 'flex',
  alignItems: 'center',
@@ -380,7 +380,7 @@ teamSettings,
  <Pipette size={14} color="#ffffff" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', pointerEvents: 'none' }} />
  <input
  type="color"
- value={wsForm.accentColor || '#0f4cff'}
+ value={wsForm.accentColor || '#FF5500'}
  onChange={(e) => setWsForm({ ...wsForm, accentColor: e.target.value })}
  style={{
  position: 'absolute',
@@ -409,7 +409,7 @@ teamSettings,
  color: 'var(--text-primary)',
  }}
  >
- <span>{wsForm.accentColor || '#0f4cff'}</span>
+ <span>{wsForm.accentColor || '#FF5500'}</span>
  </div>
  </div>
  </div>
@@ -571,7 +571,7 @@ teamSettings,
  <div
  className="avatar avatar-sm"
  style={{
- background: emp.color || '#0f4cff',
+ background: emp.color || '#FF5500',
  color: '#fff',
  fontSize: '11px',
  fontWeight: 'bold',

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { DocumentItem } from '@/lib/dashboard/types';
 import { FileText, Lock, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import EmptyState from '@/components/dashboard/EmptyState';
 
 const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'txt', 'md', 'csv', 'json', 'xlsx', 'pptx', 'png', 'jpg', 'jpeg'];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -355,7 +356,7 @@ export default function DocumentsPage() {
                 fontWeight: 800,
                 padding: '3px 8px',
                 borderRadius: '6px',
-                background: isOwner ? '#0f4cff' : 'var(--c-surface)',
+                background: isOwner ? '#FF5500' : 'var(--c-surface)',
                 color: isOwner ? '#ffffff' : 'var(--text-secondary)',
                 border: '1px solid var(--border-color)',
                 textTransform: 'uppercase',
@@ -424,7 +425,7 @@ export default function DocumentsPage() {
                   fontSize: '11px',
                   fontWeight: isActive ? 800 : 600,
                   border: isActive ? '1px solid var(--border-color)' : '1px solid transparent',
-                  background: isActive ? '#0f4cff' : 'var(--c-surface)',
+                  background: isActive ? '#FF5500' : 'var(--c-surface)',
                   color: isActive ? '#ffffff' : 'var(--text-secondary)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
@@ -492,7 +493,7 @@ export default function DocumentsPage() {
               onClick={() => setViewMode('grid')}
               style={{
                 padding: '6px 10px',
-                background: viewMode === 'grid' ? '#0f4cff' : 'var(--c-surface)',
+                background: viewMode === 'grid' ? '#FF5500' : 'var(--c-surface)',
                 color: viewMode === 'grid' ? '#fff' : 'var(--text-primary)',
                 border: 'none',
                 cursor: 'pointer',
@@ -507,7 +508,7 @@ export default function DocumentsPage() {
               onClick={() => setViewMode('table')}
               style={{
                 padding: '6px 10px',
-                background: viewMode === 'table' ? '#0f4cff' : 'var(--c-surface)',
+                background: viewMode === 'table' ? '#FF5500' : 'var(--c-surface)',
                 color: viewMode === 'table' ? '#fff' : 'var(--text-primary)',
                 border: 'none',
                 cursor: 'pointer',
@@ -523,48 +524,22 @@ export default function DocumentsPage() {
 
       {/* Empty State */}
       {filteredAndSortedDocs.length === 0 ? (
-        <div
-          className="card"
-          style={{
-            padding: 'var(--sp-8)',
-            textAlign: 'center',
-            background: 'var(--surface-card)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--sp-2)' }}>
-            <FileText size={38} strokeWidth={1.5} color="var(--text-tertiary)" />
-          </div>
-          <h3 style={{ fontSize: 'var(--fs-md)', fontWeight: 800, margin: '0 0 4px 0' }}>No documents found</h3>
-          <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', maxWidth: '440px', margin: '0 auto var(--sp-4)' }}>
-            {searchQuery || activeCategory !== 'all'
-              ? `No document records match "${searchQuery || activeCategory}". Try clearing your search filters.`
-              : 'No documents have been uploaded to this workspace yet. Create your first document specification or contract.'}
-          </p>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            {(searchQuery || activeCategory !== 'all') && (
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => {
-                  setSearchQuery('');
-                  setActiveCategory('all');
-                }}
-              >
-                Clear Filters
-              </button>
-            )}
-            {canAdd && (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() => setShowCreateModal(true)}
-                style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <span style={{ fontSize: '15px', lineHeight: 1 }}>+</span> Add New Document
-              </button>
-            )}
-          </div>
-        </div>
+        <EmptyState
+          title={documents.length === 0 ? 'No documents uploaded yet' : 'No documents found'}
+          description={
+            documents.length === 0
+              ? 'Publish contracts, specifications, proposals, or project briefs to keep your workspace aligned.'
+              : `No documents match "${searchQuery || activeCategory}". Try clearing your filters.`
+          }
+          actionLabel={canAdd ? '+ Add New Document' : (searchQuery || activeCategory !== 'all' ? 'Clear Filters' : undefined)}
+          onAction={
+            canAdd
+              ? () => setShowCreateModal(true)
+              : () => { setSearchQuery(''); setActiveCategory('all'); }
+          }
+          secondaryActionLabel={canAdd && (searchQuery || activeCategory !== 'all') ? 'Clear Filters' : undefined}
+          onSecondaryAction={() => { setSearchQuery(''); setActiveCategory('all'); }}
+        />
       ) : viewMode === 'grid' ? (
         /* GRID VIEW */
         <div

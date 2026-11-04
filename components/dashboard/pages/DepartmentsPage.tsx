@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { Department } from '@/lib/dashboard/types';
+import EmptyState from '@/components/dashboard/EmptyState';
 import { AlertTriangle } from 'lucide-react';
 
 export default function DepartmentsPage() {
@@ -205,7 +206,7 @@ export default function DepartmentsPage() {
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: '4px',
-                background: canManage ? '#0f4cff' : 'var(--c-surface)',
+                background: canManage ? '#FF5500' : 'var(--c-surface)',
                 color: canManage ? '#ffffff' : 'var(--text-secondary)',
                 border: '1px solid var(--border-color)',
                 textTransform: 'uppercase',
@@ -254,35 +255,20 @@ export default function DepartmentsPage() {
 
       {/* Departments List */}
       {departments.length === 0 ? (
-        <div
-          className="card"
-          style={{
-            padding: '48px 24px',
-            textAlign: 'center',
-            background: 'var(--surface-card)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-          }}
-        >
-          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0' }}>No departments yet</h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
-            Create your first department to organize tasks and team members.
-          </p>
-          {canManage && (
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => setShowAddModal(true)}
-              style={{ fontWeight: 700 }}
-            >
-              + Add Department
-            </button>
-          )}
-        </div>
+        <EmptyState
+          title="No departments yet"
+          description="Create your first department to organize tasks, squads, and team members."
+          actionLabel={canManage ? "+ Add Department" : undefined}
+          onAction={canManage ? () => setShowAddModal(true) : undefined}
+        />
       ) : filteredDepartments.length === 0 ? (
-        <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
-          No departments matching "{searchQuery}".
-        </div>
+        <EmptyState
+          compact
+          title="No matching departments"
+          description={`No departments match "${searchQuery}". Try clearing your search.`}
+          actionLabel="Clear Search"
+          onAction={() => setSearchQuery('')}
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {filteredDepartments.map((dept) => {
@@ -329,7 +315,7 @@ export default function DepartmentsPage() {
                     <span
                       style={{
                         fontSize: '12px',
-                        color: activeTaskCount > 0 ? '#0f4cff' : 'var(--text-tertiary)',
+                        color: activeTaskCount > 0 ? '#FF5500' : 'var(--text-tertiary)',
                         fontWeight: activeTaskCount > 0 ? 600 : 400,
                       }}
                     >

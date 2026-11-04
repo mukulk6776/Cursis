@@ -198,7 +198,7 @@ export default function CookieConsent() {
                 onClick={handleAcceptAll}
                 style={{
                   padding: '10px 24px',
-                  background: '#0f4cff',
+                  background: '#FF5500',
                   border: 'none',
                   borderRadius: '8px',
                   color: '#ffffff',
@@ -207,14 +207,14 @@ export default function CookieConsent() {
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 8px rgba(15, 76, 255, 0.3)',
+                  boxShadow: '0 2px 8px rgba(255, 85, 0, 0.3)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#0d42d9';
+                  e.currentTarget.style.background = '#e04b00';
                   e.currentTarget.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#0f4cff';
+                  e.currentTarget.style.background = '#FF5500';
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
@@ -315,7 +315,7 @@ export default function CookieConsent() {
                   onClick={handleSavePreferences}
                   style={{
                     padding: '8px 20px',
-                    background: '#0f4cff',
+                    background: '#FF5500',
                     border: 'none',
                     borderRadius: '6px',
                     color: '#ffffff',

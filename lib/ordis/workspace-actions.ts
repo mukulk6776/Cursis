@@ -1,5 +1,9 @@
 import { NextRequest } from 'next/server';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { getWorkspace } from '@/lib/db/workspaces';
+import { inMemoryStore } from '@/lib/db/store';
+import { getDb } from '@/lib/mongodb';
+import { logAuditEvent } from '@/lib/db/audit';
 import { capabilities, validateAction } from './capabilities';
 
 // Static imports via loaders: the model cannot choose URLs, imports, or credentials.
@@ -29,6 +33,7 @@ export interface ActionResult {
   data?: unknown;
   changed?: boolean;
   page?: string;
+  actionPayload?: unknown;
 }
 
 export async function executeWorkspaceAction(request: Request, workspaceId: string, operation: string, input: Record<string, unknown>): Promise<ActionResult> {
@@ -37,6 +42,52 @@ export async function executeWorkspaceAction(request: Request, workspaceId: stri
   const spec = capabilities[operation];
   const auth = await authorizeWorkspaceAccess(request, workspaceId);
   if (auth.errorResponse) return { ok: false, operation, error: 'You do not have access to this workspace.' };
+
+  // Confirmation gate for destructive operations (Feature 13)
+  const isDestructive = spec.method === 'DELETE';
+  const isConfirmed = input.confirmed === true;
+  if (isDestructive && !isConfirmed) {
+    const ws = await getWorkspace(workspaceId).catch(() => null);
+    const approvalRequired = ws?.settings?.approvalRequiredForActions ?? true;
+    if (approvalRequired) {
+      const actionId = `appr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const description = `Confirmation required to ${operation.replaceAll('_', ' ')}`;
+      const pendingItem: any = {
+        id: actionId,
+        workspaceId,
+        operation,
+        action: operation,
+        capability: 'takes_outside_action',
+        description,
+        status: 'pending',
+        input,
+        payload: input,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      inMemoryStore.approvalQueue.set(actionId, pendingItem);
+      try {
+        const db = await getDb();
+        if (db) await db.collection('ordis_approvals').insertOne(pendingItem);
+      } catch (e) {
+        console.warn('MongoDB approval enqueue notice:', e);
+      }
+
+      return {
+        ok: false,
+        operation,
+        changed: false,
+        error: `Confirmation required: Ordis requires explicit user confirmation before executing '${operation.replaceAll('_', ' ')}'.`,
+        actionPayload: {
+          type: 'action_confirmation_required',
+          actionId,
+          operation,
+          input,
+          description,
+        },
+      };
+    }
+  }
 
   // Prevent IDs obtained from another workspace from crossing the active workspace boundary.
   const targetId = input.id || input.userId || input.invitationId;
@@ -72,7 +123,50 @@ export async function executeWorkspaceAction(request: Request, workspaceId: stri
     if (!response.ok || payload.success === false || payload.data?.success === false) {
       return { ok: false, operation, error: payload.error || 'The website could not complete this action.' };
     }
-    return { ok: true, operation, data: payload.data ?? payload, changed: !bodyless || spec.method === 'DELETE', page: spec.page };
+    const changed = !bodyless || spec.method === 'DELETE';
+    if (changed) {
+      try {
+        const resData = payload.data ?? payload;
+        const targetId = String(
+          input.id ||
+          input.userId ||
+          input.invitationId ||
+          resData?.id ||
+          resData?.task?.id ||
+          resData?.project?.id ||
+          resData?.department?.id ||
+          resData?.invitation?.id ||
+          resData?.meeting?.id ||
+          resData?.event?.id ||
+          resData?.document?.id ||
+          resData?.deal?.id ||
+          resData?.lead?.id ||
+          resData?.rule?.id ||
+          input.title ||
+          input.name ||
+          input.email ||
+          operation
+        );
+        const targetType = spec.resource
+          .replace(/^crm\//, '')
+          .replace(/\/events$/, '_event')
+          .replace(/s$/, '');
+
+        await logAuditEvent(workspaceId, {
+          actorType: 'ordis_assisted',
+          actorId: auth.user.uid,
+          actorName: auth.user.displayName || auth.user.email || 'Ordis Assistant',
+          action: `ordis.${operation}`,
+          targetType: targetType || 'workspace',
+          targetId,
+          details: { operation, input, result: resData },
+          isRollbackable: false,
+        });
+      } catch (auditError) {
+        console.warn('Ordis audit logging error:', auditError);
+      }
+    }
+    return { ok: true, operation, data: payload.data ?? payload, changed, page: spec.page };
   } catch {
     // Do not retry a write: the server may have committed it before the response failed.
     return { ok: false, operation, error: 'The action could not be confirmed. Check the relevant page before retrying.' };

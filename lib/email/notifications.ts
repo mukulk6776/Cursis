@@ -54,7 +54,7 @@ export function getCanspamEmailFooter(recipientEmail?: string): string {
         This email was sent in compliance with the CAN-SPAM Act of 2003 (15 U.S.C. § 7704).
       </p>
       <p style="margin: 0;">
-        <a href="${escapeHtml(unsubscribeUrl)}" style="color: #0f4cff; text-decoration: underline; font-weight: 600;">Unsubscribe from marketing emails</a>
+        <a href="${escapeHtml(unsubscribeUrl)}" style="color: #FF5500; text-decoration: underline; font-weight: 600;">Unsubscribe from marketing emails</a>
         &nbsp;&nbsp;•&nbsp;&nbsp;
         <a href="${escapeHtml(appUrl)}/dashboard/settings" style="color: #737373; text-decoration: underline;">Notification Preferences</a>
         &nbsp;&nbsp;•&nbsp;&nbsp;
@@ -108,7 +108,7 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
 
     const emailContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h2 style="color: #0f4cff; border-bottom: 2px solid #0f4cff; padding-bottom: 10px;">
+        <h2 style="color: #FF5500; border-bottom: 2px solid #FF5500; padding-bottom: 10px;">
           🎉 New Custom Client Workspace Created
         </h2>
 
@@ -165,7 +165,7 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
             ${data.ownerEmail ? `
             <tr>
               <td style="padding: 8px 0; font-weight: bold;">Email:</td>
-              <td style="padding: 8px 0;"><a href="mailto:${safeOwnerEmail}" style="color: #0f4cff;">${safeOwnerEmail}</a></td>
+              <td style="padding: 8px 0;"><a href="mailto:${safeOwnerEmail}" style="color: #FF5500;">${safeOwnerEmail}</a></td>
             </tr>
             ` : ''}
           </table>
@@ -231,19 +231,19 @@ export async function sendWorkspaceWelcomeEmail(
       subject: `Welcome to ${workspaceName} on Cursis!`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-          <h2 style="color: #0f4cff;">Welcome to ${safeWsName}! 🎉</h2>
+          <h2 style="color: #FF5500;">Welcome to ${safeWsName}! 🎉</h2>
           <p>Hi ${safeOwner},</p>
           <p>Your workspace <strong>${safeWsName}</strong> has been successfully created on Cursis!</p>
           <p>You can now start inviting team members, managing projects, and leveraging the power of AI-assisted workflows.</p>
           <div style="margin: 30px 0;">
             <a href="${safeAppUrl}/dashboard"
-               style="background-color: #0f4cff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+               style="background-color: #FF5500; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
               Go to Dashboard
             </a>
           </div>
           <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
           <p style="font-size: 12px; color: #999;">
-            Questions? Reach out to us at <a href="mailto:cursis.in@gmail.com" style="color: #0f4cff;">cursis.in@gmail.com</a>
+            Questions? Reach out to us at <a href="mailto:cursis.in@gmail.com" style="color: #FF5500;">cursis.in@gmail.com</a>
           </p>
           ${getCanspamEmailFooter(email)}
         </div>
@@ -297,12 +297,12 @@ export async function sendWorkspaceInvitationEmail({
       subject: `You've been invited to join ${safeWsName} on Cursis`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-          <h2 style="color: #0f4cff;">You've been invited to ${safeWsName}!</h2>
+          <h2 style="color: #FF5500;">You've been invited to ${safeWsName}!</h2>
           <p>Hi ${safeRecipient},</p>
           <p><strong>${safeInviter}</strong> has invited you to join <strong>${safeWsName}</strong> as a <strong>${safeRole}</strong>.</p>
           <p>Open your Cursis dashboard to accept or decline the invitation:</p>
           <div style="margin: 30px 0;">
-            <a href="${safeInviteLink}" style="background-color: #0f4cff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">View Invitation</a>
+            <a href="${safeInviteLink}" style="background-color: #FF5500; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">View Invitation</a>
           </div>
           <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
           <p style="font-size: 12px; color: #999;">If you were not expecting this invitation, you can safely ignore this email.</p>
