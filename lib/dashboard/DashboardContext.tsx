@@ -471,7 +471,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       // Feature 8: Reset ALL tenant-scoped state immediately to prevent ghost data or stale entities leaking
       setEmployees([]);
       setInvitations([]);
-      setCrm({ deals: [], contacts: [] });
+      setCrm({ ...INITIAL_CRM, deals: [], contacts: [], followUps: [] });
       setAutomations([]);
       setApiKeys([]);
       setWebhooks([]);

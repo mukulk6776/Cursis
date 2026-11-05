@@ -68,7 +68,7 @@ export interface UserProfile {
   providerData?: any[];
   ageConfirmed?: boolean;
   coppaConsentAt?: string;
-  lastActiveAt: string;
+  lastActiveAt?: string;
   createdAt: string;
 }
 
@@ -500,18 +500,20 @@ export interface AuditLogEntry {
 export interface OrdisNoticeCard {
   id: string;
   workspaceId: string;
-  type: 'risk_detected' | 'draft_prepared' | 'meeting_finished' | 'workload_imbalance' | 'renewal_opportunity';
+  type?: 'risk_detected' | 'draft_prepared' | 'meeting_finished' | 'workload_imbalance' | 'renewal_opportunity';
   title: string;
-  description: string;
+  description?: string;
+  summary?: string;
   severity: 'info' | 'warning' | 'critical';
-  contextData: Record<string, any>;
-  suggestedAction: {
+  contextData?: Record<string, any>;
+  suggestedAction?: {
     label: string;
     actionType: string;
     payload: Record<string, any>;
   };
-  status: 'pending' | 'approved' | 'dismissed' | 'executed';
-  createdAt: string;
+  status?: 'pending' | 'approved' | 'dismissed' | 'executed';
+  createdAt?: string;
+  timestamp?: string;
 }
 
 // Approval Queue (For Chill Mode and High-Risk Full Power Actions)

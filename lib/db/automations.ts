@@ -162,15 +162,16 @@ export async function executeAutomationRule(
 
   const actionResults: any[] = [];
   for (const action of actionList) {
+    const config = (action.config || {}) as Record<string, any>;
     try {
       if ((action.type as string) === 'create_task' || action.type === 'assign_task') {
         const { createTask } = await import('./tasks');
         const task = await createTask(rule.workspaceId, {
-          title: action.config?.title || 'Automated Task',
-          description: action.config?.description || `Action triggered by automation: ${rule.name}`,
-          priority: action.config?.priority || 'medium',
+          title: config.title || 'Automated Task',
+          description: config.description || `Action triggered by automation: ${rule.name}`,
+          priority: config.priority || 'medium',
           status: 'todo',
-          assigneeId: action.config?.assigneeId,
+          assigneeId: config.assigneeId,
         });
         actionResults.push({
           actionType: action.type,
@@ -180,7 +181,7 @@ export async function executeAutomationRule(
         });
       } else if (action.type === 'create_crm_deal') {
         const { createDeal } = await import('./crm');
-        const deal = await createDeal(rule.workspaceId, action.config || {});
+        const deal = await createDeal(rule.workspaceId, config);
         actionResults.push({
           actionType: action.type,
           status: 'success',
@@ -189,7 +190,7 @@ export async function executeAutomationRule(
         });
       } else if (action.type === 'call_webhook' || action.type === 'webhook.call' || action.type === 'trigger_webhook') {
         const { executeExternalAction } = await import('./integrations');
-        const res = await executeExternalAction(rule.workspaceId, 'trigger_webhook', action.config || {});
+        const res = await executeExternalAction(rule.workspaceId, 'trigger_webhook', config);
         actionResults.push({
           actionType: action.type,
           status: res.success ? 'success' : 'failed',
@@ -201,9 +202,9 @@ export async function executeAutomationRule(
         actionResults.push({
           actionType: action.type,
           status: 'success',
-          channel: action.config?.channel || '#general',
-          recipient: action.config?.recipient || 'team@cursis.io',
-          message: action.config?.message || `Automation ${rule.name} dispatched ${action.type}`,
+          channel: config.channel || '#general',
+          recipient: config.recipient || 'team@cursis.io',
+          message: config.message || `Automation ${rule.name} dispatched ${action.type}`,
           timestamp: new Date().toISOString(),
         });
       } else {

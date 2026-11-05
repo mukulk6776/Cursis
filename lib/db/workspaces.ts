@@ -405,7 +405,7 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
 
   // If tier is updated, auto-sync Ordis mode accordingly, but strictly preserve safety gates
   if (updates.tier) {
-    const isPaid = updates.tier === 'paid' || updates.tier === 'pro' || updates.tier === 'enterprise';
+    const isPaid = (updates.tier as string) === 'paid' || (updates.tier as string) === 'pro' || (updates.tier as string) === 'enterprise';
     updated.ordisMode = isPaid ? 'full_power' : 'chill';
     if (updates.settings && typeof updates.settings.approvalRequiredForActions === 'boolean') {
       updated.settings.approvalRequiredForActions = updates.settings.approvalRequiredForActions;

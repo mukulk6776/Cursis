@@ -89,36 +89,69 @@ export class OrdisEngine {
 
     if (overdueTasks.length > 0) {
       const cardId = 'card_overdue_' + Date.now();
+      const text = `Ordis detected ${overdueTasks.length} overdue task${overdueTasks.length === 1 ? '' : 's'}: ${overdueTasks.map((t) => t.title).slice(0, 3).join(', ')}.`;
       cards.push({
         id: cardId,
         workspaceId,
+        type: 'risk_detected',
         title: 'Overdue Delivery Bottlenecks',
-        summary: `Ordis detected ${overdueTasks.length} overdue task${overdueTasks.length === 1 ? '' : 's'}: ${overdueTasks.map((t) => t.title).slice(0, 3).join(', ')}.`,
+        description: text,
+        summary: text,
         severity: overdueTasks.length > 2 ? 'critical' : 'warning',
+        contextData: { overdueCount: overdueTasks.length },
+        suggestedAction: {
+          label: 'View Overdue Tasks',
+          actionType: 'navigate_tasks',
+          payload: { filter: 'overdue' },
+        },
+        status: 'pending',
+        createdAt: new Date().toISOString(),
         timestamp: new Date().toISOString(),
       });
     }
 
     if (blockedTasks.length > 0) {
       const cardId = 'card_blocked_' + Date.now();
+      const text = `Ordis flagged ${blockedTasks.length} blocked task${blockedTasks.length === 1 ? '' : 's'} requiring dependency resolution.`;
       cards.push({
         id: cardId,
         workspaceId,
+        type: 'risk_detected',
         title: 'Blocked Workstream Alert',
-        summary: `Ordis flagged ${blockedTasks.length} blocked task${blockedTasks.length === 1 ? '' : 's'} requiring dependency resolution.`,
+        description: text,
+        summary: text,
         severity: 'warning',
+        contextData: { blockedCount: blockedTasks.length },
+        suggestedAction: {
+          label: 'Resolve Blockers',
+          actionType: 'navigate_tasks',
+          payload: { filter: 'blocked' },
+        },
+        status: 'pending',
+        createdAt: new Date().toISOString(),
         timestamp: new Date().toISOString(),
       });
     }
 
     if (delayedProjects.length > 0) {
       const cardId = 'card_proj_' + Date.now();
+      const text = `${delayedProjects.length} project${delayedProjects.length === 1 ? '' : 's'} flagged as at-risk or delayed against sprint delivery targets.`;
       cards.push({
         id: cardId,
         workspaceId,
+        type: 'risk_detected',
         title: 'Project Schedule Deviation',
-        summary: `${delayedProjects.length} project${delayedProjects.length === 1 ? '' : 's'} flagged as at-risk or delayed against sprint delivery targets.`,
+        description: text,
+        summary: text,
         severity: 'warning',
+        contextData: { delayedCount: delayedProjects.length },
+        suggestedAction: {
+          label: 'Review Projects',
+          actionType: 'navigate_projects',
+          payload: { filter: 'delayed' },
+        },
+        status: 'pending',
+        createdAt: new Date().toISOString(),
         timestamp: new Date().toISOString(),
       });
     }
