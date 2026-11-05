@@ -33,7 +33,7 @@ export async function getAllWorkspaces(): Promise<Workspace[]> {
         return docs;
       }
     }
-  } catch {}
+  } catch { }
   return Array.from(inMemoryStore.workspaces.values());
 }
 
@@ -60,7 +60,7 @@ export async function ensureWorkspaceExists(
         inMemoryStore.workspaces.set(cleanId, doc);
       }
     }
-  } catch {}
+  } catch { }
 
   if (ws) return ws;
 
@@ -164,7 +164,7 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
           try {
             const ensured = await ensureWorkspaceExists(tId, userId, `${userName}'s Workspace`);
             wsMap.set(tId, ensured);
-          } catch {}
+          } catch { }
         }
       }
     }
@@ -204,7 +204,7 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
       wsMap.set(personalWsId, defaultWs);
       inMemoryStore.workspaces.set(personalWsId, defaultWs);
       if (wsCol) {
-        wsCol.insertOne(defaultWs).catch(() => {});
+        wsCol.insertOne(defaultWs).catch(() => { });
         getCollection<any>('workspace_teams').then(async (teamCol) => {
           if (teamCol) {
             teamCol.updateOne(
@@ -228,9 +228,9 @@ export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
                 },
               },
               { upsert: true }
-            ).catch(() => {});
+            ).catch(() => { });
           }
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }
 
@@ -381,7 +381,7 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
       if (col) {
         ws = (await col.findOne({ id: cleanId })) as Workspace | null;
       }
-    } catch {}
+    } catch { }
   }
 
   if (!ws) return null;
@@ -430,7 +430,7 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
         await teamCol.updateMany(
           { workspaceId: cleanId },
           { $set: { workspaceName: cleanName } }
-        ).catch(() => {});
+        ).catch(() => { });
       }
 
       // Also sync active workspace name in users collection
@@ -439,7 +439,7 @@ export async function updateWorkspace(id: string, updates: Partial<Workspace>): 
         await userCol.updateMany(
           { activeWorkspaceId: cleanId },
           { $set: { workspaceName: cleanName } }
-        ).catch(() => {});
+        ).catch(() => { });
       }
     }
   } catch (e) {

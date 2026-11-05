@@ -8,7 +8,6 @@
 @import './components.css';
 @import './animations.css';
 @import './pages.css';
-@import './dashboard-dark.css';
 .csv-task-preview th,
 .csv-task-preview td {
   padding: 8px 12px;
