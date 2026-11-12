@@ -1,6 +1,6 @@
 import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 
-export const BRAND_NAME = 'Cursis';
+export const BRAND_NAME = 'CURSIS';
 export const SITE_URL = 'https://cursis.in';
 export const SUPPORT_EMAIL = 'cursis.in@gmail.com';
 export const TEAM_USER_LIMIT = MAX_TEAM_MEMBERS;

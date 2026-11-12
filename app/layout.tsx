@@ -21,9 +21,10 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  applicationName: BRAND_NAME,
   title: {
     default: BRAND_NAME,
-    template: '%s | Cursis',
+    template: '%s | CURSIS',
   },
   description:
     'Keep tasks, projects, chat, and video meetings together. Ordis AI spots delayed tasks and helps share work so your team can stay on track.',

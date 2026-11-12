@@ -80,7 +80,7 @@ export default function Sidebar() {
               />
             </g>
           </svg>
-          <span className="sidebar-logo-text">Cursis</span>
+          <span className="sidebar-logo-text">CURSIS</span>
         </div>
 
         <button
