@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'CURSIS',
-    short_name: 'CURSIS',
+    name: 'Cursis',
+    short_name: 'Cursis',
     description: 'Autonomous AI Workplace & Agency Operating System',
     start_url: '/',
     display: 'standalone',
@@ -23,3 +23,4 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
   };
 }
+

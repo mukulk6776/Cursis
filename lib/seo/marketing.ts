@@ -13,7 +13,7 @@ export const SOCIAL_IMAGE = {
 
 export function marketingMetadata(path: string, title: string, description: string): Metadata {
   const url = new URL(path || '/', SITE_URL).href;
-  const pageTitle = title.includes(BRAND_NAME) ? title : `${title} | ${BRAND_NAME}`;
+  const pageTitle = title.toUpperCase().includes(BRAND_NAME.toUpperCase()) ? title : `${title} | ${BRAND_NAME}`;
 
   return {
     title: { absolute: pageTitle },

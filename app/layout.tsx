@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   applicationName: BRAND_NAME,
   title: {
     default: BRAND_NAME,
-    template: '%s | CURSIS',
+    template: `%s | ${BRAND_NAME}`,
   },
   description:
     'Keep tasks, projects, chat, and video meetings together. Ordis AI spots delayed tasks and helps share work so your team can stay on track.',
@@ -110,6 +110,17 @@ export default function RootLayout({
 
 
 
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: BRAND_NAME,
+              url: 'https://cursis.in/',
+            }),
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: THEME_BOOTSTRAP,
