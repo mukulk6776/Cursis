@@ -187,15 +187,21 @@ export default function SignupPage() {
   return (
     <main id="main-content" className="auth-page auth-signup-page">
       <CaptureSignupSource />
-      <section className="auth-card auth-signup-card" aria-labelledby="signup-title">
-        <Link href="/" className="auth-close" aria-label="Back to Cursis"><X size={16} /></Link>
+      <aside className="signup-story" aria-label="About Cursis">
         <Link href="/" className="auth-brand" aria-label="Cursis home">
-          <svg viewBox="0 0 1024 1024" fill="none" width="28" height="28" aria-hidden="true">
-            <path d="M545 240 A282 282 0 1 0 782 566" stroke="currentColor" strokeWidth="142" strokeLinecap="round" />
-            <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" />
-          </svg>
+          <svg viewBox="0 0 1024 1024" fill="none" width="36" height="36" aria-hidden="true"><path d="M545 240 A282 282 0 1 0 782 566" stroke="currentColor" strokeWidth="142" strokeLinecap="round" /><rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" /></svg>
           {BRAND_NAME}
         </Link>
+        <div className="signup-story-copy">
+          <span className="signup-story-kicker">YOUR TEAM, IN SYNC</span>
+          <h2>Manage your team,<br />not your templates.</h2>
+          <p>Bring projects, tasks, and team priorities into one workspace. Let Ordis help you see what needs attention next.</p>
+          <div className="signup-story-note"><span aria-hidden="true">✳</span> A clearer way to move work forward.</div>
+        </div>
+        <span className="signup-story-footer">MADE FOR TEAMS THAT DO THE WORK</span>
+      </aside>
+      <section className="auth-card auth-signup-card" aria-labelledby="signup-title">
+        <Link href="/" className="auth-close" aria-label="Back to Cursis"><X size={16} /></Link>
         <h1 id="signup-title">{method ? 'Complete your account' : 'Create your workspace'}</h1>
         <p className="auth-intro">{method ? 'One last step to get started.' : `Free for up to ${TEAM_USER_LIMIT} · No credit card required`}</p>
 

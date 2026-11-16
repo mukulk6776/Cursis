@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BRAND_NAME, FREE_WORKSPACE_TEXT } from '@/lib/site';
+import { BRAND_NAME } from '@/lib/site';
 import { signInWithEmail, signInWithGoogle, handleGoogleRedirectResult } from '@/lib/auth/firebase';
 import '@/styles/landing.css';
 import '@/styles/auth.css';
@@ -180,7 +180,6 @@ export default function LoginPage() {
           {BRAND_NAME}
         </Link>
         <h1 id="login-title">Welcome back.</h1>
-        <p className="auth-intro">{FREE_WORKSPACE_TEXT}. No credit card.</p>
         {successMsg && <p className="auth-message auth-success" role="status">{successMsg}</p>}
         {errorMsg && <p className="auth-message auth-error" role="alert">{errorMsg}</p>}
         <button type="button" className="auth-google" onClick={handleGoogleSignIn} disabled={googleLoading || loading}>
