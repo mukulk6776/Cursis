@@ -4,10 +4,10 @@ import React, { useState, useRef } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function DocumentModal() {
-  const { activeModal, closeModal, addDocument, projects, showToast } = useDashboard();
+  const { activeModal, closeModal, addDocument, projects, documents, showToast } = useDashboard();
 
   const [title, setTitle] = useState('');
-  const [docType, setDocType] = useState<'contract' | 'proposal' | 'hr' | 'technical' | 'financial'>('contract');
+  const [category, setCategory] = useState('');
   const [projectTag, setProjectTag] = useState(projects[0]?.id || '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,14 +39,16 @@ export default function DocumentModal() {
 
     addDocument({
       name: docName,
-      type: docType as any,
+      type: 'knowledge',
+      category: category.trim(),
       project: projectTag,
       size: fileSizeFormatted,
-      tags: [docType, 'uploaded'],
+      tags: [category.trim(), 'uploaded'],
       aiSummary: 'Document ingested into secure workspace storage. Ready for team collaboration.',
     });
 
     setTitle('');
+    setCategory('');
     setSelectedFile(null);
     closeModal();
   };
@@ -81,18 +83,21 @@ export default function DocumentModal() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
               <div className="input-group">
-                <label className="input-label">Document Type</label>
-                <select
-                  className="input select"
-                  value={docType}
-                  onChange={(e) => setDocType(e.target.value as any)}
-                >
-                  <option value="contract">Contract / Agreement</option>
-                  <option value="proposal">Proposal</option>
-                  <option value="hr">HR &amp; Policy</option>
-                  <option value="technical">Technical Spec</option>
-                  <option value="financial">Financial / Invoice</option>
-                </select>
+                <label className="input-label">Category</label>
+                <input
+                  className="input"
+                  aria-label="Document category"
+                  list="upload-document-categories"
+                  placeholder="Type your own category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  required
+                  pattern=".*\S.*"
+                  maxLength={80}
+                />
+                <datalist id="upload-document-categories">
+                  {Array.from(new Set(documents.map(doc => doc.category?.trim()).filter(Boolean))).map(name => <option key={name} value={name} />)}
+                </datalist>
               </div>
               <div className="input-group">
                 <label className="input-label">Project Tag</label>

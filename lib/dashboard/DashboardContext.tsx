@@ -293,7 +293,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  const segment = path.replace(/^\/dashboard\/?/, '').split('/')[0];
     const validPages: DashboardPageType[] = [
       'home', 'ordis', 'tasks', 'projects', 'team', 'departments', 'documents', 'calendar',
-      'meetings', 'analytics', 'workspace', 'automations', 'messages', 'integrations', 'settings'
+      'meetings', 'analytics', 'workspace', 'automations', 'integrations', 'settings'
     ];
  if (validPages.includes(segment as DashboardPageType)) {
  return segment as DashboardPageType;

@@ -23,7 +23,7 @@ export default function ProblemSection() {
   const solutions = [
     {
       title: 'All-in-one workspace',
-      desc: 'Tasks, roadmaps, docs, and channels integrated in one fast, unified interface.',
+      desc: 'Tasks, roadmaps, docs, and calendars integrated in one fast, unified interface.',
     },
     {
       title: 'Ordis AI partner',
@@ -81,7 +81,7 @@ export default function ProblemSection() {
           <div className="lp-comparison-header">
             <span className="lp-card-pill green">With Cursis</span>
             <h3 className="lp-card-headline">Unified &amp; Fast</h3>
-            <p className="lp-card-desc">One connected workspace where planning, chat, and execution live together.</p>
+            <p className="lp-card-desc">One connected workspace where planning, tasks, and execution live together.</p>
           </div>
 
           <ul className="lp-comparison-list">

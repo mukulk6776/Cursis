@@ -9,16 +9,6 @@ import EmptyState from '@/components/dashboard/EmptyState';
 const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'txt', 'md', 'csv', 'json', 'xlsx', 'pptx', 'png', 'jpg', 'jpeg'];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
-const DOCUMENT_CATEGORIES = [
-  { id: 'all', label: 'All Documents' },
-  { id: 'contract', label: 'Contracts & Legal' },
-  { id: 'proposal', label: 'Proposals & SOW' },
-  { id: 'technical', label: 'Technical Specs' },
-  { id: 'hr', label: 'HR & Policies' },
-  { id: 'knowledge', label: 'Knowledge Base' },
-  { id: 'design', label: 'Design & Creative' },
-];
-
 function parseBytes(sizeStr?: string): number {
   if (!sizeStr) return 0;
   const match = sizeStr.trim().match(/^([\d.]+)\s*(b|kb|mb|gb)?/i);
@@ -57,7 +47,7 @@ export default function DocumentsPage() {
 
   // Create Form State
   const [createTitle, setCreateTitle] = useState('');
-  const [createCategory, setCreateCategory] = useState('contract');
+  const [createCategory, setCreateCategory] = useState('');
   const [createDescription, setCreateDescription] = useState('');
   const [createTags, setCreateTags] = useState('');
   const [createContent, setCreateContent] = useState('');
@@ -68,7 +58,21 @@ export default function DocumentsPage() {
 
   // Edit Form State
   const [editTitle, setEditTitle] = useState('');
-  const [editCategory, setEditCategory] = useState('contract');
+  const [editCategory, setEditCategory] = useState('');
+
+  const categories = useMemo(() => {
+    const saved = new Map<string, string>();
+    documents.forEach((doc) => {
+      const label = doc.category?.trim();
+      if (label) saved.set(`category:${label.toLowerCase()}`, label);
+    });
+    return [
+      { id: 'all', label: 'All Documents' },
+      ...Array.from(saved, ([id, label]) => ({ id, label }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    ];
+  }, [documents]);
+  const selectedCategory = categories.some((cat) => cat.id === activeCategory) ? activeCategory : 'all';
   const [editDescription, setEditDescription] = useState('');
   const [editTags, setEditTags] = useState('');
   const [editContent, setEditContent] = useState('');
@@ -170,7 +174,7 @@ export default function DocumentsPage() {
       esignStatus: null,
       fileType: calculatedType,
       fileSize: calculatedSize,
-      category: createCategory,
+      category: createCategory.trim(),
       content: createContent,
       updated: new Date().toLocaleDateString(),
       version: 1,
@@ -181,6 +185,7 @@ export default function DocumentsPage() {
     showToast(`Document "${createTitle.trim()}" published successfully`);
     setShowCreateModal(false);
     setCreateTitle('');
+    setCreateCategory('');
     setCreateDescription('');
     setCreateTags('');
     setCreateContent('');
@@ -197,7 +202,7 @@ export default function DocumentsPage() {
     }
     setEditingDoc(doc);
     setEditTitle(doc.name);
-    setEditCategory(doc.category || doc.type || 'contract');
+    setEditCategory(doc.category || '');
     setEditDescription(doc.aiSummary || '');
     setEditTags(doc.tags?.join(', ') || '');
     setEditContent(doc.content || doc.keyClauses?.join('\n') || '');
@@ -223,7 +228,7 @@ export default function DocumentsPage() {
       tags: parsedTags,
       keyClauses: editContent.trim() ? editContent.split('\n').filter(Boolean) : editingDoc.keyClauses,
       content: editContent,
-      category: editCategory,
+      category: editCategory.trim(),
     });
 
     setEditingDoc(null);
@@ -281,11 +286,8 @@ export default function DocumentsPage() {
   const filteredAndSortedDocs = useMemo(() => {
     return documents
       .filter((doc) => {
-        const docCategory = doc.category || doc.type || '';
-        const matchCategory = activeCategory === 'all' ||
-          doc.type === activeCategory ||
-          docCategory === activeCategory ||
-          docCategory.toLowerCase() === activeCategory.toLowerCase();
+        const matchCategory = selectedCategory === 'all' ||
+          `category:${doc.category?.trim().toLowerCase()}` === selectedCategory;
         const matchSearch =
           !searchQuery.trim() ||
           doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -309,7 +311,7 @@ export default function DocumentsPage() {
         if (sortBy === 'size_desc') return parseBytes(b.fileSize || b.size) - parseBytes(a.fileSize || a.size);
         return 0;
       });
-  }, [documents, activeCategory, searchQuery, sortBy]);
+  }, [documents, selectedCategory, searchQuery, sortBy]);
 
   const getDocBadgeClass = (type: string) => {
     switch (type?.toLowerCase()) {
@@ -403,16 +405,18 @@ export default function DocumentsPage() {
           flexWrap: 'wrap',
         }}
       >
+        <datalist id="document-category-options">
+          {categories.filter((cat) => cat.id !== 'all').map((cat) => <option key={cat.id} value={cat.label} />)}
+        </datalist>
         {/* Category Pills */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {DOCUMENT_CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const count = cat.id === 'all'
               ? documents.length
               : documents.filter((d) => {
-                  const docCat = (d.category || d.type || '').toLowerCase();
-                  return docCat === cat.id.toLowerCase();
+                  return `category:${d.category?.trim().toLowerCase()}` === cat.id;
                 }).length;
-            const isActive = activeCategory === cat.id;
+            const isActive = selectedCategory === cat.id;
 
             return (
               <button
@@ -1036,18 +1040,17 @@ export default function DocumentsPage() {
                     <label className="input-label" style={{ fontSize: '11px', fontWeight: 700 }}>
                       Category / Domain
                     </label>
-                    <select
-                      className="input select"
+                    <input
+                      className="input"
+                      aria-label="Document category"
+                      list="document-category-options"
+                      placeholder="Type your own category"
                       value={createCategory}
-                      onChange={(e) => setCreateCategory(e.target.value as any)}
-                    >
-                      <option value="contract">Contract &amp; Legal</option>
-                      <option value="proposal">Proposal &amp; SOW</option>
-                      <option value="technical">Technical Architecture</option>
-                      <option value="hr">HR &amp; People Policy</option>
-                      <option value="knowledge">Knowledge Base</option>
-                      <option value="design">Design &amp; Brand Assets</option>
-                    </select>
+                      onChange={(e) => setCreateCategory(e.target.value)}
+                      required
+                      pattern=".*\S.*"
+                      maxLength={80}
+                    />
                   </div>
 
                   <div className="input-group" style={{ margin: 0 }}>
@@ -1147,18 +1150,17 @@ export default function DocumentsPage() {
                     <label className="input-label" style={{ fontSize: '11px', fontWeight: 700 }}>
                       Category / Domain
                     </label>
-                    <select
-                      className="input select"
+                    <input
+                      className="input"
+                      aria-label="Document category"
+                      list="document-category-options"
+                      placeholder="Type your own category"
                       value={editCategory}
-                      onChange={(e) => setEditCategory(e.target.value as any)}
-                    >
-                      <option value="contract">Contract &amp; Legal</option>
-                      <option value="proposal">Proposal &amp; SOW</option>
-                      <option value="technical">Technical Architecture</option>
-                      <option value="hr">HR &amp; People Policy</option>
-                      <option value="knowledge">Knowledge Base</option>
-                      <option value="design">Design &amp; Brand Assets</option>
-                    </select>
+                      onChange={(e) => setEditCategory(e.target.value)}
+                      required
+                      pattern=".*\S.*"
+                      maxLength={80}
+                    />
                   </div>
 
                   <div className="input-group" style={{ margin: 0 }}>

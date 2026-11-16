@@ -596,7 +596,6 @@ export type DashboardPageType =
   | 'workspace'
   | 'automations'
   | 'documents'
-  | 'messages'
   | 'integrations'
   | 'settings';
 

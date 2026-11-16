@@ -5,7 +5,7 @@ export default function HeroSection() {
   return <section className="lp-section lp-hero" id="hero">
     <div className="lp-hero-header">
       <p className="lp-section-label">Your team’s next move</p>
-      <h1 className="lp-hero-title">Less chasing.<br /><span className="tano-hero-marker">More getting done.</span></h1>
+      <h1 className="lp-hero-title">Manage your team,<br /><span className="tano-hero-marker">not your templates</span></h1>
       <p className="lp-hero-text">Other tools store your tasks. Cursis chases them for you.</p>
       <div className="lp-hero-ctas">
         <Link prefetch={false} href="/signup" data-marketing="hero_button_click" className="btn btn-primary btn-lg">Make my workspace <ArrowUpRight size={18} aria-hidden="true" /></Link>

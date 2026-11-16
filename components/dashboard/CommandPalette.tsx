@@ -36,7 +36,6 @@ export default function CommandPalette() {
  if (!commandPaletteOpen) return null;
 
  const actions: CommandAction[] = [
- { id: 'go-messages', group: 'Navigate', icon: '#', text: 'Go to Channels & Action Dock', action: () => setCurrentPage('messages') },
  // Quick Actions
  {
  id: 'ordis-exec',
