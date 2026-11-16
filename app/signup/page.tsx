@@ -193,12 +193,9 @@ export default function SignupPage() {
           {BRAND_NAME}
         </Link>
         <div className="signup-story-copy">
-          <span className="signup-story-kicker">YOUR TEAM, IN SYNC</span>
           <h2>Manage your team,<br />not your templates.</h2>
-          <p>Bring projects, tasks, and team priorities into one workspace. Let Ordis help you see what needs attention next.</p>
-          <div className="signup-story-note"><span aria-hidden="true">✳</span> A clearer way to move work forward.</div>
+          <p>Projects, tasks, and team priorities—together in one workspace.</p>
         </div>
-        <span className="signup-story-footer">MADE FOR TEAMS THAT DO THE WORK</span>
       </aside>
       <section className="auth-card auth-signup-card" aria-labelledby="signup-title">
         <Link href="/" className="auth-close" aria-label="Back to Cursis"><X size={16} /></Link>

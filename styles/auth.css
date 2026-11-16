@@ -355,3 +355,51 @@ body:has(#main-content.auth-signup-page) {
 @media (max-width: 420px) {
   .auth-signup-page .auth-signup-card { padding: 30px 22px 24px; }
 }
+.auth-signup-page {
+  flex-direction: row !important;
+  justify-content: center !important;
+  gap: clamp(24px, 5vw, 72px) !important;
+  padding: 40px !important;
+  background: #FAF6EE !important;
+}
+.signup-story {
+  width: min(38vw, 460px);
+  min-height: 0;
+  align-self: center;
+  gap: 80px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.signup-story-copy h2 {
+  margin: 0 0 18px;
+  font-size: clamp(34px, 4.4vw, 56px);
+  line-height: 1.04;
+  letter-spacing: -.05em;
+}
+.signup-story-copy p { max-width: 350px; margin: 0; color: #57534e; font-size: 16px; line-height: 1.65; }
+.auth-signup-page .auth-signup-card {
+  width: min(100%, 400px);
+  max-height: calc(100dvh - 64px);
+  padding: 32px;
+  border: 1.5px solid #e7e1d8;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 36px rgba(10, 10, 10, .07);
+}
+.auth-signup-page .auth-signup-card h1 { margin-top: 8px; font-size: 24px; }
+.auth-signup-page .auth-signup-card .auth-intro { margin-bottom: 20px; }
+.auth-signup-page .auth-signup-card .auth-google { min-height: 44px; height: 44px; background: #fff; box-shadow: none; }
+.auth-signup-page .auth-signup-card .auth-submit { min-height: 44px; height: 44px; border-radius: 11px; box-shadow: 0 2px 0 #0A0A0A; }
+.auth-signup-page .auth-back { position: absolute; left: 24px; bottom: 18px; }
+@media (max-width: 760px) {
+  #main-content.auth-signup-page { gap: 24px !important; padding: 28px 18px 48px !important; }
+  .signup-story { width: min(100%, 400px); gap: 0; }
+  .signup-story > .auth-brand { display: inline-flex; margin-bottom: 26px; }
+  .signup-story-copy h2 { font-size: clamp(32px, 8vw, 42px); margin-bottom: 10px; }
+  .signup-story-copy p { font-size: 14px; }
+  .auth-signup-page .auth-signup-card { width: min(100%, 400px); max-height: none; padding: 28px 24px 24px; }
+  .auth-signup-page .auth-back { position: static; }
+}
