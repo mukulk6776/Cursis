@@ -2323,7 +2323,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
   // ---- Employee & Team Mutations ----
-  const addEmployee = (empData: Partial<Employee> & { name: string; role: string; department: string }) => {
+  const addEmployee = (empData: Partial<Employee> & { name: string; role: string; department?: string }) => {
     if (employees.length >= 10) {
       showToast('Workspace team member limit reached (max 10 members)');
       return;
