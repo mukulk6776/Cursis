@@ -214,7 +214,7 @@ export default function SignupPage() {
               </svg>
               Continue with Google
             </button>
-            <div className="auth-divider"><span>or continue with email</span></div>
+            <div className="auth-divider"><span>or</span></div>
             <form className="auth-form" onSubmit={event => { event.preventDefault(); setEmail(email.trim().toLowerCase()); setErrorMsg(''); setMethod('email'); }}>
               <label htmlFor="signup-email">Work email</label>
               <input id="signup-email" type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="you@company.com" required />

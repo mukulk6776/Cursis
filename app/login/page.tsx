@@ -203,7 +203,7 @@ export default function LoginPage() {
           </svg>
           {googleLoading ? 'Connecting…' : 'Continue with Google'}
         </button>
-        <div className="auth-divider"><span>or continue with email</span></div>
+        <div className="auth-divider"><span>or</span></div>
         <form onSubmit={handleEmailLogin} className="auth-form">
           <label htmlFor="login-email">Email address</label>
           <input id="login-email" type="email" autoComplete="email" value={email} placeholder="you@example.com" onChange={e => setEmail(e.target.value)} required />
