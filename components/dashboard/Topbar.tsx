@@ -81,12 +81,12 @@ export default function Topbar() {
 
       {/* Topbar Actions */}
       <div className="topbar-actions">
-        {/* Notifications */}
+        {/* Inbox */}
         <button
           className="topbar-action-btn"
           onClick={toggleNotifications}
-          aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
-          title="Notifications"
+          aria-label={unreadCount > 0 ? `Inbox (${unreadCount} unread)` : 'Inbox'}
+          title="Inbox"
           type="button"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

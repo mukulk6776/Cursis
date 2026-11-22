@@ -24,12 +24,10 @@ export default function TasksPage() {
     openModal,
     showToast,
     addTask,
-    departments,
   } = useDashboard();
 
   const [currentView, setCurrentView] = useState<ViewMode>('list');
   const [activeFilter, setActiveFilter] = useState<FilterMode>('all');
-  const [selectedDeptFilter, setSelectedDeptFilter] = useState('');
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [selectedTaskSnapshot, setSelectedTaskDetail] = useState<Task | null>(null);
   const selectedTaskDetail = tasks.find(task => task.id === selectedTaskSnapshot?.id) || selectedTaskSnapshot;
@@ -39,7 +37,6 @@ export default function TasksPage() {
   // Filter logic
   const getFilteredTasks = () => {
     return tasks.filter((t) => {
-      if (selectedDeptFilter && t.departmentId !== selectedDeptFilter) return false;
       if (activeFilter === 'overdue') return t.status !== 'completed' && isOverdue(t.deadline);
       if (activeFilter === 'high-priority') return t.priority === 'high' || t.priority === 'urgent';
       if (activeFilter === 'assigned-to-me') return t.assignee === user.id || t.assignees?.includes(user.id);
@@ -133,7 +130,7 @@ export default function TasksPage() {
             </span>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-            Track, assign, and manage deliverables across workspace departments.
+            Track, assign, and manage deliverables across workspace projects.
           </p>
         </div>
 
@@ -239,29 +236,6 @@ export default function TasksPage() {
             );
           })}
         </div>
-
-        {departments.length > 0 && (
-          <select
-            className="input select"
-            value={selectedDeptFilter}
-            onChange={(e) => setSelectedDeptFilter(e.target.value)}
-            style={{
-              fontSize: '12px',
-              height: '32px',
-              padding: '0 8px',
-              width: 'auto',
-              border: '1px solid var(--border-color)',
-              borderRadius: '6px',
-            }}
-          >
-            <option value="">All Departments</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
 
       {/* Bulk Actions Bar */}
@@ -324,7 +298,7 @@ export default function TasksPage() {
             description={
               tasks.length === 0
                 ? 'Start organizing your sprint deliverables. Give the work a name, assign an owner, and set a deadline.'
-                : 'No tasks match your selected filter criteria. Try clearing filters or switching department views.'
+                : 'No tasks match your selected filter criteria. Try clearing filters or switching project views.'
             }
             actionLabel={tasks.length === 0 ? '+ Create Your First Task' : 'Reset Filters'}
             onAction={
@@ -352,7 +326,6 @@ export default function TasksPage() {
                         />
                       </th>
                       <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Task Title</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Department</th>
                       <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Assignee</th>
                       <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Priority</th>
                       <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Status</th>
@@ -364,7 +337,6 @@ export default function TasksPage() {
                     {filteredTasks.map((t) => {
                       const emp = getEmployee(t.assignee);
                       const isDone = t.status === 'completed';
-                      const dept = departments.find((d) => d.id === t.departmentId);
 
                       return (
                         <tr
@@ -391,25 +363,6 @@ export default function TasksPage() {
                               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {t.description}
                               </div>
-                            )}
-                          </td>
-                          <td style={{ padding: '10px 14px', fontSize: '12px' }}>
-                            {dept ? (
-                              <span
-                                style={{
-                                  background: 'rgba(255, 85, 0, 0.08)',
-                                  color: 'var(--c-brand-text)',
-                                  border: '1px solid rgba(255, 85, 0, 0.2)',
-                                  fontSize: '11px',
-                                  fontWeight: 600,
-                                  padding: '2px 8px',
-                                  borderRadius: '4px',
-                                }}
-                              >
-                                {dept.name}
-                              </span>
-                            ) : (
-                              <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>—</span>
                             )}
                           </td>
                           <td style={{ padding: '10px 14px', fontSize: '12px' }}>

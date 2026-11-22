@@ -13,20 +13,16 @@ const capability = (resource: string, method: Method, page: DashboardPageType, d
 
 // Only implemented API operations belong here. UI-only features are navigable.
 export const capabilities: Record<string, Capability> = {
-  list_tasks: capability('tasks', 'GET', 'tasks', 'List tasks; optional status, priority, projectId, assigneeId, departmentId.'),
-  create_task: capability('tasks', 'POST', 'tasks', 'Create task: title, description, priority (low/medium/high/urgent), dueDate (ISO), assigneeId, departmentId, projectId.', ['title']),
-  update_task: capability('tasks', 'PATCH', 'tasks', 'Update task: id plus title, description, status (todo/in_progress/in_review/done/blocked), priority, dueDate, assigneeId, departmentId, projectId.', ['id']),
+  list_tasks: capability('tasks', 'GET', 'tasks', 'List tasks; optional status, priority, projectId, assigneeId.'),
+  create_task: capability('tasks', 'POST', 'tasks', 'Create task: title, description, priority (low/medium/high/urgent), dueDate (ISO), assigneeId, projectId.', ['title']),
+  update_task: capability('tasks', 'PATCH', 'tasks', 'Update task: id plus title, description, status (todo/in_progress/in_review/done/blocked), priority, dueDate, assigneeId, projectId.', ['id']),
   delete_task: capability('tasks', 'DELETE', 'tasks', 'Delete task by id.', ['id']),
   list_projects: capability('projects', 'GET', 'projects', 'List projects.'),
   create_project: capability('projects', 'POST', 'projects', 'Create project: name, description, clientName, deadline, budget.', ['name']),
   update_project: capability('projects', 'PATCH', 'projects', 'Update project: id, name, description, deadline, budget, progressPercent, teamMemberIds, milestones.', ['id']),
   delete_project: capability('projects', 'DELETE', 'projects', 'Delete project: id.', ['id']),
-  list_departments: capability('departments', 'GET', 'departments', 'List departments; optional q.'),
-  create_department: capability('departments', 'POST', 'departments', 'Create department: name, description, lead, head, color, tags. Preserve names such as UI/UX.', ['name']),
-  update_department: capability('departments', 'PATCH', 'departments', 'Update department: id, name, description, lead, head, color, tags.', ['id']),
-  delete_department: capability('departments', 'DELETE', 'departments', 'Delete department: id. If active tasks exist, ask whether to reassign or unassign; taskAction and targetDepartmentId specify that choice.', ['id']),
   list_team: capability('team', 'GET', 'team', 'List actual members and pending invitations.'),
-  invite_member: capability('team', 'POST', 'team', 'Invite by email; optional workspaceRole (member/admin), department, team, note. Preserve the exact email. If missing a domain suffix, ask for the complete email; never guess. Invitation acceptance is required for membership.', ['email']),
+  invite_member: capability('team', 'POST', 'team', 'Invite by email; optional workspaceRole (member/admin), team, note. Preserve the exact email. If missing a domain suffix, ask for the complete email; never guess. Invitation acceptance is required for membership.', ['email']),
   remove_member: capability('team', 'DELETE', 'team', 'Remove userId or revoke invitationId; first list team to resolve the target.'),
   list_meetings: capability('meetings', 'GET', 'meetings', 'List meetings.'),
   create_meeting: capability('meetings', 'POST', 'meetings', 'Schedule meeting: title, date (YYYY-MM-DD), time (HH:mm), agenda, platform, attendeeIds. Ask for missing date/time.', ['title', 'date', 'time']),
@@ -55,7 +51,7 @@ export const capabilities: Record<string, Capability> = {
   search_workspace: capability('search', 'GET', 'home', 'Search workspace using q.', ['q']),
 };
 
-export const pages: DashboardPageType[] = ['home', 'ordis', 'tasks', 'projects', 'team', 'departments', 'calendar', 'meetings', 'analytics', 'workspace', 'automations', 'documents', 'integrations', 'settings'];
+export const pages: DashboardPageType[] = ['home', 'ordis', 'tasks', 'projects', 'team', 'calendar', 'meetings', 'analytics', 'workspace', 'automations', 'documents', 'integrations', 'settings'];
 
 
 export function validateAction(operation: string, input: Record<string, unknown>): string | null {
@@ -73,8 +69,6 @@ export function validateAction(operation: string, input: Record<string, unknown>
 
 /** Narrow offline support: never infer unrelated actions from keyword matches. */
 export function parseDirectAction(message: string): { operation: string; input: Record<string, unknown> } | null {
-  const department = message.trim().match(/^(?:add|create|make)\s+(?:a\s+)?(?:new\s+)?department\s+(?:named\s+|called\s+)?["']?(.+?)["']?\s*$/i);
-  if (department && !/\b(and|then)\b/i.test(department[1])) return { operation: 'create_department', input: { name: department[1] } };
   const invite = message.trim().match(/^(?:add|invite)\s+(?:a\s+)?(?:team\s+)?(?:member\s+)?([^\s]+@[^\s]+)(?:\s+(?:in|into|to)\s+(?:the\s+)?team)?(?:\s+asap)?[.!]?$/i);
   if (invite) return { operation: 'invite_member', input: { email: invite[1].replace(/[.,!]$/, '') } };
   return null;

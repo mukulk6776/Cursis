@@ -15,7 +15,6 @@ export default function InviteModal() {
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'member' | 'admin' | 'viewer'>('member');
-  const [department, setDepartment] = useState('Engineering');
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -60,7 +59,6 @@ export default function InviteModal() {
         body: JSON.stringify({
           email: cleanEmail,
           role,
-          department,
           note: note.trim() || undefined,
         }),
       });
@@ -223,7 +221,7 @@ export default function InviteModal() {
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-3)', marginBottom: 'var(--sp-4)' }}>
+          <div style={{ marginBottom: 'var(--sp-4)' }}>
             <div>
               <label
                 htmlFor="invite-modal-role-select"
@@ -248,36 +246,6 @@ export default function InviteModal() {
                 <option value="member">Member</option>
                 <option value="viewer">Viewer</option>
                   <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="invite-modal-dept-select"
-                style={{
-                  display: 'block',
-                  fontSize: 'var(--fs-xs)',
-                  fontWeight: 'var(--fw-bold)',
-                  marginBottom: 'var(--sp-1)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                Department
-              </label>
-              <select
-                id="invite-modal-dept-select"
-                className="input select"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                disabled={isSubmitting || isAtCapacity}
-                style={{ width: '100%' }}
-              >
-                <option value="Engineering">Engineering</option>
-                <option value="Design">Design</option>
-                <option value="Product">Product</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Operations">Operations</option>
-                <option value="Leadership">Leadership</option>
               </select>
             </div>
           </div>

@@ -22,12 +22,11 @@ export async function GET(request: Request) {
 
     const projectId = searchParams.get('projectId') || undefined;
     const assigneeId = searchParams.get('assigneeId') || undefined;
-    const departmentId = searchParams.get('departmentId') || undefined;
     const status = (searchParams.get('status') as any) || undefined;
     const priority = (searchParams.get('priority') as any) || undefined;
     const isAtRisk = searchParams.get('isAtRisk') !== null ? searchParams.get('isAtRisk') === 'true' : undefined;
 
-    const tasks = await getTasks(workspaceId, { projectId, assigneeId, departmentId, status, priority, isAtRisk });
+    const tasks = await getTasks(workspaceId, { projectId, assigneeId, status, priority, isAtRisk });
     return apiSuccess({ tasks });
   } catch (error: any) {
     return apiError(error.message || 'Failed to retrieve tasks', 500);

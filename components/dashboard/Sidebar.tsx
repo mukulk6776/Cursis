@@ -13,6 +13,8 @@ export default function Sidebar() {
     tasks,
     meetings,
     employees,
+    toggleNotifications,
+    notifications,
   } = useDashboard();
 
   const handleNav = (page: DashboardPageType) => {
@@ -22,6 +24,7 @@ export default function Sidebar() {
 
   const activeTasksCount = tasks.filter((t) => t.status !== 'completed').length;
   const upcomingMeetingsCount = meetings.filter((m) => m.status !== 'completed').length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const btnResetStyle: React.CSSProperties = {
     width: '100%',
@@ -104,13 +107,13 @@ export default function Sidebar() {
 
       {/* Core Navigation Items */}
       <nav className="sidebar-nav" aria-label="Main Navigation">
-        {/* Home / Overview */}
+        {/* Home */}
         <button
           type="button"
           className={`sidebar-item ${currentPage === 'home' ? 'active' : ''}`}
           onClick={() => handleNav('home')}
           aria-current={currentPage === 'home' ? 'page' : undefined}
-          title="Overview"
+          title="Home"
           style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
@@ -119,7 +122,28 @@ export default function Sidebar() {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </span>
-          <span className="sidebar-item-text">Overview</span>
+          <span className="sidebar-item-text">Home</span>
+        </button>
+
+        {/* Inbox */}
+        <button
+          type="button"
+          className="sidebar-item"
+          onClick={() => {
+            toggleNotifications();
+            setMobileSidebarOpen(false);
+          }}
+          title="Inbox"
+          style={btnResetStyle}
+        >
+          <span className="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </span>
+          <span className="sidebar-item-text">Inbox</span>
+          {unreadCount > 0 && <span className="sidebar-item-badge">{unreadCount}</span>}
         </button>
 
         {/* ORDIS AI (Centerpiece) */}
@@ -300,24 +324,6 @@ export default function Sidebar() {
 
         <div className="sidebar-divider" />
         {!sidebarCollapsed && <div className="sidebar-section-title">Operations</div>}
-
-        {/* Departments Management */}
-        <button
-          type="button"
-          className={`sidebar-item ${currentPage === 'departments' ? 'active' : ''}`}
-          onClick={() => handleNav('departments')}
-          aria-current={currentPage === 'departments' ? 'page' : undefined}
-          title="Department Management"
-          style={btnResetStyle}
-        >
-          <span className="sidebar-item-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-            </svg>
-          </span>
-          <span className="sidebar-item-text">Departments</span>
-        </button>
 
         {/* Documents Management */}
         <button

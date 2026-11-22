@@ -7,7 +7,6 @@ import * as path from 'path';
 import {
   Task,
   Project,
-  Department,
   Meeting,
   DocumentItem,
   AutomationRule,
@@ -185,22 +184,6 @@ export const ordisToolDeclarations: FunctionDeclaration[] = [
    },
  },
  {
-   name: 'create_department',
-   description: 'Create a new workspace department, operational division, or business unit.',
-   parameters: {
-     type: Type.OBJECT,
-     properties: {
-       name: { type: Type.STRING, description: 'Department name (e.g. "Engineering", "Design", "Marketing", "UI/UX")' },
-       description: { type: Type.STRING, description: 'Department purpose or mission description' },
-       lead: { type: Type.STRING, description: 'Department lead or manager name' },
-       budget: { type: Type.STRING, description: 'Budget allocation (e.g. "$150,000 / yr")' },
-       color: { type: Type.STRING, description: 'Hex brand color for department badge' },
-       tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Tags or focus areas' },
-     },
-     required: ['name'],
-   },
- },
- {
    name: 'create_automation',
    description: 'Create an autonomous trigger-action rule in Cursis.',
    parameters: {
@@ -355,7 +338,6 @@ Special Instructions for Core Workspace Operations:
 - **Making Projects**: When the user requests to make, create, or start a project, call create_project with name, description, budget, and deadline.
 - **Creating Tasks**: When the user requests to create or add a task, call create_task with title, priority (urgent, high, medium, low), assigneeName, dueDate, and tags.
 - **Creating Documents**: When the user requests to create, write, or draft a document, call create_document with title, category, and content.
-- **Creating Departments**: When the user requests to create, add, or set up a department, call create_department with name, description, lead, and budget.
 - **Adding Calendar Events**: When the user requests to add an event or milestone on the calendar, call add_calendar_event with title, date, time, and details.
 - **Scheduling Meetings**: When the user requests to schedule a meeting, call schedule_meeting. If the user provides a Google Meet link (e.g. https://meet.google.com/xxx-yyyy-zzz), ALWAYS extract it and pass it to meetingUrl. Never replace the user's provided link with a placeholder.
 - **Adding Team Members**: When the user asks to add or invite a team member, the user will provide an email. You MUST check the email. If the email format is invalid, missing, malformed, or not an email (e.g. "notanemail", "user@", "abc"), DO NOT call the tool or if calling pass it, and explicitly return: "incorrect user".
@@ -575,27 +557,6 @@ export function processGeminiToolCalls(
  subtitle: `${newDoc.type.toUpperCase()} • Created by Ordis`,
  badge: 'DOCUMENT',
  primaryAction: { label: 'View Documents', actionType: 'navigate', target: 'documents' },
- });
- } else if (fnName === 'create_department') {
- const newDept: Department = {
- id: 'dept_ai_' + Date.now(),
- name: args.name,
- description: args.description || `${args.name} strategic operational unit.`,
- lead: args.lead || state.user.name,
- membersCount: 0,
- budget: args.budget || '$150,000 / yr',
- color: args.color || '#FF5500',
- tags: Array.isArray(args.tags) ? args.tags : ['Core Team'],
- };
- mutations.createdDepartment = newDept;
- toastMessage = `Department "${newDept.name}" created`;
- actionCards.push({
- type: 'feature',
- title: newDept.name,
- subtitle: `${newDept.description} • Lead: ${newDept.lead}`,
- badge: 'NEW DEPARTMENT',
- badgeColor: newDept.color,
- primaryAction: { label: 'View Departments', actionType: 'navigate', target: 'departments' },
  });
  } else if (fnName === 'create_automation') {
  const newAuto: AutomationRule = {

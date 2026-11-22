@@ -16,6 +16,7 @@ export default function ProjectsPage() {
     showToast,
     addProject,
     addTask,
+    updateProject,
   } = useDashboard();
 
   const [currentView, setCurrentView] = useState<'grid' | 'list' | 'kanban'>('grid');
@@ -546,6 +547,50 @@ export default function ProjectsPage() {
                     {selectedProject.deadline}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Deadline</div>
+                </div>
+              </div>
+
+              {/* Assigned Project Team Members */}
+              <div style={{ background: 'var(--c-surface)', padding: '14px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>Project Team ({selectedProject.team.length})</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '8px' }}>Click to add or remove members for this project</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {employees.map((emp) => {
+                    const isAssigned = selectedProject.team.includes(emp.id);
+                    return (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        className="badge"
+                        style={{
+                          cursor: 'pointer',
+                          background: isAssigned ? '#FFF3EB' : 'var(--surface-card)',
+                          color: isAssigned ? '#B53B00' : 'var(--text-secondary)',
+                          border: `1px solid ${isAssigned ? '#FF5500' : 'var(--border-color)'}`,
+                          padding: '4px 10px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                        onClick={() => {
+                          const nextTeam = isAssigned
+                            ? selectedProject.team.filter((id) => id !== emp.id)
+                            : [...selectedProject.team, emp.id];
+                          updateProject(selectedProject.id, { team: nextTeam });
+                          showToast(`${isAssigned ? 'Removed' : 'Added'} ${emp.name} ${isAssigned ? 'from' : 'to'} ${selectedProject.name}`);
+                        }}
+                      >
+                        <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: emp.color || '#FF5500', color: '#fff', fontSize: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {emp.initials}
+                        </span>
+                        {emp.name} {isAssigned && '✓'}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

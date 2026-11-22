@@ -10,7 +10,6 @@ import { capabilities, validateAction } from './capabilities';
 const loaders = {
   tasks: () => import('@/app/api/tasks/route'),
   projects: () => import('@/app/api/projects/route'),
-  departments: () => import('@/app/api/departments/route'),
   team: () => import('@/app/api/team/route'),
   meetings: () => import('@/app/api/meetings/route'),
   'calendar/events': () => import('@/app/api/calendar/events/route'),
@@ -134,7 +133,6 @@ export async function executeWorkspaceAction(request: Request, workspaceId: stri
           resData?.id ||
           resData?.task?.id ||
           resData?.project?.id ||
-          resData?.department?.id ||
           resData?.invitation?.id ||
           resData?.meeting?.id ||
           resData?.event?.id ||

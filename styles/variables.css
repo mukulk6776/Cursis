@@ -112,26 +112,26 @@
   
   --surface-primary: var(--c-bg);
   --surface-secondary: #ffffff;
-  --surface-tertiary: #F3ECD5;
+  --surface-tertiary: #F3F4F6;
   
-  --border-color: #0A0A0A;
-  --border-light: #0A0A0A;
-  --border-dark: #0A0A0A;
-  --border-focus: var(--c-coral);
-  --border-width: 3px;
+  --border-color: #E5E7EB;
+  --border-light: #F3F4F6;
+  --border-dark: #D1D5DB;
+  --border-focus: var(--c-brand);
+  --border-width: 1px;
   
-  --surface-sidebar: #FAF8F5;
-  --surface-topbar: rgba(251, 244, 224, 0.95);
+  --surface-sidebar: #F9FAFB;
+  --surface-topbar: rgba(255, 255, 255, 0.95);
   --surface-card: #ffffff;
   --surface-modal: #ffffff;
-  --surface-overlay: rgba(10, 10, 10, 0.6);
-  --surface-hover: rgba(10, 10, 10, 0.05);
-  --surface-active: rgba(10, 10, 10, 0.1);
+  --surface-overlay: rgba(15, 23, 42, 0.6);
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  --surface-active: rgba(0, 0, 0, 0.08);
   
   /* ---- Layout & Geometry ---- */
   --sidebar-width: 240px;
-  --sidebar-collapsed: 72px;
-  --topbar-height: 64px;
+  --sidebar-collapsed: 68px;
+  --topbar-height: 60px;
   --content-max-width: 1200px;
   
   /* Spacing */
@@ -145,30 +145,30 @@
   --sp-10: 4rem;
   --sp-16: 6rem;
   
-  /* Tano Curves */
+  /* Modern Clean Curves */
   --border-radius-xs: 6px;
-  --border-radius-sm: 10px;
-  --border-radius-md: 14px;
-  --border-radius-lg: 16px;
-  --border-radius-xl: 18px;
-  --border-radius-2xl: 24px;
+  --border-radius-sm: 8px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-2xl: 20px;
   --border-radius-full: 9999px;
   
-  /* Authentic Tano Neo-Brutalist Solid Offset Ink Shadows */
-  --shadow-xs: 2px 2px 0 0 #0A0A0A;
-  --shadow-sm: 3px 3px 0 0 #0A0A0A;
-  --shadow-md: 6px 6px 0 0 #0A0A0A;
-  --shadow-lg: 8px 8px 0 0 #0A0A0A;
-  --shadow-xl: 10px 10px 0 0 #0A0A0A;
-  --shadow-2xl: 12px 12px 0 0 #0A0A0A;
+  /* Soft Modern SaaS Shadows (Slack/Notion style) */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
   
-  --shadow-tano: 6px 6px 0 0 #0A0A0A;
-  --shadow-tano-hover: 8px 8px 0 0 #0A0A0A;
-  --shadow-card-hover: 8px 8px 0 0 #0A0A0A;
-  --shadow-coral: 8px 8px 0 0 #FF5500;
-  --shadow-yellow: 8px 8px 0 0 #FFD66B;
-  --shadow-mint: 8px 8px 0 0 #9BE7C4;
-  --shadow-brand: 6px 6px 0 0 #0A0A0A;
+  --shadow-tano: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-tano-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 6px 16px rgba(0, 0, 0, 0.08);
+  --shadow-coral: 0 4px 12px rgba(255, 85, 0, 0.2);
+  --shadow-yellow: 0 4px 12px rgba(255, 214, 107, 0.25);
+  --shadow-mint: 0 4px 12px rgba(155, 231, 196, 0.25);
+  --shadow-brand: 0 4px 12px rgba(255, 85, 0, 0.25);
   
   /* ---- Motion ---- */
   --dur-fast: 0.12s;

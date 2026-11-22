@@ -36,6 +36,7 @@
 
 .sidebar.collapsed {
   width: var(--sidebar-collapsed);
+  min-width: var(--sidebar-collapsed);
 }
 
 .sidebar-header {
@@ -47,6 +48,15 @@
   border-bottom: var(--border-width) solid var(--border-color);
   flex-shrink: 0;
   background: var(--surface-card);
+}
+
+.sidebar.collapsed .sidebar-header {
+  padding: 12px 8px;
+  justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-logo {
+  display: none;
 }
 
 .sidebar-logo {
@@ -102,6 +112,11 @@
 
 .sidebar.collapsed .sidebar-collapse-btn {
   margin-left: 0;
+  width: 34px;
+  height: 34px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 /* ---- Sidebar Navigation ---- */

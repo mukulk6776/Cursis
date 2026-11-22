@@ -11,7 +11,6 @@ import {
  User,
  Workspace,
  WorkspaceSummary,
- Department,
  Team,
  Invitation,
  Employee,
@@ -46,7 +45,6 @@ import {
  INITIAL_USER,
  INITIAL_WORKSPACES,
  INITIAL_WORKSPACE_SUMMARY,
- INITIAL_DEPARTMENTS,
  INITIAL_TEAMS,
  INITIAL_INVITATIONS,
  INITIAL_EMPLOYEES,
@@ -145,7 +143,6 @@ interface DashboardContextType {
  user: User;
  memberLimit: number;
  employees: Employee[];
- departments: Department[];
  teams: Team[];
  invitations: Invitation[];
  projects: Project[];
@@ -244,14 +241,7 @@ interface DashboardContextType {
  sendOrdisMessage: (text: string) => void;
  markNotificationsRead: () => void;
 
-  // Department Management
-  setDepartments: React.Dispatch<React.SetStateAction<Department[]>>;
-  addDepartment: (dept: { name: string; description?: string; lead?: string; budget?: string; color?: string; tags?: string[] }) => void;
-  updateDepartment: (id: string, updates: Partial<Department>) => void;
-  deleteDepartment: (id: string, options?: { taskAction?: 'reassign' | 'unassign'; targetDepartmentId?: string }) => Promise<{ success: boolean; requiresHandling?: boolean; activeTaskCount?: number; message?: string }>;
-  assignEmployeeDepartment: (employeeId: string, departmentId: string, departmentName: string) => void;
-
-  // Dynamic Features
+ // Dynamic Features
   dynamicFeatures: DynamicFeature[];
   setDynamicFeatures: React.Dispatch<React.SetStateAction<DynamicFeature[]>>;
 
@@ -292,7 +282,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  if (!path || path === '/dashboard' || path === '/dashboard/') return 'home';
  const segment = path.replace(/^\/dashboard\/?/, '').split('/')[0];
     const validPages: DashboardPageType[] = [
-      'home', 'ordis', 'tasks', 'projects', 'team', 'departments', 'documents', 'calendar',
+      'home', 'ordis', 'tasks', 'projects', 'team', 'documents', 'calendar',
       'meetings', 'analytics', 'workspace', 'automations', 'integrations', 'settings'
     ];
  if (validPages.includes(segment as DashboardPageType)) {
@@ -477,7 +467,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       setWebhooks([]);
       setAuditLogs([]);
       setTasks([]);
-      setDepartments([]);
       setProjects([]);
       setDocuments([]);
       setMeetings([]);
@@ -507,7 +496,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [memberLimit, setMemberLimit] = useState<number>(MAX_TEAM_MEMBERS);
   const removedMemberIdsRef = useRef<Set<string>>(new Set());
-  const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
  const [teams] = useState<Team[]>(INITIAL_TEAMS);
  const [invitations, setInvitations] = useState<Invitation[]>(INITIAL_INVITATIONS);
  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
@@ -654,7 +642,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       const authToken = typeof window !== 'undefined' ? localStorage.getItem('cursis_token') : null;
 
       // Parallelize live MongoDB queries concurrently for fast dashboard response
-      const [teamRes, notifRes, taskRes, deptRes, mtgRes, projRes, docRes, autoRes] = await Promise.all([
+      const [teamRes, notifRes, taskRes, mtgRes, projRes, docRes, autoRes] = await Promise.all([
         fetch(url, { credentials: 'include' }).catch(() => null),
         fetch(`/api/notifications?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
         fetch(`/api/tasks?workspaceId=${encodeURIComponent(targetWsId)}`, {
@@ -664,7 +652,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
           },
         }).catch(() => null),
-        fetch(`/api/departments?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
         fetch(`/api/meetings?workspaceId=${encodeURIComponent(targetWsId)}`, { credentials: 'include' }).catch(() => null),
         fetch(`/api/projects?workspaceId=${encodeURIComponent(targetWsId)}`, {
           credentials: 'include',
@@ -840,33 +827,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             }));
 
             setTasks(mappedServerTasks);
-          }
-        }
-      }
-
-      // 3B. Workspace departments
-      if (deptRes && deptRes.ok) {
-        const deptData = await deptRes.json().catch(() => null);
-        if (deptData) {
-          const serverDepts = deptData.data?.departments || deptData.departments;
-          if (Array.isArray(serverDepts)) {
-            setDepartments(serverDepts.map((d: any): Department => ({
-              id: d.id,
-              workspaceId: d.workspaceId || targetWsId,
-              name: d.name,
-              head: d.head || d.lead,
-              lead: d.lead || d.head,
-              createdBy: d.createdBy,
-              memberCount: d.memberCount ?? d.membersCount ?? 0,
-              membersCount: d.membersCount ?? d.memberCount ?? 0,
-              activeTaskCount: d.activeTaskCount ?? 0,
-              description: d.description || '',
-              color: d.color || '#FF5500',
-              budget: d.budget,
-              tags: d.tags || [],
-              createdAt: d.createdAt,
-              updatedAt: d.updatedAt,
-            })));
           }
         }
       }
@@ -2738,14 +2698,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  const sendInvitation = async (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard'; note?: string }) => {
+  const sendInvitation = async (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; team?: string | null; planTier?: 'standard'; note?: string }) => {
     const pendingCount = invitations.filter((i) => i.status === 'pending').length;
-    if (employees.length >= 10) {
-      showToast('Workspace team member limit reached (max 10 members)');
+    if (employees.length >= 4) {
+      showToast('Workspace team member limit reached (max 4 members)');
       return;
     }
-    if (employees.length + pendingCount >= 10) {
-      showToast(`Cannot send invite: workspace is at capacity (${employees.length} members + ${pendingCount} pending invites = 10 max)`);
+    if (employees.length + pendingCount >= 4) {
+      showToast(`Cannot send invite: workspace is at capacity (${employees.length} members + ${pendingCount} pending invites = 4 max)`);
       return;
     }
 
@@ -2756,8 +2716,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           email: inv.email,
           role: inv.workspaceRole || 'member',
-          department: inv.department,
-          team: inv.team,
+          team: inv.team || null,
           note: inv.note,
         }),
       });
@@ -2955,9 +2914,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  }
  if (m.createdProject) {
  addProject(m.createdProject);
- }
- if (m.createdDepartment) {
- addDepartment(m.createdDepartment);
  }
  if (m.updatedProjects) {
  setProjects(m.updatedProjects);
@@ -3372,139 +3328,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     } catch {}
   };
 
-  // ---- Department Mutations ----
-  const addDepartment = (deptData: { name: string; description?: string; lead?: string; budget?: string; color?: string; tags?: string[] }) => {
-    const newDept: Department = {
-      id: 'dept_' + deptData.name.toLowerCase().replace(/\s+/g, '_') + '_' + Math.random().toString(36).substring(2, 6),
-      name: deptData.name,
-      description: deptData.description || `${deptData.name} strategic operational unit.`,
-      lead: deptData.lead || user.name,
-      membersCount: 0,
-      budget: deptData.budget || '$150,000 / yr',
-      color: deptData.color || '#FF5500',
-      tags: deptData.tags || ['Core Team'],
-    };
-    setDepartments((prev) => [...prev, newDept]);
-    addAuditEntry(user.name, 'department.created', newDept.name, `Created department ${newDept.name} led by ${newDept.lead}`);
-    showToast(`Department "${newDept.name}" created `);
-
-    const wsId = activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'
-      ? activeWorkspaceId
-      : (workspaces.find((w) => w.id !== 'ws_default' && w.id !== 'ws_public')?.id || user.id);
-
-    try {
-      fetch('/api/departments', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...newDept,
-          workspaceId: wsId,
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && (data.data?.department || data.department)) {
-            const created = data.data?.department || data.department;
-            setDepartments((prev) => [...prev.filter((d) => d.id !== newDept.id), created]);
-          }
-        })
-        .catch(() => {});
-    } catch {}
-  };
-
-  const updateDepartment = (id: string, updates: Partial<Department>) => {
-    setDepartments((prev) => prev.map((d) => (d.id === id ? { ...d, ...updates } : d)));
-    const dept = departments.find((d) => d.id === id);
-    addAuditEntry(user.name, 'department.updated', dept?.name || id, `Updated department parameters`);
-    showToast('Department updated');
-
-    try {
-      fetch('/api/departments', {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, ...updates }),
-      }).catch(() => {});
-    } catch {}
-  };
-
-  const deleteDepartment = async (
-    id: string,
-    options?: { taskAction?: 'reassign' | 'unassign'; targetDepartmentId?: string }
-  ): Promise<{ success: boolean; requiresHandling?: boolean; activeTaskCount?: number; message?: string }> => {
-    const dept = departments.find((d) => d.id === id);
-    if (!dept) return { success: false, message: 'Department not found' };
-
-    try {
-      let url = `/api/departments?id=${encodeURIComponent(id)}`;
-      if (options?.taskAction) {
-        url += `&taskAction=${encodeURIComponent(options.taskAction)}`;
-        if (options.targetDepartmentId) {
-          url += `&targetDepartmentId=${encodeURIComponent(options.targetDepartmentId)}`;
-        }
-      }
-
-      const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (data?.details?.code === 'ACTIVE_TASKS_EXIST') {
-          return {
-            success: false,
-            requiresHandling: true,
-            activeTaskCount: data.details.activeTaskCount,
-            message: data.error || data.message,
-          };
-        }
-        showToast(data.error || 'Failed to delete department.');
-        return { success: false, message: data.error };
-      }
-
-      setDepartments((prev) => prev.filter((d) => d.id !== id));
-      addAuditEntry(user.name, 'department.deleted', dept.name, `Deleted department`);
-      showToast(`Department "${dept.name}" removed`);
-      setTimeout(() => syncTeamAndNotifications(activeWorkspaceId), 400);
-      return { success: true };
-    } catch (err: any) {
-      showToast('Error deleting department.');
-      return { success: false, message: err.message };
-    }
-  };
-
-  const assignEmployeeDepartment = (employeeId: string, departmentId: string, departmentName: string) => {
-    setEmployees((prev) =>
-      prev.map((e) =>
-        e.id === employeeId
-          ? { ...e, departmentId, department: departmentName }
-          : e
-      )
-    );
-    setDepartments((prev) =>
-      prev.map((d) => {
-        const count = employees.filter((e) =>
-          e.id === employeeId ? d.id === departmentId : (e.departmentId === d.id || e.department === d.name)
-        ).length;
-        return { ...d, membersCount: count };
-      })
-    );
-    const emp = employees.find((e) => e.id === employeeId);
-    addAuditEntry(user.name, 'member.reassigned', emp?.name || employeeId, `Assigned to ${departmentName}`);
-    showToast(`Reassigned ${emp?.name || 'Member'} to ${departmentName}`);
-
-    try {
-      fetch('/api/team', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: employeeId,
-          updates: { departmentId, department: departmentName },
-        }),
-      }).catch(() => {});
-    } catch {}
-  };
-
- // ---- Automation Mutations ----
+  // ---- Automation Mutations ----
  const toggleAutomation = (id: string) => {
  let nextState = false;
  setAutomations((prev) =>
@@ -3800,7 +3624,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  user,
  memberLimit,
  employees,
- departments,
  teams,
  invitations,
  projects,
@@ -3817,11 +3640,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  addDocument,
  updateDocument,
  deleteDocument,
- setDepartments,
- addDepartment,
- updateDepartment,
- deleteDepartment,
- assignEmployeeDepartment,
  workflows,
  crm,
  customCrm: crm,

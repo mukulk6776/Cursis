@@ -62,7 +62,7 @@ export async function exportAccount(uid: string, email: string) {
     accessRequest: '/privacy/rights' };
 }
 
-export const workspaceCollections = ['tasks', 'projects', 'calendar_events', 'meetings', 'documents', 'departments',
+export const workspaceCollections = ['tasks', 'projects', 'calendar_events', 'meetings', 'documents',
   'automations', 'contacts', 'crm_deals', 'crm_leads', 'deals', 'leads', 'messages', 'integrations', 'settings', 'workflows',
   'ordis_brain', 'ordis_cards', 'ordis_approvals', 'dynamic_tools', 'goal_plans', 'ordis_conversations', 'agency_requests',
   'workspace_activation', 'workspace_email_preferences', 'workspace_email_deliveries',

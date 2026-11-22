@@ -131,7 +131,6 @@ export interface Task {
   id: string;
   workspaceId: string;
   projectId?: string;
-  departmentId?: string;
   title: string;
   description?: string;
   status: TaskStatus;
@@ -280,27 +279,6 @@ export interface DocumentItem {
   fileUrl?: string;
   fileType?: string;
   fileSize?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ==========================================
-// 8B. DEPARTMENT MANAGEMENT MODULE
-// ==========================================
-export interface Department {
-  id: string;
-  workspaceId: string;
-  name: string;
-  description?: string;
-  lead?: string | null;
-  head?: string | null;
-  createdBy?: string;
-  membersCount?: number;
-  memberCount?: number;
-  activeTaskCount?: number;
-  budget?: string | number;
-  color?: string;
-  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }

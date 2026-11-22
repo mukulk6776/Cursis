@@ -2,34 +2,36 @@
 
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import { Briefcase, User, Building2, Check, ArrowRight, ArrowLeft, Sparkles, X } from 'lucide-react';
 
-const ACCENT_COLORS = [
-  { color: '#FF5500', label: 'Electric Orange' },
-  { color: '#10b981', label: 'Emerald' },
-  { color: '#8b5cf6', label: 'Royal Purple' },
-  { color: '#f59e0b', label: 'Sunset Amber' },
-  { color: '#334155', label: 'Midnight Slate' },
-  { color: '#f43f5e', label: 'Crimson Rose' },
-  { color: '#0A0A0A', label: 'Ink Black' },
-];
+type UsageIntent = 'work' | 'personal' | 'agency';
 
-const INDUSTRIES = [
-  'Software & Technology',
-  'Artificial Intelligence & Data',
-  'Design & Creative Agency',
-  'Fintech & Financial Services',
-  'Healthcare & Life Sciences',
-  'E-Commerce & Retail',
-  'Media & Publishing',
-  'Education & EdTech',
-  'Management Consulting',
-  'Other / Custom',
-];
+interface UsageOption {
+  id: UsageIntent;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
 
-const DENSITY_OPTIONS: { id: 'comfortable' | 'compact' | 'spacious'; label: string; desc: string }[] = [
-  { id: 'comfortable', label: 'Balanced', desc: 'Optimal spacing (Recommended)' },
-  { id: 'compact', label: 'Compact', desc: 'High density for data teams' },
-  { id: 'spacious', label: 'Spacious', desc: 'Relaxed modern breathing room' },
+const USAGE_OPTIONS: UsageOption[] = [
+  {
+    id: 'work',
+    title: 'For work',
+    description: 'Track projects, company goals, meeting notes',
+    icon: <Briefcase size={22} className="text-gray-700" />,
+  },
+  {
+    id: 'personal',
+    title: 'For personal projects',
+    description: 'Write better, think more clearly, stay organized',
+    icon: <User size={22} className="text-gray-700" />,
+  },
+  {
+    id: 'agency',
+    title: 'For agency & client work',
+    description: 'Deliver custom client deliverables, sprints, and managed workflows',
+    icon: <Building2 size={22} className="text-gray-700" />,
+  },
 ];
 
 export default function WorkspaceSetupModal() {
@@ -40,55 +42,109 @@ export default function WorkspaceSetupModal() {
     updateWorkspaceSettings,
     user,
     showToast,
+    addProject,
+    addTask,
+    sendInvitation,
   } = useDashboard();
 
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [intent, setIntent] = useState<UsageIntent>('work');
+  const [improveAi, setImproveAi] = useState(true);
+
+  // Step 2 Fields
+  const [userName, setUserName] = useState('');
   const [wsName, setWsName] = useState('');
-  const [tagline, setTagline] = useState('');
-  const [industry, setIndustry] = useState('Software & Technology');
-  const [accentColor, setAccentColor] = useState('#FF5500');
-  const [density, setDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable');
+  const [userRole, setUserRole] = useState('Founder / Team Lead');
+
+  // Step 3 Fields
+  const [projectName, setProjectName] = useState('Core Product Roadmap');
+  const [initialTask, setInitialTask] = useState('Kickoff & Sprint Planning');
+  const [inviteEmails, setInviteEmails] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize or prefill fields with existing workspace settings or user default
   useEffect(() => {
     if (activeModal === 'workspace-setup-modal') {
-      const currentName = workspaceSettings.name || (user.name ? `${user.name}'s Workspace` : 'Acme Workspace');
-      setWsName(currentName);
-      setTagline(workspaceSettings.tagline || 'Empowering modern teams to operate with unified intelligence');
-      setIndustry(workspaceSettings.industry || 'Software & Technology');
-      setAccentColor(workspaceSettings.accentColor || '#FF5500');
-      setDensity(workspaceSettings.density || 'comfortable');
+      const defaultUser = user.name || 'Mukul';
+      setUserName(defaultUser);
+      setWsName(workspaceSettings.name || (user.name ? `${user.name.split(' ')[0]}'s Workspace` : 'My Workspace'));
     }
   }, [activeModal, workspaceSettings, user.name]);
 
   if (activeModal !== 'workspace-setup-modal') return null;
 
-  const handleSave = (e?: React.FormEvent) => {
+  const handleFinish = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsSubmitting(true);
 
-    const cleanName = wsName.trim() || `${user.name || 'My'}'s Workspace`;
-    const cleanTagline = tagline.trim();
-    const cleanIndustry = industry.trim() || 'Software & Technology';
+    const cleanWsName = wsName.trim() || `${userName || 'My'}'s Workspace`;
+    const cleanProjectName = projectName.trim() || 'Core Roadmap';
+    const cleanInitialTask = initialTask.trim();
 
-    // Persist to dashboard context
+    // 1. Update workspace settings
     updateWorkspaceSettings({
-      name: cleanName,
-      tagline: cleanTagline,
-      industry: cleanIndustry,
-      accentColor,
-      density,
+      name: cleanWsName,
+      tagline: intent === 'work' ? 'Empowering modern teams to build unified projects' : (intent === 'agency' ? 'Bespoke client deliverables and agile operations' : 'Personal focus and task execution'),
+      accentColor: '#FF5500',
+      density: 'comfortable',
     });
 
-    // Save custom workspace name and mark onboarding completed
+    // 2. Create the first project if provided
+    if (cleanProjectName) {
+      const newProjId = 'proj_' + Date.now();
+      addProject({
+        id: newProjId,
+        name: cleanProjectName,
+        desc: `Primary operational project for ${cleanWsName}`,
+        color: '#FF5500',
+        icon: 'folder',
+        status: 'In Progress',
+        progress: 0,
+        deadline: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+        team: [user.id || 'usr_current'],
+        tasks: cleanInitialTask ? 1 : 0,
+        completed: 0,
+      });
+
+      if (cleanInitialTask) {
+        addTask({
+          name: cleanInitialTask,
+          project: newProjId,
+          priority: 'high',
+          status: 'todo',
+          assignee: user.id || '',
+          deadline: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+        });
+      }
+    }
+
+    // 3. Dispatch teammate invites if provided (up to 4 members total)
+    if (inviteEmails.trim() && sendInvitation) {
+      const rawList = inviteEmails
+        .split(/[\n,]/)
+        .map((em) => em.trim().toLowerCase())
+        .filter((em) => em.includes('@'));
+
+      const capped = rawList.slice(0, 3); // Max 3 additional invites for 4-user limit
+      for (const email of capped) {
+        try {
+          await sendInvitation({
+            email,
+            workspaceRole: 'member',
+            team: null,
+          });
+        } catch {}
+      }
+    }
+
+    // 4. Mark onboarding as completed
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('cursis_custom_workspace_name', cleanName);
+        localStorage.setItem('cursis_custom_workspace_name', cleanWsName);
         localStorage.setItem('cursis_workspace_setup_completed', 'true');
         localStorage.removeItem('cursis_show_workspace_setup');
         sessionStorage.removeItem('cursis_show_workspace_setup');
 
-        // Clean up URL query parameters without full reload
         const url = new URL(window.location.href);
         url.searchParams.delete('setup');
         url.searchParams.delete('onboarding');
@@ -96,7 +152,7 @@ export default function WorkspaceSetupModal() {
       } catch {}
     }
 
-    showToast(`Workspace configured: ${cleanName}`);
+    showToast(`Welcome to CURSIS! ${cleanWsName} is ready.`);
     setIsSubmitting(false);
     closeModal();
   };
@@ -121,13 +177,10 @@ export default function WorkspaceSetupModal() {
       className="modal-overlay active"
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(10, 15, 29, 0.75)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
+        inset: 0,
+        background: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -143,445 +196,361 @@ export default function WorkspaceSetupModal() {
         className="modal"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="ws-setup-title"
+        aria-labelledby="onboarding-step-title"
         style={{
-          maxWidth: '680px',
+          maxWidth: '560px',
           width: '100%',
-          maxHeight: '92vh',
+          maxHeight: '90vh',
           background: '#FFFFFF',
-          borderRadius: '20px',
-          border: '4px solid #0A0A0A',
-          boxShadow: '12px 12px 0px #0A0A0A',
+          borderRadius: '16px',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           overflowY: 'auto',
           position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
+          padding: '36px 36px 32px',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Banner */}
-        <div
-          className="modal-header"
-          style={{
-            padding: '24px 32px 20px',
-            background: 'linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, rgba(255, 194, 51, 0.06) 50%, #FAF6EE 100%)',
-            borderBottom: '3px solid #0A0A0A',
-            borderTopLeftRadius: '16px',
-            borderTopRightRadius: '16px',
-            position: 'relative',
-            display: 'block',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '8px',
-                  background: accentColor,
-                  border: '2px solid #0A0A0A',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  boxShadow: '2px 2px 0px #0A0A0A',
-                  transition: 'background-color 0.2s ease',
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-              </div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: accentColor,
-                  background: `${accentColor}15`,
-                  padding: '3px 10px',
-                  borderRadius: '999px',
-                }}
-              >
-                Workspace Onboarding &amp; Setup
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="modal-close"
-              aria-label="Skip workspace setup"
-              title="Skip for now"
-            >
-              ✕
-            </button>
-          </div>
-
-          <h2
-            id="ws-setup-title"
-            style={{
-              fontSize: '22px',
-              fontWeight: 800,
-              color: 'var(--text-primary, #0f172a)',
-              margin: '0 0 6px 0',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Configure Your Workspace
-          </h2>
-          <p
-            style={{
-              fontSize: '13px',
-              color: 'var(--text-secondary, #64748b)',
-              margin: 0,
-              lineHeight: 1.5,
-            }}
-          >
-            Welcome to Cursis! Set your workspace identity, mission, and primary preferences to personalize your team environment.
-          </p>
+        {/* Top Progress Bar (Notion Style) */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '28px' }}>
+          {[1, 2, 3].map((s) => (
+            <div
+              key={s}
+              style={{
+                width: '60px',
+                height: '4px',
+                borderRadius: '999px',
+                background: s <= step ? '#FF5500' : '#E5E7EB',
+                transition: 'background-color 0.25s ease',
+              }}
+            />
+          ))}
         </div>
 
-        {/* Modal Form Content */}
-        <form onSubmit={handleSave} style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Section 1: Workspace Identity */}
+        {/* STEP 1: How do you want to use CURSIS? */}
+        {step === 1 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary, #475569)' }}>
-                1. Workspace Identity
-              </span>
-              <div style={{ flex: 1, height: '2px', background: '#0A0A0A' }} />
+            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+              <h1
+                id="onboarding-step-title"
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: '#111827',
+                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                How do you want to use CURSIS?
+              </h1>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+                This helps customize your workspace experience
+              </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Workspace Name */}
-              <div className="input-group" style={{ margin: 0 }}>
-                <label htmlFor="ws-setup-name" className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
-                  Workspace Name <span style={{ color: '#ef4444' }}>*</span>
+            {/* Selectable Options */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              {USAGE_OPTIONS.map((opt) => {
+                const isSelected = intent === opt.id;
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => setIntent(opt.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      padding: '16px 18px',
+                      borderRadius: '12px',
+                      border: `1.5px solid ${isSelected ? '#FF5500' : '#E5E7EB'}`,
+                      background: isSelected ? 'rgba(255, 85, 0, 0.04)' : '#FFFFFF',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: isSelected ? '0 0 0 1px #FF5500' : '0 1px 2px rgba(0, 0, 0, 0.04)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: isSelected ? '#FFF3EB' : '#F9FAFB',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {opt.icon}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>
+                        {opt.title}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#6B7280' }}>
+                        {opt.description}
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <div style={{ color: '#FF5500', display: 'flex', alignItems: 'center' }}>
+                        <Check size={18} strokeWidth={2.5} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Improve AI Checkbox */}
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px',
+                cursor: 'pointer',
+                marginBottom: '28px',
+                userSelect: 'none',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={improveAi}
+                onChange={(e) => setImproveAi(e.target.checked)}
+                style={{
+                  marginTop: '3px',
+                  width: '16px',
+                  height: '16px',
+                  accentColor: '#FF5500',
+                  cursor: 'pointer',
+                }}
+              />
+              <div style={{ fontSize: '12.5px', color: '#4B5563', lineHeight: 1.45 }}>
+                <strong style={{ color: '#111827' }}>Improve AI for your workspace</strong>
+                <p style={{ margin: '2px 0 0 0', color: '#6B7280' }}>
+                  Enable Ordis Copilot to learn your team's project rhythms and flag task risks before deadlines.
+                </p>
+              </div>
+            </label>
+
+            {/* Actions */}
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setStep(2)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontSize: '14.5px',
+                fontWeight: 700,
+                borderRadius: '8px',
+                background: '#FF5500',
+                color: '#FFFFFF',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              Continue <ArrowRight size={16} />
+            </button>
+          </div>
+        )}
+
+        {/* STEP 2: Set up profile & workspace */}
+        {step === 2 && (
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+              <h1
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: '#111827',
+                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Set up your workspace &amp; profile
+              </h1>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+                Personalize your workspace identity
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '28px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  Your Name
                 </label>
                 <input
-                  id="ws-setup-name"
+                  type="text"
+                  className="input"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="e.g. Mukul Kumar"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  Workspace Name
+                </label>
+                <input
                   type="text"
                   className="input"
                   value={wsName}
                   onChange={(e) => setWsName(e.target.value)}
                   placeholder="e.g. Acme Corp or Apex Dynamics"
-                  required
-                  style={{
-                    height: '42px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    borderRadius: '10px',
-                    borderColor: 'var(--border-color, #cbd5e1)',
-                  }}
+                  style={{ width: '100%' }}
                 />
-                <span style={{ fontSize: '11px', color: 'var(--text-tertiary, #94a3b8)', marginTop: '4px' }}>
-                  The organization name displayed in topbars, exports, invoices, and invitation emails.
-                </span>
               </div>
 
-              {/* Tagline / Mission */}
-              <div className="input-group" style={{ margin: 0 }}>
-                <label htmlFor="ws-setup-tagline" className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
-                  Mission / Tagline
-                </label>
-                <input
-                  id="ws-setup-tagline"
-                  type="text"
-                  className="input"
-                  value={tagline}
-                  onChange={(e) => setTagline(e.target.value)}
-                  placeholder="e.g. Accelerating global engineering with autonomous AI workflows"
-                  style={{
-                    height: '42px',
-                    fontSize: '13px',
-                    borderRadius: '10px',
-                  }}
-                />
-                <span style={{ fontSize: '11px', color: 'var(--text-tertiary, #94a3b8)', marginTop: '4px' }}>
-                  The core purpose that aligns your team members and shapes autonomous Ordis suggestions.
-                </span>
-              </div>
-
-              {/* Industry */}
-              <div className="input-group" style={{ margin: 0 }}>
-                <label htmlFor="ws-setup-industry" className="input-label" style={{ fontWeight: 700, fontSize: '12px' }}>
-                  Industry
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  Your Role
                 </label>
                 <select
-                  id="ws-setup-industry"
-                  className="input select"
-                  value={industry}
-                  onChange={(e) => setIndustry(e.target.value)}
-                  style={{
-                    height: '42px',
-                    fontSize: '13px',
-                    borderRadius: '10px',
-                    marginBottom: '8px',
-                  }}
+                  className="input"
+                  value={userRole}
+                  onChange={(e) => setUserRole(e.target.value)}
+                  style={{ width: '100%' }}
                 >
-                  {INDUSTRIES.map((ind) => (
-                    <option key={ind} value={ind}>
-                      {ind}
-                    </option>
-                  ))}
+                  <option value="Founder / Team Lead">Founder / Team Lead</option>
+                  <option value="Product Manager">Product Manager</option>
+                  <option value="Software Engineer">Software Engineer</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Operations & Strategy">Operations &amp; Strategy</option>
+                  <option value="Client Partner">Client Partner</option>
                 </select>
-
-                {/* Popular industry quick-select pills */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }} role="group" aria-label="Suggested industries">
-                  {['Software', 'AI & Data', 'Creative Agency', 'Fintech', 'Healthcare', 'E-Commerce'].map((tag) => {
-                    const fullInd = INDUSTRIES.find((i) => i.toLowerCase().includes(tag.toLowerCase())) || tag;
-                    const isSelected = industry === fullInd;
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => setIndustry(fullInd)}
-                        style={{
-                          background: isSelected ? `${accentColor}18` : 'var(--bg-secondary, #f1f5f9)',
-                          color: isSelected ? accentColor : 'var(--text-secondary, #475569)',
-                          border: isSelected ? `1px solid ${accentColor}` : '1px solid transparent',
-                          borderRadius: '999px',
-                          padding: '3px 10px',
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
             </div>
-          </div>
 
-          {/* Section 2: Primary Settings */}
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setStep(1)}
+                style={{ flex: 1, padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                <ArrowLeft size={16} /> Back
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setStep(3)}
+                style={{ flex: 2, padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                Continue <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: First Project & Team Invites */}
+        {step === 3 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary, #475569)' }}>
-                2. Primary Settings
-              </span>
-              <div style={{ flex: 1, height: '2px', background: '#0A0A0A' }} />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Brand Accent Color */}
-              <div>
-                <label className="input-label" id="accent-color-label" style={{ fontWeight: 700, fontSize: '12px', marginBottom: '8px', display: 'block' }}>
-                  Primary Brand Accent Color
-                </label>
-                <div role="radiogroup" aria-labelledby="accent-color-label" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                  {ACCENT_COLORS.map(({ color, label }) => {
-                    const isSelected = accentColor.toLowerCase() === color.toLowerCase();
-                    return (
-                      <button
-                        key={color}
-                        type="button"
-                        role="radio"
-                        aria-checked={isSelected}
-                        aria-label={label}
-                        onClick={() => setAccentColor(color)}
-                        title={label}
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '50%',
-                          backgroundColor: color,
-                          border: '2px solid #0A0A0A',
-                          boxShadow: isSelected ? '3px 3px 0px #0A0A0A' : 'none',
-                          outline: isSelected ? '2px solid #0A0A0A' : 'none',
-                          outlineOffset: '2px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#ffffff',
-                          fontWeight: 900,
-                          fontSize: '14px',
-                          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                          transform: isSelected ? 'scale(1.12)' : 'scale(1)',
-                        }}
-                      >
-                        {isSelected && (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                          </svg>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Interface Density */}
-              <div>
-                <label className="input-label" id="density-label" style={{ fontWeight: 700, fontSize: '12px', marginBottom: '8px', display: 'block' }}>
-                  Interface Density
-                </label>
-                <div role="radiogroup" aria-labelledby="density-label" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  {DENSITY_OPTIONS.map((opt) => {
-                    const isSelected = density === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={isSelected}
-                        onClick={() => setDensity(opt.id)}
-                        style={{
-                          border: isSelected ? '3px solid #0A0A0A' : '2px solid #0A0A0A',
-                          background: isSelected ? '#FAF6EE' : '#FFFFFF',
-                          boxShadow: isSelected ? '4px 4px 0px #0A0A0A' : 'none',
-                          borderRadius: '12px',
-                          padding: '12px 14px',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '2px',
-                          textAlign: 'left',
-                          font: 'inherit',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? accentColor : 'var(--text-primary, #0f172a)' }}>
-                            {opt.label}
-                          </span>
-                          {isSelected && (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          )}
-                        </div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-tertiary, #94a3b8)', lineHeight: 1.3 }}>
-                          {opt.desc}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Live Preview Card */}
-          <div
-            style={{
-              padding: '18px 20px',
-              borderRadius: '16px',
-              background: '#0A0A0A',
-              color: '#ffffff',
-              border: '3px solid #0A0A0A',
-              boxShadow: '6px 6px 0px #0A0A0A',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>
-                Live Workspace Preview
-              </span>
-              <span
+            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+              <h1
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  padding: '2px 8px',
-                  borderRadius: '999px',
-                  background: `${accentColor}33`,
-                  color: '#ffffff',
-                  border: `1.5px solid ${accentColor}`,
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: '#111827',
+                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.02em',
                 }}
               >
-                {industry}
-              </span>
+                Create your first project
+              </h1>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+                Every workspace contains projects with dedicated team members
+              </p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  background: accentColor,
-                  border: '2px solid #0A0A0A',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 900,
-                  fontSize: '14px',
-                  color: '#ffffff',
-                  boxShadow: '2px 2px 0px #0A0A0A',
-                }}
-              >
-                {wsName ? wsName.slice(0, 2).toUpperCase() : 'CU'}
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '28px' }}>
               <div>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>
-                  {wsName || 'Your Workspace Name'}
-                </h4>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  First Project Name
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  placeholder="e.g. Q4 Product Launch or Core Roadmap"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  Initial Task
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={initialTask}
+                  onChange={(e) => setInitialTask(e.target.value)}
+                  placeholder="e.g. Finalize specs & deliverable deadlines"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', margin: 0 }}>
+                    Invite Teammates (Optional)
+                  </label>
+                  <span style={{ fontSize: '11px', color: '#6B7280' }}>Up to 4 members free</span>
+                </div>
+                <input
+                  type="text"
+                  className="input"
+                  value={inviteEmails}
+                  onChange={(e) => setInviteEmails(e.target.value)}
+                  placeholder="teammate@company.com, colleague@work.com"
+                  style={{ width: '100%' }}
+                />
+                <span style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '4px', display: 'block' }}>
+                  Separate multiple emails with commas. You can also invite teammates later.
+                </span>
               </div>
             </div>
 
-            <p style={{ margin: 0, fontSize: '11px', color: '#cbd5e1', lineHeight: 1.4, fontStyle: 'italic' }}>
-              "{tagline || 'Building the future of collaborative operations.'}"
-            </p>
-          </div>
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setStep(2)}
+                disabled={isSubmitting}
+                style={{ flex: 1, padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                <ArrowLeft size={16} /> Back
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => void handleFinish()}
+                disabled={isSubmitting}
+                style={{ flex: 2, padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                {isSubmitting ? 'Configuring…' : 'Launch Workspace'} <ArrowRight size={16} />
+              </button>
+            </div>
 
-          {/* Action Footer */}
-          <div
-            className="modal-footer"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '16px 32px',
-              borderTop: '3px solid #0A0A0A',
-              background: '#FAF6EE',
-              borderBottomLeftRadius: '16px',
-              borderBottomRightRadius: '16px',
-              margin: '0 -32px -28px -32px',
-            }}
-          >
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="btn btn-ghost"
-              style={{ fontSize: '13px', fontWeight: 700, color: '#0A0A0A' }}
-            >
-              Skip for Now
-            </button>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="btn btn-primary"
-              style={{
-                background: accentColor,
-                border: '3px solid #0A0A0A',
-                padding: '12px 24px',
-                fontSize: '13px',
-                fontWeight: 700,
-                borderRadius: '12px',
-                boxShadow: '4px 4px 0px #0A0A0A',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <span>Save &amp; Launch Workspace</span>
-              <span>→</span>
-            </button>
+            <div style={{ textAlign: 'center', marginTop: '14px' }}>
+              <button
+                type="button"
+                onClick={handleSkip}
+                style={{ background: 'none', border: 'none', color: '#6B7280', fontSize: '12.5px', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Skip setup for now
+              </button>
+            </div>
           </div>
-        </form>
+        )}
       </div>
     </div>
   );

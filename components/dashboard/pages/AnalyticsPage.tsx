@@ -409,7 +409,7 @@ export default function AnalyticsPage() {
         <div className="card" style={{ gridColumn: '1 / -1', padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
           <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Custom Report Builder</h3>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
-            Configure analytical views across departments, categories, and timelines.
+            Configure analytical views across projects, categories, and timelines.
           </p>
 
           <div
@@ -448,18 +448,16 @@ export default function AnalyticsPage() {
             </div>
 
             <div>
-              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Department Scope</label>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Project Scope</label>
               <select
                 className="input select"
                 value={deptScope}
                 onChange={(e) => setDeptScope(e.target.value)}
                 style={{ width: '100%', height: '32px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '6px' }}
               >
-                <option>All Organization</option>
-                <option>Engineering</option>
-                <option>Design</option>
-                <option>Marketing</option>
-                <option>Operations &amp; Legal</option>
+                <option>All Projects</option>
+                <option>Active Deliverables</option>
+                <option>Completed Work</option>
               </select>
             </div>
           </div>

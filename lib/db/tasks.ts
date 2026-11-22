@@ -4,7 +4,6 @@ import { findBestMatchingHelpers } from './team';
 import { getCollection } from '@/lib/mongodb';
 import { createNotification } from './notifications';
 import { isWorkspaceMember } from '@/lib/auth/rbac';
-import { getDepartmentById } from './departments';
 
 export function normalizeSafeIsoDate(val?: string | null): string {
   if (!val) return new Date(Date.now() + 3 * 86400000).toISOString();
@@ -26,7 +25,6 @@ export async function getTasks(
   filter?: {
     projectId?: string;
     assigneeId?: string;
-    departmentId?: string;
     status?: TaskStatus;
     priority?: TaskPriority;
     isAtRisk?: boolean;
@@ -41,7 +39,6 @@ export async function getTasks(
       const query: any = { workspaceId: cleanWsId };
       if (filter?.projectId) query.projectId = filter.projectId;
       if (filter?.assigneeId) query.assigneeId = filter.assigneeId;
-      if (filter?.departmentId) query.departmentId = filter.departmentId;
       if (filter?.status) query.status = filter.status;
       if (filter?.priority) query.priority = filter.priority;
       if (filter?.isAtRisk !== undefined) query.isAtRisk = filter.isAtRisk;
@@ -60,7 +57,6 @@ export async function getTasks(
       if (t.workspaceId !== cleanWsId) return false;
       if (filter?.projectId && t.projectId !== filter.projectId) return false;
       if (filter?.assigneeId && t.assigneeId !== filter.assigneeId) return false;
-      if (filter?.departmentId && t.departmentId !== filter.departmentId) return false;
       if (filter?.status && t.status !== filter.status) return false;
       if (filter?.priority && t.priority !== filter.priority) return false;
       if (filter?.isAtRisk !== undefined && Boolean(t.isAtRisk) !== filter.isAtRisk) return false;
@@ -124,15 +120,6 @@ export async function createTask(
     if (!assigneeName) {
       const user = inMemoryStore.users.get(assigneeId);
       if (user) assigneeName = user.displayName;
-    }
-  }
-
-  // 2. Department validation: Must belong to workspace
-  const departmentId = data.departmentId || data.department || undefined;
-  if (departmentId) {
-    const dept = await getDepartmentById(departmentId, cleanWsId);
-    if (!dept) {
-      throw new Error('The selected department does not belong to this workspace.');
     }
   }
 
@@ -260,6 +247,40 @@ export async function createTask(
     } catch {}
   }
 
+  // Slack-style alert to Project Leader when a task is created inside a project
+  if (task.projectId) {
+    try {
+      const project = inMemoryStore.projects.get(task.projectId);
+      if (project && (project.leadId || project.ownerId)) {
+        const leaderId = project.leadId || project.ownerId;
+        if (leaderId !== task.creatorId) {
+          createNotification({
+            userId: leaderId,
+            workspaceId: task.workspaceId,
+            type: 'project',
+            text: `New task <strong>${task.title}</strong> was created in project <strong>${project.name}</strong>`,
+            icon: 'briefcase',
+          }).catch(() => {});
+
+          const leaderUser = inMemoryStore.users.get(leaderId);
+          const leaderEmail = leaderUser?.email || (leaderId.includes('@') ? leaderId : null);
+          if (leaderEmail) {
+            import('@/lib/email/notifications').then(({ sendProjectActivityNotificationEmail }) => {
+              sendProjectActivityNotificationEmail({
+                to: leaderEmail,
+                leaderName: leaderUser?.displayName || 'Project Lead',
+                projectName: project.name,
+                updaterName: inMemoryStore.users.get(task.creatorId)?.displayName || 'Teammate',
+                action: 'created a new task',
+                detail: `Task: "${task.title}" (Priority: ${task.priority})`,
+              }).catch(() => {});
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch {}
+  }
+
   return task;
 }
 
@@ -294,14 +315,6 @@ export async function updateTask(
     if (!updates.assigneeName) {
       const user = inMemoryStore.users.get(updates.assigneeId);
       if (user) updates.assigneeName = user.displayName;
-    }
-  }
-
-  // Validate department if updated
-  if (updates.departmentId && updates.departmentId !== task.departmentId) {
-    const dept = await getDepartmentById(updates.departmentId, task.workspaceId);
-    if (!dept) {
-      throw new Error('The updated department does not belong to this workspace.');
     }
   }
 
@@ -404,6 +417,39 @@ export async function updateTask(
   }
 
   inMemoryStore.tasks.set(task.id, updated);
+
+  // Slack-style alert to Project Leader when a task is updated inside a project
+  if (updated.projectId) {
+    try {
+      const project = inMemoryStore.projects.get(updated.projectId);
+      if (project && (project.leadId || project.ownerId)) {
+        const leaderId = project.leadId || project.ownerId;
+        const actionVerb = updated.status === 'done' ? 'completed task' : 'updated task';
+        createNotification({
+          userId: leaderId,
+          workspaceId: task.workspaceId,
+          type: 'project',
+          text: `<strong>${updated.title}</strong> was ${actionVerb} in project <strong>${project.name}</strong>`,
+          icon: 'briefcase',
+        }).catch(() => {});
+
+        const leaderUser = inMemoryStore.users.get(leaderId);
+        const leaderEmail = leaderUser?.email || (leaderId.includes('@') ? leaderId : null);
+        if (leaderEmail) {
+          import('@/lib/email/notifications').then(({ sendProjectActivityNotificationEmail }) => {
+            sendProjectActivityNotificationEmail({
+              to: leaderEmail,
+              leaderName: leaderUser?.displayName || 'Project Lead',
+              projectName: project.name,
+              updaterName: updated.assigneeId ? (inMemoryStore.users.get(updated.assigneeId)?.displayName || 'Teammate') : 'Teammate',
+              action: actionVerb,
+              detail: `Task "${updated.title}" (${updated.status})`,
+            }).catch(() => {});
+          }).catch(() => {});
+        }
+      }
+    } catch {}
+  }
 
   return updated;
 }

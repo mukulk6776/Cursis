@@ -2,7 +2,6 @@ import {
  User,
  Workspace,
  WorkspaceSummary,
- Department,
  Team,
  Invitation,
  Employee,
@@ -139,7 +138,6 @@ export const INITIAL_TEAM_SETTINGS: TeamSettings = {
  defaultRole: 'member',
  allowMemberInvites: true,
  autoAssignNewMembers: false,
- departmentNotifications: true,
  allowGuestAccess: true,
  requireAdminApprovalForInvites: false,
  autoAssignTasks: true,
@@ -220,17 +218,9 @@ export const INITIAL_ROLES: RolePermission[] = [
  { id: 'viewer', name: 'Viewer', description: 'Read-only access to authorized workspace content.', level: 4 },
 ];
 
-// ---- Departments ----
-export const INITIAL_DEPARTMENTS: Department[] = [
- { id: 'dept_leadership', name: 'Leadership', head: 'u_owner', memberCount: 1 },
- { id: 'dept_engineering', name: 'Engineering', head: 'u_owner', memberCount: 0 },
- { id: 'dept_design', name: 'Design', head: 'u_owner', memberCount: 0 },
- { id: 'dept_growth', name: 'Growth & Operations', head: 'u_owner', memberCount: 0 },
-];
-
 export const INITIAL_TEAMS: Team[] = [
- { id: 'team_core', name: 'Core Team', departmentId: 'dept_engineering', lead: 'u_owner', members: ['u_owner'] },
- { id: 'team_growth', name: 'Growth Team', departmentId: 'dept_growth', lead: 'u_owner', members: ['u_owner'] },
+ { id: 'team_core', name: 'Core Team', lead: 'u_owner', members: ['u_owner'] },
+ { id: 'team_growth', name: 'Growth Team', lead: 'u_owner', members: ['u_owner'] },
 ];
 
 export const INITIAL_INVITATIONS: Invitation[] = [];

@@ -7,7 +7,6 @@ import {
   CalendarEvent,
   Meeting,
   DocumentItem,
-  Department,
   AutomationRule,
   Lead,
   Deal,
@@ -34,7 +33,6 @@ class InMemoryDataStore {
   public calendarEvents: Map<string, CalendarEvent> = new Map();
   public meetings: Map<string, Meeting> = new Map();
   public documents: Map<string, DocumentItem> = new Map();
-  public departments: Map<string, Department> = new Map();
   public automations: Map<string, AutomationRule> = new Map();
   public leads: Map<string, Lead> = new Map();
   public deals: Map<string, Deal> = new Map();

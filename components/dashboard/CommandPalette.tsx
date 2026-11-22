@@ -109,7 +109,7 @@ export default function CommandPalette() {
  id: 'go-home',
  group: 'Navigate',
  icon: 'H',
- text: 'Go to Overview',
+ text: 'Go to Home',
  action: () => setCurrentPage('home'),
  },
  {
@@ -165,14 +165,6 @@ export default function CommandPalette() {
  icon: 'A',
  text: 'Go to Analytics & Velocity',
  action: () => setCurrentPage('analytics'),
- },
- {
- id: 'go-departments',
- group: 'Navigate',
- icon: 'D',
- text: 'Go to Department Management',
- shortcut: '/departments',
- action: () => setCurrentPage('departments'),
  },
  {
  id: 'go-documents',

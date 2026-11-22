@@ -323,3 +323,91 @@ export async function sendWorkspaceInvitationEmail({
   }
 }
 
+/**
+ * Sends a Slack-style activity notification email to the project leader
+ * when a teammate makes an update inside a project.
+ */
+export async function sendProjectActivityNotificationEmail({
+  to,
+  leaderName,
+  projectName,
+  updaterName,
+  action,
+  detail,
+  projectUrl,
+}: {
+  to: string;
+  leaderName?: string;
+  projectName: string;
+  updaterName: string;
+  action: string;
+  detail: string;
+  projectUrl?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  if (!resend) {
+    console.warn('Resend API key not configured, skipping project activity email');
+    return { success: false, error: 'Resend API key not configured' };
+  }
+
+  try {
+    const safeLeader = escapeHtml(leaderName || 'Project Lead');
+    const safeProject = escapeHtml(projectName);
+    const safeUpdater = escapeHtml(updaterName);
+    const safeAction = escapeHtml(action);
+    const safeDetail = escapeHtml(detail);
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in').replace(/\/$/, '');
+    const safeUrl = escapeHtml(projectUrl || `${appUrl}/dashboard`);
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `[${safeProject}] ${safeUpdater} ${safeAction}: ${safeDetail}`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 580px; margin: 0 auto; color: #111827; background: #ffffff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: #FF5500;"></div>
+            <span style="font-size: 12px; font-weight: 700; color: #FF5500; text-transform: uppercase; letter-spacing: 0.05em;">Project Activity Alert</span>
+          </div>
+
+          <h2 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 12px 0;">
+            Update in <strong>${safeProject}</strong>
+          </h2>
+
+          <p style="font-size: 14px; line-height: 1.5; color: #374151; margin: 0 0 16px 0;">
+            Hi ${safeLeader},<br />
+            <strong>${safeUpdater}</strong> just ${safeAction} inside <strong>${safeProject}</strong>:
+          </p>
+
+          <div style="background: #F9FAFB; border-left: 3px solid #FF5500; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px;">
+            <p style="font-size: 14px; font-weight: 600; color: #111827; margin: 0;">
+              ${safeDetail}
+            </p>
+          </div>
+
+          <div style="margin: 24px 0;">
+            <a href="${safeUrl}" style="background-color: #FF5500; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block;">
+              View in Project Board →
+            </a>
+          </div>
+
+          <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 24px 0 16px 0;" />
+          <p style="font-size: 11px; color: #6B7280; margin: 0;">
+            You received this notification because you are a lead or member of <strong>${safeProject}</strong> on CURSIS.
+          </p>
+          ${getCanspamEmailFooter(to)}
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.warn('❌ Resend API returned error for project activity notification:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.warn('❌ Failed to dispatch project activity notification email:', err?.message);
+    return { success: false, error: err?.message };
+  }
+}
+

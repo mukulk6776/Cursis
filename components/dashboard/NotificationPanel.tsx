@@ -63,10 +63,10 @@ export default function NotificationPanel() {
           zIndex: 998,
         }}
       />
-      <div className="notif-panel open" id="notif-panel" role="dialog" aria-modal="true" aria-label="Notifications" style={{ zIndex: 999 }}>
+      <div className="notif-panel open" id="notif-panel" role="dialog" aria-modal="true" aria-label="Inbox" style={{ zIndex: 999 }}>
         <div className="notif-panel-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h3 style={{ fontSize: 'var(--fs-lg)', margin: 0 }}>Notifications</h3>
+            <h3 style={{ fontSize: 'var(--fs-lg)', margin: 0 }}>Inbox</h3>
             <span className="badge badge-brand">
               {notifications.filter((n) => !n.read).length} new
             </span>
@@ -82,8 +82,8 @@ export default function NotificationPanel() {
             <button
               className="btn btn-ghost btn-sm"
               onClick={closeNotifications}
-              title="Close notifications"
-              aria-label="Close notifications"
+              title="Close inbox"
+              aria-label="Close inbox"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -106,10 +106,10 @@ export default function NotificationPanel() {
           </div>
         </div>
 
-        <div className="notif-panel-body" role="list" aria-label="Notification list">
+        <div className="notif-panel-body" role="list" aria-label="Inbox updates list">
           {notifications.length === 0 ? (
             <div style={{ padding: 'var(--sp-8)', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 'var(--fs-sm)' }}>
-              No notifications yet.
+              No inbox notifications yet.
             </div>
           ) : (
             notifications.map((n) => {

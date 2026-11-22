@@ -61,28 +61,14 @@ export default function HomePage() {
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div>
             <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               {getGreeting()}, {user.name.split(' ')[0]}
             </h1>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                background: 'var(--c-surface)',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border-color)',
-                textTransform: 'uppercase',
-              }}
-            >
-              {activeWorkspace.shortName || 'Workspace'}
-            </span>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+              {activeWorkspace.tagline || 'Workspace overview and operational focus.'}
+            </p>
           </div>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-            {activeWorkspace.tagline || 'Workspace overview and operational focus.'}
-          </p>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

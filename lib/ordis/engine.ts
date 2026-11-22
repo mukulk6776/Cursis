@@ -5,7 +5,6 @@ import {
  WorkspaceSummary,
  Employee,
  Project,
-  Department,
  Task,
  Meeting,
  NotificationItem,
@@ -71,7 +70,6 @@ export interface OrdisExecutionResult {
  createdTask?: Task;
  updatedTasks?: Task[];
  createdProject?: Project;
-    createdDepartment?: Department;
  updatedProjects?: Project[];
  createdMeeting?: Meeting;
  createdDocument?: DocumentItem;
@@ -408,56 +406,6 @@ export function executeOrdisCommand(
   }
 
   // 2. MAKING PROJECT
-  // 1.5. CREATE DEPARTMENT
-  const isCreateDepartment =
-    lower.includes('create department') ||
-    lower.includes('add department') ||
-    lower.includes('make department') ||
-    lower.includes('new department') ||
-    (lower.startsWith('department:') && lower.length > 12);
-
-  if (isPaid && isCreateDepartment) {
-    let deptName = 'Innovation Unit';
-    const deptMatch = text.match(/(?:department|named|called)\s+["']?([^"',.\n]+)["']?/i);
-    if (deptMatch && deptMatch[1] && !deptMatch[1].toLowerCase().includes('create') && !deptMatch[1].toLowerCase().includes('add') && !deptMatch[1].toLowerCase().includes('make')) {
-      deptName = deptMatch[1].trim();
-    }
-
-    const deptId = 'dept_' + deptName.toLowerCase().replace(/\s+/g, '_') + '_' + Math.random().toString(36).substring(2, 6);
-    const newDept: Department = {
-      id: deptId,
-      name: deptName,
-      description: `${deptName} strategic operational department created via Ordis AI.`,
-      lead: user.name || 'Lead Officer',
-      membersCount: 0,
-      budget: '$150,000 / yr',
-      color: '#FF5500',
-      tags: ['Core Team', deptName],
-    };
-
-    return {
-      responseText: `**Department Initialized Successfully**\n\n• **Department**: **${newDept.name}**\n• **Lead**: ${newDept.lead}\n• **Budget Allocation**: ${newDept.budget}\n• **Status**: Active\n\n*The department has been registered and is now available in your workspace structure.* `,
-      toastMessage: `Department "${newDept.name}" created`,
-      auditEntry: {
-        actor: user.name,
-        action: 'department.created',
-        target: newDept.name,
-        details: `Created department ${newDept.name} via Ordis AI`,
-      },
-      stateMutations: {
-        createdDepartment: newDept,
-      },
-      actionCard: {
-        type: 'feature',
-        title: newDept.name,
-        subtitle: `${newDept.description} • Lead: ${newDept.lead}`,
-        badge: 'NEW DEPARTMENT',
-        badgeColor: '#FF5500',
-        primaryAction: { label: 'View Departments', actionType: 'navigate', target: 'departments' },
-      },
-    };
-  }
-
   // 1.6. CREATE DOCUMENT
   const isCreateDoc =
     lower.includes('create document') ||

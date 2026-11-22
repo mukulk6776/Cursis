@@ -5,12 +5,11 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { PriorityLevel } from '@/lib/dashboard/types';
 
 export default function TaskModal() {
-  const { activeModal, closeModal, addTask, projects, employees, departments, activeWorkspace } = useDashboard();
+  const { activeModal, closeModal, addTask, projects, employees, activeWorkspace } = useDashboard();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [project, setProject] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
   const [assignee, setAssignee] = useState('');
   const [priority, setPriority] = useState<PriorityLevel>('medium');
   const [deadline, setDeadline] = useState(new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]);
@@ -32,7 +31,6 @@ export default function TaskModal() {
       name: name.trim(),
       description: description.trim(),
       project: project || undefined,
-      departmentId: departmentId || undefined,
       assignee: assignee || undefined,
       priority,
       status: 'todo',
@@ -43,7 +41,6 @@ export default function TaskModal() {
 
     setName('');
     setDescription('');
-    setDepartmentId('');
     setAssignee('');
     closeModal();
   };
@@ -112,23 +109,6 @@ export default function TaskModal() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-3)' }}>
-              {/* Department */}
-              <div className="input-group">
-                <label className="input-label">Department</label>
-                <select
-                  className="input select"
-                  value={departmentId}
-                  onChange={(e) => setDepartmentId(e.target.value)}
-                >
-                  <option value="">(No Department / General)</option>
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {/* Assignee */}
               <div className="input-group">
                 <label className="input-label">Assignee</label>

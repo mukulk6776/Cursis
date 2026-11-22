@@ -14,7 +14,7 @@ type TeamTab = 'directory' | 'invites' | 'org-chart' | 'workload' | 'onboarding'
 export default function TeamPage() {
   const {
     employees,
-    departments,
+    projects,
     invitations,
     tasks,
     user,
@@ -27,18 +27,12 @@ export default function TeamPage() {
 
   const canManage = ['owner', 'admin'].includes(user.workspaceRole || 'member');
   const [activeTab, setActiveTab] = useState<TeamTab>('directory');
-  const [deptFilter, setDeptFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
   const PAGE_SIZE = 24;
 
   const filteredEmployees = employees.filter((emp) => {
-    // Department Filter
-    if (deptFilter !== 'all' && emp.departmentId !== deptFilter && emp.department?.toLowerCase() !== deptFilter.toLowerCase()) {
-      return false;
-    }
-
     // Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -96,7 +90,7 @@ export default function TeamPage() {
             </span>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-            Manage workspace roster, roles, and department assignments.
+            Manage workspace roster, roles, and project assignments.
           </p>
         </div>
 
@@ -203,19 +197,6 @@ export default function TeamPage() {
 
         {activeTab === 'directory' && (
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <select
-              className="input select"
-              style={{ fontSize: '12px', padding: '0 8px', height: '32px', border: '1px solid var(--border-color)', borderRadius: '6px' }}
-              value={deptFilter}
-              onChange={(e) => { setDeptFilter(e.target.value); setCurrentPage(1); }}
-            >
-              <option value="all">All Departments</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.name}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
             <input
               className="input"
               style={{ fontSize: '12px', padding: '0 10px', width: '180px', height: '32px', border: '1px solid var(--border-color)', borderRadius: '6px' }}
@@ -236,7 +217,7 @@ export default function TeamPage() {
               description={
                 employees.length === 0
                   ? 'Start building your company structure by inviting team members to this workspace.'
-                  : 'No members match the active filters. Try clearing search or department filters.'
+                  : 'No members match the active filters. Try clearing search or role filters.'
               }
               actionLabel="+ Invite Member"
               onAction={() => openModal('invite-modal')}
@@ -327,18 +308,6 @@ export default function TeamPage() {
                             }}
                           >
                             {emp.role}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'var(--text-secondary)',
-                              background: 'var(--c-surface)',
-                              border: '1px solid var(--border-color)',
-                              padding: '1px 6px',
-                              borderRadius: '4px',
-                            }}
-                          >
-                            {emp.department}
                           </span>
                           <span
                             style={{
@@ -464,7 +433,6 @@ export default function TeamPage() {
                 <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: '12px', fontWeight: 700 }}>Email Address</th>
                 <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: '12px', fontWeight: 700 }}>Name</th>
                 <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: '12px', fontWeight: 700 }}>Role</th>
-                <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: '12px', fontWeight: 700 }}>Department</th>
                 <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: '12px', fontWeight: 700 }}>Expires</th>
                 <th style={{ textAlign: 'right', padding: '10px 14px', fontSize: '12px', fontWeight: 700 }}>Actions</th>
               </tr>
@@ -486,7 +454,6 @@ export default function TeamPage() {
                         {inv.workspaceRole} ({inv.roleTitle})
                       </span>
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: '12px' }}>{(inv.department || 'Operations').replace('dept_', '')}</td>
                     <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                       {formatDate(inv.expiresAt)}
                     </td>
@@ -509,7 +476,7 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* 3. ORGANIZATIONAL HIERARCHY TAB */}
+      {/* 3. PROJECT TEAMS HIERARCHY TAB */}
       {activeTab === 'org-chart' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
           <div
@@ -528,29 +495,28 @@ export default function TeamPage() {
             }}
           >
             <div>
-              <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Department Organization Matrix</h4>
+              <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Project Teams Matrix</h4>
               <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                View teams by department or manage structure in the dedicated Departments view.
+                View assigned team members across active workspace projects.
               </p>
             </div>
             <button
               type="button"
               className="btn btn-primary btn-sm"
-              onClick={() => setDashboardPage('departments')}
+              onClick={() => setDashboardPage('projects')}
               style={{ fontWeight: 700 }}
             >
-              Open Departments Studio →
+              Open Projects Studio →
             </button>
           </div>
 
-          {departments.map((dept) => {
-            const headEmp = employees.find((e) => e.id === dept.head);
-            const deptMembers = employees.filter(
-              (e) => e.departmentId === dept.id || e.department?.toLowerCase() === dept.name.toLowerCase()
+          {projects.map((proj) => {
+            const projMembers = employees.filter(
+              (e) => proj.team?.includes(e.id) || (proj as any).teamMemberIds?.includes(e.id)
             );
 
             return (
-              <div key={dept.id} className="card" style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
+              <div key={proj.id} className="card" style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-card)' }}>
                 <span
                   style={{
                     fontSize: '10px',
@@ -565,60 +531,64 @@ export default function TeamPage() {
                     marginBottom: '8px',
                   }}
                 >
-                  Department
+                  Project
                 </span>
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{dept.name}</h3>
-                {headEmp && (
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{proj.name}</h3>
+                {proj.desc && (
                   <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    Lead: <strong>{headEmp.name}</strong> ({headEmp.role})
+                    {proj.desc}
                   </p>
                 )}
 
                 <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: '6px' }}>
-                  ACTIVE ROSTER ({deptMembers.length})
+                  ASSIGNED ROSTER ({projMembers.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '240px', overflowY: 'auto' }}>
-                  {deptMembers.slice(0, 8).map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '6px 8px',
-                        background: 'var(--c-surface)',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        border: 'none',
-                        width: '100%',
-                        textAlign: 'left',
-                        font: 'inherit',
-                      }}
-                      onClick={() => openProfilePanel(m.id)}
-                      aria-label={`View profile for ${m.name}`}
-                    >
-                      <div
-                        className="avatar avatar-sm"
+                  {projMembers.length === 0 ? (
+                    <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', padding: '6px 0' }}>No members assigned yet.</div>
+                  ) : (
+                    projMembers.slice(0, 8).map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
                         style={{
-                          background: m.color || '#FF5500',
-                          color: m.color === '#ccff00' ? '#000' : '#fff',
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          width: '22px',
-                          height: '22px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '6px 8px',
+                          background: 'var(--c-surface)',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          border: 'none',
+                          width: '100%',
+                          textAlign: 'left',
+                          font: 'inherit',
                         }}
+                        onClick={() => openProfilePanel(m.id)}
+                        aria-label={`View profile for ${m.name}`}
                       >
-                        {m.initials}
-                      </div>
-                      <div style={{ flex: 1, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <strong>{m.name}</strong> · <span style={{ color: 'var(--text-secondary)' }}>{m.role}</span>
-                      </div>
-                    </button>
-                  ))}
-                  {deptMembers.length > 8 && (
+                        <div
+                          className="avatar avatar-sm"
+                          style={{
+                            background: m.color || '#FF5500',
+                            color: m.color === '#ccff00' ? '#000' : '#fff',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            width: '22px',
+                            height: '22px',
+                          }}
+                        >
+                          {m.initials}
+                        </div>
+                        <div style={{ flex: 1, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <strong>{m.name}</strong> · <span style={{ color: 'var(--text-secondary)' }}>{m.role}</span>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                  {projMembers.length > 8 && (
                     <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textAlign: 'center', padding: '4px' }}>
-                      +{deptMembers.length - 8} more members
+                      +{projMembers.length - 8} more members
                     </div>
                   )}
                 </div>
@@ -659,7 +629,7 @@ export default function TeamPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {[
               { title: '1. Provision Workspace & Security Profile', desc: 'Generate account credentials and configure workspace permissions.' },
-              { title: '2. Assign Department & Squads', desc: 'Assign member to primary department and relevant projects.' },
+              { title: '2. Assign Projects & Roles', desc: 'Assign member to primary projects and define responsibilities.' },
               { title: '3. Role & Access Allocation', desc: 'Assign Member or Admin permissions according to team role.' },
               { title: '4. Orientation Sync', desc: 'Schedule initial 1:1 onboarding sync.' },
             ].map((step, idx) => (

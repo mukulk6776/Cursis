@@ -479,10 +479,10 @@ export default function OrdisPage() {
               {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
             </button>
 
-            {/* Model Badge (ChatGPT style) */}
-            <div className="ordis-model-pill" title="Ordis Pro Intelligence Engine">
-              <OrdisMark size={14} />
-              <span className="ordis-model-name">Ordis 4.0</span>
+            {/* Model Badge */}
+            <div className="ordis-model-pill" title="Ordis Intelligence Engine">
+              <OrdisMark size={15} />
+              <span className="ordis-model-name">Ordis</span>
             </div>
           </div>
 
@@ -948,16 +948,15 @@ export default function OrdisPage() {
           position: relative;
         }
 
-        /* Slim ChatGPT Topbar */
+        /* Clean SaaS Ordis Topbar */
         .ordis-header {
-          height: 52px;
+          height: 54px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 0 16px;
-          border-bottom: 1px solid var(--border-color, #F0F0F0);
-          background: var(--surface-topbar, #ffffff);
-          backdrop-filter: blur(8px);
+          border-bottom: 1px solid var(--border-color, #E5E7EB);
+          background: var(--surface-card, #ffffff);
           flex-shrink: 0;
           z-index: 10;
         }
@@ -966,37 +965,40 @@ export default function OrdisPage() {
         .ordis-header-right {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
 
         .ordis-header-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 36px;
-          height: 36px;
-          border: none;
-          background: transparent;
+          width: 34px;
+          height: 34px;
+          border: 1px solid var(--border-color, #E5E7EB);
+          background: var(--surface-card, #ffffff);
           border-radius: 8px;
           color: var(--text-secondary, #4B5563);
-          transition: background 0.15s ease, color 0.15s ease;
+          transition: all 0.15s ease;
         }
 
         .ordis-header-btn:hover {
           background: var(--surface-hover, #F3F4F6);
           color: var(--text-primary, #0A0A0A);
+          border-color: var(--border-dark, #D1D5DB);
         }
 
         .ordis-model-pill {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 6px 10px;
-          border-radius: 8px;
+          gap: 7px;
+          padding: 4px 12px;
+          border-radius: 9999px;
           cursor: default;
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--text-primary, #0D0D0D);
+          background: rgba(255, 85, 0, 0.08);
+          border: 1px solid rgba(255, 85, 0, 0.2);
+          font-size: 13px;
+          font-weight: 700;
+          color: #B53B00;
           letter-spacing: -0.01em;
         }
 

@@ -513,7 +513,6 @@ teamSettings,
  <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
  <th style={{ textAlign: 'left', padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>MEMBER</th>
  <th style={{ textAlign: 'left', padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>ROLE / TITLE</th>
- <th style={{ textAlign: 'left', padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>DEPARTMENT</th>
  <th style={{ textAlign: 'left', padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>PERMISSION ROLE</th>
  <th style={{ textAlign: 'left', padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>STATUS</th>
  <th style={{ textAlign: 'right', padding: 'var(--sp-3)', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-xs)' }}>ACTIONS</th>
@@ -549,7 +548,6 @@ teamSettings,
  </div>
  </td>
  <td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>{emp.role}</td>
-<td style={{ padding: 'var(--sp-3)', fontSize: 'var(--fs-xs)' }}>{emp.department}</td>
  <td style={{ padding: 'var(--sp-3)' }}>
  {emp.workspaceRole === 'owner' ? (
  <span className="badge badge-brand" style={{ textTransform: 'capitalize' }}>

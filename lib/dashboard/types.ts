@@ -43,28 +43,9 @@ export interface WorkspaceSummary {
   plan: string;
 }
 
-export interface Department {
-  id: string;
-  workspaceId?: string;
-  name: string;
-  head?: string | null;
-  lead?: string | null;
-  createdBy?: string;
-  memberCount?: number;
-  membersCount?: number;
-  activeTaskCount?: number;
-  description?: string;
-  color?: string;
-  budget?: number | string;
-  tags?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 export interface Team {
   id: string;
   name: string;
-  departmentId: string;
   lead: string;
   members: string[];
 }
@@ -94,8 +75,6 @@ export interface Employee {
   name: string;
   initials: string;
   role: string;
-  department: string;
-  departmentId?: string;
   teamIds?: string[];
   workspaceRole?: string;
   status: EmployeeStatus;
@@ -130,7 +109,6 @@ export interface Task {
   estimatedHours?: number;
   id: string;
   workspaceId?: string;
-  departmentId?: string;
   name: string;
   project: string; // project id
   assignee: string; // employee id
@@ -478,7 +456,6 @@ export interface TeamSettings {
   defaultRole: string;
   allowMemberInvites: boolean;
   autoAssignNewMembers: boolean;
-  departmentNotifications: boolean;
   allowGuestAccess: boolean;
   requireAdminApprovalForInvites: boolean;
   autoAssignTasks: boolean;
@@ -589,7 +566,6 @@ export type DashboardPageType =
   | 'tasks'
   | 'projects'
   | 'team'
-  | 'departments'
   | 'calendar'
   | 'meetings'
   | 'analytics'
