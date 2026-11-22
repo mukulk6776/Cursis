@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Cursis — Your Team’s Work in One Place',
+    title: `${BRAND_NAME} — Your Team’s Work in One Place`,
     description: 'Keep work together. Catch delayed tasks and share the workload with help from Ordis AI.',
     images: [{ url: SOCIAL_IMAGE.url, alt: SOCIAL_IMAGE.alt }],
     creator: TWITTER_HANDLE,
@@ -110,17 +110,6 @@ export default function RootLayout({
 
 
 
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'WebSite',
-              name: BRAND_NAME,
-              url: 'https://cursis.in/',
-            }),
-          }}
-        />
         <script
           dangerouslySetInnerHTML={{
             __html: THEME_BOOTSTRAP,

@@ -8,7 +8,7 @@ export const SOCIAL_IMAGE = {
   width: 1200,
   height: 630,
   type: 'image/png',
-  alt: 'Cursis — Less chasing. More getting done. Daily priorities, team workload and meeting follow-ups.',
+  alt: 'CURSIS — Less chasing. More getting done. Daily priorities, team workload and meeting follow-ups.',
 };
 
 export function marketingMetadata(path: string, title: string, description: string): Metadata {
