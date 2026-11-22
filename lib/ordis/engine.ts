@@ -358,7 +358,6 @@ export function executeOrdisCommand(
       name: memberName,
       initials: memberName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase() || 'TM',
       role: memberRole,
-      department: dept,
       status: 'online',
       color: '#FF5500',
       tasks: 0,
@@ -758,7 +757,6 @@ export function executeOrdisCommand(
    name: memberName,
    initials: memberName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase() || 'TM',
    role: memberRole,
-   department: dept,
    status: 'online',
    color: '#FF5500',
    tasks: 1,
@@ -800,7 +798,7 @@ export function executeOrdisCommand(
   };
 
   return {
-   responseText: `**Autonomous Multi-Action Executed (Ordis Pro)**\n\n1. **Onboarded Team Member**:\n   • **Name**: **${newEmp.name}** (${newEmp.role})\n   • **Email**: \`${newEmp.email}\`\n   • **Department**: ${newEmp.department}\n\n2. **Created & Dispatched Task**:\n   • **Deliverable**: **${newTask.name}**\n   • **Assignee**: **${newEmp.name}**\n   • **Priority**: HIGH\n   • **Deadline**: ${newTask.deadline}\n\n*Both the member profile and the assigned task are now live in your workspace Team directory and Sprint Kanban board.* `,
+   responseText: `**Autonomous Multi-Action Executed (Ordis Pro)**\n\n1. **Onboarded Team Member**:\n   • **Name**: **${newEmp.name}** (${newEmp.role})\n   • **Email**: \`${newEmp.email}\`\n\n2. **Created & Dispatched Task**:\n   • **Deliverable**: **${newTask.name}**\n   • **Assignee**: **${newEmp.name}**\n   • **Priority**: HIGH\n   • **Deadline**: ${newTask.deadline}\n\n*Both the member profile and the assigned task are now live in your workspace Team directory and Sprint Kanban board.* `,
    toastMessage: `Added ${newEmp.name} and assigned task "${newTask.name}"`,
    auditEntry: {
     actor: user.name,
@@ -2259,7 +2257,6 @@ export function executeOrdisCommand(
  name,
  initials: name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase() || 'NC',
  role,
- department: dept,
  status: 'offline',
  color: '#FF5500',
  tasks: 0,
@@ -2269,7 +2266,7 @@ export function executeOrdisCommand(
  };
 
  return {
- responseText: ` **Team Invitation Dispatched & Profile Initialized**\n\n• **Name**: ${newEmp.name}\n• **Email**: \`${newInvitation.email}\`\n• **Assigned Role**: ${newEmp.role}\n• **Department**: ${newEmp.department}\n• **Invitation Token**: \`${newInvitation.token}\`\n\n Secure onboarding link sent. They will gain immediate access to designated project boards upon acceptance.`,
+ responseText: ` **Team Invitation Dispatched & Profile Initialized**\n\n• **Name**: ${newEmp.name}\n• **Email**: \`${newInvitation.email}\`\n• **Assigned Role**: ${newEmp.role}\n• **Invitation Token**: \`${newInvitation.token}\`\n\n Secure onboarding link sent. They will gain immediate access to designated project boards upon acceptance.`,
  toastMessage: `Invitation sent to ${email} `,
  auditEntry: {
  actor: user.name,

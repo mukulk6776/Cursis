@@ -59,7 +59,7 @@ export function resolveGroqApiKey(candidateKey?: string): string {
         }
       }
     }
-  } catch {}
+  } catch { }
   return '';
 }
 
@@ -385,7 +385,6 @@ export function processOrdisToolCalls(
           name: derivedName,
           initials: derivedName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'TM',
           role: args.role || 'Team Member',
-          department: args.department || 'Operations',
           status: 'online',
           color: '#FF5500',
           tasks: 0,

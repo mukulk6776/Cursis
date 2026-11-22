@@ -231,10 +231,10 @@ interface DashboardContextType {
  addMeeting: (meeting: Partial<Meeting> & { name: string; meetingUrl: string }) => void;
  updateMeeting: (id: string, updates: Partial<Meeting>) => void;
  deleteMeeting: (id: string) => void;
- addEmployee: (emp: Partial<Employee> & { name: string; role: string; department: string }) => void;
- updateEmployee: (id: string, updates: Partial<Employee>) => void;
- removeEmployee: (id: string) => Promise<void> | void;
- sendInvitation: (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department: string; team: string | null; planTier?: 'standard' }) => void;
+  addEmployee: (emp: Partial<Employee> & { name: string; role: string; department?: string }) => void;
+  updateEmployee: (id: string, updates: Partial<Employee>) => void;
+  removeEmployee: (id: string) => Promise<void> | void;
+  sendInvitation: (inv: { email: string; name?: string; roleTitle?: string; workspaceRole: string; department?: string; team?: string | null; planTier?: 'standard' }) => void;
  revokeInvitation: (id: string) => void;
  acceptInvitation: (invitationIdOrToken: string) => void;
  declineInvitation: (invitationId: string) => void;
@@ -712,8 +712,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                     name: displayName,
                     initials,
                     role: roleTitle,
-                    department: deptName,
-                    departmentId: deptId,
                     teamIds: u.teamIds || ['team_core'],
                     workspaceRole: wsRole,
                     // Real-time calculated presence
@@ -1054,8 +1052,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               email: activeUser.email,
               initials: activeUser.initials,
               role: targetIsFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(prevEmp.role) ? prevEmp.role : (activeUser.role || 'User')),
-              department: targetIsFounder ? 'Leadership' : (prevEmp.department === 'Leadership' ? 'Engineering' : (prevEmp.department || 'Engineering')),
-              departmentId: targetIsFounder ? 'dept_leadership' : (prevEmp.departmentId === 'dept_leadership' ? 'dept_engineering' : (prevEmp.departmentId || 'dept_engineering')),
               workspaceRole: userWorkspaceRole,
               planTier: prevEmp.planTier || userPlanTier,
               photoURL: activeUser.photoURL || null,
@@ -1069,8 +1065,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                 name: activeUser.name,
                 initials: activeUser.initials,
                 role: userRoleTitle,
-                department: userDept,
-                departmentId: userDeptId,
                 teamIds: ['team_core'],
                 workspaceRole: userWorkspaceRole,
                 status: 'online',
@@ -1854,7 +1848,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  deadline: taskData.deadline || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
  tags: taskData.tags || ['General'],
  description: taskData.description || '',
- departmentId: taskData.departmentId || undefined,
  subtasks: taskData.subtasks || [],
  };
 
@@ -1931,7 +1924,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  dueDate: safeDueDate,
  tags: newTask.tags || [],
  workspaceId: wsId,
- departmentId: newTask.departmentId || undefined,
  subtasks: newTask.subtasks || [],
  }),
  })
@@ -1967,7 +1959,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }
   if (updates.assignees !== undefined) payload.assignees = updates.assignees;
   if (updates.project !== undefined) payload.projectId = updates.project;
-  if (updates.departmentId !== undefined) payload.departmentId = updates.departmentId;
   if (updates.subtasks !== undefined) payload.subtasks = updates.subtasks;
   if (updates.priority !== undefined) payload.priority = updates.priority;
   if (updates.status !== undefined) payload.status = statusMap[updates.status] || updates.status;
@@ -2370,8 +2361,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       name: empData.name,
       initials,
       role: sanitizedRole,
-      department: isEmpFounder ? 'Leadership' : empData.department,
-      departmentId: isEmpFounder ? 'dept_leadership' : (empData.departmentId || 'dept_' + empData.department.toLowerCase().replace(/\s+/g, '_')),
       teamIds: empData.teamIds || ['team_core'],
       workspaceRole: sanitizedWorkspaceRole,
       status: empData.status || 'online',
@@ -2386,7 +2375,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     };
 
     setEmployees((prev) => [...prev, newEmp]);
-    addAuditEntry(user.name, 'team.member.added', newEmp.name, `Added ${newEmp.name} as ${newEmp.role} in ${newEmp.department}`);
+    addAuditEntry(user.name, 'team.member.added', newEmp.name, `Added ${newEmp.name} as ${newEmp.role}`);
 
     // Asynchronously persist to MongoDB
     try {
@@ -2399,7 +2388,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           displayName: newEmp.name,
           email: newEmp.email,
           role: newEmp.workspaceRole,
-          department: newEmp.department,
           title: newEmp.role,
           skills: newEmp.skills,
           presence: newEmp.status,

@@ -304,7 +304,7 @@ export default function TasksPage() {
             onAction={
               tasks.length === 0
                 ? () => openModal('task-modal')
-                : () => { setActiveFilter('all'); setSelectedDeptFilter(''); }
+                : () => { setActiveFilter('all'); }
             }
           />
         ) : (

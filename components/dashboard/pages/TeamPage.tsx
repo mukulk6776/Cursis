@@ -221,8 +221,8 @@ export default function TeamPage() {
               }
               actionLabel="+ Invite Member"
               onAction={() => openModal('invite-modal')}
-              secondaryActionLabel={searchQuery || deptFilter !== 'all' ? 'Clear Filters' : undefined}
-              onSecondaryAction={() => { setSearchQuery(''); setDeptFilter('all'); setCurrentPage(1); }}
+              secondaryActionLabel={searchQuery ? 'Clear Search' : undefined}
+              onSecondaryAction={() => { setSearchQuery(''); setCurrentPage(1); }}
             />
           ) : (
             <>

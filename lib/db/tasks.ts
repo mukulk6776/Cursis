@@ -191,7 +191,6 @@ export async function createTask(
     id,
     workspaceId: cleanWsId,
     projectId,
-    departmentId,
     title,
     description: (data.description || '').trim(),
     status,

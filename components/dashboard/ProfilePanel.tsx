@@ -278,7 +278,7 @@ export default function ProfilePanel() {
  </div>
  <h3 style={{ margin: 0 }}>{emp.name}</h3>
  <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-sm)', marginTop: '4px' }}>
- {emp.role} · {emp.department}
+ {emp.role}
  </p>
 
  <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'center', alignItems: 'center', marginTop: 'var(--sp-3)', flexWrap: 'wrap' }}>

@@ -57,7 +57,7 @@ export interface Invitation {
   role?: string;
   roleTitle?: string;
   workspaceRole: string;
-  department: string;
+  department?: string;
   team: string | null;
   status: 'pending' | 'accepted' | 'declined' | 'revoked' | 'expired';
   token?: string;
