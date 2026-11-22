@@ -104,7 +104,7 @@ export default function OrdisPage() {
         const width = parseInt(savedWidth, 10);
         if (width >= 220 && width <= 480) setSidebarWidth(width);
       }
-    } catch {}
+    } catch { }
   }, []);
 
   // Handle resize drag with accurate panel left offset
@@ -122,7 +122,7 @@ export default function OrdisPage() {
         setIsResizing(false);
         try {
           localStorage.setItem('cursis_ordis_sidebar_width', String(sidebarWidth));
-        } catch {}
+        } catch { }
       }
     };
 
@@ -150,7 +150,7 @@ export default function OrdisPage() {
         const next = !prev;
         try {
           localStorage.setItem('cursis_ordis_sidebar_collapsed', String(next));
-        } catch {}
+        } catch { }
         return next;
       });
     }
@@ -208,9 +208,8 @@ export default function OrdisPage() {
       <aside
         ref={sidebarRef}
         id="ordis-history"
-        className={`ordis-sidebar ${sidebarCollapsed ? 'is-collapsed' : ''} ${
-          mobileDrawerOpen ? 'mobile-open' : ''
-        }`}
+        className={`ordis-sidebar ${sidebarCollapsed ? 'is-collapsed' : ''} ${mobileDrawerOpen ? 'mobile-open' : ''
+          }`}
         style={{
           width: sidebarCollapsed ? 0 : `${sidebarWidth}px`,
           flex: sidebarCollapsed ? '0 0 0' : `0 0 ${sidebarWidth}px`,
@@ -429,7 +428,7 @@ export default function OrdisPage() {
             setSidebarWidth(260);
             try {
               localStorage.setItem('cursis_ordis_sidebar_width', '260');
-            } catch {}
+            } catch { }
           }}
           role="separator"
           aria-orientation="vertical"
@@ -445,20 +444,20 @@ export default function OrdisPage() {
               setSidebarWidth(newWidth);
               try {
                 localStorage.setItem('cursis_ordis_sidebar_width', String(newWidth));
-              } catch {}
+              } catch { }
             } else if (e.key === 'ArrowRight') {
               e.preventDefault();
               const newWidth = Math.min(480, sidebarWidth + 10);
               setSidebarWidth(newWidth);
               try {
                 localStorage.setItem('cursis_ordis_sidebar_width', String(newWidth));
-              } catch {}
+              } catch { }
             } else if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               setSidebarWidth(260);
               try {
                 localStorage.setItem('cursis_ordis_sidebar_width', '260');
-              } catch {}
+              } catch { }
             }
           }}
         />
@@ -1693,8 +1692,8 @@ function ConversationPanel() {
                 !chatHistoryReady
                   ? 'Loading your chats…'
                   : busy
-                  ? 'Ordis is responding…'
-                  : 'Message Ordis…'
+                    ? 'Ordis is responding…'
+                    : 'Message Ordis…'
               }
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
