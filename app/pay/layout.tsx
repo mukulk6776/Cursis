@@ -1,10 +1,16 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { marketingMetadata } from '@/lib/seo/marketing';
+import { TEAM_USER_LIMIT } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Secure Checkout & Payment | CURSIS',
-  description: 'Upgrade your Cursis workspace with Razorpay. Instant activation for Pro, Business, and Enterprise plans via UPI, Cards, NetBanking, and Wallets.',
-  alternates: {
-    canonical: 'https://cursis.in/pay',
+  ...marketingMetadata(
+    '/pay',
+    'Paid Plans Coming Soon | CURSIS',
+    `Online billing on CURSIS is coming soon. Workspaces for up to ${TEAM_USER_LIMIT} members remain free with no payment details required.`
+  ),
+  robots: {
+    index: false,
+    follow: true,
   },
 };
 
