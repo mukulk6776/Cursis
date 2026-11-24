@@ -226,9 +226,9 @@ function DisabledOrdisFloatingChat() {
  display: 'flex',
  flexDirection: 'column',
  background: 'rgba(9, 13, 22, 0.97)',
- border: '3px solid #0A0A0A',
- borderRadius: '20px',
- boxShadow: '8px 8px 0px #0A0A0A',
+ border: '1px solid rgba(255, 255, 255, 0.12)',
+ borderRadius: '16px',
+ boxShadow: '0 20px 35px -5px rgba(0, 0, 0, 0.5), 0 10px 15px -5px rgba(0, 0, 0, 0.3)',
  overflow: 'hidden',
  transition: 'width 0.2s ease, height 0.2s ease',
  }}
@@ -678,8 +678,8 @@ function DisabledOrdisFloatingChat() {
  background: 'rgba(255, 255, 255, 0.05)',
  borderRadius: '12px',
  width: 'fit-content',
- border: '2px solid #0A0A0A',
- boxShadow: '3px 3px 0px #0A0A0A',
+ border: '1px solid rgba(255, 255, 255, 0.1)',
+ boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
  }}
  >
  <span style={{ fontSize: '12px', color: '#93c5fd', fontStyle: 'italic' }}>
@@ -708,11 +708,11 @@ function DisabledOrdisFloatingChat() {
  background: isAi
  ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.03) 100%)'
  : 'linear-gradient(135deg, #FF5500 0%, #ff8c00 100%)',
- border: '2px solid #0A0A0A',
+ border: isAi ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
  color: '#f9fafb',
  fontSize: '12.5px',
  lineHeight: '1.55',
- boxShadow: '3px 3px 0px #0A0A0A',
+ boxShadow: isAi ? '0 1px 3px rgba(0, 0, 0, 0.2)' : '0 1px 3px rgba(255, 85, 0, 0.25)',
  }}
  >
  {isAi && (
@@ -964,8 +964,8 @@ function DisabledOrdisFloatingChat() {
           height: '52px',
           borderRadius: '16px',
           background: '#0A0A0A',
-          border: '3px solid #0A0A0A',
-          boxShadow: '4px 4px 0px #FF5500',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 4px 14px rgba(255, 85, 0, 0.4)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

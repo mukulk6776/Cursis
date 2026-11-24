@@ -190,19 +190,6 @@ export default function Topbar() {
                   );
                 })}
               </div>
-              <div className="workspace-dropdown-footer">
-                <button
-                  className="btn btn-primary btn-sm"
-                  type="button"
-                  style={{ width: '100%', fontSize: 'var(--fs-xs)' }}
-                  onClick={() => {
-                    setWorkspaceDropdownOpen(false);
-                    openModal('agency-modal');
-                  }}
-                >
-                  + Request Custom Client Workspace
-                </button>
-              </div>
             </div>
           )}
         </div>

@@ -136,7 +136,7 @@ export default function TasksPage() {
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {/* View Switcher */}
-          <div style={{ display: 'flex', background: 'var(--surface-secondary)', padding: '3px', borderRadius: '10px', border: '2px solid #0A0A0A', boxShadow: '2px 2px 0px #0A0A0A', gap: '2px' }}>
+          <div style={{ display: 'flex', background: 'var(--surface-secondary)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '2px' }}>
             {(['list', 'calendar', 'timeline'] as ViewMode[]).map((v) => (
               <button
                 key={v}
@@ -147,11 +147,11 @@ export default function TasksPage() {
                   padding: '4px 12px',
                   borderRadius: '6px',
                   height: '28px',
-                  fontWeight: currentView === v ? 700 : 500,
-                  background: currentView === v ? '#FAF6EE' : 'transparent',
-                  color: currentView === v ? '#0A0A0A' : 'var(--text-secondary)',
-                  border: currentView === v ? '2px solid #0A0A0A' : '2px solid transparent',
-                  boxShadow: currentView === v ? '2px 2px 0px #0A0A0A' : 'none',
+                  fontWeight: currentView === v ? 600 : 500,
+                  background: currentView === v ? '#FFFFFF' : 'transparent',
+                  color: currentView === v ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  border: currentView === v ? '1px solid var(--border-color)' : '1px solid transparent',
+                  boxShadow: currentView === v ? '0 1px 2px rgba(0, 0, 0, 0.05)' : 'none',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -214,8 +214,8 @@ export default function TasksPage() {
                   gap: '6px',
                   background: isActive ? 'var(--c-brand)' : 'var(--surface-card)',
                   color: isActive ? 'var(--c-on-brand)' : 'var(--text-secondary)',
-                  border: '2px solid #0A0A0A',
-                  boxShadow: isActive ? '2px 2px 0px #0A0A0A' : 'none',
+                  border: isActive ? '1px solid var(--c-brand)' : '1px solid var(--border-color)',
+                  boxShadow: isActive ? '0 1px 2px rgba(255, 85, 0, 0.25)' : 'none',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -311,7 +311,7 @@ export default function TasksPage() {
           <>
             {/* List View */}
             {currentView === 'list' && (
-              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '3px solid #0A0A0A', borderRadius: '16px', boxShadow: '6px 6px 0px #0A0A0A', background: '#FFFFFF' }}>
+              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)', background: '#FFFFFF' }}>
                 <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
@@ -433,7 +433,7 @@ export default function TasksPage() {
 
             {/* 3. Calendar View */}
             {currentView === 'calendar' && (
-              <div className="card" style={{ padding: '18px 20px', border: '3px solid #0A0A0A', borderRadius: '16px', boxShadow: '6px 6px 0px #0A0A0A', background: '#FFFFFF' }}>
+              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)', background: '#FFFFFF' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Tasks by Due Date
                 </h3>
@@ -450,17 +450,17 @@ export default function TasksPage() {
                     {Array.from(new Set(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline))).sort().map((dateStr) => {
                       const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
                       return (
-                        <div key={dateStr} className="card" style={{ background: '#FFFFFF', padding: '14px', border: '2px solid #0A0A0A', borderRadius: '12px', boxShadow: '3px 3px 0px #0A0A0A' }}>
-                          <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '8px', color: 'var(--c-brand)' }}>
+                        <div key={dateStr} className="card" style={{ background: '#FFFFFF', padding: '14px', border: '1px solid var(--border-color)', borderRadius: '10px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)' }}>
+                          <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: 'var(--c-brand)' }}>
                             {formatDate(dateStr)} ({dayTasks.length})
                           </div>
                           {dayTasks.map((t) => (
                             <div
                               key={t.id}
-                              style={{ padding: '8px 10px', background: '#FAF6EE', border: '2px solid #0A0A0A', borderRadius: '8px', marginBottom: '6px', fontSize: '12px', cursor: 'pointer' }}
+                              style={{ padding: '8px 10px', background: 'var(--surface-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', marginBottom: '6px', fontSize: '12px', cursor: 'pointer' }}
                               onClick={() => setSelectedTaskDetail(t)}
                             >
-                              <div style={{ fontWeight: 700, color: '#0A0A0A' }}>{t.name}</div>
+                              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t.name}</div>
                               <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600 }}>{t.status} · {t.priority}</div>
                             </div>
                           ))}
@@ -474,7 +474,7 @@ export default function TasksPage() {
 
             {/* 4. Timeline / Progress View */}
             {currentView === 'timeline' && (
-              <div className="card" style={{ padding: '18px 20px', border: '3px solid #0A0A0A', borderRadius: '16px', boxShadow: '6px 6px 0px #0A0A0A', background: '#FFFFFF' }}>
+              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)', background: '#FFFFFF' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Sprint Progress
                 </h3>

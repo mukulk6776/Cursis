@@ -98,9 +98,9 @@ export default function HomePage() {
           padding: '18px 20px',
           marginBottom: '20px',
           background: '#FFFFFF',
-          border: '3px solid #0A0A0A',
-          borderRadius: '16px',
-          boxShadow: '6px 6px 0px #0A0A0A',
+          border: '1px solid var(--border-color)',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
@@ -213,9 +213,9 @@ export default function HomePage() {
           style={{
             padding: '18px 20px',
             cursor: 'pointer',
-            border: '3px solid #0A0A0A',
-            borderRadius: '16px',
-            boxShadow: '6px 6px 0px #0A0A0A',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
             background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('tasks')}
@@ -236,9 +236,9 @@ export default function HomePage() {
           style={{
             padding: '18px 20px',
             cursor: 'pointer',
-            border: '3px solid #0A0A0A',
-            borderRadius: '16px',
-            boxShadow: '6px 6px 0px #0A0A0A',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
             background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('tasks')}
@@ -273,9 +273,9 @@ export default function HomePage() {
           style={{
             padding: '18px 20px',
             cursor: 'pointer',
-            border: '3px solid #0A0A0A',
-            borderRadius: '16px',
-            boxShadow: '6px 6px 0px #0A0A0A',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
             background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('projects')}
@@ -298,9 +298,9 @@ export default function HomePage() {
           style={{
             padding: '18px 20px',
             cursor: 'pointer',
-            border: '3px solid #0A0A0A',
-            borderRadius: '16px',
-            boxShadow: '6px 6px 0px #0A0A0A',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
             background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('team')}
@@ -324,9 +324,9 @@ export default function HomePage() {
           className="card"
           style={{
             padding: '18px 20px',
-            border: '3px solid #0A0A0A',
-            borderRadius: '16px',
-            boxShadow: '6px 6px 0px #0A0A0A',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
             background: '#FFFFFF',
           }}
         >
@@ -452,9 +452,9 @@ export default function HomePage() {
             className="card"
             style={{
               padding: '18px 20px',
-              border: '3px solid #0A0A0A',
-              borderRadius: '16px',
-              boxShadow: '6px 6px 0px #0A0A0A',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
               background: '#FFFFFF',
             }}
           >
@@ -522,9 +522,9 @@ export default function HomePage() {
             className="card"
             style={{
               padding: '18px 20px',
-              border: '3px solid #0A0A0A',
-              borderRadius: '16px',
-              boxShadow: '6px 6px 0px #0A0A0A',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
               background: '#FFFFFF',
             }}
           >

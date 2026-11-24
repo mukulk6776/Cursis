@@ -2,25 +2,57 @@
 
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { PriorityLevel } from '@/lib/dashboard/types';
+import { PriorityLevel, TaskStatus } from '@/lib/dashboard/types';
 
 export default function TaskModal() {
   const { activeModal, closeModal, addTask, projects, employees, activeWorkspace } = useDashboard();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [project, setProject] = useState('');
+  const [project, setProject] = useState(''); // "" (unselected), "standalone", or projectId
   const [assignee, setAssignee] = useState('');
+  const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<PriorityLevel>('medium');
   const [deadline, setDeadline] = useState(new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]);
   const [tags, setTags] = useState('');
   const [estimatedHours, setEstimatedHours] = useState(2);
+  const [errorMsg, setErrorMsg] = useState('');
 
   if (activeModal !== 'task-modal') return null;
 
+  const handleClose = () => {
+    setErrorMsg('');
+    closeModal();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    setErrorMsg('');
+
+    if (!name.trim()) {
+      setErrorMsg('Please enter a task title.');
+      return;
+    }
+
+    if (!assignee) {
+      setErrorMsg('Please select a team member to assign this task to.');
+      return;
+    }
+
+    if (!deadline) {
+      setErrorMsg('Please select a deadline / due date for this task.');
+      return;
+    }
+
+    if (!status) {
+      setErrorMsg('Please select a task status.');
+      return;
+    }
+
+    if (!project) {
+      setErrorMsg('Please select a project or choose "Independent Task (No Project)".');
+      return;
+    }
 
     const parsedTags = tags
       .split(',')
@@ -30,10 +62,10 @@ export default function TaskModal() {
     addTask({
       name: name.trim(),
       description: description.trim(),
-      project: project || undefined,
-      assignee: assignee || undefined,
+      project: project === 'standalone' ? undefined : project,
+      assignee,
       priority,
-      status: 'todo',
+      status,
       deadline,
       tags: parsedTags,
       estimatedHours,
@@ -41,7 +73,12 @@ export default function TaskModal() {
 
     setName('');
     setDescription('');
+    setProject('');
     setAssignee('');
+    setStatus('todo');
+    setPriority('medium');
+    setTags('');
+    setErrorMsg('');
     closeModal();
   };
 
@@ -50,150 +87,265 @@ export default function TaskModal() {
       className="modal-overlay active"
       id="task-modal"
       onClick={(e) => {
-        if (e.target === e.currentTarget) closeModal();
+        if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <div className="modal" style={{ maxWidth: '540px' }}>
-        <div className="modal-header">
+      <div
+        className="modal"
+        style={{
+          maxWidth: '560px',
+          borderRadius: '12px',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        }}
+      >
+        <div className="modal-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="modal-title">Create Task</span>
+            <span className="modal-title" style={{ fontSize: '16px', fontWeight: 700 }}>
+              Assign New Task
+            </span>
             <span
               style={{
                 fontSize: '11px',
                 padding: '2px 8px',
-                borderRadius: '4px',
-                background: 'var(--c-surface)',
+                borderRadius: '6px',
+                background: 'var(--surface-secondary)',
                 border: '1px solid var(--border-color)',
                 color: 'var(--text-secondary)',
-                fontWeight: 700,
+                fontWeight: 600,
               }}
             >
               {activeWorkspace?.name || 'Current Workspace'}
             </span>
           </div>
-          <button className="modal-close" onClick={closeModal}>
+          <button className="modal-close" onClick={handleClose}>
             ✕
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="modal-body">
+          <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {errorMsg && (
+              <div
+                style={{
+                  background: '#FEF2F2',
+                  border: '1px solid #FCA5A5',
+                  color: '#DC2626',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>⚠️</span>
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
             {/* Task Name */}
             <div className="input-group">
-              <label className="input-label">Task Title *</label>
+              <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                Task Title <span style={{ color: '#DC2626' }}>*</span>
+              </label>
               <input
                 className="input"
-                placeholder="What needs to be done?"
+                placeholder="e.g. Implement authentication middleware"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errorMsg) setErrorMsg('');
+                }}
                 required
                 autoFocus
               />
             </div>
 
+            {/* Grid 1: Assignee and Due Date */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {/* Assignee */}
+              <div className="input-group">
+                <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                  Assignee (Person Responsible) <span style={{ color: '#DC2626' }}>*</span>
+                </label>
+                <select
+                  className="input select"
+                  value={assignee}
+                  onChange={(e) => {
+                    setAssignee(e.target.value);
+                    if (errorMsg) setErrorMsg('');
+                  }}
+                  required
+                >
+                  <option value="">-- Select Assignee * --</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      👤 {emp.name} {emp.role ? `(${emp.role})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Deadline */}
+              <div className="input-group">
+                <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                  Deadline / Due Date <span style={{ color: '#DC2626' }}>*</span>
+                </label>
+                <input
+                  className="input"
+                  type="date"
+                  value={deadline}
+                  onChange={(e) => {
+                    setDeadline(e.target.value);
+                    if (errorMsg) setErrorMsg('');
+                  }}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Grid 2: Project and Status */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {/* Project */}
+              <div className="input-group">
+                <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                  Project <span style={{ color: '#DC2626' }}>*</span>
+                </label>
+                <select
+                  className="input select"
+                  value={project}
+                  onChange={(e) => {
+                    setProject(e.target.value);
+                    if (errorMsg) setErrorMsg('');
+                  }}
+                  required
+                >
+                  <option value="">-- Select Project or Standalone * --</option>
+                  <option value="standalone">📌 Independent Task (No Project)</option>
+                  {projects.length > 0 && (
+                    <optgroup label="Workspace Projects">
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          📁 {p.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                  Choose a project or mark as independent standalone.
+                </span>
+              </div>
+
+              {/* Status */}
+              <div className="input-group">
+                <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                  Initial Status <span style={{ color: '#DC2626' }}>*</span>
+                </label>
+                <select
+                  className="input select"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                  required
+                >
+                  <option value="todo">📋 To Do</option>
+                  <option value="in-progress">⚡ In Progress</option>
+                  <option value="review">🔍 In Review</option>
+                  <option value="completed">✅ Completed</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Grid 3: Priority and Effort */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {/* Priority */}
+              <div className="input-group">
+                <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                  Priority
+                </label>
+                <select
+                  className="input select"
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as PriorityLevel)}
+                >
+                  <option value="low">Low Priority</option>
+                  <option value="medium">Medium Priority</option>
+                  <option value="high">High Priority</option>
+                  <option value="urgent">🚨 Urgent Priority</option>
+                </select>
+              </div>
+
+              {/* Effort estimate */}
+              <div className="input-group">
+                <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                  Effort Estimate
+                </label>
+                <select
+                  className="input select"
+                  value={estimatedHours}
+                  onChange={(e) => setEstimatedHours(Number(e.target.value))}
+                >
+                  {[1, 2, 4, 8, 16, 24].map((hours) => (
+                    <option key={hours} value={hours}>
+                      {hours} hour{hours > 1 ? 's' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {/* Description */}
-            <label className="input-group">Effort estimate
-              <select className="input select" value={estimatedHours} onChange={event => setEstimatedHours(Number(event.target.value))}>
-                {[1, 2, 4].map(hours => <option key={hours} value={hours}>{hours}h</option>)}
-              </select>
-            </label>
             <div className="input-group">
-              <label className="input-label">Description</label>
+              <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                Description & Notes
+              </label>
               <textarea
                 className="input textarea"
-                placeholder="Add necessary details and acceptance criteria..."
+                placeholder="Add necessary details, context, and acceptance criteria..."
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-3)' }}>
-              {/* Assignee */}
-              <div className="input-group">
-                <label className="input-label">Assignee</label>
-                <select
-                  className="input select"
-                  value={assignee}
-                  onChange={(e) => setAssignee(e.target.value)}
-                >
-                  <option value="">(Unassigned)</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} {emp.role ? `(${emp.role})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Project */}
-              <div className="input-group">
-                <label className="input-label">Project</label>
-                <select
-                  className="input select"
-                  value={project}
-                  onChange={(e) => setProject(e.target.value)}
-                >
-                  <option value="">(General Deliverable)</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Priority */}
-              <div className="input-group">
-                <label className="input-label">Priority</label>
-                <select
-                  className="input select"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as PriorityLevel)}
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-3)' }}>
-              {/* Deadline */}
-              <div className="input-group">
-                <label className="input-label">Due Date</label>
-                <input
-                  className="input"
-                  type="date"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                />
-              </div>
-
             {/* Tags */}
-              <div className="input-group">
-                <label className="input-label">Tags (comma separated)</label>
-                <input
-                  className="input"
-                  placeholder="frontend, bug, sprint"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                />
-              </div>
+            <div className="input-group">
+              <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                Tags <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>(comma separated)</span>
+              </label>
+              <input
+                className="input"
+                placeholder="e.g. backend, security, api"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+              />
             </div>
           </div>
 
-          <div className="modal-footer">
+          <div
+            className="modal-footer"
+            style={{
+              padding: '14px 20px',
+              borderTop: '1px solid var(--border-color)',
+              background: 'var(--surface-secondary)',
+              borderBottomLeftRadius: '12px',
+              borderBottomRightRadius: '12px',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '10px',
+            }}
+          >
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={closeModal}
+              onClick={handleClose}
             >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              Create Task
+            <button type="submit" className="btn btn-primary" style={{ fontWeight: 700 }}>
+              Assign Task
             </button>
           </div>
         </form>

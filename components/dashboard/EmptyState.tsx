@@ -77,9 +77,9 @@ export default function EmptyState({
         textAlign: 'center',
         padding: compact ? '24px 16px' : '48px 24px',
         background: '#FFFFFF',
-        border: '3px solid #0A0A0A',
-        borderRadius: compact ? '14px' : '18px',
-        boxShadow: compact ? '4px 4px 0px #0A0A0A' : '6px 6px 0px #0A0A0A',
+        border: '1px solid var(--border-color, #E5E7EB)',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
         width: '100%',
         margin: '0 auto',
         ...style,
@@ -90,10 +90,10 @@ export default function EmptyState({
         style={{
           width: compact ? '44px' : '56px',
           height: compact ? '44px' : '56px',
-          border: '2px solid #0A0A0A',
-          borderRadius: compact ? '10px' : '14px',
-          background: '#FAF6EE',
-          boxShadow: '3px 3px 0px #0A0A0A',
+          border: '1px solid var(--border-color, #E5E7EB)',
+          borderRadius: compact ? '10px' : '12px',
+          background: 'rgba(255, 85, 0, 0.08)',
+          boxShadow: 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -108,8 +108,8 @@ export default function EmptyState({
       <h3
         style={{
           fontSize: compact ? '15px' : '18px',
-          fontWeight: 800,
-          color: '#0A0A0A',
+          fontWeight: 700,
+          color: 'var(--text-primary, #111827)',
           margin: '0 0 6px 0',
           letterSpacing: '-0.02em',
         }}
