@@ -79,6 +79,7 @@ import { useOrdisConversations, type ChatHistoryStatus } from '@/lib/ordis/use-o
 import type { OrdisConversation } from '@/lib/ordis/conversation-types';
 import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 import { getPlanLimits, type PlanLimits } from '@/lib/plans';
+import { useRealtime } from '@/lib/realtime/use-realtime';
 
 interface ToastItem {
  id: string;
@@ -496,8 +497,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   // Derive permissions on every render so a workspace switch cannot retain the previous role.
   const user = userForWorkspace(userProfile, workspaces, activeWorkspaceId);
   const planLimits = useMemo(
-    () => getPlanLimits(activeWorkspace?.tier, user?.email),
-    [activeWorkspace?.tier, user?.email]
+    () => getPlanLimits(activeWorkspace?.tier, user?.email, user?.activePlan),
+    [activeWorkspace?.tier, user?.email, user?.activePlan]
   );
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [memberLimit, setMemberLimit] = useState<number>(MAX_TEAM_MEMBERS);
@@ -962,16 +963,21 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   };
 
- // Sync authenticated user from session on mount
- useEffect(() => {
- let isMounted = true;
- async function loadAuthSession() {
+ const refreshSessionProfile = async (options?: { initial?: boolean }): Promise<void> => {
  try {
- const res = await fetch('/api/auth/session', { credentials: 'include' });
+ const res = await fetch('/api/auth/session', { credentials: 'include', cache: 'no-store' });
+ if (res.status === 403) {
+ const suspendedData = await res.json().catch(() => ({}));
+ if (typeof window !== 'undefined') {
+ localStorage.removeItem('cursis_token');
+ window.location.href = suspendedData?.suspended ? '/login?suspended=true' : '/login';
+ }
+ return;
+ }
  if (res.ok) {
  const data = await res.json();
  const sessUser = data.data?.user || data.user;
- if (sessUser && isMounted) {
+ if (sessUser) {
  const displayName = sessUser.displayName || sessUser.email.split('@')[0];
  const initials = displayName
  .split(' ')
@@ -986,7 +992,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const userRoleTitle = isFounder ? 'Founder & CEO' : (sessUser.title || (isOwner ? 'Workspace Owner' : 'Team Member'));
         const userWorkspaceRole = sessUser.workspaceRole || 'member';
         const userDept = isFounder ? 'Leadership' : (sessUser.department || 'Engineering');
-        const userDeptId = isFounder ? 'dept_leadership' : ('dept_' + userDept.toLowerCase().replace(/\s+/g, '_'));
         const userSkills = isFounder ? ['Strategy', 'Leadership', 'Architecture'] : (sessUser.skills || ['General']);
 
         const userPlanTier = sessUser.planTier || 'standard';
@@ -1009,110 +1014,128 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           color: isFounder ? '#FF5500' : '#f59e0b',
           photoURL: resolvedPhotoURL,
           planTier: userPlanTier,
+          platformRole: sessUser.platformRole === 'admin' ? 'admin' : 'user',
+          activePlan: sessUser.activePlan ?? null,
           workspaceRole: userWorkspaceRole,
         };
 
         setUser(activeUser);
 
-        // Dynamically name default workspace based on authenticated user or custom setup name
-        const customWsName = typeof window !== 'undefined' ? localStorage.getItem('cursis_custom_workspace_name') : null;
-        const userWsName = customWsName || getUserWorkspaceName(activeUser.name);
-        const userWsShortName = customWsName ? generateWorkspaceAbbreviation(customWsName) : getUserWorkspaceShortName(activeUser.name);
+        if (options?.initial) {
+          // Dynamically name default workspace based on authenticated user or custom setup name
+          const customWsName = typeof window !== 'undefined' ? localStorage.getItem('cursis_custom_workspace_name') : null;
+          const userWsName = customWsName || getUserWorkspaceName(activeUser.name);
+          const userWsShortName = customWsName ? generateWorkspaceAbbreviation(customWsName) : getUserWorkspaceShortName(activeUser.name);
 
-        setWorkspaces((prev) =>
-          prev.map((w, idx) => {
-            if (w.id === activeWorkspaceId || w.id === 'ws_default' || w.id === 'ws_public' || idx === 0) {
-              return {
-                ...w,
-                name: userWsName,
-                shortName: userWsShortName,
-              };
+          setWorkspaces((prev) =>
+            prev.map((w, idx) => {
+              if (w.id === activeWorkspaceId || w.id === 'ws_default' || w.id === 'ws_public' || idx === 0) {
+                return {
+                  ...w,
+                  name: userWsName,
+                  shortName: userWsShortName,
+                };
+              }
+              return w;
+            })
+          );
+
+          setWorkspaceSettings((prev) => {
+            if (!prev.name || prev.name === 'Cursis HQ' || prev.name === 'Cursis Workspace' || prev.name === 'My Workspace') {
+              return { ...prev, name: userWsName };
             }
-            return w;
-          })
-        );
+            return prev;
+          });
 
-        setWorkspaceSettings((prev) => {
-          if (!prev.name || prev.name === 'Cursis HQ' || prev.name === 'Cursis Workspace' || prev.name === 'My Workspace') {
-            return { ...prev, name: userWsName };
-          }
-          return prev;
-        });
+          setOrgSettings((prev) => {
+            if (!prev.name || prev.name === 'Cursis HQ' || prev.name === 'Cursis Workspace' || prev.name === 'My Workspace') {
+              return { ...prev, name: userWsName };
+            }
+            return prev;
+          });
 
-        setOrgSettings((prev) => {
-          if (!prev.name || prev.name === 'Cursis HQ' || prev.name === 'Cursis Workspace' || prev.name === 'My Workspace') {
-            return { ...prev, name: userWsName };
-          }
-          return prev;
-        });
-
-        // Ensure current user is in employees list and purge any fake simulated members
-        setEmployees((prev) => {
-          const cleanPrev = prev.filter((e) => !e.id.startsWith('u_std_') && !e.id.startsWith('u_pro_') && !e.id.startsWith('emp_'));
-          const existingIdx = cleanPrev.findIndex((e) => e.id === activeUser.id || (e.email && activeUser.email && e.email.toLowerCase() === activeUser.email.toLowerCase()) || e.id === 'u1');
-          if (existingIdx !== -1) {
-            const updated = [...cleanPrev];
-            const prevEmp = updated[existingIdx];
-            const targetIsFounder = isFounderEmail(activeUser.email);
-            updated[existingIdx] = {
-              ...prevEmp,
-              id: activeUser.id,
-              name: activeUser.name,
-              email: activeUser.email,
-              initials: activeUser.initials,
-              role: targetIsFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(prevEmp.role) ? prevEmp.role : (activeUser.role || 'User')),
-              workspaceRole: userWorkspaceRole,
-              planTier: prevEmp.planTier || userPlanTier,
-              photoURL: activeUser.photoURL || null,
-              avatar: activeUser.photoURL || null,
-            };
-            return updated;
-          } else {
-            return [
-              {
+          // Ensure current user is in employees list and purge any fake simulated members
+          setEmployees((prev) => {
+            const cleanPrev = prev.filter((e) => !e.id.startsWith('u_std_') && !e.id.startsWith('u_pro_') && !e.id.startsWith('emp_'));
+            const existingIdx = cleanPrev.findIndex((e) => e.id === activeUser.id || (e.email && activeUser.email && e.email.toLowerCase() === activeUser.email.toLowerCase()) || e.id === 'u1');
+            if (existingIdx !== -1) {
+              const updated = [...cleanPrev];
+              const prevEmp = updated[existingIdx];
+              const targetIsFounder = isFounderEmail(activeUser.email);
+              updated[existingIdx] = {
+                ...prevEmp,
                 id: activeUser.id,
                 name: activeUser.name,
-                initials: activeUser.initials,
-                role: userRoleTitle,
-                teamIds: ['team_core'],
-                workspaceRole: userWorkspaceRole,
-                status: 'online',
-                color: isFounder ? '#FF5500' : '#f59e0b',
-                tasks: 0,
-                projects: 0,
                 email: activeUser.email,
-                skills: userSkills,
-                joinedAt: new Date().toISOString().split('T')[0],
-                planTier: userPlanTier,
+                initials: activeUser.initials,
+                role: targetIsFounder ? 'Founder & CEO' : (!/founder|ceo/i.test(prevEmp.role) ? prevEmp.role : (activeUser.role || 'User')),
+                workspaceRole: userWorkspaceRole,
+                planTier: prevEmp.planTier || userPlanTier,
                 photoURL: activeUser.photoURL || null,
                 avatar: activeUser.photoURL || null,
-              },
-              ...cleanPrev,
-            ];
-          }
-        });
+              };
+              return updated;
+            } else {
+              return [
+                {
+                  id: activeUser.id,
+                  name: activeUser.name,
+                  initials: activeUser.initials,
+                  role: userRoleTitle,
+                  teamIds: ['team_core'],
+                  workspaceRole: userWorkspaceRole,
+                  status: 'online',
+                  color: isFounder ? '#FF5500' : '#f59e0b',
+                  tasks: 0,
+                  projects: 0,
+                  email: activeUser.email,
+                  skills: userSkills,
+                  joinedAt: new Date().toISOString().split('T')[0],
+                  planTier: userPlanTier,
+                  photoURL: activeUser.photoURL || null,
+                  avatar: activeUser.photoURL || null,
+                },
+                ...cleanPrev,
+              ];
+            }
+          });
 
-        // Hydrate workspaces, team and notifications from MongoDB
-        await fetchWorkspaces();
-        const primaryWsId = sessUser.workspaceId || 'ws_' + sessUser.uid;
-        setActiveWorkspaceId((prev) => (prev && prev !== 'ws_default' && prev !== 'ws_public' ? prev : primaryWsId));
-        syncTeamAndNotifications(primaryWsId);
+          // Hydrate workspaces, team and notifications from MongoDB
+          await fetchWorkspaces();
+          const primaryWsId = sessUser.workspaceId || 'ws_' + sessUser.uid;
+          setActiveWorkspaceId((prev) => (prev && prev !== 'ws_default' && prev !== 'ws_public' ? prev : primaryWsId));
+          syncTeamAndNotifications(primaryWsId);
+        }
       }
     }
   } catch (err) {
  console.warn('Session sync notice:', err);
  }
- }
- loadAuthSession();
- return () => {
- isMounted = false;
  };
+
+ // Sync authenticated user from session on mount
+ useEffect(() => {
+ refreshSessionProfile({ initial: true });
  }, []);
+
+  // Real-time SSE listener for live plan & workspace changes
+  useRealtime({
+    workspaceId: activeWorkspaceId,
+    enabled: Boolean(activeWorkspaceId && activeWorkspaceId !== 'ws_default' && activeWorkspaceId !== 'ws_public'),
+    onEvent: {
+      'workspace.updated': () => {
+        void refreshSessionProfile();
+        void fetchWorkspaces();
+      },
+    },
+  });
 
   // Real-time polling & window focus synchronization for multi-user dashboard updates
   useEffect(() => {
     const interval = setInterval(() => {
       syncTeamAndNotifications(activeWorkspaceId);
+      void refreshSessionProfile();
+      void fetchWorkspaces();
     }, 15000);
 
     let focusTimer: NodeJS.Timeout | null = null;
@@ -1120,6 +1143,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       if (focusTimer) clearTimeout(focusTimer);
       focusTimer = setTimeout(() => {
         syncTeamAndNotifications(activeWorkspaceId);
+        void refreshSessionProfile();
+        void fetchWorkspaces();
       }, 1000);
     };
 
@@ -3371,7 +3396,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  credentials: 'include',
  body: JSON.stringify({ active: nextState }),
  }).catch(() => {});
- showToast('Automation rule toggled ⚡');
+ showToast('Automation rule toggled');
  };
 
  const addAutomation = (autoData: Partial<AutomationRule> & { name: string; when: string; then: string }) => {
@@ -3395,7 +3420,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  credentials: 'include',
  body: JSON.stringify(newAuto),
  }).catch(() => {});
- showToast(`Automation "${newAuto.name}" created ⚡`);
+ showToast(`Automation "${newAuto.name}" created`);
  };
 
  const updateAutomation = (id: string, updates: Partial<AutomationRule>) => {
@@ -3620,7 +3645,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  switchWorkspace,
  fetchWorkspaces,
  syncTeamAndNotifications,
- workspace: { name: activeWorkspace?.name || INITIAL_WORKSPACE_SUMMARY.name, plan: planLimits.name },
+ workspace: { name: activeWorkspace?.name || INITIAL_WORKSPACE_SUMMARY.name, plan: user.activePlan?.planName || '' },
  activeModal,
  openModal,
  closeModal,

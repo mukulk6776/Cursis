@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       displayName: authUser.displayName,
       photoURL: authUser.photoURL,
       role: targetRole,
+      platformRole: authUser.platformRole,
       workspaceId,
       createdAt: Date.now(),
     };

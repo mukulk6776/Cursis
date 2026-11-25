@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowUpRight, Download, X } from 'lucide-react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { useWorkHub, workFetch } from '@/lib/work-hub/WorkHubContext';
 import { taskChannel } from '@/lib/work-hub/types';
@@ -9,7 +10,7 @@ import styles from './WorkHub.module.css';
 
 export function WorkFiles({ files }: { files: WorkFile[] }) {
   const { workspaceId } = useWorkHub();
-  return <div className={styles.files}>{files.map(file => <a key={file.id} href={`/api/work-hub/files?${new URLSearchParams({ workspaceId, id: file.id })}`}>↓ {file.name}</a>)}</div>;
+  return <div className={styles.files}>{files.map(file => <a key={file.id} href={`/api/work-hub/files?${new URLSearchParams({ workspaceId, id: file.id })}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Download size={12} aria-hidden="true" /> {file.name}</a>)}</div>;
 }
 export function WorkComposer({ taskId, channelId, approval = false, onSent }: { taskId?: string; channelId?: string; approval?: boolean; onSent?: () => void }) {
   const { workspaceId, snapshot, run, busy } = useWorkHub();
@@ -49,7 +50,7 @@ export function WorkComposer({ taskId, channelId, approval = false, onSent }: { 
         finally { setUploading(false); }
       }} />
     </label>
-    <div className={styles.files}>{files.map(file => <button key={file.id} type="button" onClick={() => setFiles(previous => previous.filter(item => item.id !== file.id))}>Remove {file.name} ×</button>)}</div>
+    <div className={styles.files}>{files.map(file => <button key={file.id} type="button" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }} onClick={() => setFiles(previous => previous.filter(item => item.id !== file.id))}>Remove {file.name} <X size={12} aria-hidden="true" /></button>)}</div>
     {uploading && <p role="status">Uploading…</p>}
     {error && <p role="alert">{error}</p>}
     <button className={styles.primary} disabled={readOnly || (!text.trim() && !files.length)}>{approval ? 'Send approval request' : taskId ? 'Send reply' : 'Send message'}</button>
@@ -64,7 +65,7 @@ export function ApprovalCards({ taskId }: { taskId: string }) {
     return <article key={approval.id} className={styles.approval} data-status={approval.status}>
       <h3>Approval request</h3><p>{approval.text}</p>
       <p className={styles.muted}>{approval.authorName} → {employees.find(employee => employee.id === approval.reviewerId)?.name || 'Designated reviewer'} · {new Date(approval.createdAt).toLocaleString()}</p>
-      {approval.url && <a href={approval.url} target="_blank" rel="noopener noreferrer">Open review link ↗</a>}
+      {approval.url && <a href={approval.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>Open review link <ArrowUpRight size={13} aria-hidden="true" /></a>}
       <WorkFiles files={approval.files} />
       {approval.status === 'pending' ? <>{canDecide ? <div className={styles.actions}>
         <button disabled={busy} onClick={() => run({ action: 'decide', taskId, approvalId: approval.id, decision: 'approved' })}>Approve</button>

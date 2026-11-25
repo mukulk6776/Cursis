@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
 import MarketingPage from '@/components/landing/MarketingPage';
 import { getPosts } from '@/lib/seo/blog';
 import { marketingMetadata } from '@/lib/seo/marketing';
@@ -10,7 +11,7 @@ export default function Blog() {
         {getPosts().map(post => (
           <article className="marketing-card" key={post.slug}>
             <h2><Link href={'/blog/' + post.slug}>{post.title}</Link></h2>
-            <Link className="blog-card-link" href={'/blog/' + post.slug} aria-label={'Read article: ' + post.title}>Read article <span aria-hidden="true">↗</span></Link>
+            <Link className="blog-card-link" href={'/blog/' + post.slug} aria-label={'Read article: ' + post.title} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>Read article <ArrowUpRight size={14} aria-hidden="true" /></Link>
           </article>
         ))}
       </div>

@@ -3,8 +3,12 @@ import crypto from 'node:crypto';
 import { getAuthenticatedUser } from '@/lib/auth/session';
 import { findUserByEmail } from '@/lib/db/users';
 import { getPaymentRecord, verifyAndRecordPayment } from '@/lib/db/payments';
-import { upgradeWorkspacePlan } from '@/lib/plans-server';
-import type { PlanKey } from '@/lib/plans';
+import { syncUserOwnedWorkspacesPlan, upgradeWorkspacePlan } from '@/lib/plans-server';
+import { PLAN_CATALOG, type PlanKey } from '@/lib/plans';
+import { getCollection } from '@/lib/mongodb';
+import { inMemoryStore } from '@/lib/db/store';
+import type { UserPlanSubscription, UserProfile } from '@/lib/db/types';
+import { eventBus } from '@/lib/realtime/event-bus';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,12 +77,61 @@ export async function POST(req: Request) {
 
     if (planToApply && (!isSimulatedOrder || authUser)) {
       let targetWsId = finalRecord?.workspaceId || body.workspaceId || authUser?.workspaceId;
-      if (!targetWsId && finalRecord?.customerEmail) {
-        const userDoc = await findUserByEmail(finalRecord.customerEmail).catch(() => null);
-        targetWsId = userDoc?.activeWorkspaceId || userDoc?.workspaceIds?.[0] || (userDoc?.uid ? `ws_${userDoc.uid}` : undefined);
+      const customerEmail = (authUser?.email || finalRecord?.customerEmail || '').trim().toLowerCase();
+      const targetUserDoc = customerEmail ? await findUserByEmail(customerEmail).catch(() => null) : null;
+      const targetUserId = authUser?.uid || finalRecord?.userId || targetUserDoc?.uid;
+
+      if (!targetWsId && targetUserDoc) {
+        targetWsId = targetUserDoc.activeWorkspaceId || targetUserDoc.workspaceIds?.[0] || (targetUserDoc.uid ? `ws_${targetUserDoc.uid}` : undefined);
       }
+
+      const subscription: UserPlanSubscription = {
+        plan: planToApply === 'starter' ? 'starter' : 'pro',
+        planName: PLAN_CATALOG[planToApply].name,
+        status: 'active',
+        source: 'purchased',
+        startedAt: paidAt,
+        expiresAt: null,
+        assignedBy: 'razorpay',
+        paymentId: razorpay_payment_id,
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (targetUserId || customerEmail) {
+        try {
+          const usersCol = await getCollection<UserProfile>('users');
+          if (usersCol) {
+            await usersCol.updateOne(
+              targetUserId ? { $or: [{ uid: targetUserId }, { id: targetUserId }, ...(customerEmail ? [{ email: customerEmail }] : [])] } : { email: customerEmail },
+              { $set: { subscription, updatedAt: subscription.updatedAt } }
+            );
+          }
+          if (targetUserId && inMemoryStore.users.has(targetUserId)) {
+            const memUser = inMemoryStore.users.get(targetUserId)!;
+            memUser.subscription = subscription;
+            inMemoryStore.users.set(targetUserId, memUser);
+          }
+        } catch (err) {
+          console.warn('[Verify Payment] Failed to persist user subscription:', err);
+        }
+      }
+
+      if (targetUserId) {
+        const syncedWsIds = await syncUserOwnedWorkspacesPlan(targetUserId, planToApply, {
+          source: 'purchased',
+          startedAt: paidAt,
+          expiresAt: null,
+        });
+        syncedWsIds.forEach((wsId) => eventBus.emit('workspace.updated', wsId, { userId: targetUserId, reason: 'plan_purchased', plan: planToApply }));
+      }
+
       if (targetWsId && targetWsId !== 'ws_default' && targetWsId !== 'ws_public') {
-        await upgradeWorkspacePlan(targetWsId, planToApply);
+        await upgradeWorkspacePlan(targetWsId, planToApply, {
+          source: 'purchased',
+          startedAt: paidAt,
+          expiresAt: null,
+        });
+        eventBus.emit('workspace.updated', targetWsId, { userId: targetUserId, reason: 'plan_purchased', plan: planToApply });
         upgradedWorkspaceId = targetWsId;
       }
     }

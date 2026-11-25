@@ -80,21 +80,39 @@ export interface AuthResult {
   displayName: string;
   idToken: string;
   photoURL?: string | null;
+  redirectTo?: string;
+  platformRole?: 'admin' | 'user';
+  requiresEmailVerification?: boolean;
+  message?: string;
 }
 
 /**
  * Sign in with Email and Password using native Cursis Auth API
  */
-export async function signInWithEmail(email: string, pass: string): Promise<AuthResult> {
+export async function signInWithEmail(email: string, pass: string, verificationCode?: string): Promise<AuthResult> {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
     signal: AbortSignal.timeout(15000),
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ email: email.trim(), password: pass }),
+    body: JSON.stringify({
+      email: email.trim(),
+      password: pass,
+      ...(verificationCode ? { verificationCode: verificationCode.trim() } : {}),
+    }),
   });
 
   const data = await res.json().catch(() => ({}));
+  if (res.status === 202 && data.requiresEmailVerification) {
+    return {
+      uid: '',
+      email: data.email || email.trim(),
+      displayName: '',
+      idToken: '',
+      requiresEmailVerification: true,
+      message: data.message,
+    };
+  }
   if (!res.ok) {
     const errorMsg = typeof data.error === 'string'
       ? data.error
@@ -104,6 +122,7 @@ export async function signInWithEmail(email: string, pass: string): Promise<Auth
 
   const user = data.user || data.data?.user || {};
   const token = data.token || data.data?.token || '';
+  const redirectTo = data.redirectTo || data.data?.redirectTo;
 
   if (typeof window !== 'undefined' && token) {
     try {
@@ -120,13 +139,22 @@ export async function signInWithEmail(email: string, pass: string): Promise<Auth
     displayName: user.displayName || email.split('@')[0],
     idToken: token,
     photoURL: user.photoURL || null,
+    redirectTo,
+    platformRole: user.platformRole,
   };
 }
 
 /**
  * Sign up with Name, Email, and Password using native Cursis Auth API
  */
-export async function signUpWithEmail(email: string, pass: string, displayName: string, ageConfirmed: boolean = false, privacyConsent: boolean = false): Promise<AuthResult> {
+export async function signUpWithEmail(
+  email: string,
+  pass: string,
+  displayName: string,
+  ageConfirmed: boolean = false,
+  privacyConsent: boolean = false,
+  verificationCode?: string
+): Promise<AuthResult> {
   const res = await fetch('/api/auth/signup', {
     method: 'POST',
     signal: AbortSignal.timeout(15000),
@@ -139,10 +167,21 @@ export async function signUpWithEmail(email: string, pass: string, displayName: 
       ageConfirmed: Boolean(ageConfirmed),
       privacyConsent: privacyConsent === true,
       noticeVersion: '2026-10-18',
+      ...(verificationCode ? { verificationCode: verificationCode.trim() } : {}),
     }),
   });
 
   const data = await res.json().catch(() => ({}));
+  if (res.status === 202 && data.requiresEmailVerification) {
+    return {
+      uid: '',
+      email: data.email || email.trim(),
+      displayName: displayName.trim(),
+      idToken: '',
+      requiresEmailVerification: true,
+      message: data.message,
+    };
+  }
   if (!res.ok) {
     const errorMsg = typeof data.error === 'string'
       ? data.error
@@ -152,6 +191,7 @@ export async function signUpWithEmail(email: string, pass: string, displayName: 
 
   const user = data.user || data.data?.user || {};
   const token = data.token || data.data?.token || '';
+  const redirectTo = data.redirectTo || data.data?.redirectTo;
 
   if (typeof window !== 'undefined' && token) {
     try {
@@ -168,6 +208,8 @@ export async function signUpWithEmail(email: string, pass: string, displayName: 
     displayName: user.displayName || displayName.trim() || email.split('@')[0],
     idToken: token,
     photoURL: user.photoURL || null,
+    redirectTo,
+    platformRole: user.platformRole,
   };
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { KeyRound, Link2 } from 'lucide-react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { IntegrationItem, WebhookItem, ApiKeyItem } from '@/lib/dashboard/types';
 import EmptyState from '@/components/dashboard/EmptyState';
@@ -77,7 +78,7 @@ export default function IntegrationsPage() {
  setWhName('');
  setWhUrl('');
  setShowWebhookModal(false);
- showToast('New webhook registered successfully ⚡');
+ showToast('New webhook registered successfully');
  };
 
  const handleCreateApiKey = (e: React.FormEvent) => {
@@ -86,24 +87,24 @@ export default function IntegrationsPage() {
  addApiKey(keyName.trim(), keyScopes);
  setKeyName('');
  setShowApiKeyModal(false);
- showToast('New API key generated & copied to clipboard ⚡');
+ showToast('New API key generated & copied to clipboard');
  };
 
  const handleConnect = (id: string, name: string) => {
  toggleIntegration(id);
  addAuditEntry(user?.name || user?.email || 'System', 'integration.connected', name, 'Integration connected');
- showToast(`${name} connected successfully ⚡`);
+ showToast(`${name} connected successfully`);
  };
 
  const handleDisconnect = (id: string, name: string) => {
  toggleIntegration(id);
  addAuditEntry(user?.name || user?.email || 'System', 'integration.disconnected', name, 'Integration disconnected');
- showToast(`${name} disconnected ⚡`);
+ showToast(`${name} disconnected`);
  };
 
  const handleTestPing = (wh: WebhookItem) => {
  addAuditEntry(user?.name || user?.email || 'System', 'webhook.test_ping', wh.name, `Sent test event ping to ${wh.url}`);
- showToast(`Test event pinged to ${wh.url} (200 OK) ⚡`);
+ showToast(`Test event pinged to ${wh.url} (200 OK)`);
  };
 
  const configuredInt = integrations.find((i) => i.id === configuredIntId);
@@ -306,7 +307,7 @@ export default function IntegrationsPage() {
  {activeTab === 'webhooks' && (
  webhooks.length === 0 ? (
  <EmptyState
- icon="🔗"
+ icon={<Link2 size={24} aria-hidden="true" />}
  title="No webhooks registered"
  description="Connect your external services and pipelines via HTTP callback webhooks."
  actionLabel="+ New Webhook"
@@ -371,7 +372,7 @@ export default function IntegrationsPage() {
  {activeTab === 'api-keys' && (
  apiKeys.length === 0 ? (
  <EmptyState
- icon="🔑"
+ icon={<KeyRound size={24} aria-hidden="true" />}
  title="No API keys generated"
  description="Generate secure scoped API keys for server-to-server REST access."
  actionLabel="+ Generate Key"

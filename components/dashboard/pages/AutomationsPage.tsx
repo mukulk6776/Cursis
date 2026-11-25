@@ -36,7 +36,7 @@ export default function AutomationsPage() {
    const nextRun = new Date().toISOString();
    updateAutomation(autoId, { executionCount: nextCount, lastRun: nextRun });
    addAuditEntry(user?.name || user?.email || 'System', 'automation.executed', auto.name, 'Manual test run executed successfully');
-   showToast(`Test run complete: "${auto.name}" executed successfully ⚡`);
+   showToast(`Test run complete: "${auto.name}" executed successfully`);
  };
 
  const loadTemplate = (name: string, desc: string, trigger: string, action: string) => {
@@ -52,7 +52,7 @@ export default function AutomationsPage() {
      lastRun: 'Never',
    });
    addAuditEntry(user?.name || user?.email || 'System', 'automation.created', name, 'Created from template');
-   showToast(`Template "${name}" added to active automations ⚡`);
+   showToast(`Template "${name}" added to active automations`);
    setActiveTab('rules');
  };
 
@@ -171,7 +171,7 @@ export default function AutomationsPage() {
    });
 
    addAuditEntry(user?.name || user?.email || 'System', 'automation.created_via_nl', parsed.name, `Generated rule: ${parsed.when} -> ${parsed.then}`);
-   showToast('Natural language rule parsed & added to workflow engine ⚡');
+   showToast('Natural language rule parsed & added to workflow engine');
    setNlText('');
    setShowNlModal(false);
    setActiveTab('rules');

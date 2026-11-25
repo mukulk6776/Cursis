@@ -1,31 +1,41 @@
 'use client';
 
 import React from 'react';
+import { AlertTriangle, CheckCircle2, Sparkles, X, XCircle } from 'lucide-react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { motion, AnimatePresence } from 'motion/react';
 
-const TOAST_ICONS: Record<string, { color: string; bg: string; path: string }> = {
+const TOAST_STYLES: Record<string, { color: string; bg: string }> = {
   success: {
     color: '#10b981',
     bg: 'rgba(16, 185, 129, 0.1)',
-    path: 'M20 6L9 17l-5-5',
   },
   error: {
     color: '#ef4444',
     bg: 'rgba(239, 68, 68, 0.1)',
-    path: 'M18 6L6 18M6 6l12 12',
   },
   warning: {
     color: '#f59e0b',
     bg: 'rgba(245, 158, 11, 0.1)',
-    path: 'M12 9v4m0 4h.01M10.29 3.86l-8.97 15.7A1 1 0 002.18 21h19.64a1 1 0 00.86-1.44l-8.97-15.7a1 1 0 00-1.72 0z',
   },
   info: {
     color: '#FF5500',
     bg: 'rgba(255, 85, 0, 0.1)',
-    path: 'M20 6L9 17l-5-5',
   },
 };
+
+function renderToastIcon(toastType: string) {
+  switch (toastType) {
+    case 'success':
+      return <CheckCircle2 size={16} aria-hidden="true" />;
+    case 'error':
+      return <XCircle size={16} aria-hidden="true" />;
+    case 'warning':
+      return <AlertTriangle size={16} aria-hidden="true" />;
+    default:
+      return <Sparkles size={16} aria-hidden="true" />;
+  }
+}
 
 export default function ToastContainer() {
   const { toasts, removeToast } = useDashboard();
@@ -52,7 +62,7 @@ export default function ToastContainer() {
       <AnimatePresence>
         {toasts.map((t) => {
           const toastType = t.type || 'info';
-          const icon = TOAST_ICONS[toastType] || TOAST_ICONS.info;
+          const icon = TOAST_STYLES[toastType] || TOAST_STYLES.info;
           const duration = t.duration || 4000;
 
           return (
@@ -98,9 +108,7 @@ export default function ToastContainer() {
                     flexShrink: 0,
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={icon.path} />
-                  </svg>
+                  {renderToastIcon(toastType)}
                 </div>
 
                 {/* Message Content */}
@@ -158,9 +166,7 @@ export default function ToastContainer() {
                     }}
                     title="Dismiss notification"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
+                    <X size={14} aria-hidden="true" />
                   </button>
                 )}
               </div>

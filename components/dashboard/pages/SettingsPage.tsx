@@ -5,6 +5,7 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { OrgSettings } from '@/lib/dashboard/types';
 import { Pipette } from 'lucide-react';
 import ReportEmailSettings from '@/components/dashboard/ReportEmailSettings';
+import ActivePlanBadge from '@/components/dashboard/ActivePlanBadge';
 
 type SettingsTab = 'workspace' | 'team' | 'notifications' | 'ordis' | 'security';
 
@@ -444,6 +445,17 @@ teamSettings,
  Authenticated &amp; Verified
  </div>
  </div>
+ {user.activePlan && (
+ <div>
+ <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 800, textTransform: 'uppercase' }}>Active Plan</div>
+ <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+ <ActivePlanBadge activePlan={user.activePlan} />
+ <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+ {user.activePlan.source === 'admin' ? 'Admin-assigned' : 'Purchased'}
+ </span>
+ </div>
+ </div>
+ )}
  </div>
 
  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
@@ -496,7 +508,7 @@ teamSettings,
               )}
             </div>
             <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-              Manage access, adjust permission roles, or inspect workloads. Max {effectiveLimit} team members on {planLimits.name}.{' '}
+              Manage access, adjust permission roles, or inspect workloads. Max {effectiveLimit} team members{user.activePlan ? ` on ${user.activePlan.planName}` : ''}.{' '}
               <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
             </p>
           </div>

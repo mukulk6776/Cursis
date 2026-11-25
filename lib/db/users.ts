@@ -4,6 +4,7 @@ import { inMemoryStore } from './store';
 import { UserProfile, UserRole } from './types';
 import { getCollection } from '@/lib/mongodb';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
+import { isAdminEmail } from '@/lib/auth/admin';
 
 const pbkdf2Async = promisify(crypto.pbkdf2);
 
@@ -133,20 +134,25 @@ export async function upgradePasswordHash(email: string, password: string): Prom
 }
 
 /**
- * Sanitize user profile to ensure only mukulk3962364@gmail.com can be Founder & CEO
+ * Sanitize user profile to ensure only verified founder/admin emails hold elevated privileges.
  */
 function sanitizeFounderIntegrity(user: UserProfile): UserProfile {
   const isFounder = isFounderEmail(user.email);
-  if (isFounder) {
+  const isVerifiedAdmin = isAdminEmail(user.email) && user.emailVerified === true;
+  if (isFounder && user.emailVerified !== false) {
     user.role = 'owner';
     user.title = 'Founder & CEO';
     user.department = 'Leadership';
   } else {
-    if (user.role === 'owner') {
+    if (user.role === 'owner' && !isFounder) {
       user.role = 'member';
     }
     user.title = getAuthorizedTitle(user.email, user.title || 'User');
     user.department = getAuthorizedDepartment(user.email, user.department || 'Operations');
+  }
+  user.platformRole = isVerifiedAdmin ? 'admin' : 'user';
+  if (!user.accountStatus) {
+    user.accountStatus = 'active';
   }
   return user;
 }
@@ -221,15 +227,24 @@ export async function registerUser(params: {
   photoURL?: string;
   workspaceId?: string;
   ageConfirmed?: boolean;
+  emailVerified?: boolean;
 }): Promise<UserProfile> {
   const cleanEmail = params.email.trim().toLowerCase();
   
   const existing = await findUserByEmail(cleanEmail);
   if (existing && params.password) {
-    if (existing.passwordHash) {
+    if (existing.emailVerified && existing.passwordHash) {
       throw new Error('An account with this email already exists.');
     }
-    throw new Error('An account with this email is already registered using Google Sign-In. Please sign in with Google.');
+    if (existing.emailVerified && !existing.passwordHash) {
+      throw new Error('An account with this email is already registered using Google Sign-In. Please sign in with Google.');
+    }
+    if (!isAdminEmail(cleanEmail) || params.emailVerified !== true) {
+      if (existing.passwordHash) {
+        throw new Error('An account with this email already exists.');
+      }
+      throw new Error('An account with this email is already registered using Google Sign-In. Please sign in with Google.');
+    }
   }
 
   const cleanName = params.displayName.trim() || cleanEmail.split('@')[0];
@@ -245,8 +260,10 @@ export async function registerUser(params: {
     passwordHash = hashPassword(params.password, salt);
   }
 
-  const isFounder = isFounderEmail(cleanEmail);
-  const assignedRole: UserRole = isFounder ? 'owner' : (params.role && params.role !== 'owner' ? params.role : (existing?.role || 'member'));
+  const verified = params.emailVerified === true || existing?.emailVerified === true;
+  const isVerifiedAdmin = isAdminEmail(cleanEmail) && verified;
+  const isFounder = isFounderEmail(cleanEmail) && verified;
+  const assignedRole: UserRole = isFounder ? 'owner' : (params.role && params.role !== 'owner' ? params.role : (existing?.role && existing.role !== 'owner' ? existing.role : 'member'));
   const assignedTitle = isFounder ? 'Founder & CEO' : (existing?.title || 'User');
   const assignedDept = isFounder ? 'Leadership' : (existing?.department || 'Operations');
   const assignedSkills = isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (existing?.skills || ['Workspace Collaborator']);
@@ -257,6 +274,7 @@ export async function registerUser(params: {
   ]));
 
   const activeWorkspaceId = existing?.activeWorkspaceId || workspaceId;
+  const nowIso = new Date().toISOString();
 
   const newUser: UserProfile = {
     id: uid,
@@ -265,6 +283,11 @@ export async function registerUser(params: {
     displayName: existing?.displayName && existing.displayName !== cleanEmail.split('@')[0] ? existing.displayName : cleanName,
     photoURL: params.photoURL || existing?.photoURL,
     role: assignedRole,
+    platformRole: isVerifiedAdmin ? 'admin' : 'user',
+    accountStatus: existing?.accountStatus || 'active',
+    emailVerified: verified,
+    emailVerifiedAt: existing?.emailVerifiedAt || (verified ? nowIso : null),
+    subscription: existing?.subscription ?? null,
     passwordHash,
     salt,
     department: assignedDept,
@@ -279,8 +302,8 @@ export async function registerUser(params: {
     ],
     presence: 'online',
     ageConfirmed: params.ageConfirmed === true,
-    lastActiveAt: new Date().toISOString(),
-    createdAt: existing?.createdAt || new Date().toISOString(),
+    lastActiveAt: nowIso,
+    createdAt: existing?.createdAt || nowIso,
   };
 
   inMemoryStore.users.set(uid, newUser);
@@ -313,7 +336,9 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
     console.warn('MongoDB createUserProfile lookup notice:', e);
   }
 
-  const isFounder = isFounderEmail(cleanEmail);
+  const verified = data.emailVerified === true || existing?.emailVerified === true;
+  const isVerifiedAdmin = isAdminEmail(cleanEmail) && verified;
+  const isFounder = isFounderEmail(cleanEmail) && verified;
 
   const assignedRole: UserRole = isFounder ? 'owner' : (data.role && data.role !== 'owner' ? data.role : (existing?.role && existing.role !== 'owner' ? existing.role : 'member'));
   const assignedTitle = isFounder ? 'Founder & CEO' : getAuthorizedTitle(cleanEmail, data.title || existing?.title || 'Team Member');
@@ -322,6 +347,7 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
 
   const userWorkspaceIds = data.workspaceIds || existing?.workspaceIds || [`ws_${uid}`];
   const userActiveWorkspaceId = data.activeWorkspaceId || existing?.activeWorkspaceId || userWorkspaceIds[0];
+  const nowIso = new Date().toISOString();
 
   const updatedUser: UserProfile = {
     id: existing?.id || uid,
@@ -330,8 +356,15 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
     displayName: data.displayName || existing?.displayName || 'Cursis User',
     photoURL: data.photoURL || existing?.photoURL,
     role: assignedRole,
-    passwordHash: data.passwordHash || existing?.passwordHash,
-    salt: data.salt || existing?.salt,
+    platformRole: isVerifiedAdmin ? 'admin' : 'user',
+    accountStatus: data.accountStatus || existing?.accountStatus || 'active',
+    suspendedAt: data.suspendedAt !== undefined ? data.suspendedAt : (existing?.suspendedAt ?? null),
+    suspendedReason: data.suspendedReason !== undefined ? data.suspendedReason : (existing?.suspendedReason ?? null),
+    emailVerified: verified,
+    emailVerifiedAt: data.emailVerifiedAt || existing?.emailVerifiedAt || (verified ? nowIso : null),
+    subscription: data.subscription !== undefined ? data.subscription : (existing?.subscription ?? null),
+    passwordHash: data.passwordHash !== undefined ? data.passwordHash : existing?.passwordHash,
+    salt: data.salt !== undefined ? data.salt : existing?.salt,
     department: assignedDept,
     title: assignedTitle,
     skills: assignedSkills,
@@ -344,8 +377,8 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
       { id: 'ob_2', title: 'Review workspace channels', completed: true },
     ],
     presence: data.presence || existing?.presence || 'online',
-    lastActiveAt: new Date().toISOString(),
-    createdAt: existing?.createdAt || new Date().toISOString(),
+    lastActiveAt: nowIso,
+    createdAt: existing?.createdAt || nowIso,
   };
 
   inMemoryStore.users.set(uid, updatedUser);
@@ -368,6 +401,15 @@ export async function updateUserProfile(uid: string, updates: Partial<UserProfil
 
   const isFounder = isFounderEmail(existing.email);
   const cleanUpdates = { ...updates };
+
+  // Prevent profile mutation routes from tampering with governance/subscription fields.
+  delete (cleanUpdates as any).platformRole;
+  delete (cleanUpdates as any).accountStatus;
+  delete (cleanUpdates as any).suspendedAt;
+  delete (cleanUpdates as any).suspendedReason;
+  delete (cleanUpdates as any).emailVerified;
+  delete (cleanUpdates as any).emailVerifiedAt;
+  delete (cleanUpdates as any).subscription;
 
   if (!isFounder) {
     if (cleanUpdates.role === 'owner') cleanUpdates.role = 'member';

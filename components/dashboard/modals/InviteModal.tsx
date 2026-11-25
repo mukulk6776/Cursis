@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function InviteModal() {
@@ -33,11 +36,11 @@ export default function InviteModal() {
     setErrorMsg('');
 
     if (isAtMemberLimit) {
-      setErrorMsg(`Workspace team member limit reached (max ${effectiveLimit} members on ${planLimits.name}). Upgrade your plan or remove a member.`);
+      setErrorMsg(`Workspace team member limit reached (max ${effectiveLimit} members). Upgrade your plan or remove a member.`);
       return;
     }
     if (isAtCapacity) {
-      setErrorMsg(`Workspace team capacity reached (${activeCount} members + ${pendingCount} pending invites = ${effectiveLimit} max on ${planLimits.name}). Please revoke a pending invite, remove a member, or upgrade your plan.`);
+      setErrorMsg(`Workspace team capacity reached (${activeCount} members + ${pendingCount} pending invites = ${effectiveLimit} max). Please revoke a pending invite, remove a member, or upgrade your plan.`);
       return;
     }
 
@@ -153,7 +156,7 @@ export default function InviteModal() {
                 lineHeight: 1.4,
               }}
             >
-              <strong>Team Limit Reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace has reached the maximum allowed limit of {effectiveLimit} team members on {planLimits.name}.{' '}
+              <strong>Team Limit Reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace has reached the maximum allowed limit of {effectiveLimit} team members.{' '}
               <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
             </div>
           ) : isAtCapacity ? (
@@ -247,13 +250,13 @@ export default function InviteModal() {
               >
                 <option value="member">Member</option>
                 <option value="viewer">Viewer</option>
-                  <option value="admin">Admin</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
           </div>
 
           <div style={{ marginBottom: 'var(--sp-5)' }}>
-            <label
+            <Label
               htmlFor="invite-modal-note-textarea"
               style={{
                 display: 'block',
@@ -264,10 +267,9 @@ export default function InviteModal() {
               }}
             >
               Invitation Note <span style={{ color: 'var(--text-tertiary)', fontWeight: 'normal' }}>(Optional)</span>
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               id="invite-modal-note-textarea"
-              className="input textarea"
               rows={2}
               placeholder="Join our team on Cursis to collaborate on projects..."
               value={note}
@@ -279,22 +281,23 @@ export default function InviteModal() {
 
           {/* Footer Actions */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-2)' }}>
-            <button
+            <Button
               type="button"
-              className="btn btn-ghost btn-sm"
+              variant="ghost"
+              size="sm"
               onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="btn btn-primary btn-sm"
+              size="sm"
               disabled={isSubmitting || isAtCapacity}
               style={{ minWidth: '120px' }}
             >
               {isSubmitting ? 'Sending...' : isAtCapacity ? `Limit Reached (${effectiveLimit} max)` : 'Send Invitation'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

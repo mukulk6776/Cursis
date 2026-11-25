@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowUp, Check, Play, Target, X } from 'lucide-react';
 import { useWorkHub } from '@/lib/work-hub/WorkHubContext';
 import { workload } from '@/lib/work-hub/types';
 import styles from './WorkHub.module.css';
@@ -13,7 +14,7 @@ export function FocusStatus() {
   const focus = snapshot?.focus.find(session => session.userId === snapshot.userId);
   if (snapshot?.otherFocus) return <div className={`${styles.surface} ${styles.row}`} style={{ margin: '12px 20px 0' }}><span>You have a focus timer running in another workspace.</span><button disabled={busy} onClick={() => run({ action: 'stop', sessionId: snapshot.otherFocus!.id })}>Stop other timer & log time</button></div>;
   if (!focus) return null;
-  return <div className={`${styles.surface} ${styles.row}`} role="region" aria-label="Current focus" style={{ margin: '12px 20px 0' }}><span>🎯 Working on: <strong>{focus.taskTitle}</strong> · <span role="timer" aria-live="off">{elapsed(focus.startedAt, now)}</span> · Est. done at {new Date(focus.expectedEndAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span><div className={styles.actions}><button onClick={() => setTrayOpen(true)}>My Day</button><button disabled={busy} onClick={() => run({ action: 'stop', sessionId: focus._id })}>Stop timer</button></div></div>;
+  return <div className={`${styles.surface} ${styles.row}`} role="region" aria-label="Current focus" style={{ margin: '12px 20px 0' }}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Target size={14} aria-hidden="true" /> Working on: <strong>{focus.taskTitle}</strong> · <span role="timer" aria-live="off">{elapsed(focus.startedAt, now)}</span> · Est. done at {new Date(focus.expectedEndAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span><div className={styles.actions}><button onClick={() => setTrayOpen(true)}>My Day</button><button disabled={busy} onClick={() => run({ action: 'stop', sessionId: focus._id })}>Stop timer</button></div></div>;
 }
 export default function MyDayTray() {
   const { snapshot, date, now, trayOpen, setTrayOpen, run, busy, error } = useWorkHub();
@@ -30,16 +31,16 @@ export default function MyDayTray() {
     void save([...validItems, { taskId, hours: task.estimatedHours || 2 }]);
   };
   return <>
-    {!trayOpen && <button className={styles.toggle} style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 900, boxShadow: '4px 4px 0 #0a0a0a' }} onClick={() => setTrayOpen(true)} aria-expanded={false} aria-controls="my-day-tray">{focus ? '🎯 ' : ''}My Day · {validItems.length}/5</button>}
+    {!trayOpen && <button className={styles.toggle} style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 900, boxShadow: '4px 4px 0 #0a0a0a', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setTrayOpen(true)} aria-expanded={false} aria-controls="my-day-tray">{focus && <Target size={14} aria-hidden="true" />}My Day · {validItems.length}/5</button>}
     {trayOpen && <aside id="my-day-tray" className={styles.tray} aria-label="My Day">
       <div className={styles.surface}>
-        <div className={styles.row}><h2>My Day</h2><button aria-label="Close My Day" onClick={() => setTrayOpen(false)}>Close ×</button></div>
+        <div className={styles.row}><h2>My Day</h2><button aria-label="Close My Day" onClick={() => setTrayOpen(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>Close <X size={13} aria-hidden="true" /></button></div>
         <p className={styles.muted}>{new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} · Your local day</p>
         <p>Choose 3–5 tasks to focus on. Start small; you can commit to fewer.</p>
         {error && <p className={styles.error} role="alert">{error}</p>}
         {!snapshot && !error && <p>Loading your day…</p>}
         <p><strong>{capacity.hours.toFixed(1)}h / 8h</strong> · {capacity.label}</p><progress className={styles.meter} value={Math.min(capacity.hours,8)} max={8} aria-label="Today's planned hours" />
-        {focus && <div className={styles.timer}><span>🎯 {focus.taskTitle}</span><strong>{elapsed(focus.startedAt, now)}</strong><button disabled={busy} onClick={() => run({ action: 'stop', sessionId: focus._id })}>Stop & log time</button></div>}
+        {focus && <div className={styles.timer}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Target size={14} aria-hidden="true" /> {focus.taskTitle}</span><strong>{elapsed(focus.startedAt, now)}</strong><button disabled={busy} onClick={() => run({ action: 'stop', sessionId: focus._id })}>Stop & log time</button></div>}
         <section className={styles.today} aria-label="Doing Today" onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); add(event.dataTransfer.getData('text/plain')); }}>
           <h3>Doing Today · {validItems.length}/5</h3>
           {!validItems.length && <p className={styles.muted}>Drag assigned tasks here, or use “Add to today”.</p>}
@@ -55,7 +56,7 @@ export default function MyDayTray() {
             }}>
               <h3>{task.title}</h3><p className={styles.muted}>{logged.toFixed(2)}h logged on this task</p>
               <label>Today’s estimate (hours)<input type="number" min={0.5} max={24} step={0.5} defaultValue={item.hours} key={item.hours} disabled={busy} onBlur={event => { const hours = Number(event.target.value); if (Number.isFinite(hours) && hours !== item.hours) void save(validItems.map(entry => entry.taskId === item.taskId ? { ...entry, hours } : entry)); }} /></label>
-              <div className={styles.actions} style={{ marginTop: 10 }}><button className={styles.primary} disabled={busy || !!focus || task.status === 'done'} onClick={() => run({ action: 'start', taskId: task.id, date })}>{task.status === 'done' ? '✓ Completed today' : '▶ Start Working'}</button><button disabled={busy} onClick={() => save(validItems.filter(entry => entry.taskId !== task.id))}>Remove</button><button aria-label={`Move ${task.title} earlier`} disabled={busy || index === 0} onClick={() => { const next = [...validItems]; [next[index-1],next[index]] = [next[index],next[index-1]]; void save(next); }}>↑</button></div>
+              <div className={styles.actions} style={{ marginTop: 10 }}><button className={styles.primary} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }} disabled={busy || !!focus || task.status === 'done'} onClick={() => run({ action: 'start', taskId: task.id, date })}>{task.status === 'done' ? <><Check size={13} aria-hidden="true" /> Completed today</> : <><Play size={12} aria-hidden="true" /> Start Working</>}</button><button disabled={busy} onClick={() => save(validItems.filter(entry => entry.taskId !== task.id))}>Remove</button><button aria-label={`Move ${task.title} earlier`} disabled={busy || index === 0} onClick={() => { const next = [...validItems]; [next[index-1],next[index]] = [next[index],next[index-1]]; void save(next); }}><ArrowUp size={13} aria-hidden="true" /></button></div>
             </article>;
           })}
         </section>

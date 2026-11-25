@@ -1,5 +1,8 @@
 import Link from 'next/link';
+import { ArrowRight, Check, Sparkles, X } from 'lucide-react';
 import MarketingPage from '@/components/landing/MarketingPage';
+import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import { marketingMetadata } from '@/lib/seo/marketing';
 import { PLAN_CATALOG } from '@/lib/plans';
 
@@ -59,21 +62,21 @@ export default function Pricing() {
             </div>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-              <li>✓ <strong>6 team members</strong></li>
-              <li>✓ <strong>5 tasks per project</strong></li>
-              <li>✓ <strong>10 projects</strong></li>
-              <li style={{ color: '#6B7280' }}>✕ No access to Ordis AI</li>
-              <li style={{ color: '#6B7280' }}>✕ No access to My Day feature</li>
-              <li>✓ Access to all other workspace features</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>6 team members</strong></span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>5 tasks per project</strong></span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>10 projects</strong></span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7280' }}><X size={15} color="#9CA3AF" aria-hidden="true" /><span>No access to Ordis AI</span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7280' }}><X size={15} color="#9CA3AF" aria-hidden="true" /><span>No access to My Day feature</span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span>Access to all other workspace features</span></li>
             </ul>
           </div>
 
           <Link
             href="/pay?plan=starter"
-            className="btn btn-secondary"
+            className={buttonVariants({ variant: 'outline', size: 'lg' })}
             style={{ width: '100%', justifyContent: 'center', fontWeight: 700, textDecoration: 'none' }}
           >
-            Choose Starter — ${starter.priceUsd}/mo →
+            Choose Starter — ${starter.priceUsd}/mo <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </section>
 
@@ -91,23 +94,19 @@ export default function Pricing() {
           }}
         >
           <div>
-            <p
+            <Badge
+              variant="solid"
               style={{
-                display: 'inline-block',
                 margin: '0 0 10px',
-                padding: '3px 10px',
-                borderRadius: '999px',
                 border: '2px solid #0A0A0A',
-                background: '#FF5500',
-                color: '#FFFFFF',
-                fontSize: '11px',
                 fontWeight: 800,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
               }}
             >
+              <Sparkles size={11} aria-hidden="true" />
               Recommended
-            </p>
+            </Badge>
             <h2 id="pro-plan-heading" style={{ margin: '0 0 6px' }}>
               {pro.name}
             </h2>
@@ -128,20 +127,20 @@ export default function Pricing() {
             </div>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-              <li>✓ <strong>10 team members</strong></li>
-              <li>✓ <strong>Unlimited tasks</strong></li>
-              <li>✓ <strong>Unlimited projects</strong></li>
-              <li>✓ <strong>Full access to Ordis AI</strong></li>
-              <li>✓ <strong>Full access to My Day feature</strong> &amp; every workspace tool</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>10 team members</strong></span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>Unlimited tasks</strong></span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>Unlimited projects</strong></span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>Full access to Ordis AI</strong></span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>Full access to My Day feature</strong> &amp; every workspace tool</span></li>
             </ul>
           </div>
 
           <Link
             href="/pay?plan=pro"
-            className="btn btn-primary"
+            className={buttonVariants({ variant: 'default', size: 'lg' })}
             style={{ width: '100%', justifyContent: 'center', fontWeight: 800, textDecoration: 'none' }}
           >
-            Choose Pro — ${pro.priceUsd}/mo →
+            Choose Pro — ${pro.priceUsd}/mo <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </section>
 
@@ -172,19 +171,22 @@ export default function Pricing() {
             <p style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px' }}>
               Everything in Pro, plus:
             </p>
-            <ul style={{ paddingLeft: '18px', margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', lineHeight: 1.5 }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '7px', fontSize: '13px', lineHeight: 1.5 }}>
               {business.features.map((feat) => (
-                <li key={feat}>{feat}</li>
+                <li key={feat} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+                  <Check size={14} color="#047857" style={{ marginTop: '3px', flexShrink: 0 }} aria-hidden="true" />
+                  <span>{feat}</span>
+                </li>
               ))}
             </ul>
           </div>
 
           <Link
             href="/contact?plan=business"
-            className="btn btn-secondary"
+            className={buttonVariants({ variant: 'outline', size: 'lg' })}
             style={{ width: '100%', justifyContent: 'center', fontWeight: 700, textDecoration: 'none' }}
           >
-            Contact Us →
+            Contact Us <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </section>
       </div>

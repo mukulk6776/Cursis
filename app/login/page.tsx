@@ -16,6 +16,8 @@ export default function LoginPage() {
  const [googleLoading, setGoogleLoading] = useState(false);
  const [errorMsg, setErrorMsg] = useState('');
  const [successMsg, setSuccessMsg] = useState('');
+ const [verificationStep, setVerificationStep] = useState(false);
+ const [verificationCode, setVerificationCode] = useState('');
 
  useEffect(() => {
  let isMounted = true;
@@ -23,6 +25,8 @@ export default function LoginPage() {
  const params = new URLSearchParams(window.location.search);
  if (params.get('logout') === 'true') {
  setSuccessMsg('You have been signed out successfully.');
+ } else if (params.get('suspended') === 'true') {
+ setErrorMsg('Your account has been suspended by an administrator. Contact official@cursis.in for assistance.');
  }
  }
 
@@ -44,23 +48,25 @@ export default function LoginPage() {
  };
  }, []);
 
-  const getRedirectDestination = () => {
+  const getRedirectDestination = (serverRedirectTo?: string, platformRole?: 'admin' | 'user') => {
+    const isAdmin = platformRole === 'admin' || serverRedirectTo === '/admin';
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get('redirect');
       if (redirect) {
-        if (redirect.includes('\\') || /[\x00-\x1F\x7F]/.test(redirect) || redirect.startsWith('//')) {
-          return '/dashboard?setup=true';
+        if (!redirect.includes('\\') && !/[\x00-\x1F\x7F]/.test(redirect) && !redirect.startsWith('//')) {
+          try {
+            const parsed = new URL(redirect, window.location.origin);
+            if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/')) {
+              if (!parsed.pathname.startsWith('/admin') || isAdmin) {
+                return parsed.pathname + parsed.search + parsed.hash;
+              }
+            }
+          } catch {}
         }
-        try {
-          const parsed = new URL(redirect, window.location.origin);
-          if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/')) {
-            return parsed.pathname + parsed.search + parsed.hash;
-          }
-        } catch {}
       }
     }
-    return '/dashboard?setup=true';
+    return isAdmin ? '/admin' : '/dashboard?setup=true';
   };
 
   const exchangeTokenAndRedirect = async (authResult: {
@@ -69,17 +75,22 @@ export default function LoginPage() {
     idToken: string;
     uid?: string;
     photoURL?: string | null;
+    redirectTo?: string;
+    platformRole?: 'admin' | 'user';
   }) => {
     try {
       // If authResult already has a verified signed session token (e.g. from password login)
       if (authResult.idToken && authResult.idToken.startsWith('cursis_usr_')) {
+        const dest = getRedirectDestination(authResult.redirectTo, authResult.platformRole);
         try {
           localStorage.setItem('cursis_token', authResult.idToken);
-          sessionStorage.setItem('cursis_show_workspace_setup', 'true');
-          localStorage.setItem('cursis_show_workspace_setup', 'true');
+          if (!dest.startsWith('/admin')) {
+            sessionStorage.setItem('cursis_show_workspace_setup', 'true');
+            localStorage.setItem('cursis_show_workspace_setup', 'true');
+          }
         } catch {}
         await new Promise((r) => setTimeout(r, 120));
-        window.location.href = getRedirectDestination();
+        window.location.href = dest;
         return;
       }
 
@@ -108,14 +119,20 @@ export default function LoginPage() {
         throw new Error('No valid session token was returned by the authentication server.');
       }
 
+      const sessUser = data.user || data.data?.user;
+      const serverRedirect = data.redirectTo || data.data?.redirectTo;
+      const dest = getRedirectDestination(serverRedirect, sessUser?.platformRole);
+
       try {
         localStorage.setItem('cursis_token', token);
-        sessionStorage.setItem('cursis_show_workspace_setup', 'true');
-        localStorage.setItem('cursis_show_workspace_setup', 'true');
+        if (!dest.startsWith('/admin')) {
+          sessionStorage.setItem('cursis_show_workspace_setup', 'true');
+          localStorage.setItem('cursis_show_workspace_setup', 'true');
+        }
       } catch {}
 
       await new Promise((r) => setTimeout(r, 120));
-      window.location.href = getRedirectDestination();
+      window.location.href = dest;
     } catch (err: any) {
       console.error('Session exchange error:', err);
       setErrorMsg(err?.name === 'TimeoutError' ? 'Creating your session took too long. Please try signing in again.' : (err?.message || 'Authentication failed. Please verify your credentials and try again.'));
@@ -135,7 +152,12 @@ export default function LoginPage() {
     setSuccessMsg('');
 
     try {
-      const authResult = await signInWithEmail(cleanEmail, password);
+      const authResult = await signInWithEmail(cleanEmail, password, verificationStep ? verificationCode : undefined);
+      if (authResult?.requiresEmailVerification) {
+        setVerificationStep(true);
+        setSuccessMsg(authResult.message || 'Enter the 6-digit verification code sent to your email.');
+        return;
+      }
       if (authResult?.email) {
         await exchangeTokenAndRedirect(authResult);
       }
@@ -212,7 +234,24 @@ export default function LoginPage() {
             <input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} placeholder="Enter your password" onChange={e => setPassword(e.target.value)} required />
             <button type="button" className="auth-eye" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
           </div>
-          <button type="submit" className="auth-submit" disabled={loading || googleLoading}>{loading ? 'Signing in…' : 'Continue'}<ArrowRight size={18} aria-hidden="true" /></button>
+          {verificationStep && (
+            <>
+              <label htmlFor="login-verification-code">6-digit email verification code</label>
+              <input
+                id="login-verification-code"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                value={verificationCode}
+                placeholder="123456"
+                onChange={e => setVerificationCode(e.target.value)}
+                required
+                autoFocus
+              />
+            </>
+          )}
+          <button type="submit" className="auth-submit" disabled={loading || googleLoading}>{loading ? 'Signing in…' : (verificationStep ? 'Verify & Continue' : 'Continue')}<ArrowRight size={18} aria-hidden="true" /></button>
         </form>
         <p className="auth-signup">New to Cursis? <Link href="/signup">Make my workspace</Link></p>
         <p className="auth-legal">By continuing, you agree to our <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>

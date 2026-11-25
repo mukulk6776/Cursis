@@ -49,7 +49,16 @@ export async function PATCH(
     if (auth.errorResponse) return auth.errorResponse;
 
     const body = await request.json().catch(() => ({}));
-    const updated = await updateWorkspace(targetId, body);
+    const sanitizedUpdates = { ...(body || {}) };
+    delete sanitizedUpdates.id;
+    delete sanitizedUpdates._id;
+    delete sanitizedUpdates.ownerId;
+    delete sanitizedUpdates.tier;
+    delete sanitizedUpdates.ordisMode;
+    delete sanitizedUpdates.planSource;
+    delete sanitizedUpdates.planStartedAt;
+    delete sanitizedUpdates.planExpiresAt;
+    const updated = await updateWorkspace(targetId, sanitizedUpdates);
 
     if (!updated) {
       return apiError('Workspace not found or update failed.', 404);

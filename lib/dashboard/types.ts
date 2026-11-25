@@ -4,6 +4,15 @@ export type ProjectStatus = 'Planning' | 'In Progress' | 'Completed';
 export type EmployeeStatus = 'online' | 'busy' | 'offline';
 export type MeetingStatus = 'upcoming' | 'scheduled' | 'completed' | 'in-progress' | 'cancelled';
 
+export interface ActivePlanSummary {
+  plan: 'starter' | 'pro' | 'business';
+  planName: string;
+  status: 'active';
+  source: 'purchased' | 'admin';
+  startedAt: string;
+  expiresAt?: string | null;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -13,6 +22,8 @@ export interface User {
   avatar: string | null;
   color: string;
   workspaceRole?: string;
+  platformRole?: 'admin' | 'user';
+  activePlan?: ActivePlanSummary | null;
   photoURL?: string | null;
   planTier?: 'standard';
 }

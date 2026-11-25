@@ -8,6 +8,9 @@ import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { EMAIL_REGEX } from '@/lib/db/team';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { isAdminEmail } from '@/lib/auth/admin';
+import { issueAdminEmailVerificationCode, verifyAdminEmailCode } from '@/lib/auth/email-verification';
+import { isVerificationEmailConfigured } from '@/lib/email/notifications';
 import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
 import { PrivacyError, accountBlocked, privacyDb, recordAccountConsent } from '@/lib/privacy/core';
 import { PRIVACY_VERSION } from '@/lib/privacy/config';
@@ -63,34 +66,80 @@ export async function POST(request: Request) {
 
     // Check if account already exists
     const existing = await findUserByEmail(email);
+    const isAdminCandidate = isAdminEmail(email);
+
     if (existing) {
-      await recordAttempt(clientIP);
-      if (existing.passwordHash) {
-        return apiError('An account with this email already exists. Please sign in instead.', 409);
+      if (existing.accountStatus === 'suspended') {
+        return apiError('This account is suspended. Contact official@cursis.in for assistance.', 403);
       }
-      return apiError('An account with this email is already registered using Google Sign-In. Please sign in with Google.', 409);
+      if (!isAdminCandidate || existing.emailVerified) {
+        await recordAttempt(clientIP);
+        if (existing.passwordHash) {
+          return apiError('An account with this email already exists. Please sign in instead.', 409);
+        }
+        return apiError('An account with this email is already registered using Google Sign-In. Please sign in with Google.', 409);
+      }
+    }
+
+    let adminEmailVerified = false;
+    if (isAdminCandidate) {
+      const submittedCode = String(body.verificationCode || '').trim();
+      if (!submittedCode) {
+        if (isVerificationEmailConfigured()) {
+          await issueAdminEmailVerificationCode(email, 'admin_signup');
+          return NextResponse.json(
+            {
+              success: false,
+              requiresEmailVerification: true,
+              email,
+              message: `A 6-digit verification code was sent to ${email}. Enter it below to verify ownership and create your admin account.`,
+            },
+            { status: 202 }
+          );
+        }
+        return NextResponse.json(
+          {
+            success: false,
+            requiresGoogleVerification: true,
+            error: 'Email verification is required to register the administrator address. Click "Continue with Google" to verify ownership and sign up.',
+          },
+          { status: 403 }
+        );
+      }
+
+      const codeValid = await verifyAdminEmailCode(email, 'admin_signup', submittedCode);
+      if (!codeValid) {
+        await recordAttempt(clientIP);
+        return apiError('Invalid or expired verification code. Please check your email and try again.', 400);
+      }
+      adminEmailVerified = true;
     }
 
     await privacyDb(); // Fail closed: do not create an account with no durable consent storage.
     // Register user account with PBKDF2 salt & hash
-    const isFounder = isFounderEmail(email);
+    const isFounder = isFounderEmail(email) && adminEmailVerified;
     const user = await registerUser({
       displayName: name,
       email,
       password,
       role: isFounder ? 'owner' : 'member',
       ageConfirmed: true,
+      emailVerified: adminEmailVerified,
     });
     await recordAccountConsent(user.uid, 'password-signup');
 
     // Clear rate limit on successful signup
     await clearRateLimit(clientIP);
 
+    const platformRole = isAdminCandidate && adminEmailVerified ? 'admin' : 'user';
+    const redirectTo = platformRole === 'admin' ? '/admin' : '/dashboard?setup=true';
+
     const sessionPayload = {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
       role: user.role,
+      platformRole,
       workspaceId: user.activeWorkspaceId || `ws_${user.uid}`,
       photoURL: user.photoURL,
       createdAt: Date.now(),
@@ -103,7 +152,7 @@ export async function POST(request: Request) {
     const isCursisDomain = host.includes('cursis.in');
     const cookieOptions = {
       maxAge: maxAgeSeconds,
-      httpOnly: true,  // ✅ SECURITY FIX: Prevent XSS access to session cookie
+      httpOnly: true, // SECURITY FIX: Prevent XSS access to session cookie
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'lax' as const,
@@ -113,11 +162,12 @@ export async function POST(request: Request) {
     try {
       const cookieStore = await cookies();
       cookieStore.set('cursis_session', token, cookieOptions);
-    } catch {}
+    } catch { }
 
     const response = apiSuccess({
       message: 'Workspace account created successfully',
-      user: sessionPayload,
+      user: { ...sessionPayload, emailVerified: adminEmailVerified, activePlan: null },
+      redirectTo,
       token,
     }, 201);
 

@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers';
 import { inMemoryStore } from '@/lib/db/store';
-import { UserRole } from '@/lib/db/types';
+import { UserProfile, UserRole, PlatformRole } from '@/lib/db/types';
 import { isFounderEmail } from './founder';
+import { isVerifiedAdminUser } from './admin';
 import { accountBlocked } from '@/lib/privacy/core';
 import { getCollection } from '@/lib/mongodb';
 import {
@@ -25,6 +26,8 @@ export interface AuthenticatedUser {
   email: string;
   displayName: string;
   role: UserRole;
+  platformRole: PlatformRole;
+  emailVerified: boolean;
   workspaceId: string;
   photoURL?: string;
   title?: string;
@@ -35,11 +38,42 @@ export interface AuthenticatedUser {
 }
 
 export async function isSessionRevoked(session: SessionPayload): Promise<boolean> {
-  const users = await getCollection('users');
-  if (!users) return process.env.NODE_ENV === 'production';
-  return Boolean(await users.findOne({ email: session.email,
-    passwordChangedAt: { $gte: session.createdAt || 0 },
-  }, { projection: { _id: 1 } }));
+  const users = await getCollection<UserProfile>('users');
+  if (!users) {
+    if (process.env.NODE_ENV === 'production') return true;
+    const mem = inMemoryStore.users.get(session.uid) ||
+      Array.from(inMemoryStore.users.values()).find((u) => u.email?.toLowerCase() === session.email.toLowerCase());
+    if (!mem) return false;
+    return mem.accountStatus === 'suspended' || Boolean(mem.passwordChangedAt && mem.passwordChangedAt >= (session.createdAt || 0));
+  }
+  const cleanEmail = session.email.trim().toLowerCase();
+  const doc = await users.findOne(
+    { $or: [{ uid: session.uid }, { id: session.uid }, { email: cleanEmail }] },
+    { projection: { _id: 1, passwordChangedAt: 1, accountStatus: 1 } }
+  );
+  if (!doc) return false;
+  if (doc.accountStatus === 'suspended') return true;
+  if (doc.passwordChangedAt && doc.passwordChangedAt >= (session.createdAt || 0)) return true;
+  return false;
+}
+
+export async function isSessionUserSuspended(session: SessionPayload): Promise<boolean> {
+  try {
+    const cleanEmail = session.email.trim().toLowerCase();
+    const users = await getCollection<UserProfile>('users');
+    if (users) {
+      const doc = await users.findOne(
+        { $or: [{ uid: session.uid }, { id: session.uid }, { email: cleanEmail }] },
+        { projection: { accountStatus: 1 } }
+      );
+      return doc?.accountStatus === 'suspended';
+    }
+    const mem = inMemoryStore.users.get(session.uid) ||
+      Array.from(inMemoryStore.users.values()).find((u) => u.email?.toLowerCase() === cleanEmail);
+    return mem?.accountStatus === 'suspended';
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -83,7 +117,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
       if (sessionToken.includes('%')) {
         try {
           sessionToken = decodeURIComponent(sessionToken).replace(/^["']|["']$/g, '');
-        } catch {}
+        } catch { }
       }
     }
 
@@ -96,15 +130,36 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
       const verified = verifySessionToken(sessionToken);
       if (verified) {
         const uid = verified.uid;
-        const email = verified.email;
+        const email = verified.email.trim().toLowerCase();
         if (await accountBlocked(uid, email) || await isSessionRevoked(verified)) return null;
-        const displayName = verified.displayName || email.split('@')[0];
+
+        let dbUser: UserProfile | null = null;
+        try {
+          const usersCol = await getCollection<UserProfile>('users');
+          if (usersCol) {
+            dbUser = await usersCol.findOne({ $or: [{ uid }, { id: uid }, { email }] });
+            if (dbUser) {
+              inMemoryStore.users.set(dbUser.uid || dbUser.id, dbUser);
+            }
+          }
+        } catch { }
+
+        if (dbUser?.accountStatus === 'suspended') {
+          return null;
+        }
+
+        const storedUser = dbUser || inMemoryStore.users.get(uid) || Array.from(inMemoryStore.users.values()).find((u) => u.email?.toLowerCase() === email);
+        if (storedUser?.accountStatus === 'suspended') {
+          return null;
+        }
+
+        const displayName = storedUser?.displayName || verified.displayName || email.split('@')[0];
         const isFounder = isFounderEmail(email);
         const role: UserRole = isFounder ? 'owner' : (verified.role !== 'owner' ? (verified.role as UserRole) : 'member');
-        const workspaceId = verified.workspaceId || `ws_${verified.uid}`;
+        const platformRole: PlatformRole = isVerifiedAdminUser(storedUser) ? 'admin' : 'user';
+        const emailVerified = Boolean(storedUser?.emailVerified);
+        const workspaceId = storedUser?.activeWorkspaceId || verified.workspaceId || `ws_${verified.uid}`;
 
-        // Retrieve existing user from cache if present
-        const storedUser = inMemoryStore.users.get(uid) || Array.from(inMemoryStore.users.values()).find((u) => u.email === email);
         const title = isFounder ? 'Founder & CEO' : (storedUser?.title || 'Team Member');
         const department = isFounder ? 'Leadership' : (storedUser?.department || 'Engineering');
         const skills = isFounder ? ['Founder & CEO', 'Leadership', 'Strategy'] : (storedUser?.skills || ['General']);
@@ -112,7 +167,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
 
         const activePhoto = storedUser?.photoURL || verified.photoURL;
 
-        // Auto-provision user in store if not present (only with personal workspace ws_${uid})
+        // Auto-provision user in memory cache if not present (only with personal workspace ws_${uid})
         if (!inMemoryStore.users.has(uid)) {
           const personalWsId = `ws_${uid}`;
           inMemoryStore.users.set(uid, {
@@ -122,6 +177,9 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
             displayName,
             photoURL: activePhoto,
             role: isFounder ? 'owner' : 'member',
+            platformRole,
+            accountStatus: 'active',
+            emailVerified,
             title,
             department,
             workspaceIds: [personalWsId],
@@ -141,6 +199,8 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
           email,
           displayName,
           role,
+          platformRole,
+          emailVerified,
           workspaceId,
           photoURL: activePhoto,
           title,

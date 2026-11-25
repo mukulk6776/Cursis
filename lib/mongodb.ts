@@ -165,6 +165,9 @@ export async function initMongoIndexes(): Promise<void> {
  db.collection('crm_leads').createIndex({ workspaceId: 1 }),
  db.collection('messages').createIndex({ workspaceId: 1, channelId: 1 }),
  db.collection('audit_logs').createIndex({ workspaceId: 1, timestamp: -1 }),
+ db.collection('admin_audit_log').createIndex({ timestamp: -1 }),
+ db.collection('admin_audit_log').createIndex({ targetUserId: 1, timestamp: -1 }),
+ db.collection('email_verifications').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
  db.collection('settings').createIndex({ workspaceId: 1 }, { unique: true }),
  ]);
  } catch (error) {

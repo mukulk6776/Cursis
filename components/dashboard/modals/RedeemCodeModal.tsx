@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Sparkles, X } from 'lucide-react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
 export default function RedeemCodeModal() {
@@ -77,7 +78,7 @@ export default function RedeemCodeModal() {
                 fontSize: '18px',
               }}
             >
-              ★
+              <Sparkles size={18} aria-hidden="true" />
             </div>
             <div>
               <h3 id="redeem-modal-title" className="modal-title">
@@ -95,7 +96,7 @@ export default function RedeemCodeModal() {
             onClick={handleClose}
             aria-label="Close modal"
           >
-            ✕
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 

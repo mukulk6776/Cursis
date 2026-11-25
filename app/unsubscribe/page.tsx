@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { CheckCircle2 } from 'lucide-react';
 import { SUPPORT_EMAIL } from '@/lib/site';
 import { useSearchParams } from 'next/navigation';
 import LandingNav from '@/components/landing/LandingNav';
@@ -103,7 +104,9 @@ function UnsubscribeContent() {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>✅</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px', color: '#16A34A' }}>
+            <CheckCircle2 size={28} aria-hidden="true" />
+          </div>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#166534', marginBottom: '6px' }}>
             Unsubscribe Confirmed
           </div>

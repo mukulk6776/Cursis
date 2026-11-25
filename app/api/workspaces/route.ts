@@ -3,6 +3,9 @@ import { authorizeWorkspaceAccess, getUserWorkspaceRole } from '@/lib/auth/rbac'
 import { getUserWorkspaces, createWorkspace, updateWorkspace } from '@/lib/db/workspaces';
 import { generateWorkspaceAbbreviation } from '@/lib/dashboard/data';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { getCollection } from '@/lib/mongodb';
+import type { UserProfile } from '@/lib/db/types';
+import { resolveActiveUserPlan } from '@/lib/plans';
 
 export async function GET(request: Request) {
   try {
@@ -10,15 +13,45 @@ export async function GET(request: Request) {
     if (auth.errorResponse) return auth.errorResponse;
     const authUser = auth.user;
 
+    const usersCol = await getCollection<UserProfile>('users');
     const workspaces = await getUserWorkspaces(authUser.uid);
+    const ownerIds = Array.from(new Set(workspaces.map((w) => w.ownerId).filter(Boolean)));
+    const ownerMap = new Map<string, UserProfile>();
+    if (usersCol && ownerIds.length > 0) {
+      const owners = await usersCol
+        .find({ $or: [{ uid: { $in: ownerIds } }, { id: { $in: ownerIds } }] }, { projection: { uid: 1, id: 1, subscription: 1 } })
+        .toArray();
+      for (const o of owners) {
+        if (o.uid) ownerMap.set(o.uid, o);
+        if (o.id) ownerMap.set(o.id, o);
+      }
+    }
+
     const formatted = await Promise.all(workspaces.map(async (w) => {
       const workspaceRole = await getUserWorkspaceRole(authUser.uid, w.id);
+      const ownerDoc = ownerMap.get(w.ownerId);
+      const ownerActivePlan = ownerDoc?.subscription ? resolveActiveUserPlan(ownerDoc.subscription) : null;
+      let resolvedTier: string = w.tier || 'free';
+      if (ownerActivePlan) {
+        resolvedTier = ownerActivePlan.plan;
+      } else if (ownerDoc?.subscription) {
+        resolvedTier = 'free';
+      } else if (w.planExpiresAt) {
+        const exp = Date.parse(w.planExpiresAt);
+        if (!Number.isFinite(exp) || exp <= Date.now()) {
+          resolvedTier = 'free';
+        }
+      }
+      if (isFounderEmail(authUser.email) && resolvedTier === 'free' && !ownerDoc?.subscription) {
+        resolvedTier = 'pro';
+      }
+
       return {
         workspaceRole,
         id: w.id,
         name: w.name || 'Workspace',
         shortName: (w as any).shortName || generateWorkspaceAbbreviation(w.name || 'Workspace'),
-        tier: isFounderEmail(authUser.email) ? 'pro' : (w.tier || 'free'),
+        tier: resolvedTier,
         tagline: (w as any).tagline || 'Intelligent Workspace for Modern Teams',
         isCustomClient: Boolean((w as any).isCustomClient),
         badge: workspaceRole ? workspaceRole.charAt(0).toUpperCase() + workspaceRole.slice(1) : 'No access',

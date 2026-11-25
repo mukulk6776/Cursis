@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ArrowUpRight } from 'lucide-react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { Meeting, MeetingPlatform } from '@/lib/dashboard/types';
 import { formatDate } from '@/lib/dashboard/data';
@@ -113,9 +114,9 @@ export default function MeetingsPage() {
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-secondary btn-sm"
-            style={{ fontWeight: 600, textDecoration: 'none' }}
+            style={{ fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >
-            Open Meet ↗
+            Open Meet <ArrowUpRight size={13} aria-hidden="true" />
           </a>
           <button
             type="button"
@@ -338,9 +339,10 @@ export default function MeetingsPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        gap: '4px',
                       }}
                     >
-                      Join Meeting ↗
+                      Join Meeting <ArrowUpRight size={13} aria-hidden="true" />
                     </a>
                     <button
                       type="button"

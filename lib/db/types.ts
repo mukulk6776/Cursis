@@ -4,6 +4,21 @@
 export type WorkspaceTier = 'free' | 'starter' | 'pro' | 'business' | 'paid';
 export type OrdisMode = 'chill' | 'full_power'; // Chill Mode = Free (Cards/Approval), Full Power = Paid (Autonomous)
 export type UserRole = 'owner' | 'admin' | 'manager' | 'member' | 'viewer' | 'guest' | 'client';
+export type PlatformRole = 'admin' | 'user';
+export type AccountStatus = 'active' | 'suspended';
+export type PlanAssignmentSource = 'purchased' | 'admin';
+
+export interface UserPlanSubscription {
+  plan: 'starter' | 'pro' | 'business';
+  planName: string;
+  status: 'active' | 'revoked' | 'expired';
+  source: PlanAssignmentSource;
+  startedAt: string;
+  expiresAt?: string | null;
+  assignedBy?: string;
+  paymentId?: string;
+  updatedAt: string;
+}
 
 export const MAX_TEAM_MEMBERS = 4;
 
@@ -16,6 +31,9 @@ export interface Workspace {
   slug: string;
   tier: WorkspaceTier;
   ordisMode: OrdisMode;
+  planSource?: PlanAssignmentSource;
+  planStartedAt?: string;
+  planExpiresAt?: string | null;
   industry: string;
   teamSize: string;
   features: string[]; // Active module IDs
@@ -48,6 +66,13 @@ export interface UserProfile {
   displayName: string;
   photoURL?: string;
   role: UserRole;
+  platformRole?: PlatformRole;
+  accountStatus?: AccountStatus;
+  suspendedAt?: string | null;
+  suspendedReason?: string | null;
+  emailVerified?: boolean;
+  emailVerifiedAt?: string | null;
+  subscription?: UserPlanSubscription | null;
   passwordHash?: string;
   salt?: string;
   passwordChangedAt?: number;
@@ -72,6 +97,7 @@ export interface UserProfile {
   createdAt: string;
 }
 
+
 export interface WorkspaceMembership {
   id: string;
   workspaceId: string;
@@ -79,6 +105,7 @@ export interface WorkspaceMembership {
   role: UserRole;
   createdAt: string;
 }
+
 
 export interface WorkspaceTeamMember {
   id: string; // wtm_${workspaceId}_${userId}
@@ -215,6 +242,7 @@ export interface CalendarEvent {
   createdAt: string;
 }
 
+
 export type MeetingPlatform = 'google_meet' | 'zoom' | 'teams' | 'other';
 export type MeetingStatus = 'upcoming' | 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
 
@@ -309,6 +337,7 @@ export interface AutomationRule {
   lastRunAt?: string;
   createdAt: string;
 }
+
 
 // ==========================================
 // 10. BUILT-IN CRM MODULE
@@ -470,6 +499,7 @@ export interface AuditLogEntry {
   createdAt: string;
 }
 
+
 // ==========================================
 // 14. ORDIS AI LAYER (ALL 9 CAPABILITIES & CHILL VS FULL POWER)
 // ==========================================
@@ -499,14 +529,14 @@ export interface ApprovalQueueItem {
   id: string;
   workspaceId: string;
   capability:
-    | 'notices_problems'
-    | 'drafts_work'
-    | 'turns_meetings_to_work'
-    | 'runs_entire_process'
-    | 'builds_new_tools'
-    | 'works_toward_goal'
-    | 'audits_business'
-    | 'takes_outside_action';
+  | 'notices_problems'
+  | 'drafts_work'
+  | 'turns_meetings_to_work'
+  | 'runs_entire_process'
+  | 'builds_new_tools'
+  | 'works_toward_goal'
+  | 'audits_business'
+  | 'takes_outside_action';
   actionName: string;
   description: string;
   riskLevel: 'low' | 'medium' | 'high';
@@ -599,6 +629,7 @@ export interface CompanyBrainMemory {
   createdAt: string;
 }
 
+
 // ==========================================
 // 15. EXTERNAL INTEGRATIONS MODULE
 // ==========================================
@@ -623,6 +654,7 @@ export interface ExternalIntegration {
   lastSyncedAt?: string;
   createdAt: string;
 }
+
 
 // ==========================================
 // 16. CURSIS AGENCY STOREFRONT & CUSTOM BUILDS
@@ -678,4 +710,21 @@ export interface DbNotification {
     status?: 'pending' | 'accepted' | 'declined' | 'revoked';
   };
   createdAt: string;
+}
+
+
+export interface AdminAuditLogEntry {
+  id: string;
+  adminId: string;
+  adminEmail: string;
+  adminName?: string;
+  targetUserId: string;
+  targetUserEmail?: string;
+  targetUserName?: string;
+  action: 'plan.assigned' | 'plan.changed' | 'plan.revoked' | 'user.suspended' | 'user.activated';
+  oldValue: Record<string, any> | string | null;
+  newValue: Record<string, any> | string | null;
+  details?: string;
+  ipAddress?: string;
+  timestamp: string;
 }

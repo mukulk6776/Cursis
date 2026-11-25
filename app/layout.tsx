@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import '../styles/shadcn.css';
 import { ClientProviders } from '@/components/ClientProviders';
 import MarketingEngagement from '@/components/landing/MarketingEngagement';
 import { THEME_BOOTSTRAP } from '@/lib/dashboard/theme';

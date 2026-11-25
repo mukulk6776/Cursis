@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { AlertTriangle, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { PriorityLevel, TaskStatus } from '@/lib/dashboard/types';
 
@@ -57,7 +60,7 @@ export default function TaskModal() {
     if (project !== 'standalone' && planLimits.maxTasksPerProject !== null) {
       const existingInProject = tasks.filter((t) => t.project === project).length;
       if (existingInProject >= planLimits.maxTasksPerProject) {
-        setErrorMsg(`Task limit reached: maximum ${planLimits.maxTasksPerProject} tasks per project on ${planLimits.name}. Choose Independent Task or upgrade to Pro ($20/mo).`);
+        setErrorMsg(`Task limit reached: maximum ${planLimits.maxTasksPerProject} tasks per project. Choose Independent Task or upgrade to Pro ($20/mo).`);
         return;
       }
     }
@@ -112,22 +115,12 @@ export default function TaskModal() {
             <span className="modal-title" style={{ fontSize: '16px', fontWeight: 700 }}>
               Assign New Task
             </span>
-            <span
-              style={{
-                fontSize: '11px',
-                padding: '2px 8px',
-                borderRadius: '6px',
-                background: 'var(--surface-secondary)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-secondary)',
-                fontWeight: 600,
-              }}
-            >
+            <Badge variant="secondary">
               {activeWorkspace?.name || 'Current Workspace'}
-            </span>
+            </Badge>
           </div>
-          <button className="modal-close" onClick={handleClose}>
-            ✕
+          <button type="button" className="modal-close" onClick={handleClose} aria-label="Close modal">
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 
@@ -148,7 +141,7 @@ export default function TaskModal() {
                   gap: '6px',
                 }}
               >
-                <span>⚠️</span>
+                <AlertTriangle size={15} aria-hidden="true" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -190,7 +183,7 @@ export default function TaskModal() {
                   <option value="">-- Select Assignee * --</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
-                      👤 {emp.name} {emp.role ? `(${emp.role})` : ''}
+                      {emp.name} {emp.role ? `(${emp.role})` : ''}
                     </option>
                   ))}
                 </select>
@@ -231,12 +224,12 @@ export default function TaskModal() {
                   required
                 >
                   <option value="">-- Select Project or Standalone * --</option>
-                  <option value="standalone">📌 Independent Task (No Project)</option>
+                  <option value="standalone">Independent Task (No Project)</option>
                   {projects.length > 0 && (
                     <optgroup label="Workspace Projects">
                       {projects.map((p) => (
                         <option key={p.id} value={p.id}>
-                          📁 {p.name}
+                          {p.name}
                         </option>
                       ))}
                     </optgroup>
@@ -258,10 +251,10 @@ export default function TaskModal() {
                   onChange={(e) => setStatus(e.target.value as TaskStatus)}
                   required
                 >
-                  <option value="todo">📋 To Do</option>
-                  <option value="in-progress">⚡ In Progress</option>
-                  <option value="review">🔍 In Review</option>
-                  <option value="completed">✅ Completed</option>
+                  <option value="todo">To Do</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="review">In Review</option>
+                  <option value="completed">Completed</option>
                 </select>
               </div>
             </div>
@@ -281,7 +274,7 @@ export default function TaskModal() {
                   <option value="low">Low Priority</option>
                   <option value="medium">Medium Priority</option>
                   <option value="high">High Priority</option>
-                  <option value="urgent">🚨 Urgent Priority</option>
+                  <option value="urgent">Urgent Priority</option>
                 </select>
               </div>
 
@@ -345,16 +338,16 @@ export default function TaskModal() {
               gap: '10px',
             }}
           >
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary"
+              variant="outline"
               onClick={handleClose}
             >
               Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" style={{ fontWeight: 700 }}>
+            </Button>
+            <Button type="submit" style={{ fontWeight: 700 }}>
               Assign Task
-            </button>
+            </Button>
           </div>
         </form>
       </div>

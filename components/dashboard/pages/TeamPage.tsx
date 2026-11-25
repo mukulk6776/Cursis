@@ -129,7 +129,7 @@ export default function TeamPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <AlertTriangle size={16} color="var(--c-error)" />
             <span>
-              <strong>Team limit reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace is at maximum member capacity on {planLimits.name}.{' '}
+              <strong>Team limit reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace is at maximum member capacity.{' '}
               <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
             </span>
           </div>

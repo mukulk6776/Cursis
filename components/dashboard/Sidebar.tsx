@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { DashboardPageType } from '@/lib/dashboard/types';
 
@@ -16,6 +17,7 @@ export default function Sidebar() {
     toggleNotifications,
     notifications,
     planLimits,
+    user,
   } = useDashboard();
 
   const handleNav = (page: DashboardPageType) => {
@@ -366,8 +368,23 @@ export default function Sidebar() {
         </button>
       </nav>
 
-      {/* Sidebar Footer: Settings */}
+      {/* Sidebar Footer: Admin Console (Admins Only) + Settings */}
       <div className="sidebar-footer">
+        {user.platformRole === 'admin' && (
+          <Link
+            href="/admin"
+            className="sidebar-item"
+            title="Admin Console"
+            style={{ ...btnResetStyle, textDecoration: 'none', color: '#FF5500', fontWeight: 700 }}
+          >
+            <span className="sidebar-item-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </span>
+            <span className="sidebar-item-text">Admin Console</span>
+          </Link>
+        )}
         <button
           type="button"
           className={`sidebar-item ${currentPage === 'settings' ? 'active' : ''}`}

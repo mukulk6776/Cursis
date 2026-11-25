@@ -1,6 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Check, Plus, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { ProjectStatus } from '@/lib/dashboard/types';
 
@@ -53,8 +59,8 @@ export default function ProjectModal() {
  <div className="modal" style={{ maxWidth: '520px' }}>
  <div className="modal-header">
  <span className="modal-title">Create New Project</span>
- <button className="modal-close" onClick={closeModal}>
- 
+ <button type="button" className="modal-close" onClick={closeModal} aria-label="Close modal">
+ <X size={16} aria-hidden="true" />
  </button>
  </div>
 
@@ -62,15 +68,14 @@ export default function ProjectModal() {
  <div className="modal-body">
  {atProjectLimit && (
  <div style={{ marginBottom: '14px', padding: '10px 12px', borderRadius: '8px', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', fontSize: '12px', fontWeight: 600 }}>
- Project limit reached ({planLimits.maxProjects} projects max on {planLimits.name}).{' '}
+ Project limit reached ({planLimits.maxProjects} projects max).{' '}
  <a href="/pay?plan=pro" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade to Pro for unlimited projects →</a>
  </div>
  )}
  {/* Project Name */}
  <div className="input-group">
- <label className="input-label">Project Name</label>
- <input
- className="input"
+ <Label className="input-label">Project Name</Label>
+ <Input
  placeholder="What's this project about?"
  value={name}
  onChange={(e) => setName(e.target.value)}
@@ -82,23 +87,19 @@ export default function ProjectModal() {
  {/* Icon & Color */}
  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
  <div className="input-group">
- <label className="input-label">Icon</label>
+ <Label className="input-label">Category Tag</Label>
  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
  {icons.map((ic) => (
- <button
+ <Button
  key={ic}
  type="button"
- className="btn btn-secondary btn-sm"
- style={{
- fontSize: '16px',
- padding: '4px 8px',
- borderColor: icon === ic ? 'var(--c-brand)' : undefined,
- background: icon === ic ? 'rgba(249,115,22,0.1)' : undefined,
- }}
+ variant={icon === ic ? 'default' : 'outline'}
+ size="sm"
+ style={{ fontSize: '12px', padding: '0 9px', height: '28px' }}
  onClick={() => setIcon(ic)}
  >
  {ic}
- </button>
+ </Button>
  ))}
  </div>
  </div>
@@ -126,9 +127,8 @@ export default function ProjectModal() {
 
  {/* Description */}
  <div className="input-group">
- <label className="input-label">Description</label>
- <textarea
- className="input textarea"
+ <Label className="input-label">Description</Label>
+ <Textarea
  placeholder="Describe project goals and scope..."
  rows={3}
  value={desc}
@@ -139,23 +139,21 @@ export default function ProjectModal() {
  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
  {/* Status */}
  <div className="input-group">
- <label className="input-label">Status</label>
- <select
- className="input select"
+ <Label className="input-label">Status</Label>
+ <Select
  value={status}
  onChange={(e) => setStatus(e.target.value as ProjectStatus)}
  >
  <option value="Planning">Planning</option>
  <option value="In Progress">In Progress</option>
  <option value="Completed">Completed</option>
- </select>
+ </Select>
  </div>
 
  {/* Deadline */}
  <div className="input-group">
- <label className="input-label">Target Deadline</label>
- <input
- className="input"
+ <Label className="input-label">Target Deadline</Label>
+ <Input
  type="date"
  value={deadline}
  onChange={(e) => setDeadline(e.target.value)}
@@ -165,7 +163,7 @@ export default function ProjectModal() {
 
  {/* Team Members */}
  <div className="input-group">
- <label className="input-label">Assign Team Members</label>
+ <Label className="input-label">Assign Team Members</Label>
  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
  {employees.map((emp) => {
  const isSelected = selectedMembers.includes(emp.id);
@@ -176,6 +174,9 @@ export default function ProjectModal() {
  className="tag"
  style={{
  cursor: 'pointer',
+ display: 'inline-flex',
+ alignItems: 'center',
+ gap: '4px',
  background: isSelected ? 'var(--c-brand)' : 'var(--c-gray-200)',
  color: isSelected ? 'white' : 'var(--text-secondary)',
  }}
@@ -185,7 +186,7 @@ export default function ProjectModal() {
  );
  }}
  >
- {emp.name} {isSelected ? '' : '+'}
+ {emp.name} {isSelected ? <Check size={12} aria-hidden="true" /> : <Plus size={12} aria-hidden="true" />}
  </button>
  );
  })}
@@ -194,16 +195,16 @@ export default function ProjectModal() {
  </div>
 
  <div className="modal-footer">
- <button
+ <Button
  type="button"
- className="btn btn-secondary"
+ variant="outline"
  onClick={closeModal}
  >
  Cancel
- </button>
- <button type="submit" className="btn btn-primary" disabled={atProjectLimit}>
+ </Button>
+ <Button type="submit" disabled={atProjectLimit}>
  {atProjectLimit ? `Limit Reached (${planLimits.maxProjects} max)` : 'Create Project'}
- </button>
+ </Button>
  </div>
  </form>
  </div>

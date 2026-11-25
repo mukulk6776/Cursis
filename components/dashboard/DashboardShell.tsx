@@ -54,7 +54,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         }, 350);
         return () => clearTimeout(timer);
       }
-    } catch {}
+    } catch { }
   }, [openModal]);
 
   return (

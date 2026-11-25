@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import DOMPurify from 'isomorphic-dompurify';
+import { Check, Copy, Eye, EyeOff, Square, Volume2 } from 'lucide-react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatChatMarkdown } from '@/lib/dashboard/data';
 import ChatActionCardView from '@/components/dashboard/chat/ChatActionCardView';
@@ -152,7 +153,7 @@ function DisabledOrdisFloatingChat() {
   const handleSaveApiKey = () => {
     const clean = apiKeyInput.trim();
     setGroqApiKey(clean);
-    showToast(clean ? 'Groq API Key saved (openai/gpt-oss-20b active) ⚡' : 'Switched to Local Engine mode');
+    showToast(clean ? 'Groq API Key saved (openai/gpt-oss-20b active)' : 'Switched to Local Engine mode');
     setSettingsOpen(false);
   };
 
@@ -508,7 +509,7 @@ function DisabledOrdisFloatingChat() {
                   fontSize: '11px',
                 }}
               >
-                {showApiKey ? '🙈' : '👁️'}
+                {showApiKey ? <EyeOff size={14} aria-hidden="true" /> : <Eye size={14} aria-hidden="true" />}
               </button>
               <button
                 type="button"
@@ -607,7 +608,7 @@ function DisabledOrdisFloatingChat() {
  <span> Tasks: <strong style={{ color: '#fff' }}>{activeTaskCount}</strong></span>
  <span> Team: <strong style={{ color: '#fff' }}>{onlineMemberCount} online</strong></span>
  <span> Syncs: <strong style={{ color: '#fff' }}>{meetings.length}</strong></span>
- <span>Mode: <strong style={{ color: aiEngineStatus === 'groq' ? '#fb923c' : '#38bdf8' }}>{aiEngineStatus === 'groq' ? 'Groq AI ⚡' : 'Local Engine'}</strong></span>
+ <span>Mode: <strong style={{ color: aiEngineStatus === 'groq' ? '#fb923c' : '#38bdf8' }}>{aiEngineStatus === 'groq' ? 'Groq AI' : 'Local Engine'}</strong></span>
  </div>
 
  {/* Voice Mode Banner (if active) */}
@@ -749,7 +750,7 @@ function DisabledOrdisFloatingChat() {
  borderRadius: '4px',
  }}
  >
- {speakingIdx === idx ? '⏹' : ''}
+ {speakingIdx === idx ? <Square size={12} aria-hidden="true" /> : <Volume2 size={12} aria-hidden="true" />}
  </button>
  <button
  type="button"
@@ -764,7 +765,7 @@ function DisabledOrdisFloatingChat() {
  padding: '2px 4px',
  }}
  >
- {copiedIdx === idx ? '' : ''}
+ {copiedIdx === idx ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
  </button>
  {msg.time && (
  <span style={{ fontSize: '10px', color: '#6b7280' }}>{msg.time}</span>

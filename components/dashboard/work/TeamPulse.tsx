@@ -1,5 +1,7 @@
 'use client';
 
+import { Target } from 'lucide-react';
+
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { useWorkHub } from '@/lib/work-hub/WorkHubContext';
 import { workload } from '@/lib/work-hub/types';
@@ -20,7 +22,16 @@ export default function TeamPulse() {
       const capacity = workload(items.reduce((sum,item) => sum + item.hours,0));
       const focus = snapshot.focus.find(session => session.userId === employee.id);
       return <article className={styles.card} key={employee.id}><div className={styles.row}><h3>{employee.name}</h3><span>{capacity.label}</span></div><p><strong>{capacity.hours.toFixed(1)}h / 8h</strong> · {items.length} tasks</p><progress className={styles.meter} value={Math.min(capacity.hours,8)} max={8} aria-label={`${employee.name}'s workload`} />
-        <p className={styles.muted}>{focus ? `🎯 Working on: ${focus.taskTitle} (Est. done at ${new Date(focus.expectedEndAt).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })})` : 'No focus timer running'}</p>
+        <p className={styles.muted}>
+          {focus ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Target size={12} aria-hidden="true" />
+              Working on: {focus.taskTitle} (Est. done at {new Date(focus.expectedEndAt).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })})
+            </span>
+          ) : (
+            'No focus timer running'
+          )}
+        </p>
         <ul>{items.map(item => <li key={item.taskId}>{snapshot.tasks.find(task => task.id === item.taskId)?.title} · {item.hours}h</li>)}</ul>
       </article>;
     })}</div>

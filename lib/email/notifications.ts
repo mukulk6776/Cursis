@@ -15,6 +15,10 @@ export function isPasswordResetEmailConfigured(): boolean {
   return Boolean(resend && process.env.RESEND_FROM_EMAIL);
 }
 
+export function isVerificationEmailConfigured(): boolean {
+  return Boolean(resend && process.env.RESEND_FROM_EMAIL);
+}
+
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
   if (!resend || !isPasswordResetEmailConfigured()) throw new Error('Reset email is unavailable');
   const { error } = await resend.emails.send({
@@ -25,6 +29,18 @@ export async function sendPasswordResetEmail(email: string, code: string): Promi
     html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A"><h1 style="font-size:24px">Reset your Cursis password.</h1><p>Enter this code on the Forgot Password page:</p><p style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px;background:#FF5500;border:2px solid #0A0A0A;border-radius:12px">${code}</p><p>This code expires in 10 minutes and can only be used once.</p><p>If you did not request this, you can ignore this email. Never share this code.</p></div>`,
   });
   if (error) throw new Error('Reset email could not be sent');
+}
+
+export async function sendAdminVerificationEmail(email: string, code: string): Promise<void> {
+  if (!resend || !isVerificationEmailConfigured()) throw new Error('Verification email is unavailable');
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: 'Verify your Cursis administrator email',
+    text: `Your Cursis administrator verification code is ${code}. It expires in 10 minutes and can only be used once. If you did not try to access the Cursis Admin Console, ignore this message.`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A"><h1 style="font-size:22px;margin-top:0;">Verify your Cursis email</h1><p>Enter this 6-digit verification code to confirm ownership of your account:</p><p style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px;background:#FF5500;color:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;text-align:center;">${code}</p><p style="font-size:13px;color:#4A4A4A;">This code expires in 10 minutes and can only be used once.</p></div>`,
+  });
+  if (error) throw new Error('Verification email could not be sent');
 }
 
 export const CURSIS_PHYSICAL_ADDRESS = {
@@ -109,7 +125,7 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
     const emailContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <h2 style="color: #FF5500; border-bottom: 2px solid #FF5500; padding-bottom: 10px;">
-          🎉 New Custom Client Workspace Created
+          New Custom Client Workspace Created
         </h2>
 
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -192,18 +208,18 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
-      subject: `🚀 New Custom Client Workspace: ${data.workspaceName}`,
+      subject: `New Custom Client Workspace: ${data.workspaceName}`,
       html: emailContent,
     });
 
     if (error) {
-      console.error('❌ Resend API returned error for admin notification:', error);
+      console.error('Resend API returned error for admin notification:', error);
       return;
     }
 
-    console.log(`✅ Admin notification email sent for workspace: ${data.workspaceId}`);
+    console.log(`Admin notification email sent for workspace: ${data.workspaceId}`);
   } catch (error) {
-    console.error('❌ Failed to send admin notification email:', error);
+    console.error('Failed to send admin notification email:', error);
   }
 }
 
@@ -231,7 +247,7 @@ export async function sendWorkspaceWelcomeEmail(
       subject: `Welcome to ${workspaceName} on Cursis!`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-          <h2 style="color: #FF5500;">Welcome to ${safeWsName}! 🎉</h2>
+          <h2 style="color: #FF5500;">Welcome to ${safeWsName}!</h2>
           <p>Hi ${safeOwner},</p>
           <p>Your workspace <strong>${safeWsName}</strong> has been successfully created on Cursis!</p>
           <p>You can now start inviting team members, managing projects, and leveraging the power of AI-assisted workflows.</p>
@@ -312,13 +328,13 @@ export async function sendWorkspaceInvitationEmail({
     });
 
     if (error) {
-      console.warn('❌ Resend API returned error for invitation:', error);
+      console.warn('Resend API returned error for invitation:', error);
       return { success: false, error: error.message || 'Resend delivery error' };
     }
 
     return { success: true };
   } catch (err: any) {
-    console.warn('❌ Failed to dispatch invitation email:', err?.message);
+    console.warn('Failed to dispatch invitation email:', err?.message);
     return { success: false, error: err?.message || 'Email dispatch exception' };
   }
 }
@@ -400,13 +416,13 @@ export async function sendProjectActivityNotificationEmail({
     });
 
     if (error) {
-      console.warn('❌ Resend API returned error for project activity notification:', error);
+      console.warn('Resend API returned error for project activity notification:', error);
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (err: any) {
-    console.warn('❌ Failed to dispatch project activity notification email:', err?.message);
+    console.warn('Failed to dispatch project activity notification email:', err?.message);
     return { success: false, error: err?.message };
   }
 }

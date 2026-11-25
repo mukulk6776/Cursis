@@ -1,7 +1,13 @@
 import { isFounderEmail } from '@/lib/auth/founder';
-import { MAX_TEAM_MEMBERS, type WorkspaceTier } from '@/lib/db/types';
+import {
+  MAX_TEAM_MEMBERS,
+  type UserPlanSubscription,
+  type WorkspaceTier,
+} from '@/lib/db/types';
+import type { ActivePlanSummary } from '@/lib/dashboard/types';
 
 export type PlanKey = 'free' | 'starter' | 'pro' | 'business';
+export type PaidPlanKey = 'starter' | 'pro' | 'business';
 
 export interface PlanLimits {
   id: PlanKey;
@@ -106,7 +112,47 @@ export const PLAN_CATALOG: Record<PlanKey, PlanLimits> = {
 
 export const PUBLIC_PLANS = [PLAN_CATALOG.starter, PLAN_CATALOG.pro, PLAN_CATALOG.business] as const;
 
-export function resolvePlanKey(tier?: WorkspaceTier | string | null, userEmail?: string | null): PlanKey {
+/**
+ * Resolves a user's active purchased or admin-assigned plan for display.
+ * Returns null if the user has no plan, or if the plan is revoked or expired.
+ */
+export function resolveActiveUserPlan(
+  subscription?: UserPlanSubscription | null
+): ActivePlanSummary | null {
+  if (!subscription || subscription.status !== 'active') {
+    return null;
+  }
+  if (subscription.source !== 'purchased' && subscription.source !== 'admin') {
+    return null;
+  }
+  const normalizedPlan = String(subscription.plan || '').trim().toLowerCase();
+  if (normalizedPlan !== 'starter' && normalizedPlan !== 'pro' && normalizedPlan !== 'business') {
+    return null;
+  }
+  if (subscription.expiresAt) {
+    const expiryMs = Date.parse(subscription.expiresAt);
+    if (!Number.isFinite(expiryMs) || expiryMs <= Date.now()) {
+      return null;
+    }
+  }
+  return {
+    plan: normalizedPlan,
+    planName: PLAN_CATALOG[normalizedPlan].name,
+    status: 'active',
+    source: subscription.source,
+    startedAt: subscription.startedAt,
+    expiresAt: subscription.expiresAt || null,
+  };
+}
+
+export function resolvePlanKey(
+  tier?: WorkspaceTier | string | null,
+  userEmail?: string | null,
+  activePlan?: ActivePlanSummary | null
+): PlanKey {
+  if (activePlan && activePlan.status === 'active') {
+    return activePlan.plan;
+  }
   if (userEmail && isFounderEmail(userEmail)) {
     return 'pro';
   }
@@ -117,6 +163,10 @@ export function resolvePlanKey(tier?: WorkspaceTier | string | null, userEmail?:
   return 'free';
 }
 
-export function getPlanLimits(tier?: WorkspaceTier | string | null, userEmail?: string | null): PlanLimits {
-  return PLAN_CATALOG[resolvePlanKey(tier, userEmail)];
+export function getPlanLimits(
+  tier?: WorkspaceTier | string | null,
+  userEmail?: string | null,
+  activePlan?: ActivePlanSummary | null
+): PlanLimits {
+  return PLAN_CATALOG[resolvePlanKey(tier, userEmail, activePlan)];
 }

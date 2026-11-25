@@ -4,11 +4,12 @@ import { getWorkspace } from '@/lib/db/workspaces';
 import { getProjects } from '@/lib/db/projects';
 import { getTasks } from '@/lib/db/tasks';
 import { inMemoryStore } from '@/lib/db/store';
-import type { Workspace } from '@/lib/db/types';
-import { getPlanLimits, type PlanKey, type PlanLimits } from '@/lib/plans';
+import type { PlanAssignmentSource, UserProfile, Workspace } from '@/lib/db/types';
+import { getPlanLimits, resolveActiveUserPlan, type PlanKey, type PlanLimits } from '@/lib/plans';
 
 /**
- * Resolves effective plan limits for a workspace from persistent storage.
+ * Resolves effective plan limits for a workspace from persistent storage,
+ * honoring owner's active subscription (including expiry/revocation) and workspace tier.
  */
 export async function getWorkspacePlanLimits(
   workspaceId: string,
@@ -16,15 +17,52 @@ export async function getWorkspacePlanLimits(
 ): Promise<PlanLimits> {
   const cleanId = (workspaceId || '').trim();
   const ws = cleanId ? await getWorkspace(cleanId).catch(() => null) : null;
-  return getPlanLimits(ws?.tier, userEmail);
+
+  let ownerActivePlan = null;
+  let ownerHasRevokedOrExpiredSub = false;
+  const ownerId = ws?.ownerId || (cleanId.startsWith('ws_usr_') ? cleanId.replace(/^ws_/, '') : '');
+
+  if (ownerId) {
+    try {
+      const usersCol = await getCollection<UserProfile>('users');
+      const ownerDoc = usersCol
+        ? await usersCol.findOne({ $or: [{ uid: ownerId }, { id: ownerId }] })
+        : inMemoryStore.users.get(ownerId);
+      if (ownerDoc?.subscription) {
+        ownerActivePlan = resolveActiveUserPlan(ownerDoc.subscription);
+        if (!ownerActivePlan) {
+          ownerHasRevokedOrExpiredSub = true;
+        }
+      }
+    } catch {}
+  }
+
+  let effectiveTier = ws?.tier;
+  if (ownerActivePlan) {
+    effectiveTier = ownerActivePlan.plan;
+  } else if (ownerHasRevokedOrExpiredSub) {
+    effectiveTier = 'free';
+  } else if (ws?.planExpiresAt) {
+    const exp = Date.parse(ws.planExpiresAt);
+    if (!Number.isFinite(exp) || exp <= Date.now()) {
+      effectiveTier = 'free';
+    }
+  }
+
+  return getPlanLimits(effectiveTier, userEmail, ownerActivePlan);
 }
 
 /**
- * Upgrades a workspace to a verified plan tier upon successful payment or activation.
+ * Upgrades or sets a workspace tier upon successful payment or admin assignment.
  */
 export async function upgradeWorkspacePlan(
   workspaceId: string,
-  planKey: PlanKey
+  planKey: PlanKey,
+  options?: {
+    source?: PlanAssignmentSource;
+    startedAt?: string;
+    expiresAt?: string | null;
+  }
 ): Promise<Workspace | null> {
   const cleanId = (workspaceId || '').trim();
   if (!cleanId) return null;
@@ -38,21 +76,27 @@ export async function upgradeWorkspacePlan(
     existing.tier = planKey;
     existing.ordisMode = nextOrdisMode;
     existing.updatedAt = now;
+    if (options?.source) existing.planSource = options.source;
+    if (options?.startedAt !== undefined) existing.planStartedAt = options.startedAt;
+    if (options?.expiresAt !== undefined) existing.planExpiresAt = options.expiresAt;
     inMemoryStore.workspaces.set(cleanId, existing);
   }
 
   try {
     const col = await getCollection<Workspace>('workspaces');
     if (col) {
+      const setPayload: Record<string, any> = {
+        tier: planKey,
+        ordisMode: nextOrdisMode,
+        updatedAt: now,
+      };
+      if (options?.source) setPayload.planSource = options.source;
+      if (options?.startedAt !== undefined) setPayload.planStartedAt = options.startedAt;
+      if (options?.expiresAt !== undefined) setPayload.planExpiresAt = options.expiresAt;
+
       const updated = await col.findOneAndUpdate(
         { id: cleanId },
-        {
-          $set: {
-            tier: planKey,
-            ordisMode: nextOrdisMode,
-            updatedAt: now,
-          },
-        },
+        { $set: setPayload },
         { returnDocument: 'after' }
       );
       if (updated) {
@@ -65,6 +109,66 @@ export async function upgradeWorkspacePlan(
   }
 
   return existing || null;
+}
+
+/**
+ * Synchronizes plan tier across all workspaces owned by a user.
+ */
+export async function syncUserOwnedWorkspacesPlan(
+  ownerUserId: string,
+  planKey: PlanKey,
+  options?: {
+    source?: PlanAssignmentSource;
+    startedAt?: string;
+    expiresAt?: string | null;
+  }
+): Promise<string[]> {
+  const cleanUid = (ownerUserId || '').trim();
+  if (!cleanUid) return [];
+
+  const limits = getPlanLimits(planKey);
+  const nextOrdisMode = limits.hasOrdisAi ? 'full_power' : 'chill';
+  const now = new Date().toISOString();
+  const touchedIds = new Set<string>([`ws_${cleanUid}`]);
+
+  for (const ws of inMemoryStore.workspaces.values()) {
+    if (ws.ownerId === cleanUid || ws.id === `ws_${cleanUid}`) {
+      ws.tier = planKey;
+      ws.ordisMode = nextOrdisMode;
+      ws.updatedAt = now;
+      if (options?.source) ws.planSource = options.source;
+      if (options?.startedAt !== undefined) ws.planStartedAt = options.startedAt;
+      if (options?.expiresAt !== undefined) ws.planExpiresAt = options.expiresAt;
+      inMemoryStore.workspaces.set(ws.id, ws);
+      touchedIds.add(ws.id);
+    }
+  }
+
+  try {
+    const col = await getCollection<Workspace>('workspaces');
+    if (col) {
+      const filter = { $or: [{ ownerId: cleanUid }, { id: `ws_${cleanUid}` }] };
+      const existingDocs = await col.find(filter, { projection: { id: 1 } }).toArray();
+      for (const doc of existingDocs) {
+        if (doc.id) touchedIds.add(doc.id);
+      }
+
+      const setPayload: Record<string, any> = {
+        tier: planKey,
+        ordisMode: nextOrdisMode,
+        updatedAt: now,
+      };
+      if (options?.source) setPayload.planSource = options.source;
+      if (options?.startedAt !== undefined) setPayload.planStartedAt = options.startedAt;
+      if (options?.expiresAt !== undefined) setPayload.planExpiresAt = options.expiresAt;
+
+      await col.updateMany(filter, { $set: setPayload });
+    }
+  } catch (error) {
+    console.warn('[Plans] Failed to sync owned workspaces:', error);
+  }
+
+  return Array.from(touchedIds);
 }
 
 /**

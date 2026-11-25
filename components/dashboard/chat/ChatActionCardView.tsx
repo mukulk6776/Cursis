@@ -1,6 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
+import {
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  Compass,
+  FileText,
+  Folder,
+  KeyRound,
+  Palette,
+  Sparkles,
+  Users,
+  Zap,
+} from 'lucide-react';
 import { ChatActionCard, DashboardPageType } from '@/lib/dashboard/types';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 
@@ -78,27 +91,27 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
   const getIcon = () => {
     switch (card.type) {
       case 'task':
-        return '✓';
+        return <CheckCircle2 size={16} aria-hidden="true" />;
       case 'meeting':
-        return '📅';
+        return <Calendar size={16} aria-hidden="true" />;
       case 'project':
-        return '📁';
+        return <Folder size={16} aria-hidden="true" />;
       case 'deal':
-        return '💼';
+        return <Briefcase size={16} aria-hidden="true" />;
       case 'doc':
-        return '📄';
+        return <FileText size={16} aria-hidden="true" />;
       case 'automation':
-        return '⚡';
+        return <Zap size={16} aria-hidden="true" />;
       case 'apikey':
-        return '🔑';
+        return <KeyRound size={16} aria-hidden="true" />;
       case 'theme':
-        return '🎨';
+        return <Palette size={16} aria-hidden="true" />;
       case 'team':
-        return '👥';
+        return <Users size={16} aria-hidden="true" />;
       case 'navigation':
-        return '🧭';
+        return <Compass size={16} aria-hidden="true" />;
       default:
-        return '✦';
+        return <Sparkles size={16} aria-hidden="true" />;
     }
   };
 

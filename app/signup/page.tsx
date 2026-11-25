@@ -10,55 +10,60 @@ import { BRAND_NAME } from '@/lib/site';
 import CaptureSignupSource from '@/components/landing/CaptureSignupSource';
 
 export default function SignupPage() {
- const [method, setMethod] = useState<'email' | 'google' | null>(null);
- const [name, setName] = useState('');
- const [email, setEmail] = useState('');
- const [password, setPassword] = useState('');
- const [showPassword, setShowPassword] = useState(false);
- const [loading, setLoading] = useState(false);
- const [googleLoading, setGoogleLoading] = useState(false);
- const [ageConfirmed, setAgeConfirmed] = useState(false);
- const [privacyConsent, setPrivacyConsent] = useState(false);
- const [errorMsg, setErrorMsg] = useState('');
+  const [method, setMethod] = useState<'email' | 'google' | null>(null);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [statusMsg, setStatusMsg] = useState('');
+  const [verificationStep, setVerificationStep] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
 
- useEffect(() => {
- let isMounted = true;
- if (window.location.hash === '#signup-age-gate') setMethod('google');
- handleGoogleRedirectResult()
- .then((result) => {
- if (isMounted && result) {
- setGoogleLoading(true);
- exchangeTokenAndRedirect(result).finally(() => {
- if (isMounted) setGoogleLoading(false);
- });
- }
- })
- .catch((err) => {
- if (isMounted) setErrorMsg(err?.message || 'Google sign-in could not be restored. Please try again.');
- });
+  useEffect(() => {
+    let isMounted = true;
+    if (window.location.hash === '#signup-age-gate') setMethod('google');
+    handleGoogleRedirectResult()
+      .then((result) => {
+        if (isMounted && result) {
+          setGoogleLoading(true);
+          exchangeTokenAndRedirect(result).finally(() => {
+            if (isMounted) setGoogleLoading(false);
+          });
+        }
+      })
+      .catch((err) => {
+        if (isMounted) setErrorMsg(err?.message || 'Google sign-in could not be restored. Please try again.');
+      });
 
- return () => {
- isMounted = false;
- };
- }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  const getRedirectDestination = () => {
+  const getRedirectDestination = (serverRedirectTo?: string, platformRole?: 'admin' | 'user') => {
+    const isAdmin = platformRole === 'admin' || serverRedirectTo === '/admin';
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get('redirect');
       if (redirect) {
-        if (redirect.includes('\\') || /[\x00-\x1F\x7F]/.test(redirect) || redirect.startsWith('//')) {
-          return '/dashboard?setup=true';
+        if (!redirect.includes('\\') && !/[\x00-\x1F\x7F]/.test(redirect) && !redirect.startsWith('//')) {
+          try {
+            const parsed = new URL(redirect, window.location.origin);
+            if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/')) {
+              if (!parsed.pathname.startsWith('/admin') || isAdmin) {
+                return parsed.pathname + parsed.search + parsed.hash;
+              }
+            }
+          } catch { }
         }
-        try {
-          const parsed = new URL(redirect, window.location.origin);
-          if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/')) {
-            return parsed.pathname + parsed.search + parsed.hash;
-          }
-        } catch {}
       }
     }
-    return '/dashboard?setup=true';
+    return isAdmin ? '/admin' : '/dashboard?setup=true';
   };
 
   const exchangeTokenAndRedirect = async (authResult: {
@@ -67,17 +72,22 @@ export default function SignupPage() {
     idToken: string;
     uid?: string;
     photoURL?: string | null;
+    redirectTo?: string;
+    platformRole?: 'admin' | 'user';
   }) => {
     try {
       // If authResult already has a verified signed session token (e.g. from email signup)
       if (authResult.idToken && authResult.idToken.startsWith('cursis_usr_')) {
+        const dest = getRedirectDestination(authResult.redirectTo, authResult.platformRole);
         try {
           localStorage.setItem('cursis_token', authResult.idToken);
-          sessionStorage.setItem('cursis_show_workspace_setup', 'true');
-          localStorage.setItem('cursis_show_workspace_setup', 'true');
-        } catch {}
+          if (!dest.startsWith('/admin')) {
+            sessionStorage.setItem('cursis_show_workspace_setup', 'true');
+            localStorage.setItem('cursis_show_workspace_setup', 'true');
+          }
+        } catch { }
         await new Promise((r) => setTimeout(r, 120));
-        window.location.href = getRedirectDestination();
+        window.location.href = dest;
         return;
       }
 
@@ -109,14 +119,20 @@ export default function SignupPage() {
         throw new Error('No valid session token was returned by the authentication server.');
       }
 
+      const sessUser = data.user || data.data?.user;
+      const serverRedirect = data.redirectTo || data.data?.redirectTo;
+      const dest = getRedirectDestination(serverRedirect, sessUser?.platformRole);
+
       try {
         localStorage.setItem('cursis_token', token);
-        sessionStorage.setItem('cursis_show_workspace_setup', 'true');
-        localStorage.setItem('cursis_show_workspace_setup', 'true');
-      } catch {}
+        if (!dest.startsWith('/admin')) {
+          sessionStorage.setItem('cursis_show_workspace_setup', 'true');
+          localStorage.setItem('cursis_show_workspace_setup', 'true');
+        }
+      } catch { }
 
       await new Promise((r) => setTimeout(r, 120));
-      window.location.href = getRedirectDestination();
+      window.location.href = dest;
     } catch (err: any) {
       console.error('Session exchange error:', err);
       setErrorMsg(err?.name === 'TimeoutError' ? 'Creating your session took too long. Please try signing in again.' : (err?.message || 'Failed to initialize workspace session. Please try logging in directly.'));
@@ -145,9 +161,22 @@ export default function SignupPage() {
 
     setLoading(true);
     setErrorMsg('');
+    setStatusMsg('');
 
     try {
-      const authResult = await signUpWithEmail(cleanEmail, password, cleanName, ageConfirmed, privacyConsent);
+      const authResult = await signUpWithEmail(
+        cleanEmail,
+        password,
+        cleanName,
+        ageConfirmed,
+        privacyConsent,
+        verificationStep ? verificationCode : undefined
+      );
+      if (authResult?.requiresEmailVerification) {
+        setVerificationStep(true);
+        setStatusMsg(authResult.message || 'Enter the 6-digit verification code sent to your email.');
+        return;
+      }
       if (authResult?.email) {
         await exchangeTokenAndRedirect(authResult);
       }
@@ -202,15 +231,16 @@ export default function SignupPage() {
         <h1 id="signup-title">{method ? 'Complete your account' : 'Create your workspace'}</h1>
         <p className="auth-intro">{method ? 'One last step to get started.' : 'No credit card required · Upgrade to Starter ($9) or Pro ($20) anytime'}</p>
 
+        {statusMsg && <p className="auth-message auth-success" role="status">{statusMsg}</p>}
         {errorMsg && <p className="auth-message auth-error" role="alert">{errorMsg}</p>}
         {!method ? (
           <>
             <button type="button" className="auth-google" onClick={() => { setErrorMsg(''); setMethod('google'); }}>
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.23c1.89-1.74 2.99-4.3 2.99-7.36Z"/>
-                <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.41l-3.23-2.51c-.9.6-2.04.97-3.38.97-2.6 0-4.8-1.76-5.59-4.13H3.07v2.59A10 10 0 0 0 12 22Z"/>
-                <path fill="#FBBC05" d="M6.41 13.92a6 6 0 0 1 0-3.84V7.49H3.07a10 10 0 0 0 0 9.02l3.34-2.59Z"/>
-                <path fill="#EA4335" d="M12 5.95c1.47 0 2.79.5 3.83 1.5L18.7 4.6A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59C7.2 7.71 9.4 5.95 12 5.95Z"/>
+                <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.23c1.89-1.74 2.99-4.3 2.99-7.36Z" />
+                <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.41l-3.23-2.51c-.9.6-2.04.97-3.38.97-2.6 0-4.8-1.76-5.59-4.13H3.07v2.59A10 10 0 0 0 12 22Z" />
+                <path fill="#FBBC05" d="M6.41 13.92a6 6 0 0 1 0-3.84V7.49H3.07a10 10 0 0 0 0 9.02l3.34-2.59Z" />
+                <path fill="#EA4335" d="M12 5.95c1.47 0 2.79.5 3.83 1.5L18.7 4.6A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59C7.2 7.71 9.4 5.95 12 5.95Z" />
               </svg>
               Continue with Google
             </button>
@@ -237,6 +267,23 @@ export default function SignupPage() {
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
+                {verificationStep && (
+                  <>
+                    <label htmlFor="signup-verification-code">6-digit email verification code</label>
+                    <input
+                      id="signup-verification-code"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]{6}"
+                      maxLength={6}
+                      value={verificationCode}
+                      onChange={event => setVerificationCode(event.target.value)}
+                      placeholder="123456"
+                      required
+                      autoFocus
+                    />
+                  </>
+                )}
               </>
             )}
             <label className="auth-consent">

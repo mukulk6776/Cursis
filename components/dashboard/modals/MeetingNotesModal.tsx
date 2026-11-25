@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ArrowUpRight, Copy } from 'lucide-react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate } from '@/lib/dashboard/data';
 
@@ -158,6 +159,7 @@ export default function MeetingNotesModal() {
                 title="Copy Link"
                 aria-label="Copy meeting link to clipboard"
               >
+                <Copy size={12} aria-hidden="true" />
                 Copy
               </button>
               <a
@@ -167,7 +169,7 @@ export default function MeetingNotesModal() {
                 className="btn btn-brand btn-sm"
                 style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               >
-                Join Call ↗
+                Join Call <ArrowUpRight size={13} aria-hidden="true" />
               </a>
             </div>
           </div>

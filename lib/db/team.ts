@@ -749,7 +749,7 @@ export async function updateTeamMember(
 
   try {
     if (col) {
-      const setDoc: any = { ...cleanUpdates, updatedAt: nowIso };
+      const setDoc: any = { ...cleanUpdates, lastActiveAt: nowIso, updatedAt: nowIso };
       delete setDoc.passwordHash;
       delete setDoc.salt;
       delete setDoc.passwordReset;

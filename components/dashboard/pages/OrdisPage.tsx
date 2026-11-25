@@ -217,7 +217,7 @@ export default function OrdisPage() {
             Unlock Ordis AI with Pro
           </h1>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 22px', lineHeight: 1.6 }}>
-            Your workspace is currently on <strong>{planLimits.name}</strong>, which does not include Ordis AI. Upgrade to the <strong>Pro Plan ($20/mo)</strong> to unlock Ordis AI, My Day focus planner, unlimited tasks, unlimited projects, and up to 10 team members.
+            Ordis AI is not included in your current workspace tier. Upgrade to the <strong>Pro Plan ($20/mo)</strong> to unlock Ordis AI, My Day focus planner, unlimited tasks, unlimited projects, and up to 10 team members.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href="/pay?plan=pro" className="btn btn-primary" style={{ fontWeight: 700, padding: '10px 22px' }}>

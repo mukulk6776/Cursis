@@ -45,6 +45,18 @@ export default function DashboardLayout({
           } catch {}
         }
 
+        if (res.status === 403) {
+          const data = await res.json().catch(() => ({}));
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('cursis_token');
+          }
+          await fetch('/api/auth/session', { method: 'DELETE' }).catch(() => {});
+          if (isMounted) {
+            window.location.href = data?.suspended ? '/login?suspended=true' : '/login';
+          }
+          return;
+        }
+
         if (!res.ok) {
           // Unauthenticated: clear stale local token and redirect to login
           if (typeof window !== 'undefined') {

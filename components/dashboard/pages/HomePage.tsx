@@ -1,10 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
+import {
+  AlertCircle,
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  FolderKanban,
+  Plus,
+  Sparkles,
+  Users,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate, isOverdue, getGreeting } from '@/lib/dashboard/data';
 import ActivationChecklist from '@/components/dashboard/ActivationChecklist';
 import EmptyState from '@/components/dashboard/EmptyState';
+import ActivePlanBadge from '@/components/dashboard/ActivePlanBadge';
 
 export default function HomePage() {
   const {
@@ -63,9 +78,12 @@ export default function HomePage() {
       >
         <div>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-              {getGreeting()}, {user.name.split(' ')[0]}
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+                {getGreeting()}, {user.name.split(' ')[0]}
+              </h1>
+              <ActivePlanBadge activePlan={user.activePlan} size="md" />
+            </div>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
               {activeWorkspace.tagline || 'Workspace overview and operational focus.'}
             </p>
@@ -73,74 +91,61 @@ export default function HomePage() {
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary btn-sm"
+            variant="outline"
+            size="sm"
             onClick={() => openModal('meeting-modal')}
-            style={{ fontWeight: 600 }}
           >
-            + Schedule Sync
-          </button>
-          <button
+            <Calendar size={14} aria-hidden="true" />
+            Schedule Sync
+          </Button>
+          <Button
             type="button"
-            className="btn btn-primary btn-sm"
+            size="sm"
             onClick={() => openModal('task-modal')}
-            style={{ fontWeight: 700 }}
           >
-            + New Task
-          </button>
+            <Plus size={14} aria-hidden="true" />
+            New Task
+          </Button>
         </div>
       </div>
 
       {/* Ordis Action Bar */}
-      <div
-        className="card"
+      <Card
         style={{
           padding: '18px 20px',
           marginBottom: '20px',
-          background: '#FFFFFF',
-          border: '1px solid var(--border-color)',
-          borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={15} color="#FF5500" aria-hidden="true" />
             <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
               Ordis Copilot
             </span>
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                background: 'rgba(255, 85, 0, 0.08)',
-                color: 'var(--c-brand-text)',
-                border: '1px solid rgba(255, 85, 0, 0.2)',
-                textTransform: 'uppercase',
-              }}
-            >
+            <Badge style={{ fontSize: '10px', borderRadius: '6px', textTransform: 'uppercase' }}>
               Action Console
-            </span>
+            </Badge>
           </div>
 
           {planLimits.hasOrdisAi ? (
-            <button
+            <Button
               type="button"
-              className="btn btn-ghost btn-sm"
+              variant="ghost"
+              size="sm"
               onClick={() => setCurrentPage('ordis')}
-              style={{ fontSize: '12px', color: 'var(--text-secondary)', padding: '2px 6px' }}
+              style={{ fontSize: '12px', color: 'var(--text-secondary)', padding: '2px 8px' }}
             >
-              Open Full Console →
-            </button>
+              Open Full Console <ArrowRight size={13} aria-hidden="true" />
+            </Button>
           ) : (
             <a
               href="/pay?plan=pro"
-              className="btn btn-primary btn-sm"
-              style={{ fontSize: '12px', padding: '4px 12px', fontWeight: 700, textDecoration: 'none' }}
+              className={buttonVariants({ size: 'sm' })}
+              style={{ fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}
             >
-              Unlock on Pro ($20/mo) →
+              Unlock on Pro ($20/mo) <ArrowRight size={13} aria-hidden="true" />
             </a>
           )}
         </div>
@@ -148,13 +153,9 @@ export default function HomePage() {
         {planLimits.hasOrdisAi ? (
           <>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-              <input
-                className="input"
+              <Input
                 style={{
                   flex: 1,
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
                   fontSize: '13px',
                   height: '36px',
                 }}
@@ -168,9 +169,9 @@ export default function HomePage() {
                   }
                 }}
               />
-              <button
+              <Button
                 type="button"
-                className="btn btn-primary btn-sm"
+                size="sm"
                 onClick={() => handleSendPrompt()}
                 style={{
                   padding: '0 16px',
@@ -178,8 +179,8 @@ export default function HomePage() {
                   height: '36px',
                 }}
               >
-                Execute →
-              </button>
+                Execute <ArrowRight size={14} aria-hidden="true" />
+              </Button>
             </div>
 
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -214,14 +215,14 @@ export default function HomePage() {
         ) : (
           <div style={{ padding: '12px 14px', borderRadius: '8px', background: 'var(--surface-secondary)', border: '1px solid var(--border-color)', fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
             <span>
-              Ordis AI and My Day focus planner require the <strong>Pro Plan</strong> ({planLimits.name} active).
+              Ordis AI and My Day focus planner require the <strong>Pro Plan</strong>{user.activePlan ? ` (${user.activePlan.planName} active)` : ''}.
             </span>
             <a href="/pricing" style={{ fontSize: '12px', fontWeight: 700, color: '#FF5500', textDecoration: 'underline' }}>
               Compare Plans
             </a>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Core Metrics Grid */}
       <div
@@ -232,20 +233,17 @@ export default function HomePage() {
           marginBottom: '20px',
         }}
       >
-        <div
-          className="card stat-card"
+        <Card
+          className="stat-card"
           style={{
             padding: '18px 20px',
             cursor: 'pointer',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('tasks')}
         >
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
-            Active Tasks
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+            <span>Active Tasks</span>
+            <CheckCircle2 size={14} aria-hidden="true" />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {inProgressTasks}
@@ -253,22 +251,19 @@ export default function HomePage() {
           <div style={{ fontSize: '12px', color: 'var(--c-success)', fontWeight: 600 }}>
             {completedTasks} completed
           </div>
-        </div>
+        </Card>
 
-        <div
-          className="card stat-card"
+        <Card
+          className="stat-card"
           style={{
             padding: '18px 20px',
             cursor: 'pointer',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('tasks')}
         >
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
-            Overdue Tasks
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+            <span>Overdue Tasks</span>
+            <AlertCircle size={14} color={overdueTasks.length > 0 ? '#dc2626' : 'currentColor'} aria-hidden="true" />
           </div>
           <div
             style={{
@@ -290,22 +285,19 @@ export default function HomePage() {
           >
             {overdueTasks.length > 0 ? 'Requires attention' : 'All deadlines on track'}
           </div>
-        </div>
+        </Card>
 
-        <div
-          className="card stat-card"
+        <Card
+          className="stat-card"
           style={{
             padding: '18px 20px',
             cursor: 'pointer',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('projects')}
         >
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
-            Active Projects
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+            <span>Active Projects</span>
+            <FolderKanban size={14} aria-hidden="true" />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {projects.length}
@@ -315,22 +307,19 @@ export default function HomePage() {
               ? `${Math.round(projects.reduce((acc, p) => acc + (p.progress || 0), 0) / projects.length)}% avg progress`
               : 'No active projects'}
           </div>
-        </div>
+        </Card>
 
-        <div
-          className="card stat-card"
+        <Card
+          className="stat-card"
           style={{
             padding: '18px 20px',
             cursor: 'pointer',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            background: '#FFFFFF',
           }}
           onClick={() => setCurrentPage('team')}
         >
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
-            Team Roster
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+            <span>Team Roster</span>
+            <Users size={14} aria-hidden="true" />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             {employees.length > 0 ? employees.length : 1}
@@ -338,49 +327,47 @@ export default function HomePage() {
           <div style={{ fontSize: '12px', color: 'var(--c-success)', fontWeight: 600 }}>
             {employees.length > 0 ? `${employees.filter((e) => e.status === 'online').length} online now` : 'Workspace active'}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Main Content Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
         {/* Tasks Section */}
-        <div
-          className="card"
+        <Card
           style={{
             padding: '18px 20px',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            background: '#FFFFFF',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)' }}>Sprint Tasks</div>
             <div style={{ display: 'flex', gap: '4px' }}>
-              <button
+              <Button
                 type="button"
-                className={`btn ${activeTab === 'active' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                variant={activeTab === 'active' ? 'default' : 'secondary'}
+                size="sm"
                 onClick={() => setActiveTab('active')}
                 style={{ fontSize: '11px', padding: '2px 8px', height: '26px' }}
               >
                 Active ({inProgressTasks})
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className={`btn ${activeTab === 'overdue' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                variant={activeTab === 'overdue' ? 'default' : 'secondary'}
+                size="sm"
                 onClick={() => setActiveTab('overdue')}
                 style={{ fontSize: '11px', padding: '2px 8px', height: '26px' }}
               >
                 Overdue ({overdueTasks.length})
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className={`btn ${activeTab === 'completed' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                variant={activeTab === 'completed' ? 'default' : 'secondary'}
+                size="sm"
                 onClick={() => setActiveTab('completed')}
                 style={{ fontSize: '11px', padding: '2px 8px', height: '26px' }}
               >
                 Done ({completedTasks})
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -458,40 +445,37 @@ export default function HomePage() {
           </div>
 
           <div style={{ marginTop: '14px', textAlign: 'center' }}>
-            <button
+            <Button
               type="button"
-              className="btn btn-ghost btn-sm"
+              variant="ghost"
+              size="sm"
               onClick={() => setCurrentPage('tasks')}
               style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}
             >
-              Open All Tasks →
-            </button>
+              Open All Tasks <ArrowRight size={13} aria-hidden="true" />
+            </Button>
           </div>
-        </div>
+        </Card>
 
         {/* Right Column: Upcoming Meetings & Live Activity */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Upcoming Meetings */}
-          <div
-            className="card"
+          <Card
             style={{
               padding: '18px 20px',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-              background: '#FFFFFF',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)' }}>Upcoming Syncs</div>
-              <button
+              <Button
                 type="button"
-                className="btn btn-ghost btn-sm"
+                variant="ghost"
+                size="sm"
                 onClick={() => setCurrentPage('meetings')}
-                style={{ fontSize: '12px', color: 'var(--text-secondary)', padding: '2px 6px' }}
+                style={{ fontSize: '12px', color: 'var(--text-secondary)', padding: '2px 8px' }}
               >
-                All Syncs →
-              </button>
+                All Syncs <ArrowRight size={13} aria-hidden="true" />
+              </Button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -539,17 +523,12 @@ export default function HomePage() {
                 ))
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Activity Feed */}
-          <div
-            className="card"
+          <Card
             style={{
               padding: '18px 20px',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-              background: '#FFFFFF',
             }}
           >
             <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '14px' }}>
@@ -577,7 +556,7 @@ export default function HomePage() {
                 ))
               )}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

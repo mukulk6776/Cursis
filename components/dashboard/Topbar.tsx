@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
+import ActivePlanBadge from './ActivePlanBadge';
 
 export default function Topbar() {
   const {
@@ -194,6 +196,9 @@ export default function Topbar() {
           )}
         </div>
 
+        {/* Active Plan Badge (strictly rendered only for active purchased/admin-assigned plan) */}
+        <ActivePlanBadge activePlan={user.activePlan} />
+
         {/* User Profile Trigger & Dropdown */}
         <div
           className="topbar-user"
@@ -257,10 +262,11 @@ export default function Topbar() {
                 <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user.email}
                 </div>
-                <div style={{ marginTop: '4px' }}>
+                <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <span className="badge badge-brand" style={{ fontSize: '9px', padding: '1px 5px' }}>
                     {user.role}
                   </span>
+                  <ActivePlanBadge activePlan={user.activePlan} />
                 </div>
               </div>
 
@@ -297,6 +303,21 @@ export default function Topbar() {
                 </svg>
                 Workspace Settings
               </button>
+
+              {user.platformRole === 'admin' && (
+                <Link
+                  href="/admin"
+                  role="menuitem"
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start', fontSize: '12px', gap: '8px', padding: '6px 10px', color: '#FF5500', fontWeight: 700, textDecoration: 'none' }}
+                  onClick={() => setUserDropdownOpen(false)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  Admin Console
+                </Link>
+              )}
 
               <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
 

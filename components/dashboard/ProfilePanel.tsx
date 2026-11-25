@@ -5,6 +5,7 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { getFirebaseAuth } from '@/lib/auth/firebase';
 import { updateProfile } from 'firebase/auth';
 import MemberFocusStatus from './work/MemberFocusStatus';
+import ActivePlanBadge from './ActivePlanBadge';
 
 const processAndCompressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -303,6 +304,7 @@ export default function ProfilePanel() {
  >
  <MemberFocusStatus userId={emp.id} fallback={`● ${emp.status}`} />
  </span>
+ {isCurrentUser && <ActivePlanBadge activePlan={user.activePlan} />}
  </div>
  </div>
 

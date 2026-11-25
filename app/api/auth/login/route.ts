@@ -7,6 +7,13 @@ import { findUserByEmail, registerUser, verifyPasswordResultAsync, upgradePasswo
 import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
+import { isAdminEmail } from '@/lib/auth/admin';
+import { issueAdminEmailVerificationCode, verifyAdminEmailCode } from '@/lib/auth/email-verification';
+import { isVerificationEmailConfigured } from '@/lib/email/notifications';
+import { getCollection } from '@/lib/mongodb';
+import { inMemoryStore } from '@/lib/db/store';
+import type { PlatformRole, UserProfile } from '@/lib/db/types';
+import { resolveActiveUserPlan } from '@/lib/plans';
 import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
 import { PrivacyError, accountBlocked, privacyDb } from '@/lib/privacy/core';
 import { EMAIL_REGEX } from '@/lib/db/team';
@@ -92,19 +99,90 @@ export async function POST(request: Request) {
       });
     }
 
+    // Block suspended accounts from signing in
+    if (user.accountStatus === 'suspended') {
+      return apiError('Your account has been suspended by an administrator. Contact official@cursis.in for assistance.', 403);
+    }
+
+    const nowIso = new Date().toISOString();
+    const isDesignatedAdmin = isAdminEmail(user.email);
+    let emailVerified = Boolean(user.emailVerified);
+    let platformRole: PlatformRole = isDesignatedAdmin && emailVerified ? 'admin' : 'user';
+
+    // Never grant admin privileges until the admin email has been verified
+    if (isDesignatedAdmin && !emailVerified) {
+      const submittedCode = String(body.verificationCode || '').trim();
+      if (submittedCode) {
+        const verifiedNow = await verifyAdminEmailCode(user.email, 'admin_login', submittedCode);
+        if (!verifiedNow) {
+          await recordAttempt(clientIP);
+          await recordAttempt(userRateKey);
+          return apiError('Invalid or expired verification code. Please request a new code and try again.', 400);
+        }
+        emailVerified = true;
+        platformRole = 'admin';
+      } else if (isVerificationEmailConfigured()) {
+        await issueAdminEmailVerificationCode(user.email, 'admin_login');
+        return NextResponse.json(
+          {
+            success: false,
+            requiresEmailVerification: true,
+            email: user.email,
+            message: `Enter the 6-digit verification code sent to ${user.email} to verify ownership and access the Admin Console.`,
+          },
+          { status: 202 }
+        );
+      } else {
+        return NextResponse.json(
+          {
+            success: false,
+            requiresGoogleVerification: true,
+            error: 'Email verification is required for administrator access. Sign in once with "Continue with Google" to verify your email.',
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     // Clear rate limit on successful login
     await clearRateLimit(clientIP);
     await clearRateLimit(userRateKey);
 
+    // Sync verified platformRole and lastActiveAt in MongoDB & memory store
+    try {
+      const usersCol = await getCollection<UserProfile>('users');
+      const setDoc: Record<string, any> = {
+        platformRole,
+        lastActiveAt: nowIso,
+        presence: 'online',
+      };
+      if (emailVerified) {
+        setDoc.emailVerified = true;
+        setDoc.emailVerifiedAt = user.emailVerifiedAt || nowIso;
+      }
+      if (usersCol) {
+        await usersCol.updateOne({ uid: user.uid }, { $set: setDoc });
+      }
+      user.platformRole = platformRole;
+      user.emailVerified = emailVerified;
+      user.lastActiveAt = nowIso;
+      inMemoryStore.users.set(user.uid, user);
+    } catch (syncErr) {
+      console.warn('Login user role/activity sync notice:', syncErr);
+    }
+
+    const activePlan = resolveActiveUserPlan(user.subscription);
     const sessionPayload = {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
       role: user.role,
+      platformRole,
       workspaceId: user.activeWorkspaceId || `ws_${user.uid}`,
       photoURL: user.photoURL,
       createdAt: Date.now(),
     };
+    const redirectTo = platformRole === 'admin' ? '/admin' : '/dashboard';
 
     const token = createSessionToken(sessionPayload);
     const maxAgeSeconds = 60 * 60 * 24 * 7; // 7 days
@@ -113,7 +191,7 @@ export async function POST(request: Request) {
     const isCursisDomain = host.includes('cursis.in');
     const cookieOptions = {
       maxAge: maxAgeSeconds,
-      httpOnly: true,  // ✅ SECURITY FIX: Prevent XSS access to session cookie
+      httpOnly: true, // SECURITY FIX: Prevent XSS access to session cookie
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'lax' as const,
@@ -127,7 +205,8 @@ export async function POST(request: Request) {
 
     const response = apiSuccess({
       message: 'Authentication successful',
-      user: sessionPayload,
+      user: { ...sessionPayload, activePlan, emailVerified },
+      redirectTo,
       token,
     });
 

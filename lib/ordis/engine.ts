@@ -1131,7 +1131,7 @@ export function executeOrdisCommand(
  ) {
  if (lower.includes('feature') || lower.includes('module')) {
  return {
- responseText: ` **Complete List of 17 Cursis Core Modules:**\n\n1. **Dashboard** — Central cockpit with real-time metrics, quick actions & health scores.\n2. **Projects** — Milestone tracking, timeline roadmaps, and budget allocation.\n3. **Tasks** — Multi-view Kanban board, priority badges, and sprint assignment.\n4. **Messages** — Real-time team communication with channels and threads.\n5. **Calendar** — Unified meeting schedule with auto-generated Google Meet links.\n6. **Docs** — Collaborative rich-text editor with markdown support.\n7. **Files** — Centralized asset repository with contextual project links.\n8. **Team** — Directory, roles (SE, VE, TD, SM, VO), permissions, and email onboarding.\n9. **Creators** — 5-stage production pipeline for YouTube, podcasts & media houses.\n10. ⏱ **Time Log** — Billable hour tracking, stopwatch timers, and efficiency logs.\n11. **Invoices** — 1-click client billing generated directly from tracked sprint time.\n12. **CRM Deals** — Enterprise deal stages, pipeline forecasting & contact cards.\n13. **Automations** — Autonomous trigger-action rules and event webhooks.\n14. **Analytics & Reports** — Sprint velocity, burndown charts, and productivity telemetry.\n15. **Developer Hub** — Production API keys, webhook subscribers & audit logs.\n16. **Settings & Themes** — Accent colors, dark/light modes, and workspace branding.\n17. **Ordis AI Copilot** — Ambient intelligence, summaries, and dynamic feature synthesis.`,
+ responseText: ` **Complete List of 17 Cursis Core Modules:**\n\n1. **Dashboard** — Central cockpit with real-time metrics, quick actions & health scores.\n2. **Projects** — Milestone tracking, timeline roadmaps, and budget allocation.\n3. **Tasks** — Multi-view Kanban board, priority badges, and sprint assignment.\n4. **Messages** — Real-time team communication with channels and threads.\n5. **Calendar** — Unified meeting schedule with auto-generated Google Meet links.\n6. **Docs** — Collaborative rich-text editor with markdown support.\n7. **Files** — Centralized asset repository with contextual project links.\n8. **Team** — Directory, roles (SE, VE, TD, SM, VO), permissions, and email onboarding.\n9. **Creators** — 5-stage production pipeline for YouTube, podcasts & media houses.\n10. **Time Log** — Billable hour tracking, stopwatch timers, and efficiency logs.\n11. **Invoices** — 1-click client billing generated directly from tracked sprint time.\n12. **CRM Deals** — Enterprise deal stages, pipeline forecasting & contact cards.\n13. **Automations** — Autonomous trigger-action rules and event webhooks.\n14. **Analytics & Reports** — Sprint velocity, burndown charts, and productivity telemetry.\n15. **Developer Hub** — Production API keys, webhook subscribers & audit logs.\n16. **Settings & Themes** — Accent colors, dark/light modes, and workspace branding.\n17. **Ordis AI Copilot** — Ambient intelligence, summaries, and dynamic feature synthesis.`,
  suggestedFollowUps: ['How do I use Tasks?', 'Summarize workspace', 'Make a new feature'],
  };
  }
@@ -1157,7 +1157,7 @@ export function executeOrdisCommand(
 
  if (lower.includes('shortcut') || lower.includes('command')) {
  return {
- responseText: `⌨ **List of Cursis Keyboard Shortcuts & Quick Commands:**\n\n• \`Cmd+K / Ctrl+K\` — Open Universal Command Palette & Search\n• \`T\` — Jump directly to Tasks Kanban\n• \`P\` — Jump to Projects Directory\n• \`M\` — Open Messages & Channels\n• \`C\` — Open Calendar & Meetings\n• \`D\` — Open Documents & Notes\n• \`O\` — Toggle Ordis AI Copilot Sidebar\n• \`Shift + ?\` — Open Keyboard Shortcuts Cheat Sheet`,
+ responseText: `**List of Cursis Keyboard Shortcuts & Quick Commands:**\n\n• \`Cmd+K / Ctrl+K\` — Open Universal Command Palette & Search\n• \`T\` — Jump directly to Tasks Kanban\n• \`P\` — Jump to Projects Directory\n• \`M\` — Open Messages & Channels\n• \`C\` — Open Calendar & Meetings\n• \`D\` — Open Documents & Notes\n• \`O\` — Toggle Ordis AI Copilot Sidebar\n• \`Shift + ?\` — Open Keyboard Shortcuts Cheat Sheet`,
  suggestedFollowUps: ['Open command palette', 'Show all features', 'Go to dashboard'],
  };
  }
@@ -1496,7 +1496,7 @@ export function executeOrdisCommand(
  lower.includes('team chat')
  ) {
  return {
- responseText: 'ℹ️ **Team Communication Notice**\n\nThe Team Messages section has been removed from the dashboard. You can coordinate deliverables directly via Tasks, Projects, Team directory, and Calendar syncs.',
+ responseText: '**Team Communication Notice**\n\nThe Team Messages section has been removed from the dashboard. You can coordinate deliverables directly via Tasks, Projects, Team directory, and Calendar syncs.',
  suggestedFollowUps: ['View active tasks', 'Check team roster', 'Schedule meeting'],
  };
  }
@@ -2160,7 +2160,7 @@ export function executeOrdisCommand(
  // 5c. Generate Meeting Agenda
  if (lower.includes('agenda') || lower.includes('meeting notes template')) {
  return {
- responseText: ` **Structured Meeting Agenda Template**\n\n### Objectives\n• Align on current sprint blockers and release readiness\n• Review architectural decisions and API contracts\n\n### ⏱ Timeline & Structure (30 Mins)\n1. **00-05m**: Welcome & Context Setting\n2. **05-15m**: Technical Architecture Deep-Dive\n3. **15-25m**: Workload & Dependency Resolution\n4. **25-30m**: Action Items & Assignees\n\n Would you like me to attach this agenda to your next scheduled meeting?`,
+ responseText: ` **Structured Meeting Agenda Template**\n\n### Objectives\n• Align on current sprint blockers and release readiness\n• Review architectural decisions and API contracts\n\n### Timeline & Structure (30 Mins)\n1. **00-05m**: Welcome & Context Setting\n2. **05-15m**: Technical Architecture Deep-Dive\n3. **15-25m**: Workload & Dependency Resolution\n4. **25-30m**: Action Items & Assignees\n\n Would you like me to attach this agenda to your next scheduled meeting?`,
  suggestedFollowUps: ['Schedule meeting with this agenda', 'Create follow-up tasks', 'Open calendar'],
  };
  }

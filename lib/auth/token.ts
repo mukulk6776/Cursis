@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { UserRole } from '@/lib/db/types';
+import { PlatformRole, UserRole } from '@/lib/db/types';
 
 if (!process.env.AUTH_SESSION_SECRET) {
   if (process.env.NODE_ENV === 'production') {
@@ -14,6 +14,7 @@ export interface SessionPayload {
   email: string;
   displayName: string;
   role: UserRole;
+  platformRole?: PlatformRole;
   workspaceId: string;
   photoURL?: string;
   createdAt: number;
@@ -59,7 +60,7 @@ export function verifySessionToken(token: string): SessionPayload | null {
     if (cleanToken.includes('%')) {
       try {
         cleanToken = decodeURIComponent(cleanToken).replace(/^["']|["']$/g, '');
-      } catch {}
+      } catch { }
     }
 
     const raw = cleanToken.replace('cursis_usr_', '');

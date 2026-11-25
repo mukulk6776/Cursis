@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isSessionTokenValid } from '@/lib/auth/token';
+import { isSessionTokenValid, verifySessionToken } from '@/lib/auth/token';
 
 function applySecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('X-Frame-Options', 'DENY');
@@ -116,10 +116,35 @@ export function proxy(request: NextRequest) {
   }
 
   const sessionCookie = request.cookies.get('cursis_session')?.value;
-  const hasValidSession = isSessionTokenValid(sessionCookie);
+  const sessionPayload = sessionCookie ? verifySessionToken(sessionCookie) : null;
+  const hasValidSession = Boolean(sessionPayload) || isSessionTokenValid(sessionCookie);
 
+  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
   const isProtectedRoute = pathname.startsWith('/dashboard') || pathname === '/dashboard';
   const isAuthRoute = pathname === '/login' || pathname === '/signup';
+
+  // 0. Guard Admin Console Routes (/admin and all sub-routes)
+  if (isAdminRoute) {
+    if (!hasValidSession) {
+      const loginUrl = new URL('/login', request.url);
+      const safeRedirect = getSafeRelativeRedirect(pathname + request.nextUrl.search, '/admin');
+      loginUrl.searchParams.set('redirect', safeRedirect);
+
+      const response = NextResponse.redirect(loginUrl);
+      if (sessionCookie) {
+        response.cookies.delete('cursis_session');
+        response.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
+      }
+      return applySecurityHeaders(response);
+    }
+
+    // Reject tokens explicitly stamped as non-admin at edge (Server layout still verifies DB role)
+    if (sessionPayload?.platformRole === 'user') {
+      return applySecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
+    }
+
+    return applySecurityHeaders(NextResponse.next());
+  }
 
   // 1. Guard Protected Routes (/dashboard and all sub-routes)
   if (isProtectedRoute) {
@@ -152,10 +177,14 @@ export function proxy(request: NextRequest) {
       return applySecurityHeaders(response);
     }
 
-    // If already authenticated with a valid session, redirect to requested page or dashboard
+    // If already authenticated with a valid session, redirect to requested page or console/dashboard
     if (hasValidSession) {
+      const defaultDest = sessionPayload?.platformRole === 'admin' ? '/admin' : '/dashboard';
       const redirectParam = request.nextUrl.searchParams.get('redirect');
-      const targetDestination = getSafeRelativeRedirect(redirectParam, '/dashboard');
+      let targetDestination = getSafeRelativeRedirect(redirectParam, defaultDest);
+      if (targetDestination.startsWith('/admin') && sessionPayload?.platformRole !== 'admin') {
+        targetDestination = '/dashboard';
+      }
       return applySecurityHeaders(NextResponse.redirect(new URL(targetDestination, request.url)));
     }
 

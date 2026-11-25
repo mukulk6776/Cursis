@@ -67,6 +67,7 @@ export async function PATCH(request: Request) {
       displayName: auth.user.displayName,
       photoURL: sanitizedPhotoURL,
       role: auth.user.role,
+      platformRole: auth.user.platformRole,
       workspaceId: auth.user.workspaceId,
       createdAt: Date.now(),
     });

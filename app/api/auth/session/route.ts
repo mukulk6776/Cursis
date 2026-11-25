@@ -6,27 +6,84 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createUserProfile, findUserByEmail } from '@/lib/db/users';
 import { apiSuccess, apiError } from '@/lib/api/response';
-import { getAuthenticatedUser, createSessionToken, isSessionRevoked } from '@/lib/auth/session';
+import { getAuthenticatedUser, createSessionToken, isSessionRevoked, isSessionUserSuspended } from '@/lib/auth/session';
 import { adminAuth } from '@/lib/auth/firebase-admin';
 import { verifySessionToken } from '@/lib/auth/token';
 import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDepartment } from '@/lib/auth/founder';
+import { isAdminEmail, isVerifiedAdminUser } from '@/lib/auth/admin';
+import { resolveActiveUserPlan } from '@/lib/plans';
+import { getCollection } from '@/lib/mongodb';
+import type { UserProfile } from '@/lib/db/types';
 import { PrivacyError, accountBlocked, recordAccountConsent } from '@/lib/privacy/core';
 import { PRIVACY_VERSION } from '@/lib/privacy/config';
 
 export async function GET(request: Request) {
   try {
+    // Check if an otherwise valid token belongs to a suspended user
+    let rawToken: string | undefined;
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) rawToken = authHeader.substring(7).trim();
+    if (!rawToken) {
+      const cookieMatch = request.headers.get('cookie')?.match(/cursis_session=([^;]+)/);
+      if (cookieMatch) rawToken = decodeURIComponent(cookieMatch[1]);
+    }
+    if (!rawToken) {
+      try {
+        const store = await cookies();
+        rawToken = store.get('cursis_session')?.value;
+      } catch {}
+    }
+    if (rawToken && rawToken.startsWith('cursis_usr_')) {
+      const parsedToken = verifySessionToken(rawToken);
+      if (parsedToken && (await isSessionUserSuspended(parsedToken))) {
+        const res = NextResponse.json(
+          { success: false, suspended: true, error: 'Your account has been suspended by an administrator.' },
+          { status: 403, headers: { 'Cache-Control': 'private, no-store' } }
+        );
+        res.cookies.delete('cursis_session');
+        res.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
+        return res;
+      }
+    }
+
     const user = await getAuthenticatedUser(request);
     if (!user) {
       return apiError('Unauthorized', 401);
     }
     const profile = await findUserByEmail(user.email);
+    if (profile?.accountStatus === 'suspended') {
+      const res = NextResponse.json(
+        { success: false, suspended: true, error: 'Your account has been suspended by an administrator.' },
+        { status: 403, headers: { 'Cache-Control': 'private, no-store' } }
+      );
+      res.cookies.delete('cursis_session');
+      res.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
+      return res;
+    }
+
+    // Backfill verified admin role in DB if verified ADMIN_EMAIL does not yet carry platformRole='admin'
+    if (profile && isAdminEmail(profile.email) && profile.emailVerified === true && profile.platformRole !== 'admin') {
+      try {
+        const usersCol = await getCollection<UserProfile>('users');
+        if (usersCol) {
+          await usersCol.updateOne({ uid: profile.uid }, { $set: { platformRole: 'admin' } });
+        }
+        profile.platformRole = 'admin';
+      } catch {}
+    }
+
     const resolvedPhoto = profile?.photoURL || user.photoURL;
     const workspaceId = profile?.activeWorkspaceId || profile?.workspaceIds?.[0] || user.workspaceId || `ws_${user.uid}`;
     const workspaceRole = await getUserWorkspaceRole(user.uid, workspaceId);
+    const activePlan = resolveActiveUserPlan(profile?.subscription);
+    const platformRole = isVerifiedAdminUser(profile) ? 'admin' : 'user';
     const enrichedUser = {
       ...user,
       role: workspaceRole || 'member',
       workspaceRole: workspaceRole || 'member',
+      platformRole,
+      emailVerified: Boolean(profile?.emailVerified),
+      activePlan,
       photoURL: resolvedPhoto,
       avatar: resolvedPhoto,
       workspaceId: profile?.activeWorkspaceId || profile?.workspaceIds?.[0] || user.workspaceId,
@@ -35,7 +92,7 @@ export async function GET(request: Request) {
       skills: profile?.skills || user.skills || ['General'],
       planTier: profile?.planTier || user.planTier || 'standard',
     };
-    return apiSuccess({ user: enrichedUser });
+    return apiSuccess({ user: enrichedUser }, 200, { 'Cache-Control': 'private, no-store' });
   } catch (error: any) {
     return apiError(error.message || 'Authentication check failed', 500);
   }
@@ -62,6 +119,7 @@ export async function POST(request: Request) {
           displayName: authUser.displayName,
           photoURL: authUser.photoURL,
           role: wsRole,
+          platformRole: authUser.platformRole,
           workspaceId: targetWsId,
           createdAt: Date.now(),
         };
@@ -98,6 +156,7 @@ export async function POST(request: Request) {
     let userEmail = '';
     let userName = '';
     let photoURL: string | undefined;
+    let verifiedByProvider = false;
 
     // 1. Check if idToken is an existing valid Cursis signed session token
     if (idToken.startsWith('cursis_usr_')) {
@@ -123,7 +182,7 @@ export async function POST(request: Request) {
         if (!providerEmail) {
           return apiError('A verified email address is required from your identity provider', 401);
         }
-        if (decoded.email_verified === false) {
+        if (decoded.email_verified !== true) {
           return apiError('Email address must be verified by your identity provider before signing in', 401);
         }
 
@@ -131,6 +190,7 @@ export async function POST(request: Request) {
         userEmail = providerEmail;
         userName = String(decoded.name || userEmail.split('@')[0] || 'Cursis User').trim();
         photoURL = decoded.picture || undefined;
+        verifiedByProvider = true;
       } catch (authErr: any) {
         console.warn('Token verification error:', authErr?.message || authErr);
         return apiError('Invalid or expired authentication credentials', 401);
@@ -149,13 +209,18 @@ export async function POST(request: Request) {
     if (userEmail) {
       existing = await findUserByEmail(userEmail);
       if (existing) {
+        if (existing.accountStatus === 'suspended') {
+          return apiError('Your account has been suspended by an administrator. Contact official@cursis.in for assistance.', 403);
+        }
         userUid = existing.uid || existing.id || userUid;
         userName = existing.displayName || userName;
         photoURL = existing.photoURL || photoURL;
       }
     }
 
-    const isFounder = isFounderEmail(userEmail);
+    const emailVerified = verifiedByProvider || Boolean(existing?.emailVerified);
+    const isAdminAccount = isAdminEmail(userEmail) && emailVerified;
+    const isFounder = isFounderEmail(userEmail) && emailVerified;
     if (await accountBlocked(userUid, userEmail)) return apiError('This account is closed or pending erasure.', 403);
     if (!existing) {
       if (body.ageConfirmed !== true || body.privacyConsent !== true || body.noticeVersion !== PRIVACY_VERSION) {
@@ -164,7 +229,14 @@ export async function POST(request: Request) {
       await recordAccountConsent(userUid, 'google-signup');
     }
     const sessionRole = isFounder ? ('owner' as const) : (existing?.role || 'member');
+    const platformRole = isAdminAccount ? ('admin' as const) : ('user' as const);
     const sessionWorkspaceId = existing?.activeWorkspaceId || existing?.workspaceIds?.[0] || `ws_${userUid}`;
+    const activePlan = resolveActiveUserPlan(existing?.subscription);
+    const redirectTo = platformRole === 'admin' ? '/admin' : '/dashboard?setup=true';
+
+    // If Google verified an email that previously had an unverified password row, drop the unverified password
+    const preservePasswordHash = existing?.emailVerified ? existing?.passwordHash : (verifiedByProvider ? undefined : existing?.passwordHash);
+    const preserveSalt = existing?.emailVerified ? existing?.salt : (verifiedByProvider ? undefined : existing?.salt);
 
     const sessionPayload = {
       uid: userUid,
@@ -172,6 +244,7 @@ export async function POST(request: Request) {
       displayName: userName,
       photoURL,
       role: sessionRole,
+      platformRole,
       workspaceId: sessionWorkspaceId,
       createdAt: Date.now(),
     };
@@ -189,6 +262,11 @@ export async function POST(request: Request) {
       displayName: userName,
       photoURL,
       role: sessionRole,
+      platformRole,
+      emailVerified,
+      emailVerifiedAt: existing?.emailVerifiedAt || (emailVerified ? new Date().toISOString() : null),
+      passwordHash: preservePasswordHash,
+      salt: preserveSalt,
       title: isFounder ? 'Founder & CEO' : (existing?.title || 'Team Member'),
       department: isFounder ? 'Leadership' : (existing?.department || 'Engineering'),
       skills: isFounder ? ['Founder & CEO', 'Strategy', 'Architecture'] : (existing?.skills || ['General']),
@@ -201,7 +279,7 @@ export async function POST(request: Request) {
     const isCursisDomain = host.includes('cursis.in');
     const cookieOptions = {
       maxAge: maxAgeSeconds,
-      httpOnly: true,  // ✅ SECURITY FIX: Prevent XSS access to session cookie
+      httpOnly: true, // SECURITY FIX: Prevent XSS access to session cookie
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'lax' as const,
@@ -215,7 +293,8 @@ export async function POST(request: Request) {
 
     const response = apiSuccess({
       message: 'Session established successfully',
-      user: sessionPayload,
+      user: { ...sessionPayload, emailVerified, activePlan },
+      redirectTo,
       token: sessionToken,
     });
 
