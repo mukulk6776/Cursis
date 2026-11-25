@@ -47,10 +47,10 @@ export default function Pricing() {
             </p>
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '20px', fontWeight: 700, color: '#6B7280', textDecoration: 'line-through' }}>
+              <span style={{ fontSize: '52px', fontWeight: 800, lineHeight: 1, color: '#6B7280', textDecoration: 'line-through' }}>
                 ${starter.originalPriceUsd}
               </span>
-              <span className="marketing-price" style={{ fontSize: '46px', fontWeight: 900, lineHeight: 1 }}>
+              <span style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1 }}>
                 ${starter.priceUsd}
               </span>
               <span style={{ fontSize: '14px', fontWeight: 600, color: '#4B5563' }}>
@@ -116,10 +116,10 @@ export default function Pricing() {
             </p>
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '20px', fontWeight: 700, color: '#6B7280', textDecoration: 'line-through' }}>
+              <span style={{ fontSize: '52px', fontWeight: 800, lineHeight: 1, color: '#6B7280', textDecoration: 'line-through' }}>
                 ${pro.originalPriceUsd}
               </span>
-              <span className="marketing-price" style={{ fontSize: '46px', fontWeight: 900, lineHeight: 1, color: '#FF5500' }}>
+              <span style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1, color: '#FF5500' }}>
                 ${pro.priceUsd}
               </span>
               <span style={{ fontSize: '14px', fontWeight: 600, color: '#4B5563' }}>

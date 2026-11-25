@@ -382,8 +382,8 @@ function PaymentCheckoutContent() {
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 14px' }}>{starter.subtitle}</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '16px', color: 'var(--text-tertiary)', textDecoration: 'line-through', fontWeight: 700 }}>${starter.originalPriceUsd}</span>
-                <span style={{ fontSize: '30px', fontWeight: 900 }}>${starter.priceUsd}</span>
+                <span style={{ fontSize: '36px', lineHeight: 1, color: 'var(--text-tertiary)', textDecoration: 'line-through', fontWeight: 800 }}>${starter.originalPriceUsd}</span>
+                <span style={{ fontSize: '24px', lineHeight: 1, fontWeight: 900 }}>${starter.priceUsd}</span>
                 <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>USD / mo</span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '7px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
@@ -419,8 +419,8 @@ function PaymentCheckoutContent() {
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 14px' }}>{pro.subtitle}</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '16px', color: 'var(--text-tertiary)', textDecoration: 'line-through', fontWeight: 700 }}>${pro.originalPriceUsd}</span>
-                <span style={{ fontSize: '30px', fontWeight: 900, color: '#FF5500' }}>${pro.priceUsd}</span>
+                <span style={{ fontSize: '36px', lineHeight: 1, color: 'var(--text-tertiary)', textDecoration: 'line-through', fontWeight: 800 }}>${pro.originalPriceUsd}</span>
+                <span style={{ fontSize: '24px', lineHeight: 1, fontWeight: 900, color: '#FF5500' }}>${pro.priceUsd}</span>
                 <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>USD / mo</span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '7px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
