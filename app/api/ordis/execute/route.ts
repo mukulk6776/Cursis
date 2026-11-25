@@ -3,6 +3,7 @@ import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getTasks, createTask } from '@/lib/db/tasks';
 import { createProject } from '@/lib/db/projects';
 import { logAuditEvent } from '@/lib/db/audit';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function POST(request: Request) {
  try {
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
  const rawWorkspaceId = body.workspaceId || '';
  const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
  if (wsAuth.errorResponse) return wsAuth.errorResponse;
+ const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+ if (planBlock) return planBlock;
  const workspaceId = wsAuth.workspaceId;
  const lower = text.toLowerCase().trim();
 

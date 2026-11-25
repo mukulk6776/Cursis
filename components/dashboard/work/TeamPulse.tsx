@@ -6,8 +6,9 @@ import { workload } from '@/lib/work-hub/types';
 import styles from './WorkHub.module.css';
 
 export default function TeamPulse() {
-  const { employees } = useDashboard();
+  const { employees, planLimits } = useDashboard();
   const { snapshot, date, error } = useWorkHub();
+  if (!planLimits.hasMyDay) return <p>Team Pulse &amp; My Day focus tracking are included on the <a href="/pay?plan=pro" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Pro Plan ($20/mo) →</a></p>;
   if (!snapshot) return <p role="status">{error || 'Loading Team Pulse…'}</p>;
   if (!snapshot.canManage) return <p>Team Pulse is available to workspace owners, admins, and managers. Your commitments are in My Day.</p>;
   return <section className={styles.surface} aria-label="Team Pulse">

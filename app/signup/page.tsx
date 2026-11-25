@@ -6,7 +6,7 @@ import { ArrowRight, Eye, EyeOff, X } from 'lucide-react';
 import { signUpWithEmail, signInWithGoogle, handleGoogleRedirectResult } from '@/lib/auth/firebase';
 import '@/styles/landing.css';
 import '@/styles/auth.css';
-import { BRAND_NAME, TEAM_USER_LIMIT } from '@/lib/site';
+import { BRAND_NAME } from '@/lib/site';
 import CaptureSignupSource from '@/components/landing/CaptureSignupSource';
 
 export default function SignupPage() {
@@ -200,7 +200,7 @@ export default function SignupPage() {
       <section className="auth-card auth-signup-card" aria-labelledby="signup-title">
         <Link href="/" className="auth-close" aria-label="Back to Cursis"><X size={16} /></Link>
         <h1 id="signup-title">{method ? 'Complete your account' : 'Create your workspace'}</h1>
-        <p className="auth-intro">{method ? 'One last step to get started.' : `Free for up to ${TEAM_USER_LIMIT} · No credit card required`}</p>
+        <p className="auth-intro">{method ? 'One last step to get started.' : 'No credit card required · Upgrade to Starter ($9) or Pro ($20) anytime'}</p>
 
         {errorMsg && <p className="auth-message auth-error" role="alert">{errorMsg}</p>}
         {!method ? (

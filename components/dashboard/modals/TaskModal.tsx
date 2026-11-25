@@ -5,7 +5,7 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { PriorityLevel, TaskStatus } from '@/lib/dashboard/types';
 
 export default function TaskModal() {
-  const { activeModal, closeModal, addTask, projects, employees, activeWorkspace } = useDashboard();
+  const { activeModal, closeModal, addTask, projects, employees, tasks, activeWorkspace, planLimits } = useDashboard();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -52,6 +52,14 @@ export default function TaskModal() {
     if (!project) {
       setErrorMsg('Please select a project or choose "Independent Task (No Project)".');
       return;
+    }
+
+    if (project !== 'standalone' && planLimits.maxTasksPerProject !== null) {
+      const existingInProject = tasks.filter((t) => t.project === project).length;
+      if (existingInProject >= planLimits.maxTasksPerProject) {
+        setErrorMsg(`Task limit reached: maximum ${planLimits.maxTasksPerProject} tasks per project on ${planLimits.name}. Choose Independent Task or upgrade to Pro ($20/mo).`);
+        return;
+      }
     }
 
     const parsedTags = tags

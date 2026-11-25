@@ -32,7 +32,7 @@ interface DashboardShellProps {
 }
 
 export default function DashboardShell({ children }: DashboardShellProps) {
-  const { mobileSidebarOpen, setMobileSidebarOpen, openModal } = useDashboard();
+  const { mobileSidebarOpen, setMobileSidebarOpen, openModal, planLimits } = useDashboard();
   const pathname = usePathname();
   const isOrdisPage = pathname === '/dashboard/ordis' || pathname?.startsWith('/dashboard/ordis');
 
@@ -82,7 +82,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         {/* Main Section */}
         <div className="main-wrapper">
           <Topbar />
-          <FocusStatus />
+          {planLimits.hasMyDay && <FocusStatus />}
           <motion.main
             key={pathname || 'main'}
             initial={{ opacity: 0, y: 12 }}
@@ -115,7 +115,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
 
       {/* Toast Notifications */}
       <ToastContainer />
-      <MyDayTray />
+      {planLimits.hasMyDay && <MyDayTray />}
     </div>
   );
 }

@@ -5,7 +5,6 @@ import {
   removeTeamMember,
   updateTeamMember,
   addTeamMember,
-  MAX_TEAM_MEMBERS,
 } from '@/lib/db/team';
 import {
   createTeamInvitation,
@@ -14,6 +13,7 @@ import {
   acceptWorkspaceInvitation,
   declineWorkspaceInvitation,
 } from '@/lib/db/invitations';
+import { getWorkspacePlanLimits } from '@/lib/plans-server';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+[a-zA-Z0-9]$/;
 
@@ -37,12 +37,13 @@ export async function GET(request: Request) {
     const wsAuth = await authorizeWorkspaceAccess(request, workspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
 
-    const [team, invitations] = await Promise.all([
+    const [team, invitations, planLimits] = await Promise.all([
       getWorkspaceTeam(workspaceId),
       getWorkspaceInvitations(workspaceId),
+      getWorkspacePlanLimits(workspaceId, authUser.email),
     ]);
 
-    return apiSuccess({ team, invitations, memberLimit: MAX_TEAM_MEMBERS });
+    return apiSuccess({ team, invitations, memberLimit: planLimits.maxMembers });
   } catch (error: any) {
     return apiError(error.message || 'Failed to retrieve team members', 500);
   }

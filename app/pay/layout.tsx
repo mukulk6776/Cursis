@@ -1,18 +1,11 @@
 import type { Metadata } from 'next';
 import { marketingMetadata } from '@/lib/seo/marketing';
-import { TEAM_USER_LIMIT } from '@/lib/site';
 
-export const metadata: Metadata = {
-  ...marketingMetadata(
-    '/pay',
-    'Paid Plans Coming Soon | CURSIS',
-    `Online billing on CURSIS is coming soon. Workspaces for up to ${TEAM_USER_LIMIT} members remain free with no payment details required.`
-  ),
-  robots: {
-    index: false,
-    follow: true,
-  },
-};
+export const metadata: Metadata = marketingMetadata(
+  '/pay',
+  'Checkout & Plans | CURSIS',
+  'Upgrade to Starter ($9/mo) or Pro ($20/mo) on CURSIS with secure Razorpay checkout.'
+);
 
 export default function PayLayout({
   children,

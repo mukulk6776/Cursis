@@ -7,9 +7,10 @@ import {
   createTeamInvitation,
   getWorkspaceInvitations,
 } from '@/lib/db/invitations';
-import { getWorkspaceTeam, MAX_TEAM_MEMBERS } from '@/lib/db/team';
+import { getWorkspaceTeam } from '@/lib/db/team';
 import { getWorkspace } from '@/lib/db/workspaces';
 import { withWorkspaceLock } from '@/lib/db/workspace-lock';
+import { getWorkspacePlanLimits } from '@/lib/plans-server';
 
 function resolveWorkspaceId(raw: string | null | undefined, fallback: string): string {
   return raw && raw !== 'ws_public' && raw !== 'ws_default' ? raw.trim() : fallback;
@@ -60,23 +61,27 @@ export async function POST(request: Request) {
     }
 
     return await withWorkspaceLock(workspaceId, async () => {
-      // Enforce team capacity limit (MAX_TEAM_MEMBERS = 4)
-      const currentTeam = await getWorkspaceTeam(workspaceId);
-      const ws = await getWorkspace(workspaceId);
+      // Enforce team capacity limit based on workspace plan
+      const [currentTeam, ws, planLimits, pendingInvitations] = await Promise.all([
+        getWorkspaceTeam(workspaceId),
+        getWorkspace(workspaceId),
+        getWorkspacePlanLimits(workspaceId, authUser.email),
+        getWorkspaceInvitations(workspaceId),
+      ]);
+      const memberLimit = planLimits.maxMembers;
       const activeCount = Math.max(currentTeam.length, ws?.memberCount || 0);
-      const pendingInvitations = await getWorkspaceInvitations(workspaceId);
 
-      if (activeCount >= MAX_TEAM_MEMBERS) {
+      if (activeCount >= memberLimit) {
         return apiError(
-          `Workspace has reached the maximum team limit of ${MAX_TEAM_MEMBERS} members. You cannot send more invitations.`,
-          400
+          `Workspace has reached the maximum team limit of ${memberLimit} members on your current plan (${planLimits.name}). Upgrade your plan to invite more members.`,
+          403
         );
       }
 
-      if (activeCount + pendingInvitations.length >= MAX_TEAM_MEMBERS) {
+      if (activeCount + pendingInvitations.length >= memberLimit) {
         return apiError(
-          `Workspace team capacity limit reached (max ${MAX_TEAM_MEMBERS} members). Currently there are ${activeCount} active member${activeCount === 1 ? '' : 's'} and ${pendingInvitations.length} pending invitation${pendingInvitations.length === 1 ? '' : 's'}. Revoke a pending invitation or remove a member to invite more.`,
-          400
+          `Workspace team capacity limit reached (max ${memberLimit} members on ${planLimits.name}). Currently there are ${activeCount} active member${activeCount === 1 ? '' : 's'} and ${pendingInvitations.length} pending invitation${pendingInvitations.length === 1 ? '' : 's'}. Revoke a pending invitation, remove a member, or upgrade your plan.`,
+          403
         );
       }
 

@@ -17,6 +17,8 @@ import { getProjects } from './projects';
 import { getWorkspaceTeam } from './team';
 import { getWorkspaceInvitations } from './invitations';
 import { getMeetings } from './meetings';
+import { getWorkspace } from './workspaces';
+import { getPlanLimits } from '@/lib/plans';
 
 /**
  * Calculates live capacity for team members in the given workspace.
@@ -36,23 +38,25 @@ export async function getWorkspaceTeamCapacity(workspaceId: string): Promise<Tea
   }
 
   try {
-    const [team, invitations] = await Promise.all([
+    const [team, invitations, ws] = await Promise.all([
       getWorkspaceTeam(cleanWsId),
       getWorkspaceInvitations(cleanWsId),
+      getWorkspace(cleanWsId).catch(() => null),
     ]);
 
+    const memberLimit = getPlanLimits(ws?.tier).maxMembers;
     const currentMembers = Array.isArray(team) ? team.length : 0;
     const pendingInvitations = Array.isArray(invitations)
       ? invitations.filter((inv) => inv.status === 'pending').length
       : 0;
 
-    const availableSlots = Math.max(0, MAX_TEAM_MEMBERS - currentMembers);
-    const isAtMemberLimit = currentMembers >= MAX_TEAM_MEMBERS;
-    const isAtTotalCapacity = currentMembers + pendingInvitations >= MAX_TEAM_MEMBERS;
+    const availableSlots = Math.max(0, memberLimit - currentMembers);
+    const isAtMemberLimit = currentMembers >= memberLimit;
+    const isAtTotalCapacity = currentMembers + pendingInvitations >= memberLimit;
 
     return {
       currentMembers,
-      maxMembers: MAX_TEAM_MEMBERS,
+      maxMembers: memberLimit,
       availableSlots,
       pendingInvitations,
       isAtMemberLimit,
@@ -164,9 +168,11 @@ export async function getWorkspaceMetricSummary(workspaceId: string): Promise<Me
     ).length;
     const ordisActionsSavedHours = Math.round((42.5 + completedTasksCount * 1.5) * 10) / 10;
 
+    const ws = await getWorkspace(cleanWsId).catch(() => null);
+    const memberLimit = getPlanLimits(ws?.tier).maxMembers;
     const activeMemberCount = team.length;
-    const availableMemberSlots = Math.max(0, MAX_TEAM_MEMBERS - activeMemberCount);
-    const isAtMemberLimit = activeMemberCount >= MAX_TEAM_MEMBERS;
+    const availableMemberSlots = Math.max(0, memberLimit - activeMemberCount);
+    const isAtMemberLimit = activeMemberCount >= memberLimit;
 
     return {
       activeProjects,
@@ -177,7 +183,7 @@ export async function getWorkspaceMetricSummary(workspaceId: string): Promise<Me
       teamWorkloadAverage,
       ordisActionsSavedHours,
       pendingApprovalsCount,
-      memberLimit: MAX_TEAM_MEMBERS,
+      memberLimit,
       activeMemberCount,
       availableMemberSlots,
       isAtMemberLimit,

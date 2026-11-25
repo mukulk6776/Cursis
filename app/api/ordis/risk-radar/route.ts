@@ -5,6 +5,7 @@ import { inMemoryStore } from '@/lib/db/store';
 import { getTasks } from '@/lib/db/tasks';
 import { getProjects } from '@/lib/db/projects';
 import type { RiskRadarItem } from '@/lib/db/types';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function GET(request: Request) {
   try {
@@ -13,6 +14,8 @@ export async function GET(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, targetWorkspace);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
     const workspaceId = wsAuth.workspaceId;
 
     const staticItems = Array.from(inMemoryStore.riskRadar.values()).filter((r) => r.workspaceId === workspaceId);

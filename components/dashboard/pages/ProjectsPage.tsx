@@ -17,6 +17,7 @@ export default function ProjectsPage() {
     addProject,
     addTask,
     updateProject,
+    planLimits,
   } = useDashboard();
 
   const [currentView, setCurrentView] = useState<'grid' | 'list' | 'kanban'>('grid');
@@ -91,7 +92,7 @@ export default function ProjectsPage() {
                 textTransform: 'uppercase',
               }}
             >
-              {projects.length} projects
+              {projects.length}{planLimits.maxProjects !== null ? ` / ${planLimits.maxProjects}` : ''} projects
             </span>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>

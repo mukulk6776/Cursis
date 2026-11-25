@@ -10,7 +10,7 @@ interface PolicyLayoutProps {
   badgeColor?: string;
   lastUpdated: string;
   summary: ReactNode;
-  activeSlug: 'privacy' | 'rights' | 'terms' | 'cookie-policy' | 'cancellation-policy' | 'data-deletion' | 'dmca';
+  activeSlug: 'privacy' | 'rights' | 'terms' | 'cookie-policy' | 'cancellation-policy' | 'refund-policy' | 'shipping-policy' | 'data-deletion' | 'dmca';
   children: ReactNode;
   contactEmail?: string;
   dpoEmail?: string;
@@ -19,8 +19,9 @@ interface PolicyLayoutProps {
 const POLICY_NAV_ITEMS = [
   { slug: 'privacy', label: 'Privacy Notice', href: '/privacy' },
   { slug: 'terms', label: 'Terms of Service', href: '/terms' },
+  { slug: 'cancellation-policy', label: 'Cancellation & Refunds', href: '/cancellation-policy' },
+  { slug: 'shipping-policy', label: 'Digital Delivery', href: '/shipping-policy' },
   { slug: 'cookie-policy', label: 'Cookies', href: '/cookie-policy' },
-  { slug: 'cancellation-policy', label: 'Cancellation', href: '/cancellation-policy' },
   { slug: 'data-deletion', label: 'Data deletion', href: '/data-deletion' },
   { slug: 'dmca', label: 'Copyright & DMCA', href: '/dmca' },
   { slug: 'rights', label: 'Privacy Centre', href: '/privacy/rights' },

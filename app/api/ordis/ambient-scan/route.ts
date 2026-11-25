@@ -4,6 +4,7 @@ import { OrdisEngine } from '@/lib/ordis/server';
 import { inMemoryStore } from '@/lib/db/store';
 import { getTasks } from '@/lib/db/tasks';
 import { getProjects } from '@/lib/db/projects';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,8 @@ export async function POST(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
 
     const newCards = await OrdisEngine.runAmbientScan(wsAuth.workspaceId);
     const allCards = Array.from(inMemoryStore.ordisCards.values()).filter((c) => c.workspaceId === wsAuth.workspaceId);
@@ -47,6 +50,8 @@ export async function GET(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
 
     const cards = Array.from(inMemoryStore.ordisCards.values()).filter((c) => c.workspaceId === wsAuth.workspaceId);
 

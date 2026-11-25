@@ -2,16 +2,16 @@
 
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 
 export default function InviteModal() {
-  const { activeModal, closeModal, activeWorkspaceId, workspaces, user, showToast, syncTeamAndNotifications, employees = [], invitations = [] } = useDashboard();
+  const { activeModal, closeModal, activeWorkspaceId, workspaces, user, showToast, syncTeamAndNotifications, employees = [], invitations = [], memberLimit, planLimits } = useDashboard();
 
+  const effectiveLimit = planLimits?.maxMembers || memberLimit;
   const activeCount = employees.length;
   const pendingInvs = invitations.filter((i) => i.status === 'pending');
   const pendingCount = pendingInvs.length;
-  const isAtMemberLimit = activeCount >= MAX_TEAM_MEMBERS;
-  const isAtCapacity = activeCount + pendingCount >= MAX_TEAM_MEMBERS;
+  const isAtMemberLimit = activeCount >= effectiveLimit;
+  const isAtCapacity = activeCount + pendingCount >= effectiveLimit;
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'member' | 'admin' | 'viewer'>('member');
@@ -33,11 +33,11 @@ export default function InviteModal() {
     setErrorMsg('');
 
     if (isAtMemberLimit) {
-      setErrorMsg(`Workspace team member limit reached (max ${MAX_TEAM_MEMBERS} members). Please remove a member before sending invitations.`);
+      setErrorMsg(`Workspace team member limit reached (max ${effectiveLimit} members on ${planLimits.name}). Upgrade your plan or remove a member.`);
       return;
     }
     if (isAtCapacity) {
-      setErrorMsg(`Workspace team capacity reached (${activeCount} members + ${pendingCount} pending invites = ${MAX_TEAM_MEMBERS} max). Please revoke a pending invite or remove a member.`);
+      setErrorMsg(`Workspace team capacity reached (${activeCount} members + ${pendingCount} pending invites = ${effectiveLimit} max on ${planLimits.name}). Please revoke a pending invite, remove a member, or upgrade your plan.`);
       return;
     }
 
@@ -121,7 +121,7 @@ export default function InviteModal() {
                   boxShadow: '2px 2px 0px #0A0A0A',
                 }}
               >
-                {activeCount} / {MAX_TEAM_MEMBERS} Members {pendingCount > 0 ? `(${pendingCount} pending)` : ''}
+                {activeCount} / {effectiveLimit} Members {pendingCount > 0 ? `(${pendingCount} pending)` : ''}
               </span>
             </div>
             <p style={{ margin: '4px 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
@@ -153,7 +153,8 @@ export default function InviteModal() {
                 lineHeight: 1.4,
               }}
             >
-              <strong>Team Limit Reached ({MAX_TEAM_MEMBERS} / {MAX_TEAM_MEMBERS} members):</strong> This workspace has reached the maximum allowed limit of {MAX_TEAM_MEMBERS} team members. Please remove an existing member before sending new invitations.
+              <strong>Team Limit Reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace has reached the maximum allowed limit of {effectiveLimit} team members on {planLimits.name}.{' '}
+              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
             </div>
           ) : isAtCapacity ? (
             <div
@@ -168,7 +169,8 @@ export default function InviteModal() {
                 lineHeight: 1.4,
               }}
             >
-              <strong>Capacity Limit Reached ({MAX_TEAM_MEMBERS} max):</strong> Workspace has {activeCount} active member{activeCount === 1 ? '' : 's'} and {pendingCount} pending invitation{pendingCount === 1 ? '' : 's'}. Revoke a pending invitation or remove a member to invite someone else.
+              <strong>Capacity Limit Reached ({effectiveLimit} max):</strong> Workspace has {activeCount} active member{activeCount === 1 ? '' : 's'} and {pendingCount} pending invitation{pendingCount === 1 ? '' : 's'}. Revoke a pending invitation or{' '}
+              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>upgrade your plan →</a>.
             </div>
           ) : null}
 
@@ -291,7 +293,7 @@ export default function InviteModal() {
               disabled={isSubmitting || isAtCapacity}
               style={{ minWidth: '120px' }}
             >
-              {isSubmitting ? 'Sending...' : isAtCapacity ? `Limit Reached (${MAX_TEAM_MEMBERS} max)` : 'Send Invitation'}
+              {isSubmitting ? 'Sending...' : isAtCapacity ? `Limit Reached (${effectiveLimit} max)` : 'Send Invitation'}
             </button>
           </div>
         </form>

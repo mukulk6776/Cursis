@@ -2,6 +2,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 import { getLeads } from '@/lib/db/crm';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function GET(request: Request) {
   try {
@@ -10,6 +11,8 @@ export async function GET(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
 
     const leads = await getLeads(wsAuth.workspaceId);
     const drafts = leads.flatMap((l) =>
@@ -35,6 +38,8 @@ export async function POST(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
 
     if (!body.name || !body.company || !body.email) {
       return apiError('Lead name, company, and email are required', 400);

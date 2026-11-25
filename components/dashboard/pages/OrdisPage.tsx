@@ -64,6 +64,7 @@ export default function OrdisPage() {
     chatHistoryReady,
     chatHistoryStatus,
     user,
+    planLimits,
   } = useDashboard();
 
   // Desktop sidebar collapse state & mobile drawer state
@@ -191,6 +192,45 @@ export default function OrdisPage() {
     local: 'Saved locally',
     error: 'Could not sync chats',
   }[chatHistoryStatus];
+
+  if (!planLimits.hasOrdisAi) {
+    return (
+      <div id="page-ordis" className="page active" style={{ maxWidth: '720px', margin: '48px auto', padding: '0 20px' }}>
+        <div
+          className="card"
+          style={{
+            padding: '36px 32px',
+            textAlign: 'center',
+            background: '#FFFFFF',
+            border: '1px solid var(--border-color, #E5E7EB)',
+            borderRadius: '14px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '52px', borderRadius: '12px', background: '#0A0A0A', color: '#FFFFFF', marginBottom: '16px' }}>
+            <OrdisMark size={26} />
+          </div>
+          <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#FF5500', marginBottom: '8px' }}>
+            Pro Plan Feature
+          </div>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 10px', color: 'var(--text-primary)' }}>
+            Unlock Ordis AI with Pro
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 22px', lineHeight: 1.6 }}>
+            Your workspace is currently on <strong>{planLimits.name}</strong>, which does not include Ordis AI. Upgrade to the <strong>Pro Plan ($20/mo)</strong> to unlock Ordis AI, My Day focus planner, unlimited tasks, unlimited projects, and up to 10 team members.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a href="/pay?plan=pro" className="btn btn-primary" style={{ fontWeight: 700, padding: '10px 22px' }}>
+              Upgrade to Pro ($20/mo) →
+            </a>
+            <a href="/pricing" className="btn btn-secondary" style={{ fontWeight: 600, padding: '10px 18px' }}>
+              Compare Plans
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="page-ordis" className="ordis-page">

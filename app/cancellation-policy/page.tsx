@@ -1,56 +1,61 @@
 import Link from 'next/link';
 import PolicyLayout from '@/components/landing/PolicyLayout';
 import { marketingMetadata } from '@/lib/seo/marketing';
-import { BRAND_NAME, FREE_WORKSPACE_TEXT, SUPPORT_EMAIL, TEAM_USER_LIMIT } from '@/lib/site';
+import { BRAND_NAME, SUPPORT_EMAIL } from '@/lib/site';
 
 export const metadata = marketingMetadata(
   '/cancellation-policy',
-  'Cancellation Policy',
-  `${FREE_WORKSPACE_TEXT}. You can cancel or close your Cursis account at any time without fees or notice periods.`
+  'Cancellation & Refund Policy',
+  'Cancel your Cursis plan anytime without fees. Request a refund by email within our simple refund process.'
 );
 
 export default function CancellationPolicyPage() {
   return (
     <PolicyLayout
-      title="Cancellation Policy"
-      badge="Workspace cancellation"
-      lastUpdated="Updated 22 October 2026"
+      title="Cancellation & Refund Policy"
+      badge="Billing, cancellation & refunds"
+      lastUpdated="Updated 25 November 2026"
       activeSlug="cancellation-policy"
-      contactEmail={SUPPORT_EMAIL}
+      contactEmail="official@cursis.in"
+      dpoEmail="official@cursis.in"
       summary={
         <p>
-          {BRAND_NAME} is completely free. {FREE_WORKSPACE_TEXT}. You are free to cancel or close your account at any time.
+          Cancel your {BRAND_NAME} workspace anytime with zero lock-in fees. Need a refund? Email{' '}
+          <a href="mailto:official@cursis.in" style={{ color: '#FF5500', fontWeight: 600 }}>official@cursis.in</a>{' '}
+          with your payment details and we will refund you back to your original payment method.
         </p>
       }
     >
       <section>
-        <h2>Cancel at any time without fees</h2>
+        <h2>Cancel anytime without lock-in fees</h2>
         <p>
-          There are no contracts, subscriptions, or lock-in periods. Because {BRAND_NAME} is free for teams of up to {TEAM_USER_LIMIT}, you can cancel your workspace or stop using the service at any time without any cancellation fees, penalty charges, or mandatory advance notice.
+          There are no long-term contracts or cancellation penalties. You may stop using your Starter ($9/mo) or Pro ($20/mo) plan or close your workspace at any time without mandatory notice periods or early-termination fees.
         </p>
       </section>
 
       <section>
-        <h2>How to close and cancel your account</h2>
+        <h2>Refund eligibility &amp; how to request a refund</h2>
         <p>
-          You can initiate account closure directly through the <Link href="/privacy/rights">Privacy Centre</Link>. From there, you can export your workspace data, withdraw consent, or request permanent account deletion. Please review the <Link href="/data-deletion">data deletion information</Link> for details regarding identity verification, processing schedules, and retention policies.
+          If you are unsatisfied with your workspace upgrade, changed your mind, or were billed in error, simply send an email to{' '}
+          <a href="mailto:official@cursis.in">official@cursis.in</a> (or <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>) from the email address used during checkout. Include your Razorpay Payment ID, Order ID, or receipt reference so we can locate your transaction right away.
         </p>
       </section>
 
       <section>
-        <h2>Effect of cancellation</h2>
+        <h2>Refund processing timeline</h2>
         <p>
-          Upon requesting account cancellation and erasure, access to your workspace is promptly disabled. Active personal data and workspace content are queued for permanent deletion in accordance with our standard cleanup timelines, subject only to statutory legal retention requirements.
+          Approved refund requests are initiated promptly through Razorpay. Once initiated, refunds are typically credited back to your original payment method (card, bank, or wallet) within <strong>5–7 business days</strong>, depending on your card issuer or bank processing times.
         </p>
       </section>
 
       <section>
-        <h2>Questions or support</h2>
+        <h2>Account closure and data erasure</h2>
         <p>
-          If you have questions about closing your workspace or need help cancelling your account, email us at <a href={'mailto:' + SUPPORT_EMAIL}>{SUPPORT_EMAIL}</a>.
+          You can also export your data or request permanent account closure directly through the{' '}
+          <Link href="/privacy/rights">Privacy Centre</Link>. See our{' '}
+          <Link href="/data-deletion">Data Deletion Policy</Link> for retention timelines and verification details.
         </p>
       </section>
     </PolicyLayout>
   );
 }
-

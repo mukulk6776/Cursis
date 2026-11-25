@@ -2,6 +2,7 @@ import { getAuthOrError, apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess, getUserWorkspaceRole } from '@/lib/auth/rbac';
 import { getUserWorkspaces, createWorkspace, updateWorkspace } from '@/lib/db/workspaces';
 import { generateWorkspaceAbbreviation } from '@/lib/dashboard/data';
+import { isFounderEmail } from '@/lib/auth/founder';
 
 export async function GET(request: Request) {
   try {
@@ -17,6 +18,7 @@ export async function GET(request: Request) {
         id: w.id,
         name: w.name || 'Workspace',
         shortName: (w as any).shortName || generateWorkspaceAbbreviation(w.name || 'Workspace'),
+        tier: isFounderEmail(authUser.email) ? 'pro' : (w.tier || 'free'),
         tagline: (w as any).tagline || 'Intelligent Workspace for Modern Teams',
         isCustomClient: Boolean((w as any).isCustomClient),
         badge: workspaceRole ? workspaceRole.charAt(0).toUpperCase() + workspaceRole.slice(1) : 'No access',
@@ -94,8 +96,8 @@ export async function PATCH(request: Request) {
     if (body.tagline !== undefined) updates.tagline = body.tagline;
     if (body.industry !== undefined) updates.industry = body.industry;
     if (body.teamSize !== undefined) updates.teamSize = body.teamSize;
-    if (body.tier !== undefined) updates.tier = body.tier;
-    if (body.ordisMode !== undefined) updates.ordisMode = body.ordisMode;
+    if (isFounderEmail(authUser.email) && body.tier !== undefined) updates.tier = body.tier;
+    if (isFounderEmail(authUser.email) && body.ordisMode !== undefined) updates.ordisMode = body.ordisMode;
     if (body.settings) updates.settings = body.settings;
     if (body.securityPolicies) {
       updates.securityPolicies = body.securityPolicies;

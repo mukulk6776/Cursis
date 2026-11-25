@@ -21,6 +21,7 @@ export default function HomePage() {
     getProject,
     getEmployee,
     sendOrdisMessage,
+    planLimits,
   } = useDashboard();
 
   const [aiInput, setAiInput] = useState('');
@@ -124,79 +125,102 @@ export default function HomePage() {
             </span>
           </div>
 
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => setCurrentPage('ordis')}
-            style={{ fontSize: '12px', color: 'var(--text-secondary)', padding: '2px 6px' }}
-          >
-            Open Full Console →
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-          <input
-            className="input"
-            style={{
-              flex: 1,
-              border: '1px solid var(--border-color)',
-              borderRadius: '6px',
-              padding: '6px 12px',
-              fontSize: '13px',
-              height: '36px',
-            }}
-            placeholder="Ask Ordis: e.g. 'Add a team member', 'Mark auth task completed', 'Schedule meeting'..."
-            value={aiInput}
-            onChange={(e) => setAiInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleSendPrompt();
-              }
-            }}
-          />
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => handleSendPrompt()}
-            style={{
-              padding: '0 16px',
-              fontWeight: 700,
-              height: '36px',
-            }}
-          >
-            Execute →
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-tertiary)' }}>
-            Quick Prompts:
-          </span>
-          {[
-            'Workspace status report',
-            'Show sprint bottlenecks',
-            'Add team member',
-          ].map((prompt, i) => (
+          {planLimits.hasOrdisAi ? (
             <button
-              key={i}
               type="button"
-              onClick={() => handleSendPrompt(prompt)}
-              style={{
-                cursor: 'pointer',
-                background: 'var(--c-surface)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 600,
-                padding: '2px 8px',
-                color: 'var(--text-secondary)',
-              }}
+              className="btn btn-ghost btn-sm"
+              onClick={() => setCurrentPage('ordis')}
+              style={{ fontSize: '12px', color: 'var(--text-secondary)', padding: '2px 6px' }}
             >
-              {prompt}
+              Open Full Console →
             </button>
-          ))}
+          ) : (
+            <a
+              href="/pay?plan=pro"
+              className="btn btn-primary btn-sm"
+              style={{ fontSize: '12px', padding: '4px 12px', fontWeight: 700, textDecoration: 'none' }}
+            >
+              Unlock on Pro ($20/mo) →
+            </a>
+          )}
         </div>
+
+        {planLimits.hasOrdisAi ? (
+          <>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <input
+                className="input"
+                style={{
+                  flex: 1,
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '13px',
+                  height: '36px',
+                }}
+                placeholder="Ask Ordis: e.g. 'Add a team member', 'Mark auth task completed', 'Schedule meeting'..."
+                value={aiInput}
+                onChange={(e) => setAiInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSendPrompt();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => handleSendPrompt()}
+                style={{
+                  padding: '0 16px',
+                  fontWeight: 700,
+                  height: '36px',
+                }}
+              >
+                Execute →
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-tertiary)' }}>
+                Quick Prompts:
+              </span>
+              {[
+                'Workspace status report',
+                'Show sprint bottlenecks',
+                'Add team member',
+              ].map((prompt, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleSendPrompt(prompt)}
+                  style={{
+                    cursor: 'pointer',
+                    background: 'var(--c-surface)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    padding: '2px 8px',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ padding: '12px 14px', borderRadius: '8px', background: 'var(--surface-secondary)', border: '1px solid var(--border-color)', fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <span>
+              Ordis AI and My Day focus planner require the <strong>Pro Plan</strong> ({planLimits.name} active).
+            </span>
+            <a href="/pricing" style={{ fontSize: '12px', fontWeight: 700, color: '#FF5500', textDecoration: 'underline' }}>
+              Compare Plans
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Core Metrics Grid */}

@@ -2,6 +2,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 import { inMemoryStore } from '@/lib/db/store';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function GET(request: Request) {
   try {
@@ -10,6 +11,8 @@ export async function GET(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
 
     const tools = Array.from(inMemoryStore.dynamicTools.values()).filter((t) => t.workspaceId === wsAuth.workspaceId);
     return apiSuccess({ tools });
@@ -25,6 +28,8 @@ export async function POST(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
 
     if (!body.prompt) {
       return apiError('Prompt is required', 400);

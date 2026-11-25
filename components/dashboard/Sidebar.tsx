@@ -15,6 +15,7 @@ export default function Sidebar() {
     employees,
     toggleNotifications,
     notifications,
+    planLimits,
   } = useDashboard();
 
   const handleNav = (page: DashboardPageType) => {
@@ -216,7 +217,7 @@ export default function Sidebar() {
                 borderRadius: '9999px',
               }}
             >
-              AI
+              {planLimits.hasOrdisAi ? 'AI' : 'PRO'}
             </span>
           )}
         </button>

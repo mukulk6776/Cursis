@@ -2,6 +2,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { getTaskById, updateTask, deleteTask } from '@/lib/db/tasks';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getAuthenticatedUser } from '@/lib/auth/session';
+import { checkTaskPerProjectLimit } from '@/lib/plans-server';
 
 export async function GET(
   request: Request,
@@ -54,6 +55,11 @@ export async function PATCH(
     }
 
     const body = await request.json().catch(() => ({}));
+    const nextProjectId = body.projectId || body.project;
+    if (nextProjectId && nextProjectId !== task.projectId) {
+      const limitBlock = await checkTaskPerProjectLimit(task.workspaceId, nextProjectId, authUser.email);
+      if (limitBlock) return limitBlock;
+    }
     try {
       const updated = await updateTask(id, body, task.workspaceId);
       if (!updated) {

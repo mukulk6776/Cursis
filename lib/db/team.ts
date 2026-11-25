@@ -7,6 +7,7 @@ import { isFounderEmail, getAuthorizedTitle, getAuthorizedRole, getAuthorizedDep
 import { ensureWorkspaceExists, getWorkspace } from './workspaces';
 import { getWorkspaceInvitations } from './invitations';
 import { withWorkspaceLock } from './workspace-lock';
+import { getPlanLimits } from '@/lib/plans';
 
 export const EMAIL_REGEX = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+[a-zA-Z0-9]$/;
 
@@ -348,11 +349,12 @@ export async function addTeamMember(
   if (!isAlreadyInWs) {
     const currentTeam = await getWorkspaceTeam(workspaceId);
     const ws = await getWorkspace(workspaceId);
+    const memberLimit = getPlanLimits(ws?.tier).maxMembers;
     const activeCount = Math.max(currentTeam.length, ws?.memberCount || 0);
     const pendingInvitations = await getWorkspaceInvitations(workspaceId);
-    if (activeCount >= MAX_TEAM_MEMBERS || (activeCount + pendingInvitations.length) >= MAX_TEAM_MEMBERS) {
-      const err: any = new Error(`Workspace has reached the maximum team limit of ${MAX_TEAM_MEMBERS} members.`);
-      err.statusCode = 400;
+    if (activeCount >= memberLimit || (activeCount + pendingInvitations.length) >= memberLimit) {
+      const err: any = new Error(`Workspace has reached the maximum team limit of ${memberLimit} members on your current plan. Upgrade to Pro for up to 10 members.`);
+      err.statusCode = 403;
       throw err;
     }
   }

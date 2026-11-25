@@ -3,6 +3,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { inMemoryStore } from '@/lib/db/store';
 import { getDb } from '@/lib/mongodb';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function GET(request: Request) {
   try {
@@ -11,6 +12,8 @@ export async function GET(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, targetWorkspace);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
     const workspaceId = wsAuth.workspaceId;
 
     const status = searchParams.get('status') || undefined;
@@ -44,6 +47,8 @@ export async function POST(request: Request) {
     const targetWorkspace = body.workspaceId;
     const wsAuth = await authorizeWorkspaceAccess(request, targetWorkspace, ['owner', 'admin', 'manager', 'member']);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
     const workspaceId = wsAuth.workspaceId;
 
     const operation = body.operation || body.actionName || body.action;

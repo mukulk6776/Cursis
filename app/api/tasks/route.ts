@@ -2,6 +2,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { getTasks, createTask, getTaskById, updateTask, deleteTask } from '@/lib/db/tasks';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { getAuthenticatedUser } from '@/lib/auth/session';
+import { checkTaskPerProjectLimit } from '@/lib/plans-server';
 
 export async function GET(request: Request) {
   try {
@@ -55,6 +56,12 @@ export async function POST(request: Request) {
       return apiError('Task title is required.', 400);
     }
 
+    const targetProjectId = body.projectId || body.project || undefined;
+    if (targetProjectId) {
+      const limitBlock = await checkTaskPerProjectLimit(workspaceId, targetProjectId, authUser.email);
+      if (limitBlock) return limitBlock;
+    }
+
     try {
       const task = await createTask(workspaceId, {
         ...body,
@@ -94,6 +101,12 @@ export async function PATCH(request: Request) {
     // Authorize against existing task's workspace
     const auth = await authorizeWorkspaceAccess(request, existing.workspaceId);
     if (auth.errorResponse) return auth.errorResponse;
+
+    const nextProjectId = body.projectId || body.project;
+    if (nextProjectId && nextProjectId !== existing.projectId) {
+      const limitBlock = await checkTaskPerProjectLimit(existing.workspaceId, nextProjectId, authUser.email);
+      if (limitBlock) return limitBlock;
+    }
 
     try {
       const updated = await updateTask(id, body, existing.workspaceId);

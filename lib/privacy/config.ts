@@ -1,4 +1,4 @@
-export const PRIVACY_VERSION = '2026-10-18';
+export const PRIVACY_VERSION = '2026-11-25';
 export const privacyContact = {
   entity: process.env.PRIVACY_LEGAL_ENTITY || 'Saransh Vashistha and Mukul Kumar, operating as Cursis',
   address: process.env.PRIVACY_POSTAL_ADDRESS || 'Business contact address awaiting confirmation',
@@ -14,6 +14,7 @@ export const providers = [
   ['Google Gemini API', 'Prompts, selected workspace context, document inputs and outputs, meeting information sent to AI features.', 'Only on configured AI requests; contract, training terms and region require approval.'],
   ['Groq', 'Prompts, conversation context, tool inputs and AI outputs.', 'Configured AI requests and fallback; approve both providers before use.'],
   ['Resend', 'Recipient addresses, invitation/notification content, delivery metadata.', 'Configured transactional email.'],
+  ['Razorpay', 'Customer name, billing email, optional phone, selected plan ID, workspace ID, and Razorpay order/payment references.', 'Online checkout processing for Starter and Pro plan upgrades; card/UPI credentials remain strictly inside Razorpay Checkout and are never stored by Cursis.'],
   ['Deployment / CDN operator (unconfirmed)', 'IP address, URL, headers, session cookie at the application, application responses and operational logs.', 'Vercel-compatible configuration is present; actual host and log settings need confirmation.'],
   ['Customer-configured integrations', 'Selected contact, invoice, contract, calendar and webhook payloads plus credentials.', 'Intuit QuickBooks, Salesforce, DocuSign, Google Calendar or a custom webhook, only when configured.'],
   ['Linked websites / image hosts', 'Preview URL and server IP for link previews; viewer IP and browser headers for remote images.', 'User-selected URLs, Google avatar and Unsplash image hosts.'],
@@ -34,4 +35,5 @@ export const collectionMatrix = [
   ['Cookie choices and local application preferences', 'Remember choices; optional analytics only after opt-in.', 'Browser localStorage/cookies. No analytics SDK was identified in this audit.'],
   ['Contact name/email/message and newsletter email/consent', 'Reply to inquiries; send product updates only after separate newsletter opt-in.', 'Contact form and footer; MongoDB marketing_contacts and marketing_subscribers. See the retention schedule in this notice.'],
   ['Anonymous daily event totals', 'Measure public-page engagement after analytics opt-in; no visitor identifiers or form values.', 'MongoDB marketing_event_totals; operational request logs are controlled separately by the host.'],
+  ['Billing, checkout & payment transaction records', 'Process Starter and Pro plan payments, activate workspace upgrades, and verify refund requests.', 'Checkout form & Razorpay Checkout callback; MongoDB payments collection and Razorpay.'],
 ] as const;

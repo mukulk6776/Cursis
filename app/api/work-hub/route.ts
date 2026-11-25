@@ -3,6 +3,7 @@ import { apiError, apiSuccess } from '@/lib/api/response';
 import { executeWork, workSnapshot, workCommand, WorkError, workCollections, validChannel } from '@/lib/db/work-hub';
 import { readAppBody } from '@/lib/engagement/http';
 import { PrivacyError } from '@/lib/privacy/core';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function GET(request: Request) {
   try {
@@ -34,6 +35,10 @@ export async function POST(request: Request) {
     if (auth.errorResponse) return auth.errorResponse;
     const parsed = workCommand.safeParse(body);
     if (!parsed.success) return apiError(parsed.error.issues[0]?.message || 'Invalid action.', 400);
+    if (parsed.data.action === 'plan' || parsed.data.action === 'start') {
+      const planBlock = await requirePlanFeature(auth.workspaceId, 'myday', auth.user.email);
+      if (planBlock) return planBlock;
+    }
     return apiSuccess(await executeWork(auth, parsed.data));
   } catch (error) { return apiError(error instanceof Error ? error.message : 'Action failed', error instanceof WorkError || error instanceof PrivacyError ? error.status : 500); }
 }

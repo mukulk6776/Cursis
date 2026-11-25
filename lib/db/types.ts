@@ -1,7 +1,7 @@
 // Master Type Definitions for Cursis OS and Ordis AI Engine
 // Covering all 17 Core Modules and Free vs Paid Capabilities
 
-export type WorkspaceTier = 'free' | 'paid';
+export type WorkspaceTier = 'free' | 'starter' | 'pro' | 'business' | 'paid';
 export type OrdisMode = 'chill' | 'full_power'; // Chill Mode = Free (Cards/Approval), Full Power = Paid (Autonomous)
 export type UserRole = 'owner' | 'admin' | 'manager' | 'member' | 'viewer' | 'guest' | 'client';
 

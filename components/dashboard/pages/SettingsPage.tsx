@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { OrgSettings } from '@/lib/dashboard/types';
-import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 import { Pipette } from 'lucide-react';
 import ReportEmailSettings from '@/components/dashboard/ReportEmailSettings';
 
@@ -36,7 +35,10 @@ teamSettings,
  signOut,
  resetSettingsToDefault,
  sendTestNotification,
+ memberLimit,
+ planLimits,
  } = useDashboard();
+ const effectiveLimit = planLimits?.maxMembers || memberLimit;
 
  const [activeTab, setActiveTab] = useState<SettingsTab>('workspace');
  const [auditLoading, setAuditLoading] = useState(false);
@@ -485,25 +487,26 @@ teamSettings,
  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>          <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <h3 style={{ fontSize: 'var(--fs-base)', fontWeight: 'var(--fw-bold)', margin: 0 }}>
-                Active Team Members ({employees.length} / {MAX_TEAM_MEMBERS})
+                Active Team Members ({employees.length} / {effectiveLimit})
               </h3>
-              {employees.length >= MAX_TEAM_MEMBERS && (
+              {employees.length >= effectiveLimit && (
                 <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--c-error)', border: '1px solid var(--c-error)', textTransform: 'uppercase' }}>
                   Limit Reached
                 </span>
               )}
             </div>
             <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-              Manage access, adjust permission roles, or inspect workloads. Max {MAX_TEAM_MEMBERS} team members per workspace.
+              Manage access, adjust permission roles, or inspect workloads. Max {effectiveLimit} team members on {planLimits.name}.{' '}
+              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
             </p>
           </div>
           <button
             type="button"
-            className={`btn ${employees.length >= MAX_TEAM_MEMBERS ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+            className={`btn ${employees.length >= effectiveLimit ? 'btn-secondary' : 'btn-primary'} btn-sm`}
             onClick={() => openModal('invite-modal')}
-            title={employees.length >= MAX_TEAM_MEMBERS ? `Team limit reached (max ${MAX_TEAM_MEMBERS} members)` : undefined}
+            title={employees.length >= effectiveLimit ? `Team limit reached (max ${effectiveLimit} members)` : undefined}
           >
-            + Invite New Member {employees.length >= MAX_TEAM_MEMBERS ? `(Max ${MAX_TEAM_MEMBERS})` : ''}
+            + Invite New Member {employees.length >= effectiveLimit ? `(Max ${effectiveLimit})` : ''}
           </button>
         </div>
 

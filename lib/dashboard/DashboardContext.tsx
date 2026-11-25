@@ -78,6 +78,7 @@ import { isFounderEmail } from '@/lib/auth/founder';
 import { useOrdisConversations, type ChatHistoryStatus } from '@/lib/ordis/use-ordis-conversations';
 import type { OrdisConversation } from '@/lib/ordis/conversation-types';
 import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
+import { getPlanLimits, type PlanLimits } from '@/lib/plans';
 
 interface ToastItem {
  id: string;
@@ -142,6 +143,7 @@ interface DashboardContextType {
  // Entities & Data
  user: User;
  memberLimit: number;
+ planLimits: PlanLimits;
  employees: Employee[];
  teams: Team[];
  invitations: Invitation[];
@@ -493,8 +495,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUser] = useState<User>(INITIAL_USER);
   // Derive permissions on every render so a workspace switch cannot retain the previous role.
   const user = userForWorkspace(userProfile, workspaces, activeWorkspaceId);
+  const planLimits = useMemo(
+    () => getPlanLimits(activeWorkspace?.tier, user?.email),
+    [activeWorkspace?.tier, user?.email]
+  );
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [memberLimit, setMemberLimit] = useState<number>(MAX_TEAM_MEMBERS);
+  useEffect(() => {
+    setMemberLimit(planLimits.maxMembers);
+  }, [planLimits.maxMembers]);
   const removedMemberIdsRef = useRef<Set<string>>(new Set());
  const [teams] = useState<Team[]>(INITIAL_TEAMS);
  const [invitations, setInvitations] = useState<Invitation[]>(INITIAL_INVITATIONS);
@@ -1836,11 +1845,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  // ---- Task Mutations ----
  const addTask = (taskData: Partial<Task> & { name: string }) => {
+ const explicitProject = taskData.project || '';
+ if (explicitProject && planLimits.maxTasksPerProject !== null) {
+ const projTaskCount = tasks.filter((t) => t.project === explicitProject).length;
+ if (projTaskCount >= planLimits.maxTasksPerProject) {
+ showToast(`Project task limit reached (${planLimits.maxTasksPerProject} tasks per project max on ${planLimits.name}). Upgrade to Pro for unlimited tasks.`);
+ return;
+ }
+ }
+
  const newTask: Task = {
  id: 't_' + Date.now(),
  name: taskData.name,
  estimatedHours: taskData.estimatedHours || 2,
- project: taskData.project || (projects[0]?.id || ''),
+ project: explicitProject,
  assignee: taskData.assignee || user.id,
  assignees: taskData.assignees || [taskData.assignee || user.id],
  priority: taskData.priority || 'medium',
@@ -1927,10 +1945,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  subtasks: newTask.subtasks || [],
  }),
  })
- .then((res) => {
+ .then(async (res) => {
  if (res.ok) {
  // Refresh notifications and sync state
  setTimeout(() => syncTeamAndNotifications(wsId), 600);
+ } else {
+ const errData = await res.json().catch(() => ({}));
+ if (res.status === 403 && errData?.error) {
+ setTasks((prev) => prev.filter((t) => t.id !== newTask.id));
+ showToast(errData.error);
+ }
  }
  })
  .catch((err) => {
@@ -2102,6 +2126,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // ---- Project Mutations ----
  const addProject = (projData: Partial<Project> & { name: string }) => {
+ if (planLimits.maxProjects !== null && projects.length >= planLimits.maxProjects) {
+ showToast(`Project limit reached (${planLimits.maxProjects} projects max on ${planLimits.name}). Upgrade to Pro for unlimited projects.`);
+ return;
+ }
  const newProj: Project = {
  id: projData.id || ('p_' + Date.now()),
  name: projData.name,
@@ -2138,8 +2166,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  budget: (projData as any).budget,
  }),
  })
- .then((res) => res.json())
- .then((data) => {
+ .then(async (res) => {
+ const data = await res.json().catch(() => ({}));
+ if (!res.ok) {
+ setProjects((prev) => prev.filter((p) => p.id !== newProj.id));
+ if (data?.error) showToast(data.error);
+ return;
+ }
  if (data.project?.id) {
  setProjects((prev) => prev.map((p) => (p.id === newProj.id ? { ...p, id: data.project.id } : p)));
  }
@@ -2324,8 +2357,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // ---- Employee & Team Mutations ----
   const addEmployee = (empData: Partial<Employee> & { name: string; role: string; department?: string }) => {
-    if (employees.length >= 10) {
-      showToast('Workspace team member limit reached (max 10 members)');
+    if (employees.length >= planLimits.maxMembers) {
+      showToast(`Workspace team member limit reached (max ${planLimits.maxMembers} members on ${planLimits.name}). Upgrade to Pro for up to 10 members.`);
       return;
     }
 
@@ -2810,6 +2843,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  // ---- Ordis Natural Language Commander & Conversational AI Chatbot ----
  const sendOrdisMessage = async (text: string) => {
  if (!text.trim()) return;
+ if (!planLimits.hasOrdisAi) {
+ showToast('Ordis AI is available on the Pro Plan ($20/mo). Upgrade your workspace to unlock Ordis AI.');
+ return;
+ }
  const chatSession = beginOrdisChat();
  if (!chatSession) return;
  const setChatHistory = chatSession.setMessages;
@@ -3583,7 +3620,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  switchWorkspace,
  fetchWorkspaces,
  syncTeamAndNotifications,
- workspace: INITIAL_WORKSPACE_SUMMARY,
+ workspace: { name: activeWorkspace?.name || INITIAL_WORKSPACE_SUMMARY.name, plan: planLimits.name },
  activeModal,
  openModal,
  closeModal,
@@ -3611,6 +3648,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  removeToast,
  user,
  memberLimit,
+ planLimits,
  employees,
  teams,
  invitations,

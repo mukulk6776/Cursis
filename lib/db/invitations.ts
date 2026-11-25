@@ -14,6 +14,7 @@ import {
 import { ensureWorkspaceExists, getWorkspace } from './workspaces';
 import { getWorkspaceTeam } from './team';
 import { withWorkspaceLock } from './workspace-lock';
+import { getPlanLimits } from '@/lib/plans';
 
 export const EMAIL_REGEX = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+[a-zA-Z0-9]$/;
 
@@ -94,24 +95,25 @@ export async function createTeamInvitation(params: {
     throw err;
   }
 
-  // 1b. Check team capacity limit (max 4 members)
+  // 1b. Check team capacity limit based on workspace plan
   const currentTeam = await getWorkspaceTeam(workspaceId);
   const ws = await getWorkspace(workspaceId);
+  const memberLimit = getPlanLimits(ws?.tier, inviterUser.email).maxMembers;
   const activeCount = Math.max(currentTeam.length, ws?.memberCount || 0);
-  if (activeCount >= MAX_TEAM_MEMBERS) {
+  if (activeCount >= memberLimit) {
     const err: any = new Error(
-      `Workspace has reached the maximum team limit of ${MAX_TEAM_MEMBERS} members. You cannot send more invitations.`
+      `Workspace has reached the maximum team limit of ${memberLimit} members on your current plan. Upgrade your plan to add more members.`
     );
-    err.statusCode = 400;
+    err.statusCode = 403;
     throw err;
   }
 
   const pendingInvitations = await getWorkspaceInvitations(workspaceId);
-  if (activeCount + pendingInvitations.length >= MAX_TEAM_MEMBERS) {
+  if (activeCount + pendingInvitations.length >= memberLimit) {
     const err: any = new Error(
-      `Workspace team capacity limit reached (max ${MAX_TEAM_MEMBERS} members). Currently there are ${activeCount} active member${activeCount === 1 ? '' : 's'} and ${pendingInvitations.length} pending invitation${pendingInvitations.length === 1 ? '' : 's'}. Revoke a pending invitation or remove a member to invite more.`
+      `Workspace team capacity limit reached (max ${memberLimit} members). Currently there are ${activeCount} active member${activeCount === 1 ? '' : 's'} and ${pendingInvitations.length} pending invitation${pendingInvitations.length === 1 ? '' : 's'}. Revoke a pending invitation, remove a member, or upgrade your plan.`
     );
-    err.statusCode = 400;
+    err.statusCode = 403;
     throw err;
   }
 
@@ -472,15 +474,17 @@ export async function acceptWorkspaceInvitation(
       }
 
       // Check capacity before claiming in memory
+      const memWs = await getWorkspace(memInv.workspaceId).catch(() => null);
+      const memLimit = getPlanLimits(memWs?.tier).maxMembers;
       const currentTeam = await getWorkspaceTeam(memInv.workspaceId);
       const isAlreadyMember = currentTeam.some(
         (m) => m.id === actingUser.uid || m.uid === actingUser.uid || (m.email && m.email.toLowerCase() === actingUser.email.toLowerCase())
       );
-      if (!isAlreadyMember && currentTeam.length >= MAX_TEAM_MEMBERS) {
+      if (!isAlreadyMember && currentTeam.length >= memLimit) {
         const err: any = new Error(
-          `This workspace has reached its maximum capacity of ${MAX_TEAM_MEMBERS} members. Please contact the workspace owner.`
+          `This workspace has reached its maximum capacity of ${memLimit} members. Please contact the workspace owner.`
         );
-        err.statusCode = 400;
+        err.statusCode = 403;
         throw err;
       }
 
@@ -516,11 +520,13 @@ export async function acceptWorkspaceInvitation(
   const workspaceId = invitation.workspaceId;
 
   // Check team member limit before accepting
+  const acceptWs = await getWorkspace(workspaceId).catch(() => null);
+  const acceptLimit = getPlanLimits(acceptWs?.tier).maxMembers;
   const currentTeam = await getWorkspaceTeam(workspaceId);
   const isAlreadyMember = currentTeam.some(
     (m) => m.id === actingUser.uid || m.uid === actingUser.uid || (m.email && m.email.toLowerCase() === actingUser.email.toLowerCase())
   );
-  if (!isAlreadyMember && currentTeam.length >= MAX_TEAM_MEMBERS) {
+  if (!isAlreadyMember && currentTeam.length >= acceptLimit) {
     // Revert atomic claim
     try {
       const invCol = await getCollection<WorkspaceInvitation>('invitations');
@@ -529,9 +535,9 @@ export async function acceptWorkspaceInvitation(
       }
     } catch {}
     const err: any = new Error(
-      `This workspace has reached its maximum capacity of ${MAX_TEAM_MEMBERS} members. Please contact the workspace owner.`
+      `This workspace has reached its maximum capacity of ${acceptLimit} members. Please contact the workspace owner.`
     );
-    err.statusCode = 400;
+    err.statusCode = 403;
     throw err;
   }
 

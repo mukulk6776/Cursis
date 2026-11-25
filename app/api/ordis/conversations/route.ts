@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/session';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
+import { requirePlanFeature } from '@/lib/plans-server';
 import {
   ConversationStorageError,
   ConversationValidationError,
@@ -39,6 +40,11 @@ async function authorize(request: Request, selectedWorkspace: unknown) {
   if (auth.errorResponse) {
     auth.errorResponse.headers.set('Cache-Control', 'private, no-store');
     return { errorResponse: auth.errorResponse };
+  }
+  const planBlock = await requirePlanFeature(workspaceId, 'ordis', auth.user.email);
+  if (planBlock) {
+    planBlock.headers.set('Cache-Control', 'private, no-store');
+    return { errorResponse: planBlock };
   }
   return { userId: auth.user.uid, workspaceId, errorResponse: null };
 }

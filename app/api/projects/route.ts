@@ -1,6 +1,7 @@
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { getProjects, createProject } from '@/lib/db/projects';
+import { checkProjectCreationLimit } from '@/lib/plans-server';
 
 export async function GET(request: Request) {
   try {
@@ -33,6 +34,9 @@ export async function POST(request: Request) {
     if (!body.name || typeof body.name !== 'string' || !body.name.trim()) {
       return apiError('Project name is required', 400);
     }
+
+    const limitBlock = await checkProjectCreationLimit(resolvedWsId, authUser.email);
+    if (limitBlock) return limitBlock;
 
     const project = await createProject(resolvedWsId, {
       name: body.name.trim(),

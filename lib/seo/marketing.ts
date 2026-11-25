@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { BRAND_NAME, SITE_URL, TEAM_USER_LIMIT, TWITTER_HANDLE } from '@/lib/site';
+import { BRAND_NAME, SITE_URL, TWITTER_HANDLE } from '@/lib/site';
 export { SITE_URL, SOCIAL_PROFILES as socialProfiles } from '@/lib/site';
 
 export const SOCIAL_IMAGE = {
@@ -39,9 +39,9 @@ export function marketingMetadata(path: string, title: string, description: stri
 }
 
 export const marketingFaqs = [
-  { question: 'Do I have to choose a paid plan?', answer: 'There is no paid plan to choose. The Plans page explains the workspace limit and what is included.' },
-  { question: 'What if we have a larger team?', answer: `A workspace holds up to ${TEAM_USER_LIMIT} people. If your team is larger, ask us about your needs before inviting everyone.` },
+  { question: 'What is included in Starter, Pro, and Business plans?', answer: 'Starter ($9/mo launch price, regular $19) includes 6 members, 10 projects, and 5 tasks per project without Ordis AI or My Day. Pro ($20/mo launch price, regular $39) unlocks 10 members, unlimited projects and tasks, Ordis AI, and My Day. Business offers custom solutions via Contact Us.' },
+  { question: 'How do cancellations and refunds work?', answer: 'You can cancel anytime without lock-in fees. To request a refund, simply email official@cursis.in from your billing email and we will process it via Razorpay within 5–7 business days.' },
   { question: 'Can I sign in with an existing account?', answer: 'Yes. Choose Sign In in the navigation rather than creating another account.' },
-  { question: 'Can I type my own question on the homepage?', answer: 'The homepage offers fixed examples. In your workspace, you can ask Ordis about your own work.' },
+  { question: 'Can I type my own question on the homepage?', answer: 'The homepage offers fixed examples. On Pro workspaces, you can ask Ordis about your own work.' },
   { question: 'Where do I change privacy choices or close my account?', answer: 'Open Privacy Centre from the footer. You can manage consent and submit a data request there.' },
 ];

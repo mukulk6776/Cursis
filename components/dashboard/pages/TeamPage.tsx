@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate } from '@/lib/dashboard/data';
-import { MAX_TEAM_MEMBERS } from '@/lib/db/types';
 import { AlertTriangle } from 'lucide-react';
 import TeamPulse from '@/components/dashboard/work/TeamPulse';
 import MemberFocusStatus from '@/components/dashboard/work/MemberFocusStatus';
@@ -23,7 +22,10 @@ export default function TeamPage() {
     revokeInvitation,
     removeEmployee,
     setCurrentPage: setDashboardPage,
+    memberLimit,
+    planLimits,
   } = useDashboard();
+  const effectiveLimit = planLimits?.maxMembers || memberLimit;
 
   const canManage = ['owner', 'admin'].includes(user.workspaceRole || 'member');
   const [activeTab, setActiveTab] = useState<TeamTab>('directory');
@@ -80,13 +82,13 @@ export default function TeamPage() {
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: '4px',
-                background: employees.length >= MAX_TEAM_MEMBERS ? 'rgba(239, 68, 68, 0.1)' : 'var(--c-surface)',
-                color: employees.length >= MAX_TEAM_MEMBERS ? 'var(--c-error)' : 'var(--text-secondary)',
-                border: `1px solid ${employees.length >= MAX_TEAM_MEMBERS ? 'var(--c-error)' : 'var(--border-color)'}`,
+                background: employees.length >= effectiveLimit ? 'rgba(239, 68, 68, 0.1)' : 'var(--c-surface)',
+                color: employees.length >= effectiveLimit ? 'var(--c-error)' : 'var(--text-secondary)',
+                border: `1px solid ${employees.length >= effectiveLimit ? 'var(--c-error)' : 'var(--border-color)'}`,
                 textTransform: 'uppercase',
               }}
             >
-              {employees.length} / {MAX_TEAM_MEMBERS} members {employees.length >= MAX_TEAM_MEMBERS ? '• Limit Reached' : ''}
+              {employees.length} / {effectiveLimit} members {employees.length >= effectiveLimit ? '• Limit Reached' : ''}
             </span>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
@@ -97,18 +99,18 @@ export default function TeamPage() {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
             type="button"
-            className={`btn ${employees.length >= MAX_TEAM_MEMBERS ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+            className={`btn ${employees.length >= effectiveLimit ? 'btn-secondary' : 'btn-primary'} btn-sm`}
             disabled={!canManage}
             onClick={() => openModal('invite-modal')}
             style={{ fontWeight: 700 }}
-            title={employees.length >= MAX_TEAM_MEMBERS ? `Team limit reached (max ${MAX_TEAM_MEMBERS} members)` : undefined}
+            title={employees.length >= effectiveLimit ? `Team limit reached (max ${effectiveLimit} members)` : undefined}
           >
-            + Invite Member {employees.length >= MAX_TEAM_MEMBERS ? `(Max ${MAX_TEAM_MEMBERS})` : ''}
+            + Invite Member {employees.length >= effectiveLimit ? `(Max ${effectiveLimit})` : ''}
           </button>
         </div>
       </div>
 
-      {employees.length >= MAX_TEAM_MEMBERS && (
+      {employees.length >= effectiveLimit && (
         <div
           style={{
             padding: '10px 16px',
@@ -127,7 +129,8 @@ export default function TeamPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <AlertTriangle size={16} color="var(--c-error)" />
             <span>
-              <strong>Team limit reached ({MAX_TEAM_MEMBERS} / {MAX_TEAM_MEMBERS} members):</strong> This workspace is at maximum member capacity. Remove a member before inviting someone new.
+              <strong>Team limit reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace is at maximum member capacity on {planLimits.name}.{' '}
+              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
             </span>
           </div>
           <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '4px', background: 'var(--c-error)', color: '#fff' }}>

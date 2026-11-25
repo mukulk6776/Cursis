@@ -3,6 +3,7 @@ import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { OrdisEngine } from '@/lib/ordis/server';
 import { inMemoryStore } from '@/lib/db/store';
 import { getDb } from '@/lib/mongodb';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function GET(request: Request) {
   try {
@@ -11,6 +12,8 @@ export async function GET(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
 
     let goals: any[] = [];
     try {
@@ -38,6 +41,8 @@ export async function POST(request: Request) {
 
     const wsAuth = await authorizeWorkspaceAccess(request, rawWorkspaceId);
     if (wsAuth.errorResponse) return wsAuth.errorResponse;
+    const planBlock = await requirePlanFeature(wsAuth.workspaceId, 'ordis', wsAuth.user.email);
+    if (planBlock) return planBlock;
 
     if (!body.goal) {
       return apiError('Goal description is required', 400);

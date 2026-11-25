@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from '@/lib/auth/session';
 import { authorizeWorkspaceAccess } from '@/lib/auth/rbac';
 import { resolveGroqApiKey, GROQ_MODELS } from '@/lib/ordis/groq';
 import { runWorkspaceAssistant } from '@/lib/ordis/assistant';
+import { requirePlanFeature } from '@/lib/plans-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +19,8 @@ export async function POST(request: NextRequest) {
       ? selected : user.workspaceId || `ws_${user.uid}`;
     const auth = await authorizeWorkspaceAccess(request, workspaceId);
     if (auth.errorResponse) return auth.errorResponse;
+    const planBlock = await requirePlanFeature(workspaceId, 'ordis', auth.user.email);
+    if (planBlock) return planBlock;
     const apiKey = resolveGroqApiKey();
     const model = GROQ_MODELS.some(item => item.id === body.model) ? body.model : 'openai/gpt-oss-20b';
     const result = await runWorkspaceAssistant({ request, workspaceId, message: message.trim(), history: Array.isArray(body.history) ? body.history : [], apiKey, model });

@@ -21,6 +21,7 @@ export interface Workspace {
   id: string;
   name: string;
   shortName: string;
+  tier?: 'free' | 'starter' | 'pro' | 'business' | 'paid';
   type: 'public' | 'custom_client';
   tagline: string;
   description: string;

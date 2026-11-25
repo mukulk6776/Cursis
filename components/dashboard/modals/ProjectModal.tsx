@@ -5,7 +5,8 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { ProjectStatus } from '@/lib/dashboard/types';
 
 export default function ProjectModal() {
- const { activeModal, closeModal, addProject, employees } = useDashboard();
+ const { activeModal, closeModal, addProject, employees, projects, planLimits } = useDashboard();
+ const atProjectLimit = planLimits.maxProjects !== null && projects.length >= planLimits.maxProjects;
 
  const [name, setName] = useState('');
  const [desc, setDesc] = useState('');
@@ -21,7 +22,7 @@ export default function ProjectModal() {
 
  const handleSubmit = (e: React.FormEvent) => {
  e.preventDefault();
- if (!name.trim()) return;
+ if (!name.trim() || atProjectLimit) return;
 
  addProject({
  name: name.trim(),
@@ -59,6 +60,12 @@ export default function ProjectModal() {
 
  <form onSubmit={handleSubmit}>
  <div className="modal-body">
+ {atProjectLimit && (
+ <div style={{ marginBottom: '14px', padding: '10px 12px', borderRadius: '8px', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', fontSize: '12px', fontWeight: 600 }}>
+ Project limit reached ({planLimits.maxProjects} projects max on {planLimits.name}).{' '}
+ <a href="/pay?plan=pro" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade to Pro for unlimited projects →</a>
+ </div>
+ )}
  {/* Project Name */}
  <div className="input-group">
  <label className="input-label">Project Name</label>
@@ -194,8 +201,8 @@ export default function ProjectModal() {
  >
  Cancel
  </button>
- <button type="submit" className="btn btn-primary">
- Create Project
+ <button type="submit" className="btn btn-primary" disabled={atProjectLimit}>
+ {atProjectLimit ? `Limit Reached (${planLimits.maxProjects} max)` : 'Create Project'}
  </button>
  </div>
  </form>
