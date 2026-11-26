@@ -36,7 +36,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { Task, TaskPriority, TaskStatus } from '@/lib/dashboard/types';
+import { PriorityLevel, Task, TaskStatus } from '@/lib/dashboard/types';
 import { formatDate, isOverdue } from '@/lib/dashboard/data';
 import TaskCsvImport from '@/components/dashboard/TaskCsvImport';
 import TaskConversation from '@/components/dashboard/work/TaskConversation';
@@ -59,7 +59,7 @@ const STATUS_COLUMNS: {
   { id: 'completed', label: 'Completed', dotColor: '#10B981', pillBg: '#ECFDF5', pillFg: '#047857' },
 ];
 
-const PRIORITY_BADGE_MAP: Record<TaskPriority, { variant: BadgeVariant; label: string }> = {
+const PRIORITY_BADGE_MAP: Record<PriorityLevel, { variant: BadgeVariant; label: string }> = {
   urgent: { variant: 'destructive', label: 'Urgent' },
   high: { variant: 'warning', label: 'High' },
   medium: { variant: 'success', label: 'Medium' },
@@ -113,7 +113,7 @@ export default function TasksPage() {
     }).length;
   };
 
-  const filteredTasks = useMemo(() => {
+  const filteredTasks: Task[] = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return tasks.filter((t) => {
       if (activeFilter === 'overdue' && !(t.status !== 'completed' && isOverdue(t.deadline))) return false;
@@ -827,7 +827,7 @@ export default function TasksPage() {
                 <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Tasks by Due Date
                 </h3>
-                {Array.from(new Set(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline))).length === 0 ? (
+                {Array.from(new Set<string>(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline))).length === 0 ? (
                   <EmptyState
                     compact
                     title="No scheduled tasks on the calendar"
@@ -837,7 +837,7 @@ export default function TasksPage() {
                   />
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '12px' }}>
-                    {Array.from(new Set(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline)))
+                    {Array.from(new Set<string>(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline)))
                       .sort()
                       .map((dateStr) => {
                         const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);

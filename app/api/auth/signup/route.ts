@@ -131,7 +131,7 @@ export async function POST(request: Request) {
     // Clear rate limit on successful signup
     await clearRateLimit(clientIP);
 
-    const platformRole = isAdminCandidate && adminEmailVerified ? 'admin' : 'user';
+    const platformRole: 'admin' | 'user' = isAdminCandidate && adminEmailVerified ? 'admin' : 'user';
     const redirectTo = platformRole === 'admin' ? '/admin' : '/dashboard?setup=true';
 
     const sessionPayload = {

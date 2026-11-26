@@ -15,7 +15,7 @@
 [![License](https://img.shields.io/badge/License-Commercial%20Enterprise-blue?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <strong>Cursis</strong> is a free team workspace for up to 10 people per workspace, with Ordis AI, tasks, projects, team, calendar, video meetings, automatic actions and progress reports. No paid plans, trials or billing.
+  <strong>Cursis</strong> is an all-in-one AI team workspace combining tasks, projects, team collaboration, calendar, video meetings, My Day focus planning, and Ordis AI for startups, agencies, and creator studios.
 </p>
 
 <p align="center">

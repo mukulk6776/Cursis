@@ -1,7 +1,31 @@
 import Link from 'next/link';
 import MarketingPage from '@/components/landing/MarketingPage';
+import { marketingMetadata } from '@/lib/seo/marketing';
 import { SOCIAL_LINKS } from '@/lib/site';
 import styles from './about.module.css';
+
+export const metadata = marketingMetadata(
+  '/about',
+  'About CURSIS — Founders & Mission',
+  'Meet Saransh Vashistha, Mukul Kumar, and Lakhan—the team building Cursis and Ordis AI so small teams spend less time chasing status updates.'
+);
+
+const aboutSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  url: 'https://cursis.in/about',
+  name: 'About CURSIS',
+  mainEntity: {
+    '@type': 'Organization',
+    name: 'CURSIS',
+    url: 'https://cursis.in',
+    founder: [
+      { '@type': 'Person', name: 'Saransh Vashistha', jobTitle: 'CEO · Product direction' },
+      { '@type': 'Person', name: 'Mukul Kumar', jobTitle: 'CTO · Engineering' },
+      { '@type': 'Person', name: 'Lakhan', jobTitle: 'CGO · Growth & community' },
+    ],
+  },
+};
 
 const team = [
   {
@@ -102,6 +126,10 @@ export default function AboutPage() {
           </div>
         </section>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema).replace(/</g, '\\u003c') }}
+      />
     </MarketingPage>
   );
 }

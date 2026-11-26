@@ -12,6 +12,72 @@ export const metadata = marketingMetadata(
   'Choose Starter ($9/mo), Pro ($20/mo Recommended), or custom Business plans for your Cursis workspace.'
 );
 
+const pricingFaqs = [
+  {
+    question: 'What is the difference between Cursis Starter and Pro plans?',
+    answer:
+      'Starter ($9/mo launch price, regular $19) includes up to 6 team members, 10 projects, and 5 tasks per project. Pro ($20/mo launch price, regular $39) expands capacity to 10 members, unlimited projects and tasks, and unlocks both Ordis AI and the My Day focus planner.',
+  },
+  {
+    question: 'Does the Starter plan include Ordis AI or My Day?',
+    answer:
+      'No. Ordis AI Copilot, My Day daily focus planning, and live Team Pulse are included starting with the Pro Plan ($20/mo) and custom Business deployments.',
+  },
+  {
+    question: 'Who should choose the Cursis Business plan?',
+    answer:
+      'Established organizations needing custom team management, bespoke AI agents and workflows, dedicated Ordis AI configuration, custom dashboards, or dedicated onboarding can request a tailored quote via Contact Us.',
+  },
+];
+
+const pricingSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'SoftwareApplication',
+      name: 'CURSIS',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      url: 'https://cursis.in/pricing',
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Starter Plan',
+          price: '9',
+          priceCurrency: 'USD',
+          description: '6 team members, 10 projects, 5 tasks per project.',
+          url: 'https://cursis.in/pay?plan=starter',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Pro Plan',
+          price: '20',
+          priceCurrency: 'USD',
+          description: '10 team members, unlimited projects and tasks, Ordis AI, and My Day.',
+          url: 'https://cursis.in/pay?plan=pro',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Business Plan',
+          description: 'Custom enterprise AI agents, dashboards, and dedicated onboarding.',
+          url: 'https://cursis.in/contact?plan=business',
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: pricingFaqs.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer,
+        },
+      })),
+    },
+  ],
+};
+
 export default function Pricing() {
   const starter = PLAN_CATALOG.starter;
   const pro = PLAN_CATALOG.pro;
@@ -199,6 +265,25 @@ export default function Pricing() {
           <Link href="/terms">Terms of Service</Link>.
         </p>
       </div>
+
+      <section className="marketing-card" aria-labelledby="pricing-faq-heading" style={{ marginTop: '20px', padding: '22px 24px' }}>
+        <h2 id="pricing-faq-heading" style={{ margin: '0 0 14px', fontSize: '18px' }}>
+          Common questions about Cursis pricing
+        </h2>
+        <div style={{ display: 'grid', gap: '14px' }}>
+          {pricingFaqs.map((item) => (
+            <div key={item.question}>
+              <h3 style={{ margin: '0 0 4px', fontSize: '15px' }}>{item.question}</h3>
+              <p style={{ margin: 0, fontSize: '14px', color: '#4B5563', lineHeight: 1.55 }}>{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingSchema).replace(/</g, '\\u003c') }}
+      />
     </MarketingPage>
   );
 }

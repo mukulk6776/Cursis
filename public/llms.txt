@@ -1,0 +1,40 @@
+# CURSIS
+
+> Unified AI workspace for small teams, agencies, and creator studios combining tasks, projects, meetings, calendar, daily focus planning (My Day), and Ordis AI on a single platform at https://cursis.in.
+
+CURSIS eliminates tool sprawl between chat apps and project trackers. Instead of manually hunting through boards to see what is slipping, teams use Ordis AI to detect tasks at risk of missing deadlines, surface teammate workload capacity, and turn meeting notes into assigned next steps.
+
+## Key Facts
+- Product Name: CURSIS
+- Website: https://cursis.in
+- Category: AI Project Management & Team Collaboration Software
+- Founders / Leadership: Saransh Vashistha (CEO, Product Direction), Mukul Kumar (CTO, Engineering), Lakhan (CGO, Growth & Community)
+- Primary AI Engine: Ordis AI
+- Official Contact & Billing Support: official@cursis.in
+
+## Current Plans & Pricing (USD)
+- Starter Plan — $9 USD/month launch pricing (regularly $19/mo): Up to 6 team members, up to 10 projects, up to 5 tasks per project, full workspace access excluding Ordis AI and My Day.
+- Pro Plan (Recommended) — $20 USD/month launch pricing (regularly $39/mo): Up to 10 team members, unlimited projects, unlimited tasks, full access to Ordis AI, My Day focus planner, and all workspace features.
+- Business Plan — Custom pricing (Contact Us): Everything in Pro plus custom team management solutions, custom AI agents and workflows, dedicated Ordis AI configuration, custom dashboards, advanced business analytics, and dedicated onboarding.
+
+## Core Capabilities
+- Grouped Stream & Drag-and-Drop Kanban Tasks: Track deliverables across To Do, In Progress, In Review, and Completed stages with priority levels, due dates, CSV import, and quick templates.
+- Ordis AI Copilot: Surfaces delayed tasks, bottlenecks, and workload distribution, and generates actionable next steps or reports.
+- My Day Focus Planner (Pro+): Lets teammates plan 3–5 focused tasks per day alongside a real-time focus timer and live Team Pulse visibility.
+- Projects & Milestones: Multi-view project management (Grid, List, Kanban) with milestones and team assignments.
+- Meetings & Calendar: Unified sync scheduling with meeting notes converted directly into assigned tasks.
+
+## Primary Pages
+- [Homepage](https://cursis.in/): Product overview and live Ordis AI workflow demo
+- [Plans & Pricing](https://cursis.in/pricing): Current USD pricing, plan limits, and feature matrix
+- [Compare Hub](https://cursis.in/compare): How Cursis compares to traditional task trackers and multi-tool stacks
+- [Cursis vs Slack + Asana](https://cursis.in/compare/slack-and-asana): Side-by-side comparison of pricing, delay triage, and daily focus
+- [Cursis vs ClickUp](https://cursis.in/compare/clickup): Comparison of setup overhead, 3–5 task My Day limits, and approval locks
+- [Cursis vs Notion](https://cursis.in/compare/notion): Execution workspace vs blank-canvas DIY task templates
+- [FAQ](https://cursis.in/faq): Answers on plans, Ordis AI, My Day, billing, and privacy
+- [About](https://cursis.in/about): Founders, company mission, and operating principles
+- [For Creators](https://cursis.in/creators): 5-role production studio workflows (SE, VE, TD, SM, VO) and approval gates
+- [Changelog](https://cursis.in/changelog): Dated product releases and improvements
+- [Blog](https://cursis.in/blog): Practical guides on Ordis Delay Triage, 8-hour workload balancing, replacing Slack + Asana, and My Day focus rules
+- [Contact](https://cursis.in/contact): Sales, Business plan, billing, and support inquiries
+- [Full AI Context](https://cursis.in/llms-full.txt): Extended structured documentation for answer engines

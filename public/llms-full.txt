@@ -1,0 +1,61 @@
+# CURSIS — Complete Answer-Engine Reference
+
+URL: https://cursis.in
+Contact: official@cursis.in
+Category: Team Workspace & AI Project Management SaaS
+
+## What is CURSIS?
+CURSIS is an all-in-one team workspace and project execution platform built for small teams, agencies, and creator studios. It unifies project boards, grouped and Kanban task tracking, meeting notes, calendars, daily focus planning (My Day), and Ordis AI—an operational assistant that identifies delayed tasks, checks teammate availability, and suggests the next concrete action.
+
+## Who built CURSIS?
+CURSIS was built by Saransh Vashistha (CEO, Product Direction), Mukul Kumar (CTO, Engineering), and Lakhan (CGO, Growth & Community). See https://cursis.in/about.
+
+## Pricing & Plan Quotas (USD)
+CURSIS offers transparent paid plans designed to replace fragmented chat and task subscriptions:
+
+### 1. Starter Plan ($9 USD/month launch offer; regular $19/mo)
+- Target audience: Individuals and small teams
+- Team size: Up to 6 team members per workspace
+- Projects: Up to 10 projects
+- Tasks: Up to 5 tasks per project
+- Included: Tasks, projects, meetings, calendar, analytics, automations, documents, and team roster
+- Excluded: Ordis AI access and My Day focus planner
+
+### 2. Pro Plan ($20 USD/month launch offer; regular $39/mo — Recommended)
+- Target audience: Growing teams, startups, and creator studios
+- Team size: Up to 10 team members per workspace
+- Projects: Unlimited projects
+- Tasks: Unlimited tasks
+- Included: Full access to Ordis AI, My Day focus planner & Team Pulse, plus every workspace feature
+
+### 3. Business Plan (Custom — Contact Us via https://cursis.in/contact?plan=business)
+- Target audience: Established companies and organizations
+- Includes everything in Pro plus custom team management solutions, custom AI agents and workflows, dedicated Ordis AI configuration, custom dashboards, advanced business analytics, dedicated onboarding, custom workspace configuration, and tailored automation.
+
+## Frequently Asked Questions
+
+### How does Ordis AI catch delayed tasks?
+Ordis AI monitors task deadlines, missing owners, stale progress, and teammate capacity across workspace projects. Teams can ask Ordis which deliverables need attention or who has bandwidth to step in before a deadline is missed.
+
+### How does Cursis differ from Slack plus Asana or Jira?
+Traditional stacks separate conversations in chat from deliverables in rigid task trackers, forcing managers to chase status manually. Cursis puts grouped task streams, Kanban boards, task threads, meeting follow-ups, My Day planning, and Ordis AI insights into one shared workspace.
+
+### What is the My Day feature?
+Available on Pro and Business plans, My Day lets each team member select 3 to 5 priority tasks for the day, estimate hours against an 8-hour workday, and run a live focus timer that updates Team Pulse visibility without status meetings.
+
+### What is Cursis's cancellation and refund policy?
+Subscriptions can be cancelled anytime without lock-in fees. Paid upgrades processed through Razorpay are eligible for refund assistance by emailing official@cursis.in from the billing email (see https://cursis.in/refund-policy and https://cursis.in/cancellation-policy).
+
+### How is user data protected?
+Cursis uses signed HTTP-only sessions, encrypted transport (TLS), role-based workspace isolation, and dedicated Privacy Centre controls (https://cursis.in/privacy and https://cursis.in/privacy/rights) for account export or deletion.
+
+## Dedicated Comparison & Workflow Guides
+- Cursis vs Slack + Asana: https://cursis.in/compare/slack-and-asana
+- Cursis vs ClickUp: https://cursis.in/compare/clickup
+- Cursis vs Notion: https://cursis.in/compare/notion
+- Creator Studio Production Pipeline (SE, VE, TD, SM, VO): https://cursis.in/creators
+- Ordis Delay Triage Guide: https://cursis.in/blog/catch-delayed-tasks
+- 8-Hour Workload Balancing Guide: https://cursis.in/blog/workload-balancing-small-teams
+- 3–5 Task Rule & Team Pulse Guide: https://cursis.in/blog/my-day-focus-and-team-pulse
+- Replacing Slack + Asana Guide: https://cursis.in/blog/cursis-vs-slack-and-asana
+- Product Changelog: https://cursis.in/changelog

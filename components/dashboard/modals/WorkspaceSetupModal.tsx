@@ -118,7 +118,7 @@ export default function WorkspaceSetupModal() {
       }
     }
 
-    // 3. Dispatch teammate invites if provided (up to 4 members total)
+    // 3. Dispatch teammate invites if provided (bounded by workspace plan limit)
     if (inviteEmails.trim() && sendInvitation) {
       const rawList = inviteEmails
         .split(/[\n,]/)
@@ -502,7 +502,7 @@ export default function WorkspaceSetupModal() {
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', margin: 0 }}>
                     Invite Teammates (Optional)
                   </label>
-                  <span style={{ fontSize: '11px', color: '#6B7280' }}>Up to 4 members free</span>
+                  <span style={{ fontSize: '11px', color: '#6B7280' }}>Based on active plan quota</span>
                 </div>
                 <input
                   type="text"

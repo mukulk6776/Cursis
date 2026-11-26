@@ -9,10 +9,10 @@ export default async function AdminPage() {
   const ctx = await getServerAdminContext();
 
   if (ctx.status === 'unauthenticated') {
-    redirect('/login?redirect=/admin');
+    return redirect('/login?redirect=/admin');
   }
   if (ctx.status === 'forbidden') {
-    redirect('/dashboard');
+    return redirect('/dashboard');
   }
 
   return (

@@ -72,8 +72,8 @@ export async function POST(req: Request) {
       finalRecord?.planId === 'starter' || finalRecord?.planId === 'pro'
         ? finalRecord.planId
         : body.planId === 'starter' || body.planId === 'pro'
-        ? body.planId
-        : undefined;
+          ? body.planId
+          : undefined;
 
     if (planToApply && (!isSimulatedOrder || authUser)) {
       let targetWsId = finalRecord?.workspaceId || body.workspaceId || authUser?.workspaceId;
