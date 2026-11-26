@@ -51,21 +51,26 @@
 .btn-brand {
   background: #FF5500; /* Cursis Electric Orange */
   color: #FFFFFF;
-  border: 1px solid transparent;
+  border: 1px solid #FF5500;
   box-shadow: 0 1px 2px rgba(255, 85, 0, 0.25);
   font-weight: 600;
+  text-decoration: none;
 }
 
 .btn-primary:hover,
 .btn-brand:hover {
-  background: #E64D00;
+  background: #DF4A00;
   color: #FFFFFF;
+  border-color: #DF4A00;
   box-shadow: 0 2px 6px rgba(255, 85, 0, 0.35);
+  text-decoration: none;
 }
 
 .btn-primary:active,
 .btn-brand:active {
-  background: #D14500;
+  background: #C94100;
+  color: #FFFFFF;
+  border-color: #C94100;
   transform: translateY(1px);
 }
 
@@ -74,17 +79,19 @@
   color: var(--text-primary, #111827);
   border: 1px solid #D1D5DB;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  text-decoration: none;
 }
 
 .btn-secondary:hover {
-  background: #F9FAFB;
+  background: #F4F1EA;
   color: #0A0A0A;
   border-color: #9CA3AF;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  text-decoration: none;
 }
 
 .btn-secondary:active {
-  background: #F3F4F6;
+  background: #EBE7DE;
   transform: translateY(1px);
 }
 
@@ -93,13 +100,15 @@
   color: var(--text-secondary, #4B5563);
   border: 1px solid transparent;
   box-shadow: none;
+  text-decoration: none;
 }
 
 .btn-ghost:hover {
-  background: var(--surface-hover, #F3F4F6);
+  background: rgba(10, 10, 10, 0.06);
   border-color: transparent;
   color: #0A0A0A;
   box-shadow: none;
+  text-decoration: none;
 }
 
 .btn-ghost:active {
@@ -110,15 +119,9 @@
   padding: 5px 12px;
   font-size: 12px;
   font-weight: 600;
-  border: 1px solid var(--border-color, #E5E7EB);
-  border-radius: 6px;
+  border-radius: 7px;
   height: 30px;
   box-shadow: none;
-}
-
-.btn-sm:hover {
-  background: var(--surface-hover, #F9FAFB);
-  border-color: var(--border-dark, #D1D5DB);
 }
 
 .btn-sm:active {

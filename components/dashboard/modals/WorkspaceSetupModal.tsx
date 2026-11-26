@@ -544,7 +544,7 @@ export default function WorkspaceSetupModal() {
               <button
                 type="button"
                 onClick={handleSkip}
-                style={{ background: 'none', border: 'none', color: '#6B7280', fontSize: '12.5px', cursor: 'pointer', textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', color: '#6B7280', fontSize: '12.5px', cursor: 'pointer', fontWeight: 600 }}
               >
                 Skip setup for now
               </button>

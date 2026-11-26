@@ -1,20 +1,79 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import {
+  BarChart3,
+  Bug,
+  Calendar,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Columns3,
+  Flag,
+  Folder,
+  ListTodo,
+  MessageSquare,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+  Upload,
+  UserPlus,
+} from 'lucide-react';
+import { Badge, type BadgeVariant } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { Task, TaskStatus } from '@/lib/dashboard/types';
+import { Task, TaskPriority, TaskStatus } from '@/lib/dashboard/types';
 import { formatDate, isOverdue } from '@/lib/dashboard/data';
 import TaskCsvImport from '@/components/dashboard/TaskCsvImport';
 import TaskConversation from '@/components/dashboard/work/TaskConversation';
 import { useWorkHub } from '@/lib/work-hub/WorkHubContext';
 import EmptyState from '@/components/dashboard/EmptyState';
 
-type ViewMode = 'list' | 'calendar' | 'timeline';
+type ViewMode = 'list' | 'board' | 'calendar' | 'timeline';
 type FilterMode = 'all' | 'overdue' | 'high-priority' | 'assigned-to-me' | 'upcoming' | 'completed';
+
+const STATUS_COLUMNS: {
+  id: TaskStatus;
+  label: string;
+  dotColor: string;
+  pillBg: string;
+  pillFg: string;
+}[] = [
+  { id: 'in-progress', label: 'In Progress', dotColor: '#FF5500', pillBg: '#FFF3EB', pillFg: '#C2410C' },
+  { id: 'todo', label: 'To Do', dotColor: '#6B7280', pillBg: '#F3F4F6', pillFg: '#374151' },
+  { id: 'review', label: 'In Review', dotColor: '#8B5CF6', pillBg: '#F5F3FF', pillFg: '#6D28D9' },
+  { id: 'completed', label: 'Completed', dotColor: '#10B981', pillBg: '#ECFDF5', pillFg: '#047857' },
+];
+
+const PRIORITY_BADGE_MAP: Record<TaskPriority, { variant: BadgeVariant; label: string }> = {
+  urgent: { variant: 'destructive', label: 'Urgent' },
+  high: { variant: 'warning', label: 'High' },
+  medium: { variant: 'success', label: 'Medium' },
+  low: { variant: 'secondary', label: 'Low' },
+};
+
+function statusConfig(status: TaskStatus) {
+  return STATUS_COLUMNS.find((c) => c.id === status) || STATUS_COLUMNS[1];
+}
 
 export default function TasksPage() {
   const {
     tasks,
+    projects,
     user,
     getProject,
     getEmployee,
@@ -28,25 +87,20 @@ export default function TasksPage() {
 
   const [currentView, setCurrentView] = useState<ViewMode>('list');
   const [activeFilter, setActiveFilter] = useState<FilterMode>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
+  const [csvOpen, setCsvOpen] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [dragTaskId, setDragTaskId] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null);
+
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [selectedTaskSnapshot, setSelectedTaskDetail] = useState<Task | null>(null);
-  const selectedTaskDetail = tasks.find(task => task.id === selectedTaskSnapshot?.id) || selectedTaskSnapshot;
+  const selectedTaskDetail = tasks.find((task) => task.id === selectedTaskSnapshot?.id) || selectedTaskSnapshot;
   const { snapshot } = useWorkHub();
-  const pendingApproval = snapshot?.tasks.find(task => task.id === selectedTaskDetail?.id)?.collaboration?.approvals.some(approval => approval.status === 'pending');
-
-  // Filter logic
-  const getFilteredTasks = () => {
-    return tasks.filter((t) => {
-      if (activeFilter === 'overdue') return t.status !== 'completed' && isOverdue(t.deadline);
-      if (activeFilter === 'high-priority') return t.priority === 'high' || t.priority === 'urgent';
-      if (activeFilter === 'assigned-to-me') return t.assignee === user.id || t.assignees?.includes(user.id);
-      if (activeFilter === 'upcoming') return !isOverdue(t.deadline) && t.status !== 'completed';
-      if (activeFilter === 'completed') return t.status === 'completed';
-      return true;
-    });
-  };
-
-  const filteredTasks = getFilteredTasks();
+  const pendingApproval = snapshot?.tasks
+    .find((task) => task.id === selectedTaskDetail?.id)
+    ?.collaboration?.approvals.some((approval) => approval.status === 'pending');
 
   const getFilterCount = (filter: FilterMode) => {
     return tasks.filter((t) => {
@@ -58,6 +112,35 @@ export default function TasksPage() {
       return true;
     }).length;
   };
+
+  const filteredTasks = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return tasks.filter((t) => {
+      if (activeFilter === 'overdue' && !(t.status !== 'completed' && isOverdue(t.deadline))) return false;
+      if (activeFilter === 'high-priority' && !(t.priority === 'high' || t.priority === 'urgent')) return false;
+      if (activeFilter === 'assigned-to-me' && !(t.assignee === user.id || t.assignees?.includes(user.id))) return false;
+      if (activeFilter === 'upcoming' && !(!isOverdue(t.deadline) && t.status !== 'completed')) return false;
+      if (activeFilter === 'completed' && t.status !== 'completed') return false;
+
+      if (projectFilter !== 'all') {
+        if (projectFilter === 'standalone' && t.project) return false;
+        if (projectFilter !== 'standalone' && t.project !== projectFilter) return false;
+      }
+
+      if (q) {
+        const emp = getEmployee(t.assignee);
+        const proj = t.project ? getProject(t.project) : undefined;
+        const match =
+          t.name.toLowerCase().includes(q) ||
+          (t.description && t.description.toLowerCase().includes(q)) ||
+          (emp && emp.name.toLowerCase().includes(q)) ||
+          (proj && proj.name.toLowerCase().includes(q));
+        if (!match) return false;
+      }
+
+      return true;
+    });
+  }, [tasks, activeFilter, projectFilter, searchQuery, user.id, getEmployee, getProject]);
 
   // Bulk Actions
   const toggleSelectTask = (taskId: string) => {
@@ -95,9 +178,222 @@ export default function TasksPage() {
     showToast(`Template: ${templateName} created`);
   };
 
+  const handleToggleGroup = (groupId: string) => {
+    setCollapsedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
+
+  const handleColumnDrop = (targetStatus: TaskStatus) => {
+    if (dragTaskId) {
+      updateTaskStatus(dragTaskId, targetStatus);
+    }
+    setDragTaskId(null);
+    setDragOverColumn(null);
+  };
+
+  const viewOptions: { id: ViewMode; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+    { id: 'list', label: 'List', Icon: ListTodo },
+    { id: 'board', label: 'Board', Icon: Columns3 },
+    { id: 'calendar', label: 'Calendar', Icon: Calendar },
+    { id: 'timeline', label: 'Timeline', Icon: BarChart3 },
+  ];
+
+  const renderGroupRow = (t: Task) => {
+    const emp = getEmployee(t.assignee);
+    const proj = t.project ? getProject(t.project) : undefined;
+    const isDone = t.status === 'completed';
+    const overdue = !isDone && isOverdue(t.deadline);
+    const pBadge = PRIORITY_BADGE_MAP[t.priority] || PRIORITY_BADGE_MAP.medium;
+    const sCfg = statusConfig(t.status);
+    const selected = selectedTaskIds.includes(t.id);
+
+    return (
+      <div
+        key={t.id}
+        className={`cursis-task-row ${selected ? 'cursis-task-row--selected' : ''}`}
+        onClick={() => setSelectedTaskDetail(t)}
+      >
+        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={selected}
+            aria-label={`Select ${t.name}`}
+            onChange={() => toggleSelectTask(t.id)}
+            style={{ width: '15px', height: '15px', accentColor: '#FF5500', cursor: 'pointer' }}
+          />
+        </div>
+
+        <button
+          type="button"
+          aria-label={isDone ? `Mark ${t.name} incomplete` : `Mark ${t.name} complete`}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleTaskComplete(t.id);
+          }}
+          style={{
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            border: isDone ? '1.5px solid #10B981' : '1.5px solid #D1D5DB',
+            background: isDone ? '#10B981' : '#FFFFFF',
+            color: '#FFFFFF',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          {isDone && <Check size={12} strokeWidth={2.8} aria-hidden="true" />}
+        </button>
+
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: '13.5px',
+                color: isDone ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                textDecoration: isDone ? 'line-through' : 'none',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {t.name}
+            </span>
+            {proj && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  padding: '2px 7px',
+                  borderRadius: '6px',
+                  background: '#F5F2EA',
+                  color: '#4A4A4A',
+                  border: '1px solid rgba(10, 10, 10, 0.08)',
+                }}
+              >
+                <Folder size={10} color={proj.color || '#FF5500'} aria-hidden="true" />
+                {proj.name}
+              </span>
+            )}
+          </div>
+          {t.description && (
+            <div
+              style={{
+                fontSize: '12px',
+                color: 'var(--text-tertiary)',
+                marginTop: '2px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '460px',
+              }}
+            >
+              {t.description}
+            </div>
+          )}
+        </div>
+
+        <div className="cursis-task-row-meta" style={{ display: 'contents' }}>
+          <Badge variant={pBadge.variant}>{pBadge.label}</Badge>
+
+          <div onClick={(e) => e.stopPropagation()}>
+            <select
+              className="cursis-task-status-select"
+              value={t.status}
+              aria-label={`Change status for ${t.name}`}
+              onChange={(e) => updateTaskStatus(t.id, e.target.value as TaskStatus)}
+              style={{
+                backgroundColor: sCfg.pillBg,
+                color: sCfg.pillFg,
+                borderColor: 'rgba(10, 10, 10, 0.12)',
+              }}
+            >
+              <option value="todo">To Do</option>
+              <option value="in-progress">In Progress</option>
+              <option value="review">In Review</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+
+          <div style={{ minWidth: '120px', fontSize: '12.5px' }}>
+            {emp ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <div
+                  className="avatar avatar-sm"
+                  style={{
+                    background: emp.color || '#FF5500',
+                    width: '22px',
+                    height: '22px',
+                    fontSize: '9.5px',
+                  }}
+                >
+                  {emp.initials}
+                </div>
+                <span style={{ fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                  {emp.name}
+                </span>
+              </div>
+            ) : (
+              <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Unassigned</span>
+            )}
+          </div>
+
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              minWidth: '82px',
+              fontSize: '12px',
+              fontWeight: overdue ? 600 : 500,
+              color: overdue ? '#dc2626' : 'var(--text-secondary)',
+            }}
+          >
+            <Calendar size={12} aria-hidden="true" />
+            <span>{formatDate(t.deadline)}</span>
+          </div>
+        </div>
+
+        <div className="cursis-task-row-actions" onClick={(e) => e.stopPropagation()}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            title="Open task thread & details"
+            aria-label={`Open ${t.name}`}
+            onClick={() => setSelectedTaskDetail(t)}
+            style={{ width: '30px', height: '30px', color: 'var(--text-tertiary)' }}
+          >
+            <MessageSquare size={14} aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            title="Delete task"
+            aria-label={`Delete ${t.name}`}
+            onClick={() => {
+              if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
+                deleteTask(t.id);
+              }
+            }}
+            style={{ width: '30px', height: '30px', color: '#dc2626' }}
+          >
+            <Trash2 size={14} aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="page active" id="page-tasks" style={{ maxWidth: '1080px', margin: '0 auto' }}>
-      <TaskCsvImport />
+    <div className="page active" id="page-tasks" style={{ maxWidth: '1120px', margin: '0 auto' }}>
       {/* Header */}
       <div
         style={{
@@ -110,74 +406,68 @@ export default function TasksPage() {
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               Tasks
             </h1>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                background: 'var(--c-surface)',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border-color)',
-                textTransform: 'uppercase',
-              }}
-            >
+            <Badge variant="secondary" style={{ textTransform: 'uppercase', fontSize: '11px' }}>
               {tasks.length} total
-            </span>
+            </Badge>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-            Track, assign, and manage deliverables across workspace projects.
+            Organize sprints, track status across stages, and collaborate inline.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* View Switcher */}
-          <div style={{ display: 'flex', background: 'var(--surface-secondary)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '2px' }}>
-            {(['list', 'calendar', 'timeline'] as ViewMode[]).map((v) => (
-              <button
-                key={v}
-                type="button"
-                style={{
-                  textTransform: 'capitalize',
-                  fontSize: '12px',
-                  padding: '4px 12px',
-                  borderRadius: '6px',
-                  height: '28px',
-                  fontWeight: currentView === v ? 600 : 500,
-                  background: currentView === v ? '#FFFFFF' : 'transparent',
-                  color: currentView === v ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  border: currentView === v ? '1px solid var(--border-color)' : '1px solid transparent',
-                  boxShadow: currentView === v ? '0 1px 2px rgba(0, 0, 0, 0.05)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onClick={() => setCurrentView(v)}
-              >
-                {v}
-              </button>
-            ))}
+          <div className="ui-tabs-list" role="tablist" aria-label="Task view mode">
+            {viewOptions.map(({ id, label, Icon }) => {
+              const active = currentView === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  data-state={active ? 'active' : 'inactive'}
+                  className="ui-tabs-trigger"
+                  onClick={() => setCurrentView(id)}
+                  style={{ padding: '5px 10px', fontSize: '12.5px' }}
+                >
+                  <Icon size={13} aria-hidden="true" />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <button
+          <Button
             type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => openModal('task-modal')}
-            style={{ fontWeight: 600 }}
+            variant="outline"
+            size="sm"
+            onClick={() => setCsvOpen((v) => !v)}
+            aria-expanded={csvOpen}
           >
-            + New Task
-          </button>
+            <Upload size={13} aria-hidden="true" />
+            Import CSV
+          </Button>
+
+          <Button type="button" size="sm" onClick={() => openModal('task-modal')}>
+            <Plus size={14} aria-hidden="true" />
+            New Task
+          </Button>
         </div>
       </div>
 
-      {/* Control Bar: Filters & Department Selector */}
+      {/* Collapsible CSV Import Panel */}
+      <TaskCsvImport open={csvOpen} onOpenChange={setCsvOpen} hideTrigger />
+
+      {/* Search & Filter Toolbar */}
       <div
         style={{
           display: 'flex',
-          gap: '8px',
+          gap: '10px',
           marginBottom: 'var(--sp-4)',
           flexWrap: 'wrap',
           alignItems: 'center',
@@ -204,30 +494,30 @@ export default function TasksPage() {
                 onClick={() => setActiveFilter(f.id)}
                 style={{
                   fontSize: '12px',
-                  padding: '4px 12px',
+                  padding: '0 11px',
                   height: '30px',
-                  fontWeight: isActive ? 600 : 500,
-                  borderRadius: '20px',
+                  fontWeight: 600,
+                  borderRadius: '9999px',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: isActive ? 'var(--c-brand)' : 'var(--surface-card)',
-                  color: isActive ? 'var(--c-on-brand)' : 'var(--text-secondary)',
-                  border: isActive ? '1px solid var(--c-brand)' : '1px solid var(--border-color)',
-                  boxShadow: isActive ? '0 1px 2px rgba(255, 85, 0, 0.25)' : 'none',
-                  transition: 'all 0.15s ease',
+                  background: isActive ? '#FF5500' : '#FFFFFF',
+                  color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
+                  border: isActive ? '1px solid #FF5500' : '1px solid var(--border-color)',
+                  boxShadow: isActive ? '0 1px 2px rgba(255, 85, 0, 0.25)' : '0 1px 1px rgba(0, 0, 0, 0.03)',
+                  transition: 'all 0.14s ease',
                 }}
               >
                 <span>{f.label}</span>
                 <span
                   style={{
-                    fontSize: '11px',
+                    fontSize: '10.5px',
                     fontWeight: 700,
                     padding: '1px 6px',
-                    borderRadius: '10px',
-                    background: isActive ? 'rgba(255, 255, 255, 0.25)' : 'var(--surface-tertiary)',
-                    color: isActive ? 'var(--c-on-brand)' : 'var(--text-tertiary)',
+                    borderRadius: '9999px',
+                    background: isActive ? 'rgba(255, 255, 255, 0.24)' : '#F3EFE4',
+                    color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
                   }}
                 >
                   {count}
@@ -236,58 +526,83 @@ export default function TasksPage() {
             );
           })}
         </div>
+
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', width: '210px' }}>
+            <Search
+              size={13}
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--text-tertiary)',
+                pointerEvents: 'none',
+              }}
+            />
+            <Input
+              type="search"
+              placeholder="Search tasks…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search tasks"
+              style={{ height: '32px', paddingLeft: '30px', fontSize: '12.5px' }}
+            />
+          </div>
+
+          <Select
+            aria-label="Filter by project"
+            value={projectFilter}
+            onChange={(e) => setProjectFilter(e.target.value)}
+            style={{ width: 'auto', minWidth: '145px', height: '32px', fontSize: '12.5px' }}
+          >
+            <option value="all">All Projects</option>
+            <option value="standalone">Independent Tasks</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+        </div>
       </div>
 
       {/* Bulk Actions Bar */}
       {selectedTaskIds.length > 0 && (
-        <div
+        <Card
           id="bulk-bar"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '8px 14px',
-            background: 'var(--c-surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '6px',
+            padding: '10px 14px',
             marginBottom: 'var(--sp-4)',
-            fontSize: '12px',
+            flexWrap: 'wrap',
           }}
         >
-          <span style={{ fontWeight: 700 }}>{selectedTaskIds.length} selected</span>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            style={{ fontSize: '11px', padding: '2px 8px' }}
-            onClick={handleBulkComplete}
-          >
+          <Badge variant="default">{selectedTaskIds.length} selected</Badge>
+          <Button type="button" variant="outline" size="sm" onClick={handleBulkComplete}>
+            <CheckCircle2 size={13} aria-hidden="true" />
             Mark Complete
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            style={{ fontSize: '11px', padding: '2px 8px' }}
-            onClick={handleBulkInProgress}
-          >
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={handleBulkInProgress}>
             Set In Progress
-          </button>
-          <button
+          </Button>
+          <Button type="button" variant="destructive" size="sm" onClick={handleBulkDelete}>
+            <Trash2 size={13} aria-hidden="true" />
+            Delete ({selectedTaskIds.length})
+          </Button>
+          <Button
             type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--c-error)' }}
-            onClick={handleBulkDelete}
-          >
-            Delete Selected ({selectedTaskIds.length})
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ fontSize: '11px', padding: '2px 8px', marginLeft: 'auto' }}
+            variant="ghost"
+            size="sm"
+            style={{ marginLeft: 'auto' }}
             onClick={() => setSelectedTaskIds([])}
           >
             Clear
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
 
       {/* View Content */}
@@ -298,143 +613,218 @@ export default function TasksPage() {
             description={
               tasks.length === 0
                 ? 'Start organizing your sprint deliverables. Give the work a name, assign an owner, and set a deadline.'
-                : 'No tasks match your selected filter criteria. Try clearing filters or switching project views.'
+                : 'No tasks match your selected filter or search criteria. Try clearing filters or switching project views.'
             }
-            actionLabel={tasks.length === 0 ? '+ Create Your First Task' : 'Reset Filters'}
+            actionLabel={tasks.length === 0 ? 'Create Your First Task' : 'Reset Filters'}
             onAction={
               tasks.length === 0
                 ? () => openModal('task-modal')
-                : () => { setActiveFilter('all'); }
+                : () => {
+                    setActiveFilter('all');
+                    setProjectFilter('all');
+                    setSearchQuery('');
+                  }
             }
           />
         ) : (
           <>
-            {/* List View */}
+            {/* 1. Grouped Interactive List View (Slack Lists / Linear style) */}
             {currentView === 'list' && (
-              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)', background: '#FFFFFF' }}>
-                <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ background: 'var(--c-surface)', borderBottom: '1px solid var(--border-color)' }}>
-                      <th style={{ width: '40px', padding: '10px 14px' }}>
-                        <input
-                          type="checkbox"
-                          checked={selectedTaskIds.length === filteredTasks.length && filteredTasks.length > 0}
-                          onChange={(e) => {
-                            if (e.target.checked) setSelectedTaskIds(filteredTasks.map((t) => t.id));
-                            else setSelectedTaskIds([]);
-                          }}
-                        />
-                      </th>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Task Title</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Assignee</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Priority</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Status</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 700 }}>Due Date</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: '12px', fontWeight: 700 }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTasks.map((t) => {
-                      const emp = getEmployee(t.assignee);
-                      const isDone = t.status === 'completed';
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {STATUS_COLUMNS.map((group) => {
+                  const groupTasks = filteredTasks.filter((t) => t.status === group.id);
+                  if (groupTasks.length === 0) return null;
+                  const collapsed = !!collapsedGroups[group.id];
 
-                      return (
-                        <tr
-                          key={t.id}
-                          onClick={() => setSelectedTaskDetail(t)}
+                  return (
+                    <section key={group.id} className="cursis-task-group" aria-label={`${group.label} tasks`}>
+                      <div className="cursis-task-group-header">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleGroup(group.id)}
                           style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            fontWeight: 700,
+                            fontSize: '13px',
+                            color: 'var(--text-primary)',
                             cursor: 'pointer',
-                            borderBottom: '1px solid var(--border-color)',
-                            background: selectedTaskIds.includes(t.id) ? 'var(--c-surface-hover)' : 'transparent',
                           }}
                         >
-                          <td style={{ padding: '10px 14px' }} onClick={(e) => e.stopPropagation()}>
-                            <input
-                              type="checkbox"
-                              checked={selectedTaskIds.includes(t.id)}
-                              onChange={() => toggleSelectTask(t.id)}
-                            />
-                          </td>
-                          <td style={{ padding: '10px 14px' }}>
-                            <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', textDecoration: isDone ? 'line-through' : 'none' }}>
-                              {t.name}
-                            </div>
-                            {t.description && (
-                              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {t.description}
-                              </div>
-                            )}
-                          </td>
-                          <td style={{ padding: '10px 14px', fontSize: '12px' }}>
-                            {emp ? (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <div className="avatar avatar-sm" style={{ background: emp.color || '#FF5500', width: '20px', height: '20px', fontSize: '9px' }}>
-                                  {emp.initials}
-                                </div>
-                                <span>{emp.name}</span>
-                              </div>
-                            ) : (
-                              <span style={{ color: 'var(--text-tertiary)' }}>Unassigned</span>
-                            )}
-                          </td>
-                          <td style={{ padding: '10px 14px' }}>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                textTransform: 'uppercase',
-                                fontWeight: 700,
-                                padding: '1px 6px',
-                                borderRadius: '4px',
-                                border: '1px solid var(--border-color)',
-                                background: 'var(--c-surface)',
-                                color: t.priority === 'urgent' || t.priority === 'high' ? 'var(--c-error)' : 'var(--text-secondary)',
+                          {collapsed ? (
+                            <ChevronRight size={15} aria-hidden="true" />
+                          ) : (
+                            <ChevronDown size={15} aria-hidden="true" />
+                          )}
+                          <span
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: group.dotColor,
+                              display: 'inline-block',
+                            }}
+                          />
+                          <span>{group.label}</span>
+                          <Badge variant="secondary" style={{ padding: '1px 7px', fontSize: '11px' }}>
+                            {groupTasks.length}
+                          </Badge>
+                        </button>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openModal('task-modal')}
+                          style={{ height: '26px', fontSize: '11.5px', color: 'var(--text-secondary)' }}
+                        >
+                          <Plus size={12} aria-hidden="true" />
+                          Add task
+                        </Button>
+                      </div>
+
+                      {!collapsed && <div>{groupTasks.map(renderGroupRow)}</div>}
+                    </section>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 2. Drag-and-Drop Board View */}
+            {currentView === 'board' && (
+              <div className="cursis-task-board" aria-label="Task Kanban board">
+                {STATUS_COLUMNS.map((col) => {
+                  const colTasks = filteredTasks.filter((t) => t.status === col.id);
+                  const isDragTarget = dragOverColumn === col.id;
+                  return (
+                    <section
+                      key={col.id}
+                      className={`cursis-task-column ${isDragTarget ? 'cursis-task-column--drag' : ''}`}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (dragOverColumn !== col.id) setDragOverColumn(col.id);
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverColumn === col.id) setDragOverColumn(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        handleColumnDrop(col.id);
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 2px 6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontWeight: 700, fontSize: '13px' }}>
+                          <span
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: col.dotColor,
+                              display: 'inline-block',
+                            }}
+                          />
+                          <span>{col.label}</span>
+                          <Badge variant="secondary" style={{ fontSize: '11px', padding: '1px 7px' }}>
+                            {colTasks.length}
+                          </Badge>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Add task in ${col.label}`}
+                          onClick={() => openModal('task-modal')}
+                          style={{ width: '26px', height: '26px' }}
+                        >
+                          <Plus size={13} aria-hidden="true" />
+                        </Button>
+                      </div>
+
+                      {colTasks.length === 0 ? (
+                        <div
+                          style={{
+                            border: '1.5px dashed rgba(10, 10, 10, 0.14)',
+                            borderRadius: '10px',
+                            padding: '20px 12px',
+                            textAlign: 'center',
+                            fontSize: '12px',
+                            color: 'var(--text-tertiary)',
+                          }}
+                        >
+                          Drop tasks here
+                        </div>
+                      ) : (
+                        colTasks.map((t) => {
+                          const emp = getEmployee(t.assignee);
+                          const proj = t.project ? getProject(t.project) : undefined;
+                          const pBadge = PRIORITY_BADGE_MAP[t.priority] || PRIORITY_BADGE_MAP.medium;
+                          const overdue = t.status !== 'completed' && isOverdue(t.deadline);
+
+                          return (
+                            <article
+                              key={t.id}
+                              draggable
+                              onDragStart={() => setDragTaskId(t.id)}
+                              onDragEnd={() => {
+                                setDragTaskId(null);
+                                setDragOverColumn(null);
                               }}
+                              onClick={() => setSelectedTaskDetail(t)}
+                              className="cursis-task-card"
                             >
-                              {t.priority}
-                            </span>
-                          </td>
-                          <td style={{ padding: '10px 14px' }} onClick={(e) => e.stopPropagation()}>
-                            <select
-                              className="input select"
-                              value={t.status}
-                              onChange={(e) => updateTaskStatus(t.id, e.target.value as TaskStatus)}
-                              style={{ fontSize: '11px', height: '28px', padding: '0 6px', width: 'auto', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                            >
-                              <option value="todo">To Do</option>
-                              <option value="in-progress">In Progress</option>
-                              <option value="review">Review</option>
-                              <option value="completed">Completed</option>
-                            </select>
-                          </td>
-                          <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                            {formatDate(t.deadline)}
-                          </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-sm"
-                              style={{ color: 'var(--c-error)', fontSize: '12px', padding: '2px 8px' }}
-                              onClick={() => {
-                                if (window.confirm(`Are you sure you want to delete task "${t.name}"?`)) {
-                                  deleteTask(t.id);
-                                }
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '7px' }}>
+                                <Badge variant={pBadge.variant} style={{ fontSize: '10.5px', padding: '1px 7px' }}>
+                                  {pBadge.label}
+                                </Badge>
+                                {proj && (
+                                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {proj.name}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)', lineHeight: 1.35, marginBottom: '8px', textDecoration: t.status === 'completed' ? 'line-through' : 'none' }}>
+                                {t.name}
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11.5px', color: overdue ? '#dc2626' : 'var(--text-tertiary)' }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: overdue ? 600 : 500 }}>
+                                  <Calendar size={11} aria-hidden="true" />
+                                  {formatDate(t.deadline)}
+                                </span>
+                                {emp && (
+                                  <div
+                                    className="avatar avatar-sm"
+                                    title={emp.name}
+                                    style={{
+                                      background: emp.color || '#FF5500',
+                                      width: '22px',
+                                      height: '22px',
+                                      fontSize: '9px',
+                                    }}
+                                  >
+                                    {emp.initials}
+                                  </div>
+                                )}
+                              </div>
+                            </article>
+                          );
+                        })
+                      )}
+                    </section>
+                  );
+                })}
               </div>
             )}
 
             {/* 3. Calendar View */}
             {currentView === 'calendar' && (
-              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)', background: '#FFFFFF' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '14px', color: 'var(--text-primary)' }}>
+              <Card style={{ padding: '18px 20px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Tasks by Due Date
                 </h3>
                 {Array.from(new Set(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline))).length === 0 ? (
@@ -442,205 +832,211 @@ export default function TasksPage() {
                     compact
                     title="No scheduled tasks on the calendar"
                     description="None of your active tasks have deadlines set. Assign due dates to view them on the calendar."
-                    actionLabel="+ Schedule Task"
+                    actionLabel="Schedule Task"
                     onAction={() => openModal('task-modal')}
                   />
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-                    {Array.from(new Set(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline))).sort().map((dateStr) => {
-                      const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
-                      return (
-                        <div key={dateStr} className="card" style={{ background: '#FFFFFF', padding: '14px', border: '1px solid var(--border-color)', borderRadius: '10px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)' }}>
-                          <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: 'var(--c-brand)' }}>
-                            {formatDate(dateStr)} ({dayTasks.length})
-                          </div>
-                          {dayTasks.map((t) => (
-                            <div
-                              key={t.id}
-                              style={{ padding: '8px 10px', background: 'var(--surface-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', marginBottom: '6px', fontSize: '12px', cursor: 'pointer' }}
-                              onClick={() => setSelectedTaskDetail(t)}
-                            >
-                              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t.name}</div>
-                              <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600 }}>{t.status} · {t.priority}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '12px' }}>
+                    {Array.from(new Set(filteredTasks.filter((t) => Boolean(t.deadline)).map((t) => t.deadline)))
+                      .sort()
+                      .map((dateStr) => {
+                        const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
+                        return (
+                          <Card key={dateStr} style={{ padding: '14px', background: '#FCFBF8' }}>
+                            <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: 'var(--c-brand)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span>{formatDate(dateStr)}</span>
+                              <Badge variant="secondary">{dayTasks.length}</Badge>
                             </div>
-                          ))}
-                        </div>
-                      );
-                    })}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              {dayTasks.map((t) => (
+                                <div
+                                  key={t.id}
+                                  onClick={() => setSelectedTaskDetail(t)}
+                                  style={{
+                                    padding: '8px 10px',
+                                    background: '#FFFFFF',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '8px',
+                                    fontSize: '12px',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t.name}</div>
+                                  <div style={{ color: 'var(--text-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                    {statusConfig(t.status).label} · {PRIORITY_BADGE_MAP[t.priority]?.label || t.priority}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </Card>
+                        );
+                      })}
                   </div>
                 )}
-              </div>
+              </Card>
             )}
 
             {/* 4. Timeline / Progress View */}
             {currentView === 'timeline' && (
-              <div className="card" style={{ padding: '18px 20px', border: '1px solid var(--border-color)', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)', background: '#FFFFFF' }}>
+              <Card style={{ padding: '18px 20px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
                   Sprint Progress
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {filteredTasks.map((t) => (
-                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 0', borderBottom: '1px solid var(--border-color)' }}>
-                      <div style={{ width: '220px', fontWeight: 600, fontSize: '12px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
-                        {t.name}
+                  {filteredTasks.map((t) => {
+                    const pct = t.status === 'completed' ? '100%' : t.status === 'in-progress' ? '55%' : t.status === 'review' ? '82%' : '18%';
+                    return (
+                      <div
+                        key={t.id}
+                        onClick={() => setSelectedTaskDetail(t)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '8px 6px',
+                          borderBottom: '1px solid rgba(10, 10, 10, 0.06)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <div style={{ width: '220px', fontWeight: 600, fontSize: '12.5px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
+                          {t.name}
+                        </div>
+                        <div style={{ flex: 1, background: '#F3EFE4', height: '10px', borderRadius: '999px', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              height: '100%',
+                              width: pct,
+                              borderRadius: '999px',
+                              background: t.status === 'completed' ? '#10B981' : '#FF5500',
+                              transition: 'width 0.25s ease',
+                            }}
+                          />
+                        </div>
+                        <Badge variant="secondary" style={{ fontSize: '11px' }}>
+                          {statusConfig(t.status).label}
+                        </Badge>
+                        <span style={{ fontSize: '11.5px', width: '78px', textAlign: 'right', color: 'var(--text-secondary)' }}>
+                          {formatDate(t.deadline)}
+                        </span>
                       </div>
-                      <div style={{ flex: 1, background: 'var(--surface-secondary)', height: '16px', borderRadius: '4px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
-                        <div
-                          style={{
-                            height: '100%',
-                            width: t.status === 'completed' ? '100%' : t.status === 'in-progress' ? '50%' : t.status === 'review' ? '80%' : '15%',
-                            background: t.status === 'completed' ? '#16a34a' : 'var(--c-brand)',
-                          }}
-                        />
-                      </div>
-                      <span style={{ fontSize: '11px', width: '80px', textAlign: 'right', color: 'var(--text-secondary)' }}>
-                        {formatDate(t.deadline)}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-              </div>
+              </Card>
             )}
           </>
         )}
       </div>
 
-      {/* Task Templates Section */}
+      {/* Quick Task Templates Section */}
       <div style={{ marginTop: '24px' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
+        <h3 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
           Quick Task Templates
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px' }}>
           {[
-            { name: 'Bug Report', fields: 'Steps to Reproduce, Severity' },
-            { name: 'Feature Request', fields: 'User Story, Acceptance Criteria' },
-            { name: 'Onboarding Item', fields: 'New Hire Checklist, Training' },
-            { name: 'Sprint Deliverable', fields: 'Deliverable, Definition of Done' },
-          ].map((tmpl) => (
-            <div
-              key={tmpl.name}
-              className="card"
+            { name: 'Bug Report', fields: 'Steps to Reproduce, Severity', Icon: Bug },
+            { name: 'Feature Request', fields: 'User Story, Acceptance Criteria', Icon: Sparkles },
+            { name: 'Onboarding Item', fields: 'New Hire Checklist, Training', Icon: UserPlus },
+            { name: 'Sprint Deliverable', fields: 'Deliverable, Definition of Done', Icon: Flag },
+          ].map(({ name, fields, Icon }) => (
+            <Card
+              key={name}
+              className="card-clickable"
               style={{
-                padding: '10px 14px',
-                cursor: 'pointer',
-                border: '1px solid var(--border-color)',
-                borderRadius: '6px',
-                background: 'var(--surface-card)',
+                padding: '12px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
               }}
-              onClick={() => loadTemplate(tmpl.name)}
+              onClick={() => loadTemplate(name)}
             >
-              <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-primary)', marginBottom: '2px' }}>
-                + {tmpl.name}
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: '#FAF6EE',
+                  border: '1px solid var(--border-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FF5500',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon size={15} aria-hidden="true" />
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{tmpl.fields}</div>
-            </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: '12.5px', color: 'var(--text-primary)' }}>{name}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {fields}
+                </div>
+              </div>
+            </Card>
           ))}
         </div>
       </div>
 
-      {/* Task Detail Modal */}
-      {selectedTaskDetail && (
-        <div
-          className="modal-overlay active"
-          onClick={() => setSelectedTaskDetail(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '16px',
-          }}
-        >
-          <div
-            className="modal"
-            style={{
-              maxWidth: '520px',
-              width: '100%',
-              background: 'var(--surface-modal, var(--surface-card))',
-              borderRadius: '8px',
-              border: '1px solid var(--border-color)',
-              padding: '20px',
-              maxHeight: '85vh',
-              overflowY: 'auto',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+      {/* Task Detail Dialog */}
+      <Dialog
+        open={!!selectedTaskDetail}
+        onOpenChange={(open) => {
+          if (!open) setSelectedTaskDetail(null);
+        }}
+      >
+        {selectedTaskDetail && (
+          <DialogContent style={{ maxWidth: '580px' }}>
+            <DialogHeader>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <Badge variant={PRIORITY_BADGE_MAP[selectedTaskDetail.priority]?.variant || 'secondary'}>
+                  {PRIORITY_BADGE_MAP[selectedTaskDetail.priority]?.label || selectedTaskDetail.priority} Priority
+                </Badge>
+                {selectedTaskDetail.project && getProject(selectedTaskDetail.project) && (
+                  <Badge variant="outline">{getProject(selectedTaskDetail.project)?.name}</Badge>
+                )}
+              </div>
+              <DialogTitle>{selectedTaskDetail.name}</DialogTitle>
+              <DialogDescription>
+                {selectedTaskDetail.description || 'No detailed description provided.'}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', margin: '10px 0 16px' }}>
               <div>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    background: 'var(--surface-secondary)',
-                    color: 'var(--text-secondary)',
-                    border: '1px solid var(--border-color)',
-                    textTransform: 'uppercase',
+                <Label style={{ marginBottom: '5px' }}>Status</Label>
+                <Select
+                  value={selectedTaskDetail.status}
+                  aria-label="Task status"
+                  onChange={(e) => {
+                    updateTaskStatus(selectedTaskDetail.id, e.target.value as TaskStatus);
+                    setSelectedTaskDetail({ ...selectedTaskDetail, status: e.target.value as TaskStatus });
                   }}
                 >
-                  {selectedTaskDetail.priority}
-                </span>
-                <h3 style={{ margin: '6px 0 0 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {selectedTaskDetail.name}
-                </h3>
+                  <option value="todo">To Do</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="review">In Review</option>
+                  <option value="completed" disabled={pendingApproval}>
+                    Completed
+                  </option>
+                </Select>
               </div>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => setSelectedTaskDetail(null)}
-                style={{ fontSize: '16px', padding: '0 4px', color: 'var(--text-secondary)' }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
-                {selectedTaskDetail.description || 'No detailed description provided.'}
-              </p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', margin: '14px 0' }}>
-                <div>
-                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Status
-                  </label>
-                  <select
-                    className="input select"
-                    value={selectedTaskDetail.status}
-                    aria-label="Task status"
-                    onChange={(e) => {
-                      updateTaskStatus(selectedTaskDetail.id, e.target.value as TaskStatus);
-                      setSelectedTaskDetail({ ...selectedTaskDetail, status: e.target.value as TaskStatus });
-                    }}
-                    style={{ width: '100%', height: '32px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
-                  >
-                    <option value="todo">To Do</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="review">Review</option>
-                    <option value="completed" disabled={pendingApproval}>Completed</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Deadline
-                  </label>
-                  <div style={{ fontSize: '12px', padding: '6px 0', color: 'var(--text-primary)', fontWeight: 500 }}>
-                    {formatDate(selectedTaskDetail.deadline)}
-                  </div>
+              <div>
+                <Label style={{ marginBottom: '5px' }}>Deadline</Label>
+                <div style={{ fontSize: '13px', height: '38px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-primary)', fontWeight: 500 }}>
+                  <Calendar size={14} aria-hidden="true" />
+                  {formatDate(selectedTaskDetail.deadline)}
                 </div>
               </div>
             </div>
 
             <TaskConversation key={selectedTaskDetail.id} taskId={selectedTaskDetail.id} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
-              <button
+
+            <DialogFooter style={{ justifyContent: 'space-between', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+              <Button
                 type="button"
-                className="btn btn-ghost btn-sm"
-                style={{ color: 'var(--c-error)', fontSize: '12px' }}
+                variant="destructive"
+                size="sm"
                 onClick={() => {
                   if (window.confirm(`Are you sure you want to delete task "${selectedTaskDetail.name}"?`)) {
                     deleteTask(selectedTaskDetail.id);
@@ -648,33 +1044,30 @@ export default function TasksPage() {
                   }
                 }}
               >
+                <Trash2 size={13} aria-hidden="true" />
                 Delete Task
-              </button>
+              </Button>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setSelectedTaskDetail(null)}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => setSelectedTaskDetail(null)}>
                   Close
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  className="btn btn-primary btn-sm"
+                  size="sm"
                   disabled={pendingApproval}
                   onClick={() => {
                     toggleTaskComplete(selectedTaskDetail.id);
                     setSelectedTaskDetail(null);
                   }}
-                  style={{ fontWeight: 700 }}
                 >
-                  {selectedTaskDetail.status === 'completed' ? 'Reopen' : 'Mark Completed'}
-                </button>
+                  <CheckCircle2 size={13} aria-hidden="true" />
+                  {selectedTaskDetail.status === 'completed' ? 'Reopen Task' : 'Mark Completed'}
+                </Button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }

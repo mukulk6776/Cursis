@@ -8,6 +8,19 @@
 @import './components.css';
 @import './animations.css';
 @import './pages.css';
+@import './shadcn.css';
+
+.cursis-dashboard-root a,
+.cursis-dashboard-root a:hover {
+  text-decoration: none;
+}
+
+.cursis-dashboard-root select.input.select {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  line-height: 1.25;
+}
+
 .csv-task-preview th,
 .csv-task-preview td {
   padding: 8px 12px;

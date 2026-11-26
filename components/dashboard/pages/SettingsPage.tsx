@@ -509,7 +509,7 @@ teamSettings,
             </div>
             <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
               Manage access, adjust permission roles, or inspect workloads. Max {effectiveLimit} team members{user.activePlan ? ` on ${user.activePlan.planName}` : ''}.{' '}
-              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
+              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700 }}>Upgrade plan →</a>
             </p>
           </div>
           <button

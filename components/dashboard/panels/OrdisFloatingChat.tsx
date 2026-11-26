@@ -535,7 +535,7 @@ function DisabledOrdisFloatingChat() {
                   href="https://console.groq.com/keys"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: '#fb923c', textDecoration: 'underline' }}
+                  style={{ color: '#fb923c', fontWeight: 600 }}
                 >
                   console.groq.com/keys
                 </a>
@@ -554,7 +554,7 @@ function DisabledOrdisFloatingChat() {
                     color: '#f87171',
                     fontSize: '10px',
                     cursor: 'pointer',
-                    textDecoration: 'underline',
+                    fontWeight: 600,
                   }}
                 >
                   Clear Key

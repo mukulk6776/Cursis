@@ -217,7 +217,11 @@ export default function HomePage() {
             <span>
               Ordis AI and My Day focus planner require the <strong>Pro Plan</strong>{user.activePlan ? ` (${user.activePlan.planName} active)` : ''}.
             </span>
-            <a href="/pricing" style={{ fontSize: '12px', fontWeight: 700, color: '#FF5500', textDecoration: 'underline' }}>
+            <a
+              href="/pricing"
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              style={{ fontSize: '12px', fontWeight: 600 }}
+            >
               Compare Plans
             </a>
           </div>

@@ -157,7 +157,7 @@ export default function InviteModal() {
               }}
             >
               <strong>Team Limit Reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace has reached the maximum allowed limit of {effectiveLimit} team members.{' '}
-              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
+              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700 }}>Upgrade plan →</a>
             </div>
           ) : isAtCapacity ? (
             <div
@@ -173,7 +173,7 @@ export default function InviteModal() {
               }}
             >
               <strong>Capacity Limit Reached ({effectiveLimit} max):</strong> Workspace has {activeCount} active member{activeCount === 1 ? '' : 's'} and {pendingCount} pending invitation{pendingCount === 1 ? '' : 's'}. Revoke a pending invitation or{' '}
-              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700, textDecoration: 'underline' }}>upgrade your plan →</a>.
+              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700 }}>upgrade your plan →</a>.
             </div>
           ) : null}
 

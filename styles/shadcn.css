@@ -14,7 +14,7 @@
   --ui-border: var(--c-border, rgba(10, 10, 10, 0.12));
   --ui-border-strong: rgba(10, 10, 10, 0.22);
   --ui-primary: var(--c-brand, #ff5500);
-  --ui-primary-hover: var(--c-brand-hover, #e64d00);
+  --ui-primary-hover: #df4a00;
   --ui-primary-foreground: #ffffff;
   --ui-secondary: #f3efe6;
   --ui-secondary-foreground: #0a0a0a;
@@ -53,6 +53,10 @@
   font-family: inherit;
 }
 
+.ui-btn:hover {
+  text-decoration: none;
+}
+
 .ui-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--ui-ring);
@@ -65,16 +69,22 @@
   pointer-events: none;
 }
 
-.ui-btn--default {
+.ui-btn--default,
+a.ui-btn--default {
   background: var(--ui-primary);
   color: var(--ui-primary-foreground);
   border-color: var(--ui-primary);
   box-shadow: var(--ui-shadow-sm);
+  text-decoration: none;
 }
 
-.ui-btn--default:hover {
+.ui-btn--default:hover,
+a.ui-btn--default:hover {
   background: var(--ui-primary-hover);
+  color: var(--ui-primary-foreground);
   border-color: var(--ui-primary-hover);
+  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.28);
+  text-decoration: none;
 }
 
 .ui-btn--brutal {
@@ -89,46 +99,67 @@
   box-shadow: 5px 5px 0 #0a0a0a;
 }
 
-.ui-btn--secondary {
+.ui-btn--secondary,
+a.ui-btn--secondary {
   background: var(--ui-secondary);
   color: var(--ui-secondary-foreground);
   border-color: var(--ui-border);
+  text-decoration: none;
 }
 
-.ui-btn--secondary:hover {
+.ui-btn--secondary:hover,
+a.ui-btn--secondary:hover {
   background: #eae4d8;
+  color: var(--ui-secondary-foreground);
   border-color: var(--ui-border-strong);
+  text-decoration: none;
 }
 
-.ui-btn--outline {
+.ui-btn--outline,
+a.ui-btn--outline {
   background: var(--ui-card);
   color: var(--ui-foreground);
   border-color: var(--ui-border-strong);
   box-shadow: var(--ui-shadow-sm);
+  text-decoration: none;
 }
 
-.ui-btn--outline:hover {
+.ui-btn--outline:hover,
+a.ui-btn--outline:hover {
   background: var(--ui-muted);
+  color: var(--ui-foreground);
+  border-color: rgba(10, 10, 10, 0.35);
+  text-decoration: none;
 }
 
-.ui-btn--ghost {
+.ui-btn--ghost,
+a.ui-btn--ghost {
   background: transparent;
   color: var(--ui-foreground);
+  text-decoration: none;
 }
 
-.ui-btn--ghost:hover {
+.ui-btn--ghost:hover,
+a.ui-btn--ghost:hover {
   background: rgba(10, 10, 10, 0.06);
+  color: var(--ui-foreground);
+  text-decoration: none;
 }
 
-.ui-btn--destructive {
+.ui-btn--destructive,
+a.ui-btn--destructive {
   background: var(--ui-destructive);
   color: var(--ui-destructive-foreground);
   border-color: var(--ui-destructive);
+  text-decoration: none;
 }
 
-.ui-btn--destructive:hover {
+.ui-btn--destructive:hover,
+a.ui-btn--destructive:hover {
   background: #b91c1c;
+  color: var(--ui-destructive-foreground);
   border-color: #b91c1c;
+  text-decoration: none;
 }
 
 .ui-btn--link {
@@ -455,4 +486,134 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 18px;
+}
+
+/* ---- Modern Tasks Workspace (Grouped Stream & Kanban Board) ---- */
+.cursis-task-group {
+  background: var(--ui-card);
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
+}
+
+.cursis-task-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #fbf9f4;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.cursis-task-row {
+  display: grid;
+  grid-template-columns: 22px 24px minmax(0, 1.8fr) auto auto auto auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.06);
+  background: #ffffff;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.cursis-task-row:last-child {
+  border-bottom: none;
+}
+
+.cursis-task-row:hover {
+  background: #fcfaf5;
+}
+
+.cursis-task-row--selected {
+  background: rgba(255, 85, 0, 0.05);
+}
+
+.cursis-task-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.cursis-task-status-select {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 28px;
+  padding: 0 26px 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 26px;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23525252' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.cursis-task-status-select:hover {
+  border-color: var(--ui-border-strong);
+}
+
+.cursis-task-status-select:focus {
+  outline: none;
+  border-color: var(--ui-primary);
+  box-shadow: 0 0 0 3px var(--ui-ring);
+}
+
+.cursis-task-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(235px, 1fr));
+  gap: 14px;
+  align-items: start;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.cursis-task-column {
+  background: #f8f5ed;
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  padding: 12px;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.cursis-task-column--drag {
+  background: rgba(255, 85, 0, 0.06);
+  border-color: var(--ui-primary);
+}
+
+.cursis-task-card {
+  background: #ffffff;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  padding: 12px 13px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.cursis-task-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(10, 10, 10, 0.24);
+  box-shadow: 0 6px 14px rgba(10, 10, 10, 0.07);
+}
+
+@media (max-width: 900px) {
+  .cursis-task-row {
+    grid-template-columns: 22px 24px 1fr auto;
+    row-gap: 8px;
+  }
+
+  .cursis-task-row-meta {
+    grid-column: 3 / -1;
+  }
 }

@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Columns3, LayoutGrid, List, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import TaskBoard from '@/components/dashboard/work/TaskBoard';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import EmptyState from '@/components/dashboard/EmptyState';
@@ -80,20 +83,9 @@ export default function ProjectsPage() {
             <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               Projects
             </h1>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                background: 'var(--c-surface)',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border-color)',
-                textTransform: 'uppercase',
-              }}
-            >
+            <Badge variant="secondary" style={{ fontSize: '11px', textTransform: 'uppercase' }}>
               {projects.length}{planLimits.maxProjects !== null ? ` / ${planLimits.maxProjects}` : ''} projects
-            </span>
+            </Badge>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
             Coordinate project goals, milestones, and deliverable tracking.
@@ -102,35 +94,41 @@ export default function ProjectsPage() {
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {/* View Switcher */}
-          <div style={{ display: 'flex', border: '1px solid var(--border-color)', borderRadius: '6px', overflow: 'hidden', background: 'var(--c-surface)' }}>
-            {(['grid', 'list', 'kanban'] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                className={`btn ${currentView === v ? 'btn-primary' : 'btn-ghost'} btn-sm`}
-                style={{
-                  textTransform: 'capitalize',
-                  fontSize: '12px',
-                  padding: '4px 10px',
-                  borderRadius: 0,
-                  height: '30px',
-                  fontWeight: currentView === v ? 700 : 500,
-                }}
-                onClick={() => setCurrentView(v)}
-              >
-                {v}
-              </button>
-            ))}
+          <div className="ui-tabs-list" role="tablist" aria-label="Project view mode">
+            {(
+              [
+                { id: 'grid', label: 'Grid', Icon: LayoutGrid },
+                { id: 'list', label: 'List', Icon: List },
+                { id: 'kanban', label: 'Board', Icon: Columns3 },
+              ] as const
+            ).map(({ id, label, Icon }) => {
+              const active = currentView === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  data-state={active ? 'active' : 'inactive'}
+                  className="ui-tabs-trigger"
+                  onClick={() => setCurrentView(id)}
+                  style={{ padding: '5px 10px', fontSize: '12.5px' }}
+                >
+                  <Icon size={13} aria-hidden="true" />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <button
+          <Button
             type="button"
-            className="btn btn-primary btn-sm"
+            size="sm"
             onClick={() => openModal('project-modal')}
-            style={{ fontWeight: 700 }}
           >
-            + New Project
-          </button>
+            <Plus size={14} aria-hidden="true" />
+            New Project
+          </Button>
         </div>
       </div>
 

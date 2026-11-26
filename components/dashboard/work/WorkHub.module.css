@@ -30,7 +30,8 @@
 .fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-block: 12px; }
 .fields button { align-self: end; }
 .files { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 8px; }
-.files a, .approval a { color: #0a0a0a; text-decoration: underline; text-underline-offset: 3px; font-weight: 650; }
+.files a, .approval a { color: #ff5500; text-decoration: none; font-weight: 650; }
+.files a:hover, .approval a:hover { color: #df4a00; text-decoration: none; }
 .approval { background: #fff2c2; }
 .approval[data-status="approved"] { background: #d1fae5; }
 .approval[data-status="changes_requested"] { background: #ffe2d9; }
