@@ -98,7 +98,7 @@ function PaymentCheckoutContent() {
         customerEmail: customerEmail.trim(),
         customerName: customerName.trim(),
         paidAt: verifyData.paidAt || new Date().toISOString(),
-        isDemo,
+        isDemo: typeof verifyData.isDemo === 'boolean' ? verifyData.isDemo : isDemo,
       });
       setPaymentSuccess(true);
       setIsLoading(false);
@@ -106,6 +106,54 @@ function PaymentCheckoutContent() {
       setErrorMessage(err?.message || 'Payment verification encountered an issue. Please contact support.');
       setIsLoading(false);
     }
+  };
+
+  const ensureRazorpayScript = async (): Promise<any> => {
+    if (typeof window === 'undefined') return null;
+    if (window.Razorpay) {
+      setIsScriptLoaded(true);
+      return window.Razorpay;
+    }
+
+    return new Promise((resolve) => {
+      const finish = () => {
+        if (window.Razorpay) {
+          setIsScriptLoaded(true);
+          resolve(window.Razorpay);
+        } else {
+          resolve(null);
+        }
+      };
+
+      const existing = document.getElementById('razorpay-checkout-script') as HTMLScriptElement | null;
+      if (existing) {
+        const timer = window.setTimeout(finish, 8000);
+        existing.addEventListener('load', () => {
+          window.clearTimeout(timer);
+          finish();
+        }, { once: true });
+        existing.addEventListener('error', () => {
+          window.clearTimeout(timer);
+          resolve(null);
+        }, { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = 'razorpay-checkout-script';
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      const timer = window.setTimeout(finish, 8000);
+      script.onload = () => {
+        window.clearTimeout(timer);
+        finish();
+      };
+      script.onerror = () => {
+        window.clearTimeout(timer);
+        resolve(null);
+      };
+      document.body.appendChild(script);
+    });
   };
 
   const handleCheckout = async (e: React.FormEvent) => {
@@ -145,7 +193,19 @@ function PaymentCheckoutContent() {
 
       const { orderId, amount, currency, keyId, isDemo } = orderData;
 
-      if (typeof window !== 'undefined' && window.Razorpay && !isDemo && isScriptLoaded) {
+      if (!isDemo) {
+        const RazorpayCtor = (isScriptLoaded && typeof window !== 'undefined' && window.Razorpay)
+          ? window.Razorpay
+          : await ensureRazorpayScript();
+
+        if (!RazorpayCtor) {
+          setErrorMessage(
+            'Unable to load Razorpay Checkout. Please disable any script or ad blocker and try again.'
+          );
+          setIsLoading(false);
+          return;
+        }
+
         const options = {
           key: keyId,
           amount,
@@ -177,7 +237,7 @@ function PaymentCheckoutContent() {
           },
         };
 
-        const razorpay = new window.Razorpay(options);
+        const razorpay = new RazorpayCtor(options);
         razorpay.on('payment.failed', function (response: any) {
           setErrorMessage(response?.error?.description || 'Payment failed or was cancelled. Please try again.');
           setIsLoading(false);
@@ -325,7 +385,9 @@ function PaymentCheckoutContent() {
       <Script
         id="razorpay-checkout-script"
         src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
         onLoad={() => setIsScriptLoaded(true)}
+        onReady={() => setIsScriptLoaded(true)}
       />
 
       <div style={{ minHeight: '100vh', background: 'var(--c-bg, #FAF6EE)', padding: '28px 16px 72px' }}>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { PRIVACY_VERSION } from '@/lib/privacy/config';
 
 export default function AgencySection() {
   const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
@@ -101,7 +102,7 @@ export default function AgencySection() {
           requirements: formData.details,
           privacyConsent,
           ageConfirmed: privacyConsent,
-          noticeVersion: '2026-10-18',
+          noticeVersion: PRIVACY_VERSION,
         }),
       });
       const data = await res.json().catch(() => ({}));

@@ -3340,6 +3340,8 @@ body.lp-body,
 }
 
 .btn-primary-hero:hover {
+  background: #DF4A00;
+  color: #FFFFFF;
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 0 #0A0A0A;
 }
@@ -3360,6 +3362,8 @@ body.lp-body,
 }
 
 .btn-secondary-hero:hover {
+  background: #FAF6EE;
+  color: #0A0A0A;
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 0 #0A0A0A;
 }
@@ -4016,8 +4020,8 @@ body.lp-body,
 .lp-body :is(.lp-mockup-dot,.lp-ordis-demo-status-dot) {flex-shrink:0;align-self:center;}
 .lp-body :is(.btn,.lp-nav-cta-primary,.lp-nav-btn-signin,.lp-nav-btn-signout) {display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;white-space:nowrap;}
 .lp-body :is(.btn svg,.lp-mockup-tab svg) {flex-shrink:0;}
-.lp-body button:not(:disabled):hover,.lp-body [role="button"]:hover,.lp-body :is(.btn,.lp-nav-cta-primary,.lp-nav-btn-signin,.lp-footer-social-link,.blog-card-link):hover {background:#0A0A0A!important;color:#fff!important;text-decoration:none;}
-.lp-body button:not(:disabled):hover :is(span,strong),.lp-body [role="button"]:hover :is(span,strong) {color:inherit!important;}
+.lp-body :is(.btn-primary,.btn-brand,.lp-nav-cta-primary,.blog-card-link):hover {background:#FF722B;color:#0A0A0A;text-decoration:none;}
+.lp-body :is(.btn-secondary,.lp-nav-btn-signin):hover {background:#FFF0D9;color:#0A0A0A;text-decoration:none;}
 .lp-body :is(.lp-task-row,.lp-pipeline-card,.lp-stat-box,.lp-bento-log-box,.lp-bento-stat-card,.lp-ordis-action-box,.lp-ordis-stats-widget,.lp-ordis-success-box,.lp-stage-step) {border-radius:12px;}
 .lp-body :is(.tano-washi-tape,.lp-task-priority,.lp-task-status,.lp-bento-tag,.lp-demo-step-highlight) {border-radius:8px;}
 .lp-body .lp-mockup-body {min-height:0;align-items:start;}
@@ -4053,7 +4057,7 @@ body.lp-body,
 .lp-body .lp-footer-links-group {grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;}
 .lp-body .lp-footer-bottom .lp-footer-link {margin-bottom:0;}
 .lp-body .lp-footer-cookie {margin:0!important;padding:6px 10px!important;background:#f5f5f0!important;border:1px solid #d6d3d1!important;border-radius:8px!important;color:#292524!important;font:inherit!important;}
-.lp-body .lp-footer-cookie:hover {background:#0A0A0A!important;color:white!important;}
+.lp-body .lp-footer-cookie:hover {background:#e7e2d8!important;border-color:#0A0A0A!important;color:#0A0A0A!important;}
 .lp-body .marketing-newsletter {display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,2fr);gap:8px 28px;padding:24px;margin-block:28px;}
 .lp-body .marketing-newsletter p {margin:0;}
 .lp-body .marketing-newsletter form {grid-column:2;grid-row:1 / span 3;max-width:none;}

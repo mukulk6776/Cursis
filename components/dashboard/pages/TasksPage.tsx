@@ -3,23 +3,18 @@
 import React, { useMemo, useState } from 'react';
 import {
   BarChart3,
-  Bug,
   Calendar,
   Check,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   Columns3,
-  Flag,
   Folder,
   ListTodo,
-  MessageSquare,
   Plus,
   Search,
-  Sparkles,
   Trash2,
   Upload,
-  UserPlus,
 } from 'lucide-react';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,12 +34,9 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { PriorityLevel, Task, TaskStatus } from '@/lib/dashboard/types';
 import { formatDate, isOverdue } from '@/lib/dashboard/data';
 import TaskCsvImport from '@/components/dashboard/TaskCsvImport';
-import TaskConversation from '@/components/dashboard/work/TaskConversation';
-import { useWorkHub } from '@/lib/work-hub/WorkHubContext';
 import EmptyState from '@/components/dashboard/EmptyState';
 
 type ViewMode = 'list' | 'board' | 'calendar' | 'timeline';
-type FilterMode = 'all' | 'overdue' | 'high-priority' | 'assigned-to-me' | 'upcoming' | 'completed';
 
 const STATUS_COLUMNS: {
   id: TaskStatus;
@@ -53,11 +45,11 @@ const STATUS_COLUMNS: {
   pillBg: string;
   pillFg: string;
 }[] = [
-  { id: 'in-progress', label: 'In Progress', dotColor: '#FF5500', pillBg: '#FFF3EB', pillFg: '#C2410C' },
-  { id: 'todo', label: 'To Do', dotColor: '#6B7280', pillBg: '#F3F4F6', pillFg: '#374151' },
-  { id: 'review', label: 'In Review', dotColor: '#8B5CF6', pillBg: '#F5F3FF', pillFg: '#6D28D9' },
-  { id: 'completed', label: 'Completed', dotColor: '#10B981', pillBg: '#ECFDF5', pillFg: '#047857' },
-];
+    { id: 'in-progress', label: 'In Progress', dotColor: '#FF5500', pillBg: '#FFF3EB', pillFg: '#C2410C' },
+    { id: 'todo', label: 'To Do', dotColor: '#6B7280', pillBg: '#F3F4F6', pillFg: '#374151' },
+    { id: 'review', label: 'In Review', dotColor: '#8B5CF6', pillBg: '#F5F3FF', pillFg: '#6D28D9' },
+    { id: 'completed', label: 'Completed', dotColor: '#10B981', pillBg: '#ECFDF5', pillFg: '#047857' },
+  ];
 
 const PRIORITY_BADGE_MAP: Record<PriorityLevel, { variant: BadgeVariant; label: string }> = {
   urgent: { variant: 'destructive', label: 'Urgent' },
@@ -74,7 +66,6 @@ export default function TasksPage() {
   const {
     tasks,
     projects,
-    user,
     getProject,
     getEmployee,
     updateTaskStatus,
@@ -82,11 +73,9 @@ export default function TasksPage() {
     deleteTask,
     openModal,
     showToast,
-    addTask,
   } = useDashboard();
 
   const [currentView, setCurrentView] = useState<ViewMode>('list');
-  const [activeFilter, setActiveFilter] = useState<FilterMode>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [csvOpen, setCsvOpen] = useState(false);
@@ -97,31 +86,10 @@ export default function TasksPage() {
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [selectedTaskSnapshot, setSelectedTaskDetail] = useState<Task | null>(null);
   const selectedTaskDetail = tasks.find((task) => task.id === selectedTaskSnapshot?.id) || selectedTaskSnapshot;
-  const { snapshot } = useWorkHub();
-  const pendingApproval = snapshot?.tasks
-    .find((task) => task.id === selectedTaskDetail?.id)
-    ?.collaboration?.approvals.some((approval) => approval.status === 'pending');
-
-  const getFilterCount = (filter: FilterMode) => {
-    return tasks.filter((t) => {
-      if (filter === 'overdue') return t.status !== 'completed' && isOverdue(t.deadline);
-      if (filter === 'high-priority') return t.priority === 'high' || t.priority === 'urgent';
-      if (filter === 'assigned-to-me') return t.assignee === user.id || t.assignees?.includes(user.id);
-      if (filter === 'upcoming') return !isOverdue(t.deadline) && t.status !== 'completed';
-      if (filter === 'completed') return t.status === 'completed';
-      return true;
-    }).length;
-  };
 
   const filteredTasks: Task[] = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return tasks.filter((t) => {
-      if (activeFilter === 'overdue' && !(t.status !== 'completed' && isOverdue(t.deadline))) return false;
-      if (activeFilter === 'high-priority' && !(t.priority === 'high' || t.priority === 'urgent')) return false;
-      if (activeFilter === 'assigned-to-me' && !(t.assignee === user.id || t.assignees?.includes(user.id))) return false;
-      if (activeFilter === 'upcoming' && !(!isOverdue(t.deadline) && t.status !== 'completed')) return false;
-      if (activeFilter === 'completed' && t.status !== 'completed') return false;
-
       if (projectFilter !== 'all') {
         if (projectFilter === 'standalone' && t.project) return false;
         if (projectFilter !== 'standalone' && t.project !== projectFilter) return false;
@@ -140,7 +108,7 @@ export default function TasksPage() {
 
       return true;
     });
-  }, [tasks, activeFilter, projectFilter, searchQuery, user.id, getEmployee, getProject]);
+  }, [tasks, projectFilter, searchQuery, getEmployee, getProject]);
 
   // Bulk Actions
   const toggleSelectTask = (taskId: string) => {
@@ -166,16 +134,6 @@ export default function TasksPage() {
       selectedTaskIds.forEach((id) => deleteTask(id));
       setSelectedTaskIds([]);
     }
-  };
-
-  const loadTemplate = (templateName: string) => {
-    addTask({
-      name: `[${templateName}] New Task`,
-      description: `Task created from template: ${templateName}`,
-      priority: 'high',
-      status: 'todo',
-    });
-    showToast(`Template: ${templateName} created`);
   };
 
   const handleToggleGroup = (groupId: string) => {
@@ -365,17 +323,6 @@ export default function TasksPage() {
             type="button"
             variant="ghost"
             size="icon"
-            title="Open task thread & details"
-            aria-label={`Open ${t.name}`}
-            onClick={() => setSelectedTaskDetail(t)}
-            style={{ width: '30px', height: '30px', color: 'var(--text-tertiary)' }}
-          >
-            <MessageSquare size={14} aria-hidden="true" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
             title="Delete task"
             aria-label={`Delete ${t.name}`}
             onClick={() => {
@@ -415,7 +362,7 @@ export default function TasksPage() {
             </Badge>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-            Organize sprints, track status across stages, and collaborate inline.
+            Organize sprints, assign owners, and track status across stages.
           </p>
         </div>
 
@@ -463,109 +410,53 @@ export default function TasksPage() {
       {/* Collapsible CSV Import Panel */}
       <TaskCsvImport open={csvOpen} onOpenChange={setCsvOpen} hideTrigger />
 
-      {/* Search & Filter Toolbar */}
+      {/* Search & Project Filter Toolbar */}
       <div
         style={{
           display: 'flex',
-          gap: '10px',
+          gap: '8px',
           marginBottom: 'var(--sp-4)',
           flexWrap: 'wrap',
           alignItems: 'center',
-          justifyContent: 'space-between',
         }}
       >
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {(
-            [
-              { id: 'all', label: 'All' },
-              { id: 'overdue', label: 'Overdue' },
-              { id: 'high-priority', label: 'High Priority' },
-              { id: 'assigned-to-me', label: 'Assigned to Me' },
-              { id: 'upcoming', label: 'Upcoming' },
-              { id: 'completed', label: 'Completed' },
-            ] as { id: FilterMode; label: string }[]
-          ).map((f) => {
-            const isActive = activeFilter === f.id;
-            const count = getFilterCount(f.id);
-            return (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setActiveFilter(f.id)}
-                style={{
-                  fontSize: '12px',
-                  padding: '0 11px',
-                  height: '30px',
-                  fontWeight: 600,
-                  borderRadius: '9999px',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: isActive ? '#FF5500' : '#FFFFFF',
-                  color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
-                  border: isActive ? '1px solid #FF5500' : '1px solid var(--border-color)',
-                  boxShadow: isActive ? '0 1px 2px rgba(255, 85, 0, 0.25)' : '0 1px 1px rgba(0, 0, 0, 0.03)',
-                  transition: 'all 0.14s ease',
-                }}
-              >
-                <span>{f.label}</span>
-                <span
-                  style={{
-                    fontSize: '10.5px',
-                    fontWeight: 700,
-                    padding: '1px 6px',
-                    borderRadius: '9999px',
-                    background: isActive ? 'rgba(255, 255, 255, 0.24)' : '#F3EFE4',
-                    color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
-                  }}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+        <div style={{ position: 'relative', width: '240px', maxWidth: '100%' }}>
+          <Search
+            size={13}
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: '10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'var(--text-tertiary)',
+              pointerEvents: 'none',
+            }}
+          />
+          <Input
+            type="search"
+            placeholder="Search tasks…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search tasks"
+            style={{ height: '32px', paddingLeft: '30px', fontSize: '12.5px' }}
+          />
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', width: '210px' }}>
-            <Search
-              size={13}
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                left: '10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-tertiary)',
-                pointerEvents: 'none',
-              }}
-            />
-            <Input
-              type="search"
-              placeholder="Search tasks…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search tasks"
-              style={{ height: '32px', paddingLeft: '30px', fontSize: '12.5px' }}
-            />
-          </div>
-
-          <Select
-            aria-label="Filter by project"
-            value={projectFilter}
-            onChange={(e) => setProjectFilter(e.target.value)}
-            style={{ width: 'auto', minWidth: '145px', height: '32px', fontSize: '12.5px' }}
-          >
-            <option value="all">All Projects</option>
-            <option value="standalone">Independent Tasks</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </Select>
-        </div>
+        <Select
+          aria-label="Filter by project"
+          value={projectFilter}
+          onChange={(e) => setProjectFilter(e.target.value)}
+          style={{ width: 'auto', minWidth: '145px', height: '32px', fontSize: '12.5px' }}
+        >
+          <option value="all">All Projects</option>
+          <option value="standalone">Independent Tasks</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </Select>
       </div>
 
       {/* Bulk Actions Bar */}
@@ -620,10 +511,9 @@ export default function TasksPage() {
               tasks.length === 0
                 ? () => openModal('task-modal')
                 : () => {
-                    setActiveFilter('all');
-                    setProjectFilter('all');
-                    setSearchQuery('');
-                  }
+                  setProjectFilter('all');
+                  setSearchQuery('');
+                }
             }
           />
         ) : (
@@ -928,56 +818,6 @@ export default function TasksPage() {
         )}
       </div>
 
-      {/* Quick Task Templates Section */}
-      <div style={{ marginTop: '24px' }}>
-        <h3 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
-          Quick Task Templates
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px' }}>
-          {[
-            { name: 'Bug Report', fields: 'Steps to Reproduce, Severity', Icon: Bug },
-            { name: 'Feature Request', fields: 'User Story, Acceptance Criteria', Icon: Sparkles },
-            { name: 'Onboarding Item', fields: 'New Hire Checklist, Training', Icon: UserPlus },
-            { name: 'Sprint Deliverable', fields: 'Deliverable, Definition of Done', Icon: Flag },
-          ].map(({ name, fields, Icon }) => (
-            <Card
-              key={name}
-              className="card-clickable"
-              style={{
-                padding: '12px 14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-              onClick={() => loadTemplate(name)}
-            >
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  background: '#FAF6EE',
-                  border: '1px solid var(--border-color)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#FF5500',
-                  flexShrink: 0,
-                }}
-              >
-                <Icon size={15} aria-hidden="true" />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '12.5px', color: 'var(--text-primary)' }}>{name}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {fields}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-
       {/* Task Detail Dialog */}
       <Dialog
         open={!!selectedTaskDetail}
@@ -1016,7 +856,7 @@ export default function TasksPage() {
                   <option value="todo">To Do</option>
                   <option value="in-progress">In Progress</option>
                   <option value="review">In Review</option>
-                  <option value="completed" disabled={pendingApproval}>
+                  <option value="completed">
                     Completed
                   </option>
                 </Select>
@@ -1029,8 +869,6 @@ export default function TasksPage() {
                 </div>
               </div>
             </div>
-
-            <TaskConversation key={selectedTaskDetail.id} taskId={selectedTaskDetail.id} />
 
             <DialogFooter style={{ justifyContent: 'space-between', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
               <Button
@@ -1054,7 +892,6 @@ export default function TasksPage() {
                 <Button
                   type="button"
                   size="sm"
-                  disabled={pendingApproval}
                   onClick={() => {
                     toggleTaskComplete(selectedTaskDetail.id);
                     setSelectedTaskDetail(null);

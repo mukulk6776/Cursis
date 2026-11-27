@@ -2,6 +2,7 @@
 
 import { setDashboardTheme, isDashboardPath } from './theme';
 import { userForWorkspace } from './workspace-role';
+import { PRIVACY_VERSION } from '@/lib/privacy/config';
 
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -3617,7 +3618,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  requirements: req.requirements,
  privacyConsent: req.privacyConsent,
  ageConfirmed: req.privacyConsent,
- noticeVersion: '2026-10-18',
+ noticeVersion: PRIVACY_VERSION,
  }),
  })
  .then((res) => {

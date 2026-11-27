@@ -29,18 +29,22 @@ export async function POST(req: Request) {
       razorpay_order_id = '',
       razorpay_payment_id = '',
       razorpay_signature = '',
-      isDemo = false,
     } = body;
 
     if (!razorpay_order_id || !razorpay_payment_id) {
       return NextResponse.json({ error: 'Missing Razorpay order ID or payment ID.' }, { status: 400 });
     }
 
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    const isSimulatedOrder = isDemo || razorpay_order_id.startsWith('order_demo_');
+    const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
+    const hasLiveSecret = Boolean(keySecret && !keySecret.includes('your_razorpay'));
+    const existingRecord = await getPaymentRecord(razorpay_order_id);
+    const isSimulatedOrder =
+      !hasLiveSecret &&
+      razorpay_order_id.startsWith('order_demo_') &&
+      existingRecord?.isDemo !== false;
 
     if (!isSimulatedOrder) {
-      if (!keySecret) {
+      if (!hasLiveSecret) {
         return NextResponse.json({ error: 'Payment gateway secret is not configured.' }, { status: 500 });
       }
       const generatedSignature = crypto
@@ -75,7 +79,7 @@ export async function POST(req: Request) {
           ? body.planId
           : undefined;
 
-    if (planToApply && (!isSimulatedOrder || authUser)) {
+    if (planToApply && (!isSimulatedOrder || (process.env.NODE_ENV !== 'production' && Boolean(authUser)))) {
       let targetWsId = finalRecord?.workspaceId || body.workspaceId || authUser?.workspaceId;
       const customerEmail = (authUser?.email || finalRecord?.customerEmail || '').trim().toLowerCase();
       const targetUserDoc = customerEmail ? await findUserByEmail(customerEmail).catch(() => null) : null;
@@ -138,6 +142,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
+      isDemo: isSimulatedOrder,
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
       receiptNumber: finalRecord?.receiptNumber || receiptNumber,

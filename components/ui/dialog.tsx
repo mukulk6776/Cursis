@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 
 export interface DialogProps {
@@ -10,6 +11,12 @@ export interface DialogProps {
 }
 
 export function Dialog({ open, onOpenChange, children }: DialogProps) {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -19,9 +26,9 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onOpenChange]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-overlay"
       role="presentation"
@@ -30,7 +37,8 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
       }}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   );
 }
 

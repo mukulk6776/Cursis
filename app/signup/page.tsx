@@ -7,6 +7,7 @@ import { signUpWithEmail, signInWithGoogle, handleGoogleRedirectResult } from '@
 import '@/styles/landing.css';
 import '@/styles/auth.css';
 import { BRAND_NAME } from '@/lib/site';
+import { PRIVACY_VERSION } from '@/lib/privacy/config';
 import CaptureSignupSource from '@/components/landing/CaptureSignupSource';
 
 export default function SignupPage() {
@@ -23,6 +24,7 @@ export default function SignupPage() {
   const [statusMsg, setStatusMsg] = useState('');
   const [verificationStep, setVerificationStep] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
+  const [needsGoogleFallback, setNeedsGoogleFallback] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -105,7 +107,7 @@ export default function SignupPage() {
           photoURL: authResult.photoURL,
           ageConfirmed,
           privacyConsent,
-          noticeVersion: '2026-10-18',
+          noticeVersion: PRIVACY_VERSION,
         }),
       });
 
@@ -162,6 +164,7 @@ export default function SignupPage() {
     setLoading(true);
     setErrorMsg('');
     setStatusMsg('');
+    setNeedsGoogleFallback(false);
 
     try {
       const authResult = await signUpWithEmail(
@@ -181,6 +184,9 @@ export default function SignupPage() {
         await exchangeTokenAndRedirect(authResult);
       }
     } catch (err: any) {
+      if (err?.requiresGoogleVerification || err?.status === 409) {
+        setNeedsGoogleFallback(true);
+      }
       setErrorMsg(err?.message || 'Could not create your workspace. Please try again.');
     } finally {
       setLoading(false);
@@ -229,7 +235,7 @@ export default function SignupPage() {
       <section className="auth-card auth-signup-card" aria-labelledby="signup-title">
         <Link href="/" className="auth-close" aria-label="Back to Cursis"><X size={16} /></Link>
         <h1 id="signup-title">{method ? 'Complete your account' : 'Create your workspace'}</h1>
-        <p className="auth-intro">{method ? 'One last step to get started.' : 'No credit card required · Upgrade to Starter ($9) or Pro ($20) anytime'}</p>
+        {method && <p className="auth-intro">One last step to get started.</p>}
 
         {statusMsg && <p className="auth-message auth-success" role="status">{statusMsg}</p>}
         {errorMsg && <p className="auth-message auth-error" role="alert">{errorMsg}</p>}
@@ -253,7 +259,7 @@ export default function SignupPage() {
           </>
         ) : (
           <form onSubmit={method === 'email' ? handleEmailSignup : event => { event.preventDefault(); void handleGoogleSignup(); }} className="auth-form">
-            <button type="button" className="auth-change-method" disabled={loading || googleLoading} onClick={() => { setMethod(null); setErrorMsg(''); }}>
+            <button type="button" className="auth-change-method" disabled={loading || googleLoading} onClick={() => { setMethod(null); setErrorMsg(''); setNeedsGoogleFallback(false); }}>
               ← {method === 'email' ? email : 'Continue with Google'} · Change
             </button>
             {method === 'email' && (
@@ -298,6 +304,16 @@ export default function SignupPage() {
               {method === 'google' ? (googleLoading ? 'Connecting…' : 'Continue with Google') : (loading ? 'Creating workspace…' : 'Create my free workspace')}
               <ArrowRight size={16} aria-hidden="true" />
             </button>
+            {method === 'email' && needsGoogleFallback && (
+              <button
+                type="button"
+                className="auth-google"
+                disabled={loading || googleLoading}
+                onClick={() => void handleGoogleSignup()}
+              >
+                {googleLoading ? 'Connecting…' : 'Verify & Continue with Google'}
+              </button>
+            )}
           </form>
         )}
         <p className="auth-legal">By creating an account, you agree to our <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>

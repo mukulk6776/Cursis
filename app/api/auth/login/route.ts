@@ -121,23 +121,28 @@ export async function POST(request: Request) {
         }
         emailVerified = true;
         platformRole = 'admin';
-      } else if (isVerificationEmailConfigured()) {
-        await issueAdminEmailVerificationCode(user.email, 'admin_login');
-        return NextResponse.json(
-          {
-            success: false,
-            requiresEmailVerification: true,
-            email: user.email,
-            message: `Enter the 6-digit verification code sent to ${user.email} to verify ownership and access the Admin Console.`,
-          },
-          { status: 202 }
-        );
       } else {
+        if (isVerificationEmailConfigured()) {
+          try {
+            await issueAdminEmailVerificationCode(user.email, 'admin_login');
+            return NextResponse.json(
+              {
+                success: false,
+                requiresEmailVerification: true,
+                email: user.email,
+                message: `Enter the 6-digit verification code sent to ${user.email} to verify ownership and access the Admin Console.`,
+              },
+              { status: 202 }
+            );
+          } catch (mailErr) {
+            console.warn('Admin login verification email delivery fallback:', mailErr instanceof Error ? mailErr.message : 'failed');
+          }
+        }
         return NextResponse.json(
           {
             success: false,
             requiresGoogleVerification: true,
-            error: 'Email verification is required for administrator access. Sign in once with "Continue with Google" to verify your email.',
+            error: 'Email verification is unavailable right now. Sign in once with "Continue with Google" to verify your email.',
           },
           { status: 403 }
         );

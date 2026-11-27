@@ -12,6 +12,7 @@ import {
 } from "firebase/auth";
 
 import { withAuthTimeout } from "./timeout";
+import { PRIVACY_VERSION } from "@/lib/privacy/config";
 
 export type { FirebaseUser };
 
@@ -117,7 +118,10 @@ export async function signInWithEmail(email: string, pass: string, verificationC
     const errorMsg = typeof data.error === 'string'
       ? data.error
       : data.error?.message || data.message || 'Authentication failed. Please verify your credentials.';
-    throw new Error(errorMsg);
+    throw Object.assign(new Error(errorMsg), {
+      status: res.status,
+      requiresGoogleVerification: Boolean(data.requiresGoogleVerification),
+    });
   }
 
   const user = data.user || data.data?.user || {};
@@ -166,7 +170,7 @@ export async function signUpWithEmail(
       password: pass,
       ageConfirmed: Boolean(ageConfirmed),
       privacyConsent: privacyConsent === true,
-      noticeVersion: '2026-10-18',
+      noticeVersion: PRIVACY_VERSION,
       ...(verificationCode ? { verificationCode: verificationCode.trim() } : {}),
     }),
   });
@@ -186,7 +190,10 @@ export async function signUpWithEmail(
     const errorMsg = typeof data.error === 'string'
       ? data.error
       : data.error?.message || data.message || 'Failed to create workspace account. Please try again.';
-    throw new Error(errorMsg);
+    throw Object.assign(new Error(errorMsg), {
+      status: res.status,
+      requiresGoogleVerification: Boolean(data.requiresGoogleVerification),
+    });
   }
 
   const user = data.user || data.data?.user || {};

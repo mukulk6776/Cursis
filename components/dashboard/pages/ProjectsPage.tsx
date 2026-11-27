@@ -475,13 +475,14 @@ export default function ProjectsPage() {
             inset: 0,
             background: 'rgba(0, 0, 0, 0.45)',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '16px',
+            zIndex: 1200,
+            padding: '24px 16px',
+            overflowY: 'auto',
           }}
         >
-          <div className="modal" style={{ maxWidth: '720px', width: '100%', maxHeight: '85vh', overflowY: 'auto', background: 'var(--surface-card)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '20px' }}>
+          <div className="modal" style={{ maxWidth: '720px', width: '100%', maxHeight: 'calc(100dvh - 48px)', margin: 'auto', flexShrink: 0, overflowY: 'auto', background: 'var(--surface-card)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>

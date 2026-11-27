@@ -51,8 +51,8 @@ export async function POST(req: Request) {
     const amountInCents = Math.round(priceUsd * 100);
     const receiptNumber = `CURSIS-REC-${Date.now().toString(36).toUpperCase()}`;
 
-    const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const keyId = (process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '').trim();
+    const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
 
     let orderId = '';
     let isDemo = false;

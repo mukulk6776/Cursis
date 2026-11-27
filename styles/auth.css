@@ -35,8 +35,11 @@
 .auth-password { position: relative; }
 .auth-password input { padding-right: 48px; }
 .auth-eye { position: absolute; right: 5px; top: 5px; width: 36px; height: 36px; display: grid; place-items: center; color: #78716c; }
-.auth-submit { margin-top: 8px; background: #FF5500; border: 2px solid #0A0A0A; box-shadow: 3px 3px 0 #0A0A0A; }
-.auth-card button:enabled:hover, .auth-close:hover { background: #0A0A0A; color: #fff; text-decoration: none; }
+.auth-submit { margin-top: 8px; background: #FF5500; color: #fff; border: 2px solid #0A0A0A; box-shadow: 3px 3px 0 #0A0A0A; }
+.auth-close:hover, .auth-eye:hover:enabled { background: rgba(10, 10, 10, 0.06); color: #0A0A0A; text-decoration: none; }
+.auth-card .auth-text-button:hover:enabled, .auth-signup-card .auth-change-method:hover:enabled { background: #FFF3EB; color: #7c2d12; text-decoration: underline; text-underline-offset: 2px; }
+.auth-google:hover:enabled { background: #FAF6EE; color: #0A0A0A; border-color: #0A0A0A; text-decoration: none; }
+.auth-submit:hover:enabled, .auth-reset-login:hover { background: #DF4A00; color: #fff; text-decoration: none; }
 .auth-card button:disabled { opacity: .6; cursor: wait; }
 .auth-card :is(input, button, a):focus-visible { outline: 3px solid #FF5500; outline-offset: 3px; }
 .auth-signup { margin: 24px 0 16px; font-size: 12px; color: #57534e; }
@@ -52,7 +55,6 @@
 .auth-reset-code { letter-spacing: .3em; font-family: var(--font-mono), monospace !important; }
 .auth-reset-actions { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .auth-reset-login { border-radius: 12px; text-decoration: none; }
-.auth-reset-login:hover { background: #0A0A0A; color: #fff; }
 @media (max-width: 480px) { .auth-card { padding: 32px 22px 24px; } }
 @media (prefers-reduced-motion: reduce) { .auth-card button { transition: none; } }
 
@@ -134,9 +136,10 @@ body:has(#main-content.auth-signup-page) {
   gap: 8px;
 }
 
-.auth-signup-card .auth-google:hover {
-  background: #0A0A0A;
-  color: #ffffff;
+.auth-signup-card .auth-google:hover:enabled {
+  background: #FAF6EE;
+  color: #0A0A0A;
+  border-color: #0A0A0A;
 }
 
 .auth-signup-card .auth-divider {
@@ -196,7 +199,7 @@ body:has(#main-content.auth-signup-page) {
 }
 
 .auth-signup-card .auth-submit:hover:enabled {
-  background: #0A0A0A;
+  background: #DF4A00;
   color: #ffffff;
 }
 

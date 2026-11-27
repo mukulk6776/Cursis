@@ -11,7 +11,7 @@ export function getAdminEmail(): string {
     process.env?.ADMIN_EMAIL ||
     process.env?.SOVEREIGN_FOUNDER_EMAIL ||
     DEFAULT_SOVEREIGN_FOUNDER_EMAIL;
-  return String(configured).trim().toLowerCase();
+  return String(configured).trim().replace(/^["']|["']$/g, '').toLowerCase();
 }
 
 /**

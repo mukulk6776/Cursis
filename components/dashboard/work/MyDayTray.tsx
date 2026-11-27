@@ -60,7 +60,7 @@ export default function MyDayTray() {
             </article>;
           })}
         </section>
-        <h3>Assigned to you · all channels</h3>
+        <h3>Assigned to you</h3>
         {mine.filter(task => !validItems.some(item => item.taskId === task.id)).map(task => <article className={styles.card} key={task.id} draggable onDragStart={event => event.dataTransfer.setData('text/plain',task.id)}><h3>{task.title}</h3><p className={styles.muted}>{task.estimatedHours || 2}h · Due {new Date(task.dueDate).toLocaleDateString()}</p><button disabled={busy || validItems.length >= 5} onClick={() => add(task.id)}>Add to today</button></article>)}
         {!mine.length && snapshot && <p>No unfinished tasks assigned to you yet.</p>}
       </div>

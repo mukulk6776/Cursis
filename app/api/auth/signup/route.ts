@@ -86,22 +86,26 @@ export async function POST(request: Request) {
       const submittedCode = String(body.verificationCode || '').trim();
       if (!submittedCode) {
         if (isVerificationEmailConfigured()) {
-          await issueAdminEmailVerificationCode(email, 'admin_signup');
-          return NextResponse.json(
-            {
-              success: false,
-              requiresEmailVerification: true,
-              email,
-              message: `A 6-digit verification code was sent to ${email}. Enter it below to verify ownership and create your admin account.`,
-            },
-            { status: 202 }
-          );
+          try {
+            await issueAdminEmailVerificationCode(email, 'admin_signup');
+            return NextResponse.json(
+              {
+                success: false,
+                requiresEmailVerification: true,
+                email,
+                message: `A 6-digit verification code was sent to ${email}. Enter it below to verify ownership and create your admin account.`,
+              },
+              { status: 202 }
+            );
+          } catch (mailErr) {
+            console.warn('Admin signup verification email delivery fallback:', mailErr instanceof Error ? mailErr.message : 'failed');
+          }
         }
         return NextResponse.json(
           {
             success: false,
             requiresGoogleVerification: true,
-            error: 'Email verification is required to register the administrator address. Click "Continue with Google" to verify ownership and sign up.',
+            error: 'Email verification is unavailable right now. Click "Continue with Google" to verify ownership and register your admin account.',
           },
           { status: 403 }
         );
