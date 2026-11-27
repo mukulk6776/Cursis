@@ -173,7 +173,7 @@ export async function POST(request: Request) {
       user: { ...sessionPayload, emailVerified: adminEmailVerified, activePlan: null },
       redirectTo,
       token,
-    }, 201);
+    }, 201, { 'Cache-Control': 'private, no-store' });
 
     response.cookies.set('cursis_session', token, cookieOptions);
     return response;

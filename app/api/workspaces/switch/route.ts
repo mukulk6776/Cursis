@@ -83,7 +83,7 @@ export async function POST(request: Request) {
       workspaceId,
       token: sessionToken,
       user: sessionPayload,
-    });
+    }, 200, { 'Cache-Control': 'private, no-store' });
     if (response.cookies?.set) {
       response.cookies.set('cursis_session', sessionToken, cookieOptions);
     }

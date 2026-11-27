@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     return apiSuccess({
       user: auth.user,
       authenticated: true,
-    });
+    }, 200, { 'Cache-Control': 'private, no-store' });
   } catch (error: any) {
     return apiError(error.message || 'Failed to retrieve profile', 500);
   }
@@ -93,7 +93,7 @@ export async function PATCH(request: Request) {
       message: sanitizedPhotoURL ? 'Profile photo updated successfully' : 'Profile photo removed successfully',
       photoURL: sanitizedPhotoURL || null,
       token: updatedSessionToken,
-    });
+    }, 200, { 'Cache-Control': 'private, no-store' });
   } catch (error: any) {
     console.error('Update profile photo error:', error);
     return apiError(error.message || 'Failed to update profile photo', 500);

@@ -143,7 +143,7 @@ export async function POST(request: Request) {
           message: 'Session refreshed with updated workspace',
           user: refreshedPayload,
           token: refreshedToken,
-        });
+        }, 200, { 'Cache-Control': 'private, no-store' });
         if (response.cookies?.set) {
           response.cookies.set('cursis_session', refreshedToken, cookieOptions);
         }
@@ -296,7 +296,7 @@ export async function POST(request: Request) {
       user: { ...sessionPayload, emailVerified, activePlan },
       redirectTo,
       token: sessionToken,
-    });
+    }, 200, { 'Cache-Control': 'private, no-store' });
 
     response.cookies.set('cursis_session', sessionToken, cookieOptions);
     return response;

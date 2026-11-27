@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isSessionTokenValid, verifySessionToken } from '@/lib/auth/token';
 
-function applySecurityHeaders(res: NextResponse): NextResponse {
+function applySecurityHeaders(res: NextResponse, noStore: boolean = false): NextResponse {
   res.headers.set('X-Frame-Options', 'DENY');
   res.headers.set('X-Content-Type-Options', 'nosniff');
   res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -11,6 +11,10 @@ function applySecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('X-XSS-Protection', '1; mode=block');
   res.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   res.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  if (noStore) {
+    res.headers.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+    res.headers.set('Pragma', 'no-cache');
+  }
   return res;
 }
 
@@ -135,15 +139,15 @@ export function proxy(request: NextRequest) {
         response.cookies.delete('cursis_session');
         response.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
       }
-      return applySecurityHeaders(response);
+      return applySecurityHeaders(response, true);
     }
 
     // Reject tokens explicitly stamped as non-admin at edge (Server layout still verifies DB role)
     if (sessionPayload?.platformRole === 'user') {
-      return applySecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
+      return applySecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)), true);
     }
 
-    return applySecurityHeaders(NextResponse.next());
+    return applySecurityHeaders(NextResponse.next(), true);
   }
 
   // 1. Guard Protected Routes (/dashboard and all sub-routes)
@@ -159,10 +163,10 @@ export function proxy(request: NextRequest) {
         response.cookies.delete('cursis_session');
         response.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
       }
-      return applySecurityHeaders(response);
+      return applySecurityHeaders(response, true);
     }
 
-    return applySecurityHeaders(NextResponse.next());
+    return applySecurityHeaders(NextResponse.next(), true);
   }
 
   // 2. Auth Routes (/login, /signup)
@@ -174,7 +178,7 @@ export function proxy(request: NextRequest) {
       const response = NextResponse.next();
       response.cookies.delete('cursis_session');
       response.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
-      return applySecurityHeaders(response);
+      return applySecurityHeaders(response, true);
     }
 
     // If already authenticated with a valid session, redirect to requested page or console/dashboard
@@ -185,7 +189,7 @@ export function proxy(request: NextRequest) {
       if (targetDestination.startsWith('/admin') && sessionPayload?.platformRole !== 'admin') {
         targetDestination = '/dashboard';
       }
-      return applySecurityHeaders(NextResponse.redirect(new URL(targetDestination, request.url)));
+      return applySecurityHeaders(NextResponse.redirect(new URL(targetDestination, request.url)), true);
     }
 
     // If cookie is present but invalid/forged, clean it up
@@ -193,10 +197,10 @@ export function proxy(request: NextRequest) {
       const response = NextResponse.next();
       response.cookies.delete('cursis_session');
       response.cookies.set('cursis_session', '', { maxAge: 0, path: '/', expires: new Date(0) });
-      return applySecurityHeaders(response);
+      return applySecurityHeaders(response, true);
     }
 
-    return applySecurityHeaders(NextResponse.next());
+    return applySecurityHeaders(NextResponse.next(), true);
   }
 
   return applySecurityHeaders(NextResponse.next());

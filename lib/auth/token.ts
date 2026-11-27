@@ -22,8 +22,19 @@ export interface SessionPayload {
   exp?: number;
 }
 
+const TOKEN_AAD = Buffer.from('cursis_usr_v2', 'utf8');
+
+function deriveSessionKeys() {
+  const macSecret = (process.env.AUTH_SESSION_SECRET || SESSION_SECRET).trim();
+  const encSecret = (process.env.SESSION_ENCRYPTION_SECRET || macSecret).trim();
+  return {
+    encKey: crypto.createHmac('sha256', encSecret).update('cursis:session:aes256gcm:v2').digest(),
+    macKey: crypto.createHmac('sha256', macSecret).update('cursis:session:hmacsha256:v2').digest(),
+  };
+}
+
 /**
- * Creates a tamper-evident signed session token using HMAC-SHA256
+ * Creates a 2-way encrypted & tamper-proof session token (AES-256-GCM + HMAC-SHA256)
  */
 export function createSessionToken(payload: SessionPayload): string {
   const now = Date.now();
@@ -44,13 +55,21 @@ export function createSessionToken(payload: SessionPayload): string {
     iat: sanitizedPayload.iat || Math.floor((sanitizedPayload.createdAt || now) / 1000),
     exp: sanitizedPayload.exp || Math.floor(((sanitizedPayload.createdAt || now) + maxAgeMs) / 1000),
   };
-  const data = Buffer.from(JSON.stringify(enriched)).toString('base64url');
-  const signature = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
-  return `cursis_usr_${data}.${signature}`;
+
+  const { encKey, macKey } = deriveSessionKeys();
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', encKey, iv);
+  cipher.setAAD(TOKEN_AAD);
+  const ciphertext = Buffer.concat([cipher.update(JSON.stringify(enriched), 'utf8'), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+
+  const envelope = `${iv.toString('base64url')}.${ciphertext.toString('base64url')}.${authTag.toString('base64url')}`;
+  const signature = crypto.createHmac('sha256', macKey).update(envelope).digest('base64url');
+  return `cursis_usr_${envelope}.${signature}`;
 }
 
 /**
- * Verifies and decodes a signed session token with strict HMAC verification and expiration check
+ * Verifies outer HMAC-SHA256 signature and decrypts AES-256-GCM session token
  */
 export function verifySessionToken(token: string): SessionPayload | null {
   try {
@@ -65,23 +84,32 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
     const raw = cleanToken.replace('cursis_usr_', '');
     const parts = raw.split('.');
-    if (parts.length !== 2) return null;
+    if (parts.length !== 4) return null;
 
-    const dataPart = parts[0];
-    const signaturePart = parts[1];
+    const [ivB64, ctB64, tagB64, macB64] = parts;
+    if (!ivB64 || !ctB64 || !tagB64 || !macB64) return null;
 
-    if (!dataPart || !signaturePart) return null;
+    const { encKey, macKey } = deriveSessionKeys();
+    const envelope = `${ivB64}.${ctB64}.${tagB64}`;
+    const expectedMac = crypto.createHmac('sha256', macKey).update(envelope).digest('base64url');
 
-    const expectedSignature = crypto.createHmac('sha256', SESSION_SECRET).update(dataPart).digest('base64url');
-
-    // Constant-time comparison to prevent timing attacks
-    const sigBuf = Buffer.from(signaturePart);
-    const expectedBuf = Buffer.from(expectedSignature);
-    if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
+    const macBuf = Buffer.from(macB64);
+    const expectedMacBuf = Buffer.from(expectedMac);
+    if (macBuf.length !== expectedMacBuf.length || !crypto.timingSafeEqual(macBuf, expectedMacBuf)) {
       return null;
     }
 
-    const jsonStr = Buffer.from(dataPart, 'base64url').toString('utf-8');
+    const iv = Buffer.from(ivB64, 'base64url');
+    const ciphertext = Buffer.from(ctB64, 'base64url');
+    const authTag = Buffer.from(tagB64, 'base64url');
+    if (iv.length !== 12 || authTag.length !== 16 || ciphertext.length === 0) {
+      return null;
+    }
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', encKey, iv);
+    decipher.setAAD(TOKEN_AAD);
+    decipher.setAuthTag(authTag);
+    const jsonStr = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8');
     const payload = JSON.parse(jsonStr) as SessionPayload;
     if (!payload.email || !payload.uid) {
       return null;

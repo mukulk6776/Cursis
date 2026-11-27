@@ -15,12 +15,13 @@ export function generateSalt(): string {
   return crypto.randomBytes(16).toString('hex');
 }
 
-// OWASP recommendation for PBKDF2-HMAC-SHA512 is 210,000 iterations
-const PBKDF2_ITERATIONS = 210_000;
-const PBKDF2_LEGACY_ITERATIONS = 10_000; // Previous iteration count for backward-compat verification
+// OWASP recommendation for PBKDF2-HMAC-SHA512 (310,000 iterations, single-stage salted one-way hash)
+const PBKDF2_ITERATIONS = 310_000;
+const PBKDF2_PREV_ITERATIONS = 210_000;
+const PBKDF2_LEGACY_ITERATIONS = 10_000; // Previous iteration counts for backward-compat verification
 
 /**
- * Hash password using PBKDF2 with SHA-512 (210,000 iterations per OWASP recommendations for SHA-512)
+ * Hash password using single-stage salted PBKDF2-HMAC-SHA512 (310,000 iterations)
  */
 export function hashPassword(password: string, salt: string): string {
   return crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 64, 'sha512').toString('hex');
@@ -41,22 +42,18 @@ export async function verifyPasswordResultAsync(
   try {
     const expectedBuf = Buffer.from(expectedHash, 'hex');
 
-    // 1. Current iteration count (210,000 iterations for SHA-512)
+    // 1. Current iteration count (310,000 iterations for SHA-512)
     const key = await pbkdf2Async(password, salt, PBKDF2_ITERATIONS, 64, 'sha512');
     if (key.length === expectedBuf.length && crypto.timingSafeEqual(key, expectedBuf)) {
       return { valid: true, needsRehash: false };
     }
 
-    // 2. Previously upgraded 600,000 iteration hashes
-    const key600k = await pbkdf2Async(password, salt, 600_000, 64, 'sha512');
-    if (key600k.length === expectedBuf.length && crypto.timingSafeEqual(key600k, expectedBuf)) {
-      return { valid: true, needsRehash: false };
-    }
-
-    // 3. Fall back to legacy 10,000 iteration count for existing accounts (triggers transparent upgrade)
-    const keyLegacy = await pbkdf2Async(password, salt, PBKDF2_LEGACY_ITERATIONS, 64, 'sha512');
-    if (keyLegacy.length === expectedBuf.length && crypto.timingSafeEqual(keyLegacy, expectedBuf)) {
-      return { valid: true, needsRehash: true };
+    // 2. Previous 210k / 600k / 10k iteration hashes -> verify & transparently upgrade to 310k
+    for (const iterations of [PBKDF2_PREV_ITERATIONS, 600_000, PBKDF2_LEGACY_ITERATIONS]) {
+      const legacyKey = await pbkdf2Async(password, salt, iterations, 64, 'sha512');
+      if (legacyKey.length === expectedBuf.length && crypto.timingSafeEqual(legacyKey, expectedBuf)) {
+        return { valid: true, needsRehash: true };
+      }
     }
 
     return { valid: false, needsRehash: false };
@@ -70,22 +67,18 @@ export async function verifyPasswordResultAsync(
  */
 export function verifyPasswordResult(password: string, salt: string, expectedHash: string): { valid: boolean; needsRehash: boolean } {
   try {
-    // 1. Current iteration count (210,000 iterations for SHA-512)
+    // 1. Current iteration count (310,000 iterations for SHA-512)
     const hash = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 64, 'sha512').toString('hex');
     if (hash.length === expectedHash.length && crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(expectedHash, 'hex'))) {
       return { valid: true, needsRehash: false };
     }
 
-    // 2. Previously upgraded 600,000 iteration hashes
-    const hash600k = crypto.pbkdf2Sync(password, salt, 600_000, 64, 'sha512').toString('hex');
-    if (hash600k.length === expectedHash.length && crypto.timingSafeEqual(Buffer.from(hash600k, 'hex'), Buffer.from(expectedHash, 'hex'))) {
-      return { valid: true, needsRehash: false };
-    }
-
-    // 3. Fall back to legacy 10,000 iteration count for existing accounts (triggers transparent upgrade)
-    const legacyHash = crypto.pbkdf2Sync(password, salt, PBKDF2_LEGACY_ITERATIONS, 64, 'sha512').toString('hex');
-    if (legacyHash.length === expectedHash.length && crypto.timingSafeEqual(Buffer.from(legacyHash, 'hex'), Buffer.from(expectedHash, 'hex'))) {
-      return { valid: true, needsRehash: true };
+    // 2. Previous 210k / 600k / 10k iteration hashes -> verify & transparently upgrade to 310k
+    for (const iterations of [PBKDF2_PREV_ITERATIONS, 600_000, PBKDF2_LEGACY_ITERATIONS]) {
+      const legacyKey = crypto.pbkdf2Sync(password, salt, iterations, 64, 'sha512');
+      if (legacyKey.length === expectedHash.length / 2 && crypto.timingSafeEqual(legacyKey, Buffer.from(expectedHash, 'hex'))) {
+        return { valid: true, needsRehash: true };
+      }
     }
 
     return { valid: false, needsRehash: false };
@@ -108,7 +101,7 @@ export async function upgradePasswordHash(email: string, password: string): Prom
   try {
     const cleanEmail = email.trim().toLowerCase();
     const newSalt = generateSalt();
-    const newHash = hashPassword(password, newSalt);
+    const newHash = await hashPasswordAsync(password, newSalt);
 
     // Update in-memory store
     for (const u of inMemoryStore.users.values()) {
@@ -257,7 +250,7 @@ export async function registerUser(params: {
 
   if (params.password) {
     salt = generateSalt();
-    passwordHash = hashPassword(params.password, salt);
+    passwordHash = await hashPasswordAsync(params.password, salt);
   }
 
   const verified = params.emailVerified === true || existing?.emailVerified === true;

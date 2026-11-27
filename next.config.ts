@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
   devIndicators: false,
   allowedDevOrigins: ['192.168.1.6'],
   experimental: {
@@ -35,6 +36,19 @@ const nextConfig: NextConfig = {
     ].join('; ');
 
     return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-store, no-cache, must-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+        ],
+      },
       {
         source: '/:path*',
         headers: [

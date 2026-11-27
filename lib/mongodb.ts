@@ -43,12 +43,14 @@ function resolveDbName(): string {
 
 function getClientOptions(uri: string) {
   const isAtlas = uri.startsWith('mongodb+srv://');
+  const isLocal = /^mongodb(\+srv)?:\/\/(127\.0\.0\.1|localhost)/i.test(uri);
   return {
     maxPoolSize: 20, // Leave capacity for writes while live change streams wait for events.
     minPoolSize: 1,
     serverSelectionTimeoutMS: 6000,
     socketTimeoutMS: 45000,
     appName: 'CursisWorkspace',
+    ...(!isLocal ? { tls: true } : {}),
     ...(isAtlas ? { retryWrites: true, w: 'majority' as const } : {}),
   };
 }
