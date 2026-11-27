@@ -16,10 +16,12 @@ declare global {
 function PaymentCheckoutContent() {
   const searchParams = useSearchParams();
   const initialPlan = searchParams.get('plan')?.toLowerCase();
+  const initialCurrency = searchParams.get('currency')?.toUpperCase() === 'USD' ? 'USD' : 'INR';
 
   const [selectedPlanId, setSelectedPlanId] = useState<'starter' | 'pro'>(
     initialPlan === 'starter' ? 'starter' : 'pro'
   );
+  const [billingCurrency, setBillingCurrency] = useState<'INR' | 'USD'>(initialCurrency);
   const [customerName, setCustomerName] = useState(searchParams.get('name') || '');
   const [customerEmail, setCustomerEmail] = useState(searchParams.get('email') || '');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -35,7 +37,8 @@ function PaymentCheckoutContent() {
     paymentId: string;
     orderId: string;
     receiptNumber: string;
-    amountUsd: number;
+    amountDisplay: number;
+    currency: 'INR' | 'USD';
     planName: string;
     customerEmail: string;
     customerName: string;
@@ -67,10 +70,24 @@ function PaymentCheckoutContent() {
   const pro = PLAN_CATALOG.pro;
   const business = PLAN_CATALOG.business;
   const activePlan = selectedPlanId === 'starter' ? starter : pro;
-  const totalUsd = activePlan.priceUsd || 20;
-  const savingsUsd = (activePlan.originalPriceUsd || totalUsd) - totalUsd;
+  const isInr = billingCurrency === 'INR';
+  const currencySymbol = isInr ? '₹' : '$';
+  const planPrice = (p: typeof starter) => (isInr ? (p.priceInr || 749) : (p.priceUsd || 9));
+  const planOriginalPrice = (p: typeof starter) =>
+    isInr ? (p.originalPriceInr || planPrice(p)) : (p.originalPriceUsd || planPrice(p));
+  const totalAmount = planPrice(activePlan);
+  const originalAmount = planOriginalPrice(activePlan);
+  const savingsAmount = Math.max(0, originalAmount - totalAmount);
+  const formatMoney = (value: number, cur: 'INR' | 'USD' = billingCurrency) =>
+    `${cur === 'INR' ? '₹' : '$'}${value.toLocaleString(cur === 'INR' ? 'en-IN' : 'en-US')}`;
 
-  const verifyPaymentSignature = async (rzpPayload: any, planId: PlanKey, isDemo = false) => {
+  const verifyPaymentSignature = async (
+    rzpPayload: any,
+    planId: PlanKey,
+    isDemo = false,
+    paidCurrency: 'INR' | 'USD' = billingCurrency,
+    paidAmount: number = totalAmount
+  ) => {
     try {
       const verifyRes = await fetch('/api/payment/verify', {
         method: 'POST',
@@ -93,7 +110,8 @@ function PaymentCheckoutContent() {
         paymentId: verifyData.paymentId,
         orderId: verifyData.orderId,
         receiptNumber: verifyData.receiptNumber,
-        amountUsd: totalUsd,
+        amountDisplay: paidAmount,
+        currency: paidCurrency,
         planName: activePlan.name,
         customerEmail: customerEmail.trim(),
         customerName: customerName.trim(),
@@ -178,6 +196,7 @@ function PaymentCheckoutContent() {
         credentials: 'include',
         body: JSON.stringify({
           planId: selectedPlanId,
+          currency: billingCurrency,
           customerName: customerName.trim(),
           customerEmail: customerEmail.trim().toLowerCase(),
           customerPhone: customerPhone.trim(),
@@ -191,7 +210,9 @@ function PaymentCheckoutContent() {
         throw new Error(orderData.error || 'Failed to initialize Razorpay checkout.');
       }
 
-      const { orderId, amount, currency, keyId, isDemo } = orderData;
+      const { orderId, amount, amountDisplay, currency, keyId, isDemo } = orderData;
+      const resolvedCurrency: 'INR' | 'USD' = currency === 'USD' ? 'USD' : 'INR';
+      const resolvedAmount = Number(amountDisplay || totalAmount);
 
       if (!isDemo) {
         const RazorpayCtor = (isScriptLoaded && typeof window !== 'undefined' && window.Razorpay)
@@ -206,24 +227,29 @@ function PaymentCheckoutContent() {
           return;
         }
 
+        const prefill: Record<string, string> = {
+          name: customerName.trim(),
+          email: customerEmail.trim(),
+        };
+        if (customerPhone.trim()) {
+          prefill.contact = customerPhone.trim();
+        }
+
         const options = {
           key: keyId,
           amount,
-          currency: currency || 'USD',
+          currency: resolvedCurrency,
           name: BRAND_NAME,
-          description: `${activePlan.name} — $${totalUsd} USD/month`,
+          description: `${activePlan.name} — ${formatMoney(resolvedAmount, resolvedCurrency)} ${resolvedCurrency}/month`,
           image: '/icon.png',
           order_id: orderId,
           handler: async function (response: any) {
-            await verifyPaymentSignature(response, selectedPlanId, false);
+            await verifyPaymentSignature(response, selectedPlanId, false, resolvedCurrency, resolvedAmount);
           },
-          prefill: {
-            name: customerName.trim(),
-            email: customerEmail.trim(),
-            contact: customerPhone.trim(),
-          },
+          prefill,
           notes: {
             planId: selectedPlanId,
+            currency: resolvedCurrency,
             workspaceId: workspaceId || '',
             workspaceName: workspaceName.trim(),
           },
@@ -252,7 +278,9 @@ function PaymentCheckoutContent() {
             razorpay_signature: 'simulated_test_sig',
           },
           selectedPlanId,
-          true
+          true,
+          resolvedCurrency,
+          resolvedAmount
         );
       }
     } catch (err: any) {
@@ -356,7 +384,9 @@ function PaymentCheckoutContent() {
 
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span style={{ fontSize: '15px', fontWeight: 700 }}>Total Paid:</span>
-                <span style={{ fontSize: '24px', fontWeight: 900, color: '#FF5500' }}>${paymentDetails.amountUsd} USD</span>
+                <span style={{ fontSize: '24px', fontWeight: 900, color: '#FF5500' }}>
+                  {formatMoney(paymentDetails.amountDisplay, paymentDetails.currency)} {paymentDetails.currency}
+                </span>
               </div>
 
               {paymentDetails.isDemo && (
@@ -414,13 +444,61 @@ function PaymentCheckoutContent() {
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '26px' }}>
             <h1 style={{ fontSize: '30px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', margin: '0 0 8px' }}>
               Choose Your {BRAND_NAME} Plan
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
-              Launch pricing in USD. Instant digital activation with hassle-free email refunds.
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
+              {isInr
+                ? 'Pay via UPI, Wallets, NetBanking, or Cards in INR. Instant digital activation.'
+                : 'Pay via International Cards in USD. Switch to INR for UPI, Wallets, and NetBanking.'}
             </p>
+            <div
+              role="group"
+              aria-label="Checkout currency"
+              style={{
+                display: 'inline-flex',
+                padding: '4px',
+                borderRadius: '10px',
+                background: '#EFECE4',
+                border: '1px solid var(--border-color, #E5E7EB)',
+                gap: '4px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setBillingCurrency('INR')}
+                style={{
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '7px 14px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: isInr ? '#FF5500' : 'transparent',
+                  color: isInr ? '#FFFFFF' : '#44403C',
+                }}
+              >
+                ₹ INR (UPI · Wallets · NetBanking · Cards)
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCurrency('USD')}
+                style={{
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '7px 14px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: !isInr ? '#FF5500' : 'transparent',
+                  color: !isInr ? '#FFFFFF' : '#44403C',
+                }}
+              >
+                $ USD (International Cards)
+              </button>
+            </div>
           </div>
 
           {/* 3-Plan Selection Grid */}
@@ -444,9 +522,11 @@ function PaymentCheckoutContent() {
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 14px' }}>{starter.subtitle}</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '36px', lineHeight: 1, color: 'var(--text-tertiary)', textDecoration: 'line-through', fontWeight: 800 }}>${starter.originalPriceUsd}</span>
-                <span style={{ fontSize: '24px', lineHeight: 1, fontWeight: 900 }}>${starter.priceUsd}</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>USD / mo</span>
+                <span style={{ fontSize: '36px', lineHeight: 1, color: 'var(--text-tertiary)', textDecoration: 'line-through', fontWeight: 800 }}>
+                  {formatMoney(planOriginalPrice(starter))}
+                </span>
+                <span style={{ fontSize: '24px', lineHeight: 1, fontWeight: 900 }}>{formatMoney(planPrice(starter))}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{billingCurrency} / mo</span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '7px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                 <li>✓ <strong>6 team members</strong></li>
@@ -481,9 +561,11 @@ function PaymentCheckoutContent() {
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 14px' }}>{pro.subtitle}</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '36px', lineHeight: 1, color: 'var(--text-tertiary)', textDecoration: 'line-through', fontWeight: 800 }}>${pro.originalPriceUsd}</span>
-                <span style={{ fontSize: '24px', lineHeight: 1, fontWeight: 900, color: '#FF5500' }}>${pro.priceUsd}</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>USD / mo</span>
+                <span style={{ fontSize: '36px', lineHeight: 1, color: 'var(--text-tertiary)', textDecoration: 'line-through', fontWeight: 800 }}>
+                  {formatMoney(planOriginalPrice(pro))}
+                </span>
+                <span style={{ fontSize: '24px', lineHeight: 1, fontWeight: 900, color: '#FF5500' }}>{formatMoney(planPrice(pro))}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{billingCurrency} / mo</span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '7px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                 <li>✓ <strong>10 team members</strong></li>
@@ -575,7 +657,9 @@ function PaymentCheckoutContent() {
                   className="btn btn-primary"
                   style={{ width: '100%', padding: '13px', fontSize: '15px', fontWeight: 700, borderRadius: '8px', marginTop: '4px' }}
                 >
-                  {isLoading ? 'Opening Razorpay Checkout...' : `Pay $${totalUsd} USD via Razorpay →`}
+                  {isLoading
+                    ? 'Opening Razorpay Checkout...'
+                    : `Pay ${formatMoney(totalAmount)} ${billingCurrency} via Razorpay →`}
                 </button>
               </form>
             </div>
@@ -585,15 +669,19 @@ function PaymentCheckoutContent() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>{activePlan.name} (Monthly)</span>
-                  <span style={{ textDecoration: 'line-through', color: 'var(--text-tertiary)' }}>${activePlan.originalPriceUsd} USD</span>
+                  <span style={{ textDecoration: 'line-through', color: 'var(--text-tertiary)' }}>
+                    {formatMoney(originalAmount)} {billingCurrency}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669' }}>
                   <span>Launch Offer Discount</span>
-                  <span>-${savingsUsd} USD</span>
+                  <span>-{currencySymbol}{savingsAmount.toLocaleString(isInr ? 'en-IN' : 'en-US')} {billingCurrency}</span>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '14px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontWeight: 800, fontSize: '15px' }}>Total Due Today</span>
-                  <span style={{ fontWeight: 900, fontSize: '26px', color: '#FF5500' }}>${totalUsd} USD</span>
+                  <span style={{ fontWeight: 900, fontSize: '26px', color: '#FF5500' }}>
+                    {formatMoney(totalAmount)} {billingCurrency}
+                  </span>
                 </div>
               </div>
 

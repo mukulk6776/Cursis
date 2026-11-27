@@ -51,7 +51,7 @@ export default function TermsPage() {
           </li>
         </ul>
         <p style={{ margin: '0 0 12px 0' }}>
-          Payments are processed securely in USD through Razorpay. Displayed plan prices reflect the total charge from {BRAND_NAME}; any currency conversion or card issuer charges applied by your bank or card network are separate. Subscriptions can be cancelled anytime, and refund requests are handled under our{' '}
+          Payments are processed securely in INR or USD through Razorpay. Displayed plan prices reflect the total charge from {BRAND_NAME}; any currency conversion or card issuer charges applied by your bank or card network are separate. Subscriptions can be cancelled anytime, and refund requests are handled under our{' '}
           <Link href="/refund-policy" style={{ color: '#FF5500', textDecoration: 'underline', fontWeight: 600 }}>Cancellation &amp; Refund Policy</Link>.
         </p>
         <p style={{ margin: 0 }}>

@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 
 interface CreateOrderRequestBody {
   planId?: string;
+  currency?: string;
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
@@ -22,14 +23,17 @@ export async function POST(req: Request) {
     const requestedPlan = String(body.planId || '').trim().toLowerCase() as PlanKey;
     if (requestedPlan !== 'starter' && requestedPlan !== 'pro') {
       return NextResponse.json(
-        { error: 'Please select either Starter ($9/mo) or Pro ($20/mo). For Business, please contact us.' },
+        { error: 'Please select either Starter or Pro plan. For Business, please contact us.' },
         { status: 400 }
       );
     }
 
+    const requestedCurrency: 'INR' | 'USD' =
+      String(body.currency || 'INR').trim().toUpperCase() === 'USD' ? 'USD' : 'INR';
+
     const plan = PLAN_CATALOG[requestedPlan];
-    const priceUsd = plan.priceUsd;
-    if (!priceUsd || priceUsd <= 0) {
+    const displayAmount = requestedCurrency === 'INR' ? plan.priceInr : plan.priceUsd;
+    if (!displayAmount || displayAmount <= 0) {
       return NextResponse.json({ error: 'Selected plan is not available for online checkout.' }, { status: 400 });
     }
 
@@ -48,7 +52,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'A valid email address is required.' }, { status: 400 });
     }
 
-    const amountInCents = Math.round(priceUsd * 100);
+    const amountInSmallestUnit = Math.round(displayAmount * 100);
     const receiptNumber = `CURSIS-REC-${Date.now().toString(36).toUpperCase()}`;
 
     const keyId = (process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '').trim();
@@ -67,12 +71,13 @@ export async function POST(req: Request) {
             Authorization: `Basic ${credentials}`,
           },
           body: JSON.stringify({
-            amount: amountInCents,
-            currency: 'USD',
+            amount: amountInSmallestUnit,
+            currency: requestedCurrency,
             receipt: receiptNumber,
             notes: {
               planId: requestedPlan,
               planName: plan.name,
+              currency: requestedCurrency,
               customerEmail,
               customerName,
               workspaceId: workspaceId || '',
@@ -105,9 +110,9 @@ export async function POST(req: Request) {
     const paymentRecord: PaymentRecord = {
       id: `pay_rec_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       orderId,
-      amount: priceUsd,
-      amountInCents,
-      currency: 'USD',
+      amount: displayAmount,
+      amountInCents: amountInSmallestUnit,
+      currency: requestedCurrency,
       status: 'created',
       planId: requestedPlan,
       planName: plan.name,
@@ -128,9 +133,10 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       orderId,
-      amount: amountInCents,
-      amountUsd: priceUsd,
-      currency: 'USD',
+      amount: amountInSmallestUnit,
+      amountDisplay: displayAmount,
+      amountUsd: requestedCurrency === 'USD' ? displayAmount : undefined,
+      currency: requestedCurrency,
       keyId: keyId || 'rzp_test_demo',
       isDemo,
       receiptNumber,

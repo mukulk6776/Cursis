@@ -15,6 +15,8 @@ export interface PlanLimits {
   subtitle: string;
   priceUsd: number | null; // null = Contact Us / custom quote
   originalPriceUsd?: number;
+  priceInr?: number | null;
+  originalPriceInr?: number;
   recommended?: boolean;
   maxMembers: number;
   maxProjects: number | null; // null = unlimited
@@ -31,6 +33,7 @@ export const PLAN_CATALOG: Record<PlanKey, PlanLimits> = {
     name: 'Free Preview',
     subtitle: 'Trial workspace preview before upgrading to Starter or Pro',
     priceUsd: 0,
+    priceInr: 0,
     maxMembers: MAX_TEAM_MEMBERS, // 4
     maxProjects: 3,
     maxTasksPerProject: 5,
@@ -51,6 +54,8 @@ export const PLAN_CATALOG: Record<PlanKey, PlanLimits> = {
     subtitle: 'For individuals and small teams',
     priceUsd: 9,
     originalPriceUsd: 19,
+    priceInr: 749,
+    originalPriceInr: 1599,
     maxMembers: 6,
     maxProjects: 10,
     maxTasksPerProject: 5,
@@ -71,6 +76,8 @@ export const PLAN_CATALOG: Record<PlanKey, PlanLimits> = {
     subtitle: 'For growing teams and startups',
     priceUsd: 20,
     originalPriceUsd: 39,
+    priceInr: 1699,
+    originalPriceInr: 3299,
     recommended: true,
     maxMembers: 10,
     maxProjects: null,
@@ -90,6 +97,7 @@ export const PLAN_CATALOG: Record<PlanKey, PlanLimits> = {
     name: 'Business',
     subtitle: 'For established companies and organizations',
     priceUsd: null,
+    priceInr: null,
     maxMembers: 100,
     maxProjects: null,
     maxTasksPerProject: null,

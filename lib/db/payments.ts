@@ -5,9 +5,9 @@ export interface PaymentRecord {
   id: string;
   orderId: string;
   paymentId?: string;
-  amount: number; // in USD
-  amountInCents: number;
-  currency: 'USD';
+  amount: number; // in order currency (INR or USD)
+  amountInCents: number; // smallest currency unit (paise for INR, cents for USD)
+  currency: 'INR' | 'USD';
   status: 'created' | 'paid' | 'failed';
   planId: PlanKey;
   planName: string;

@@ -599,7 +599,7 @@ export default function AdminUserDetailPanel({
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid #0A0A0A', background: '#FAF6EE' }}
               >
                 <div>
-                  <strong>{p.planName}</strong> · ${p.amount} {p.currency} ({p.orderId})
+                  <strong>{p.planName}</strong> · {p.currency === 'INR' ? '₹' : '$'}{p.amount} {p.currency} ({p.orderId})
                 </div>
                 <span className={p.status === 'paid' ? styles.pillMint : styles.pillNeutral}>{p.status}</span>
               </div>
