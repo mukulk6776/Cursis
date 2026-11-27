@@ -11,3 +11,12 @@
 .privacy-centre a { color: #0A0A0A; text-decoration: underline; }
 .privacy-centre .privacy-danger { background: #0A0A0A; color: white; }
 @media (max-width: 560px) { .privacy-centre section { padding: 18px; } .privacy-centre button { width: 100%; } }
+
+html[data-theme='dark'] .privacy-centre { color: #F5F0E6; }
+html[data-theme='dark'] .privacy-centre section { background: #1B1916; border-color: rgba(245, 240, 230, 0.26); box-shadow: 6px 6px 0 #000000; }
+html[data-theme='dark'] .privacy-centre input:not([type=checkbox]),
+html[data-theme='dark'] .privacy-centre select,
+html[data-theme='dark'] .privacy-centre textarea { border-color: rgba(245, 240, 230, 0.26); background: #141210; color: #F5F0E6; }
+html[data-theme='dark'] .privacy-centre button { border-color: rgba(245, 240, 230, 0.28); box-shadow: 3px 3px 0 #000000; color: #FFFFFF; }
+html[data-theme='dark'] .privacy-centre a { color: #FF8A4C; }
+html[data-theme='dark'] .privacy-centre .privacy-danger { background: #991B1B; color: #FFFFFF; }

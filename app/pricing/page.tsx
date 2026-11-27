@@ -105,13 +105,13 @@ export default function Pricing() {
           style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', marginBottom: 0 }}
         >
           <div>
-            <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#57534E' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-tertiary, #57534E)' }}>
               Launch Offer
             </p>
             <h2 id="starter-plan-heading" style={{ margin: '0 0 6px' }}>
               {starter.name}
             </h2>
-            <p style={{ margin: '0 0 20px', color: '#4B5563', fontSize: '14px' }}>
+            <p style={{ margin: '0 0 20px', color: 'var(--text-secondary, #4B5563)', fontSize: '14px' }}>
               {starter.subtitle}
             </p>
 
@@ -122,7 +122,7 @@ export default function Pricing() {
               <span style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1 }}>
                 ${starter.priceUsd}
               </span>
-              <span style={{ fontSize: '14px', fontWeight: 600, color: '#4B5563' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary, #4B5563)' }}>
                 USD / month
               </span>
             </div>
@@ -156,7 +156,7 @@ export default function Pricing() {
             justifyContent: 'space-between',
             marginBottom: 0,
             borderColor: '#FF5500',
-            background: '#FFFDF9',
+            background: 'var(--surface-card, #FFFDF9)',
           }}
         >
           <div>
@@ -176,7 +176,7 @@ export default function Pricing() {
             <h2 id="pro-plan-heading" style={{ margin: '0 0 6px' }}>
               {pro.name}
             </h2>
-            <p style={{ margin: '0 0 20px', color: '#4B5563', fontSize: '14px' }}>
+            <p style={{ margin: '0 0 20px', color: 'var(--text-secondary, #4B5563)', fontSize: '14px' }}>
               {pro.subtitle}
             </p>
 
@@ -187,7 +187,7 @@ export default function Pricing() {
               <span style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1, color: '#FF5500' }}>
                 ${pro.priceUsd}
               </span>
-              <span style={{ fontSize: '14px', fontWeight: 600, color: '#4B5563' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary, #4B5563)' }}>
                 USD / month
               </span>
             </div>
@@ -217,19 +217,19 @@ export default function Pricing() {
           style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', marginBottom: 0 }}
         >
           <div>
-            <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#57534E' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-tertiary, #57534E)' }}>
               Enterprise &amp; Bespoke
             </p>
             <h2 id="business-plan-heading" style={{ margin: '0 0 6px' }}>
               {business.name}
             </h2>
-            <p style={{ margin: '0 0 18px', color: '#4B5563', fontSize: '14px' }}>
+            <p style={{ margin: '0 0 18px', color: 'var(--text-secondary, #4B5563)', fontSize: '14px' }}>
               {business.subtitle}
             </p>
 
             <div style={{ marginBottom: '20px' }}>
               <span style={{ fontSize: '32px', fontWeight: 900, color: '#0A0A0A' }}>Custom</span>
-              <div style={{ fontSize: '13px', color: '#4B5563', marginTop: '4px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary, #4B5563)', marginTop: '4px' }}>
                 Scoped to your organization&apos;s requirements
               </div>
             </div>
@@ -274,7 +274,7 @@ export default function Pricing() {
           {pricingFaqs.map((item) => (
             <div key={item.question}>
               <h3 style={{ margin: '0 0 4px', fontSize: '15px' }}>{item.question}</h3>
-              <p style={{ margin: 0, fontSize: '14px', color: '#4B5563', lineHeight: 1.55 }}>{item.answer}</p>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary, #4B5563)', lineHeight: 1.55 }}>{item.answer}</p>
             </div>
           ))}
         </div>

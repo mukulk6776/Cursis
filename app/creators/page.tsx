@@ -123,7 +123,7 @@ export default function Creators() {
                 {item.code}
               </div>
               <h3 style={{ margin: '0 0 6px', fontSize: '16px' }}>{item.role}</h3>
-              <p style={{ margin: 0, fontSize: '13.5px', color: '#4B5563', lineHeight: 1.55 }}>{item.focus}</p>
+              <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-secondary, #4B5563)', lineHeight: 1.55 }}>{item.focus}</p>
             </article>
           ))}
         </div>
@@ -135,7 +135,7 @@ export default function Creators() {
           {creatorFaqs.map((item) => (
             <div key={item.question}>
               <h3 style={{ margin: '0 0 4px', fontSize: '15px' }}>{item.question}</h3>
-              <p style={{ margin: 0, fontSize: '14px', color: '#4B5563', lineHeight: 1.55 }}>{item.answer}</p>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary, #4B5563)', lineHeight: 1.55 }}>{item.answer}</p>
             </div>
           ))}
         </div>

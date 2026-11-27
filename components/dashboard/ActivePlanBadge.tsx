@@ -46,7 +46,7 @@ export default function ActivePlanBadge({ activePlan, size = 'sm' }: ActivePlanB
         fontWeight: 800,
         letterSpacing: '0.03em',
         lineHeight: 1.2,
-        border: '1.5px solid #0A0A0A',
+        border: '1.5px solid var(--border-dark, #0A0A0A)',
         boxShadow: '2px 2px 0px #0A0A0A',
         background: isProOrBiz ? '#FF5500' : '#FFC233',
         color: isProOrBiz ? '#FFFFFF' : '#0A0A0A',

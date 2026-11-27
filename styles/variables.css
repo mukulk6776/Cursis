@@ -246,3 +246,80 @@
   --sp-6: 2.25rem;
   --fs-base: 1.0625rem;
 }
+
+/* ==========================================================================
+   CURSIS WARM OBSIDIAN DARK THEME (activated via data-theme="dark" / .dark)
+   ========================================================================== */
+:root[data-theme='dark'],
+html[data-theme='dark'],
+html.dark {
+  color-scheme: dark;
+
+  /* Core Warm Obsidian Backgrounds */
+  --c-bg: #11100E;
+  --c-cream: #11100E;
+  --c-paper: #1B1916;
+  --c-surface: #1B1916;
+  --c-bg-subtle: #24211D;
+  --c-bg-elevated: #221F1B;
+  --c-bg-primary: #11100E;
+  --c-bg-secondary: #1B1916;
+
+  /* Brand Ink & Readability */
+  --c-text-primary: #F5F0E6;
+  --c-text-secondary: #C8C0B4;
+  --c-text-tertiary: #948B7E;
+  --c-border-primary: rgba(245, 240, 230, 0.14);
+
+  /* Brand & Accent */
+  --c-brand-bg: rgba(255, 85, 0, 0.14);
+  --c-brand-border: rgba(255, 85, 0, 0.38);
+
+  /* Semantic Status Colors (Dark Tints) */
+  --c-success: #10B981;
+  --c-success-bg: rgba(16, 185, 129, 0.14);
+  --c-success-text: #34D399;
+  --c-warning: #F59E0B;
+  --c-warning-bg: rgba(245, 158, 11, 0.14);
+  --c-warning-text: #FBBF24;
+  --c-error: #F87171;
+  --c-error-bg: rgba(239, 68, 68, 0.16);
+  --c-error-text: #FCA5A5;
+  --c-info: #60A5FA;
+  --c-info-bg: rgba(59, 130, 246, 0.16);
+  --c-info-text: #93C5FD;
+  --c-purple: #A78BFA;
+  --c-purple-bg: rgba(139, 92, 246, 0.16);
+
+  /* Surface & Navigation Hierarchy */
+  --surface-sidebar: #161411;
+  --surface-topbar: rgba(22, 20, 17, 0.92);
+  --surface-card: #1B1916;
+  --surface-hover: #25221E;
+  --surface-active: #2E2A24;
+  --surface-modal: #1E1C18;
+  --surface-overlay: rgba(0, 0, 0, 0.72);
+
+  /* Text Hierarchy */
+  --text-primary: #F5F0E6;
+  --text-secondary: #C8C0B4;
+  --text-tertiary: #948B7E;
+  --text-muted: #787066;
+  --text-inverse: #0A0A0A;
+
+  /* Crisp Warm Obsidian Borders */
+  --border-color: rgba(245, 240, 230, 0.14);
+  --border-light: rgba(245, 240, 230, 0.08);
+  --border-dark: rgba(245, 240, 230, 0.24);
+  --border-strong: rgba(245, 240, 230, 0.34);
+
+  /* Neo-Brutalist Dark Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 2px 2px 0px #000000;
+  --shadow-md: 4px 4px 0px #000000;
+  --shadow-lg: 6px 6px 0px #000000;
+  --shadow-xl: 10px 10px 0px #000000;
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.36);
+  --shadow-btn: 0 2px 0 #000000;
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.72);
+}

@@ -34,7 +34,7 @@ function hashCode(email: string, purpose: 'admin_signup' | 'admin_login', code: 
 export async function issueAdminEmailVerificationCode(
   email: string,
   purpose: 'admin_signup' | 'admin_login'
-): Promise<{ sent: boolean; cooldown?: boolean; unconfigured?: boolean }> {
+): Promise<{ sent: boolean; cooldown?: boolean; retryAfterSeconds?: number; unconfigured?: boolean }> {
   if (!isVerificationEmailConfigured()) {
     return { sent: false, unconfigured: true };
   }
@@ -52,8 +52,13 @@ export async function issueAdminEmailVerificationCode(
       const col = db.collection<VerificationRecord>(COLLECTION);
       await col.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch(() => {});
       const existing = await col.findOne({ _id: key });
-      if (existing && now.getTime() - new Date(existing.sentAt).getTime() < RESEND_COOLDOWN_MS && existing.expiresAt > now) {
-        return { sent: true, cooldown: true };
+      const elapsed = existing ? now.getTime() - new Date(existing.sentAt).getTime() : RESEND_COOLDOWN_MS;
+      if (existing && elapsed < RESEND_COOLDOWN_MS && existing.expiresAt > now) {
+        return {
+          sent: true,
+          cooldown: true,
+          retryAfterSeconds: Math.max(1, Math.ceil((RESEND_COOLDOWN_MS - elapsed) / 1000)),
+        };
       }
       await col.updateOne(
         { _id: key },
@@ -71,8 +76,13 @@ export async function issueAdminEmailVerificationCode(
       );
     } else if (process.env.NODE_ENV !== 'production') {
       const existing = inMemoryChallenges.get(key);
-      if (existing && now.getTime() - existing.sentAt.getTime() < RESEND_COOLDOWN_MS && existing.expiresAt > now) {
-        return { sent: true, cooldown: true };
+      const elapsed = existing ? now.getTime() - existing.sentAt.getTime() : RESEND_COOLDOWN_MS;
+      if (existing && elapsed < RESEND_COOLDOWN_MS && existing.expiresAt > now) {
+        return {
+          sent: true,
+          cooldown: true,
+          retryAfterSeconds: Math.max(1, Math.ceil((RESEND_COOLDOWN_MS - elapsed) / 1000)),
+        };
       }
       inMemoryChallenges.set(key, {
         _id: key,
@@ -88,7 +98,7 @@ export async function issueAdminEmailVerificationCode(
     }
 
     await sendAdminVerificationEmail(normalized, code);
-    return { sent: true };
+    return { sent: true, cooldown: false, retryAfterSeconds: Math.ceil(RESEND_COOLDOWN_MS / 1000) };
   } catch (err) {
     console.warn('[email-verification] Failed to issue code:', err instanceof Error ? err.message : 'unknown error');
     try {

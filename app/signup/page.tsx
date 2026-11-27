@@ -24,7 +24,14 @@ export default function SignupPage() {
   const [statusMsg, setStatusMsg] = useState('');
   const [verificationStep, setVerificationStep] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [needsGoogleFallback, setNeedsGoogleFallback] = useState(false);
+
+  useEffect(() => {
+    if (!resendCooldown) return;
+    const timer = window.setTimeout(() => setResendCooldown(v => Math.max(0, v - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
 
   useEffect(() => {
     let isMounted = true;
@@ -177,6 +184,7 @@ export default function SignupPage() {
       );
       if (authResult?.requiresEmailVerification) {
         setVerificationStep(true);
+        setResendCooldown(authResult.retryAfterSeconds ?? 60);
         setStatusMsg(authResult.message || 'Enter the 6-digit verification code sent to your email.');
         return;
       }
@@ -275,15 +283,44 @@ export default function SignupPage() {
                 </div>
                 {verificationStep && (
                   <>
-                    <label htmlFor="signup-verification-code">6-digit email verification code</label>
+                    <div className="auth-password-label">
+                      <label htmlFor="signup-verification-code">6-digit email verification code</label>
+                      <button
+                        type="button"
+                        className="auth-text-button"
+                        disabled={loading || resendCooldown > 0}
+                        onClick={async () => {
+                          const cleanEmail = email.trim().toLowerCase();
+                          const cleanName = name.trim();
+                          if (!cleanName || !cleanEmail || !password || loading) return;
+                          setLoading(true);
+                          setErrorMsg('');
+                          try {
+                            const resendResult = await signUpWithEmail(cleanEmail, password, cleanName, ageConfirmed, privacyConsent);
+                            if (resendResult?.requiresEmailVerification) {
+                              if (!resendResult.cooldown) setVerificationCode('');
+                              setResendCooldown(resendResult.retryAfterSeconds ?? 60);
+                              setStatusMsg(resendResult.message || `A new 6-digit verification code was sent to ${cleanEmail}.`);
+                            }
+                          } catch (err: any) {
+                            setErrorMsg(err?.message || 'Unable to resend verification code.');
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                      >
+                        {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                      </button>
+                    </div>
                     <input
                       id="signup-verification-code"
                       type="text"
                       inputMode="numeric"
+                      autoComplete="one-time-code"
                       pattern="[0-9]{6}"
                       maxLength={6}
                       value={verificationCode}
-                      onChange={event => setVerificationCode(event.target.value)}
+                      onChange={event => setVerificationCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
                       placeholder="123456"
                       required
                       autoFocus
@@ -301,7 +338,7 @@ export default function SignupPage() {
               <span>I consent to account processing per the <Link href="/privacy" target="_blank">Privacy Notice</Link>.</span>
             </label>
             <button type="submit" className="auth-submit" disabled={loading || googleLoading}>
-              {method === 'google' ? (googleLoading ? 'Connecting…' : 'Continue with Google') : (loading ? 'Creating workspace…' : 'Create my free workspace')}
+              {method === 'google' ? (googleLoading ? 'Connecting…' : 'Continue with Google') : (loading ? 'Creating workspace…' : (verificationStep ? 'Verify & Create Workspace' : 'Create my free workspace'))}
               <ArrowRight size={16} aria-hidden="true" />
             </button>
             {method === 'email' && needsGoogleFallback && (

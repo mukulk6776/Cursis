@@ -21,7 +21,7 @@ export default function Contact() {
     >
       <div className="marketing-card">
         <MarketingForm kind="contact" />
-        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #E5E7EB', fontSize: '14px', lineHeight: 1.7 }}>
+        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-color, #E5E7EB)', fontSize: '14px', lineHeight: 1.7 }}>
           <p style={{ margin: '0 0 6px' }}>
             <strong>Operating Entity:</strong> {privacyContact.entity}
           </p>

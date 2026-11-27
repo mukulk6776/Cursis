@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { getDb } from '@/lib/mongodb';
+import { sendContactInquiryEmails, sendNewsletterSubscriptionEmail } from '@/lib/email/notifications';
 
 const common = z.object({ email: z.email().max(254).transform(v => v.trim().toLowerCase()), consent: z.literal('yes'), website: z.string().max(0).optional() });
 const contact = common.extend({ name: z.string().trim().min(2).max(100), message: z.string().trim().min(10).max(5000) });
@@ -8,7 +9,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ kin
   const { kind } = await params;
   if (!['contact', 'newsletter'].includes(kind)) return Response.json({ error: 'Not found' }, { status: 404 });
   const origin = request.headers.get('origin');
-  if (!origin || (origin !== new URL(request.url).origin && origin !== 'https://cursis.in')) return Response.json({ error: 'Invalid origin' }, { status: 403 });
+  const requestOrigin = new URL(request.url);
+  if (request.headers.get('host')) requestOrigin.host = request.headers.get('host')!;
+  const allowedOrigins = new Set([
+    requestOrigin.origin,
+    new URL(request.url).origin,
+    'https://cursis.in',
+    'https://www.cursis.in',
+    ...(process.env.NEXT_PUBLIC_APP_URL ? [new URL(process.env.NEXT_PUBLIC_APP_URL).origin] : []),
+  ]);
+  if (!origin || !allowedOrigins.has(origin)) return Response.json({ error: 'Invalid origin' }, { status: 403 });
   if (!request.headers.get('content-type')?.includes('application/json')) return Response.json({ error: 'JSON required' }, { status: 415 });
   let input: unknown;
   try {
@@ -33,10 +43,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ kin
     if (kind === 'newsletter') {
       await db.collection('marketing_subscribers').createIndex({ email: 1 }, { unique: true });
       await db.collection('marketing_subscribers').updateOne({ email: parsed.data.email }, { $set: { email: parsed.data.email, consentAt: now, consentVersion: '2026-10-19', source: 'footer' } }, { upsert: true });
+      await db.collection('unsubscribes').deleteOne({ email: parsed.data.email }).catch(() => {});
+      const emailResult = await sendNewsletterSubscriptionEmail(parsed.data.email).catch((err) => ({
+        sent: false,
+        error: err instanceof Error ? err.message : 'email failed',
+      }));
+      if (!emailResult.sent && emailResult.error) {
+        console.warn('[marketing/newsletter] Resend delivery notice:', emailResult.error);
+      }
+      return Response.json({ success: true, emailSent: Boolean(emailResult.sent) });
     } else {
       const data = contact.parse(input);
-      await db.collection('marketing_contacts').insertOne({ name: data.name, email: data.email, message: data.message, consentAt: now, createdAt: now });
+      const inserted = await db.collection('marketing_contacts').insertOne({ name: data.name, email: data.email, message: data.message, consentAt: now, createdAt: now });
+      const emailResult = await sendContactInquiryEmails({
+        name: data.name,
+        email: data.email,
+        message: data.message,
+        inquiryId: inserted.insertedId ? String(inserted.insertedId) : undefined,
+      }).catch((err) => ({
+        sent: false,
+        error: err instanceof Error ? err.message : 'email failed',
+      }));
+      if (!emailResult.sent && emailResult.error) {
+        console.warn('[marketing/contact] Resend delivery notice:', emailResult.error);
+      }
+      return Response.json({ success: true, emailSent: Boolean(emailResult.sent) });
     }
-    return Response.json({ success: true });
   } catch { return Response.json({ error: 'Unable to save right now. Please try again or contact cursis.in@gmail.com.' }, { status: 503 }); }
 }

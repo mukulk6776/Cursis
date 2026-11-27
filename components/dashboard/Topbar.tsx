@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import ActivePlanBadge from './ActivePlanBadge';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Topbar() {
   const {
@@ -83,6 +84,8 @@ export default function Topbar() {
 
       {/* Topbar Actions */}
       <div className="topbar-actions">
+        <ThemeToggle className="topbar-action-btn" size={16} />
+
         {/* Inbox */}
         <button
           className="topbar-action-btn"

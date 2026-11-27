@@ -85,19 +85,27 @@ export async function POST(request: Request) {
     if (isAdminCandidate) {
       const submittedCode = String(body.verificationCode || '').trim();
       if (!submittedCode) {
+        let emailDeliveryFailed = false;
         if (isVerificationEmailConfigured()) {
           try {
-            await issueAdminEmailVerificationCode(email, 'admin_signup');
+            const issueResult = await issueAdminEmailVerificationCode(email, 'admin_signup');
+            const retryAfterSeconds = issueResult.retryAfterSeconds ?? 60;
+            const statusMessage = issueResult.cooldown
+              ? `A verification code was recently sent to ${email}. Enter it below (check Spam/Promotions) or wait ${retryAfterSeconds}s to resend.`
+              : `A 6-digit verification code was sent to ${email}. Enter it below (check Spam/Promotions too) to verify ownership and create your admin account.`;
             return NextResponse.json(
               {
                 success: false,
                 requiresEmailVerification: true,
+                cooldown: Boolean(issueResult.cooldown),
+                retryAfterSeconds,
                 email,
-                message: `A 6-digit verification code was sent to ${email}. Enter it below to verify ownership and create your admin account.`,
+                message: statusMessage,
               },
               { status: 202 }
             );
           } catch (mailErr) {
+            emailDeliveryFailed = true;
             console.warn('Admin signup verification email delivery fallback:', mailErr instanceof Error ? mailErr.message : 'failed');
           }
         }
@@ -105,7 +113,9 @@ export async function POST(request: Request) {
           {
             success: false,
             requiresGoogleVerification: true,
-            error: 'Email verification is unavailable right now. Click "Continue with Google" to verify ownership and register your admin account.',
+            error: emailDeliveryFailed
+              ? 'Unable to deliver the OTP email via Resend right now. Verify your Resend API key and sender domain, or click "Continue with Google" to register your admin account.'
+              : 'Email verification is not configured on this server (missing RESEND_API_KEY). Click "Continue with Google" to verify ownership and register your admin account.',
           },
           { status: 403 }
         );

@@ -18,6 +18,13 @@ export default function LoginPage() {
  const [successMsg, setSuccessMsg] = useState('');
  const [verificationStep, setVerificationStep] = useState(false);
  const [verificationCode, setVerificationCode] = useState('');
+ const [resendCooldown, setResendCooldown] = useState(0);
+
+ useEffect(() => {
+   if (!resendCooldown) return;
+   const timer = window.setTimeout(() => setResendCooldown(v => Math.max(0, v - 1)), 1000);
+   return () => window.clearTimeout(timer);
+ }, [resendCooldown]);
 
  useEffect(() => {
  let isMounted = true;
@@ -155,6 +162,7 @@ export default function LoginPage() {
       const authResult = await signInWithEmail(cleanEmail, password, verificationStep ? verificationCode : undefined);
       if (authResult?.requiresEmailVerification) {
         setVerificationStep(true);
+        setResendCooldown(authResult.retryAfterSeconds ?? 60);
         setSuccessMsg(authResult.message || 'Enter the 6-digit verification code sent to your email.');
         return;
       }
@@ -236,16 +244,44 @@ export default function LoginPage() {
           </div>
           {verificationStep && (
             <>
-              <label htmlFor="login-verification-code">6-digit email verification code</label>
+              <div className="auth-password-label">
+                <label htmlFor="login-verification-code">6-digit email verification code</label>
+                <button
+                  type="button"
+                  className="auth-text-button"
+                  disabled={loading || resendCooldown > 0}
+                  onClick={async () => {
+                    const cleanEmail = email.trim().toLowerCase();
+                    if (!cleanEmail || !password || loading) return;
+                    setLoading(true);
+                    setErrorMsg('');
+                    try {
+                      const resendResult = await signInWithEmail(cleanEmail, password);
+                      if (resendResult?.requiresEmailVerification) {
+                        if (!resendResult.cooldown) setVerificationCode('');
+                        setResendCooldown(resendResult.retryAfterSeconds ?? 60);
+                        setSuccessMsg(resendResult.message || `A new 6-digit verification code was sent to ${cleanEmail}.`);
+                      }
+                    } catch (err: any) {
+                      setErrorMsg(err?.message || 'Unable to resend verification code.');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                </button>
+              </div>
               <input
                 id="login-verification-code"
                 type="text"
                 inputMode="numeric"
+                autoComplete="one-time-code"
                 pattern="[0-9]{6}"
                 maxLength={6}
                 value={verificationCode}
                 placeholder="123456"
-                onChange={e => setVerificationCode(e.target.value)}
+                onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 required
                 autoFocus
               />

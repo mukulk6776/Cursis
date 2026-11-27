@@ -122,19 +122,27 @@ export async function POST(request: Request) {
         emailVerified = true;
         platformRole = 'admin';
       } else {
+        let emailDeliveryFailed = false;
         if (isVerificationEmailConfigured()) {
           try {
-            await issueAdminEmailVerificationCode(user.email, 'admin_login');
+            const issueResult = await issueAdminEmailVerificationCode(user.email, 'admin_login');
+            const retryAfterSeconds = issueResult.retryAfterSeconds ?? 60;
+            const statusMessage = issueResult.cooldown
+              ? `A verification code was recently sent to ${user.email}. Enter it below (check Spam/Promotions) or wait ${retryAfterSeconds}s to resend.`
+              : `Enter the 6-digit verification code sent to ${user.email} (check Spam/Promotions too) to verify ownership and access the Admin Console.`;
             return NextResponse.json(
               {
                 success: false,
                 requiresEmailVerification: true,
+                cooldown: Boolean(issueResult.cooldown),
+                retryAfterSeconds,
                 email: user.email,
-                message: `Enter the 6-digit verification code sent to ${user.email} to verify ownership and access the Admin Console.`,
+                message: statusMessage,
               },
               { status: 202 }
             );
           } catch (mailErr) {
+            emailDeliveryFailed = true;
             console.warn('Admin login verification email delivery fallback:', mailErr instanceof Error ? mailErr.message : 'failed');
           }
         }
@@ -142,7 +150,9 @@ export async function POST(request: Request) {
           {
             success: false,
             requiresGoogleVerification: true,
-            error: 'Email verification is unavailable right now. Sign in once with "Continue with Google" to verify your email.',
+            error: emailDeliveryFailed
+              ? 'Unable to deliver the OTP email via Resend right now. Verify your Resend API key and sender domain, or sign in once with "Continue with Google".'
+              : 'Email verification is not configured on this server (missing RESEND_API_KEY). Sign in once with "Continue with Google" to verify your email.',
           },
           { status: 403 }
         );

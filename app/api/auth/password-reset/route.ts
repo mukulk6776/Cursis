@@ -82,7 +82,8 @@ export async function POST(request: Request) {
       if (!user) return reply(requested);
       try {
         await sendPasswordResetEmail(input.email, code);
-      } catch {
+      } catch (mailErr) {
+        console.warn('[password-reset] Delivery failed:', mailErr instanceof Error ? mailErr.message : 'unknown error');
         await users.updateOne({ email: input.email, 'passwordReset.hash': hash }, { $unset: { passwordReset: '' } });
         throw new Error('Delivery unavailable');
       }

@@ -6,6 +6,7 @@ import { exportAccount, requestErasure } from '@/lib/privacy/data';
 import { PRIVACY_VERSION } from '@/lib/privacy/config';
 import crypto from 'crypto';
 import { checkRateLimit, recordAttempt } from '@/lib/auth/rateLimit';
+import { sendPrivacyRequestNotificationEmails } from '@/lib/email/notifications';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -89,9 +90,20 @@ export async function POST(request: Request) {
       if (recent >= 5) throw new PrivacyError('Please use your existing request or try again in an hour.', 429);
       const id = crypto.randomUUID();
       const deadlines = requestDeadlines();
+      const requestDetails = textField(body.message, 5000, 'request details');
       await db.collection('privacy_requests').insertOne({ id, uid: user.uid, email: user.email,
-        kind: body.kind, message: textField(body.message, 5000, 'request details'), status: 'received',
+        kind: body.kind, message: requestDetails, status: 'received',
         ...deadlines, acknowledgedAt: new Date(), expiresAt: new Date(Date.now() + 365 * 86400000) });
+      await sendPrivacyRequestNotificationEmails({
+        id,
+        userEmail: user.email,
+        kind: body.kind,
+        message: requestDetails,
+        acknowledgeBy: deadlines.acknowledgeBy,
+        resolveBy: deadlines.resolveBy,
+      }).catch((err) => {
+        console.warn('[privacy/request] Resend delivery notice:', err instanceof Error ? err.message : 'email failed');
+      });
       return privacyJSON({ id, ...deadlines, message: 'Request received and acknowledged. Our resolution target is 30 calendar days.', contact: contactDetails() }, 201);
     }
     if (body.action === 'consent') {

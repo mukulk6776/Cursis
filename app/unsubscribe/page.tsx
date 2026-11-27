@@ -62,8 +62,8 @@ function UnsubscribeContent() {
         width: '100%',
         margin: '0 auto',
         padding: '36px 32px',
-        backgroundColor: '#FFFFFF',
-        border: '2px solid #0A0A0A',
+        backgroundColor: 'var(--surface-card, #FFFFFF)',
+        border: '2px solid var(--border-dark, #0A0A0A)',
         borderRadius: '16px',
         boxShadow: '6px 6px 0 0 #0A0A0A',
       }}
@@ -86,10 +86,10 @@ function UnsubscribeContent() {
         >
           CAN-SPAM Opt-Out Desk
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#0A0A0A', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary, #0A0A0A)', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
           Unsubscribe from Updates
         </h1>
-        <p style={{ fontSize: '13px', color: '#555555', lineHeight: 1.5, margin: 0 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary, #555555)', lineHeight: 1.5, margin: 0 }}>
           We respect your inbox. Enter your email below to instantly opt out from marketing announcements, product releases, and non-transactional communications.
         </p>
       </div>
@@ -153,7 +153,7 @@ function UnsubscribeContent() {
           <div>
             <label
               htmlFor="unsub-email"
-              style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0A0A0A', marginBottom: '6px' }}
+              style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-primary, #0A0A0A)', marginBottom: '6px' }}
             >
               Email Address
             </label>
@@ -169,7 +169,9 @@ function UnsubscribeContent() {
                 height: '44px',
                 padding: '0 14px',
                 fontSize: '14px',
-                border: '1.5px solid #0A0A0A',
+                background: 'var(--c-bg-subtle, #FFFFFF)',
+                color: 'var(--text-primary, #0A0A0A)',
+                border: '1.5px solid var(--border-dark, #0A0A0A)',
                 borderRadius: '8px',
                 outline: 'none',
                 boxSizing: 'border-box',
@@ -204,9 +206,9 @@ function UnsubscribeContent() {
         style={{
           marginTop: '28px',
           paddingTop: '20px',
-          borderTop: '1px dashed #E5E0D8',
+          borderTop: '1px dashed var(--border-color, #E5E0D8)',
           fontSize: '11px',
-          color: '#737373',
+          color: 'var(--text-tertiary, #737373)',
           lineHeight: 1.5,
           textAlign: 'center',
         }}
@@ -223,7 +225,7 @@ function UnsubscribeContent() {
 
 export default function UnsubscribePage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#FAF6EE' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--c-bg, #FAF6EE)', color: 'var(--text-primary, #0A0A0A)' }}>
       <LandingNav />
       <main style={{ flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '120px 20px 80px' }}>
         <Suspense fallback={<div style={{ textAlign: 'center', padding: '40px' }}>Loading unsubscribe preferences...</div>}>

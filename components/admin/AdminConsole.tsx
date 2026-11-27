@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Dialog,
   DialogContent,
@@ -300,23 +301,24 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
       <header className={styles.adminHeader}>
         <div className={styles.adminHeaderInner}>
           <div className={styles.brandGroup}>
-            <Link href="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: '#0A0A0A' }}>
+            <Link href="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: 'var(--text-primary, #0A0A0A)' }}>
               <svg viewBox="0 0 1024 1024" fill="none" width="34" height="34" aria-hidden="true">
-                <path d="M545 240 A282 282 0 1 0 782 566" stroke="#0A0A0A" strokeWidth="142" strokeLinecap="round" />
+                <path d="M545 240 A282 282 0 1 0 782 566" stroke="currentColor" strokeWidth="142" strokeLinecap="round" />
                 <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#FF5500" />
               </svg>
               <span style={{ fontSize: '19px', fontWeight: 900, letterSpacing: '-0.02em' }}>CURSIS</span>
             </Link>
-            <Badge variant="solid" style={{ border: '2px solid #0A0A0A', boxShadow: '2px 2px 0 #0A0A0A', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <Badge variant="solid" style={{ border: '2px solid var(--border-dark, #0A0A0A)', boxShadow: '2px 2px 0 #0A0A0A', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               <ShieldCheck size={12} aria-hidden="true" />
               Admin Console
             </Badge>
-            <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#525252' }}>
+            <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-secondary, #525252)' }}>
               Signed in as {currentAdmin.email}
             </span>
           </div>
 
           <div className={styles.headerActions}>
+            <ThemeToggle className={styles.btnSecondary} showLabel size={13} />
             <Button
               type="button"
               variant="outline"

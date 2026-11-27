@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { useSearchParams } from 'next/navigation';
 import { BRAND_NAME, SUPPORT_EMAIL } from '@/lib/site';
 import { PLAN_CATALOG, type PlanKey } from '@/lib/plans';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 declare global {
   interface Window {
@@ -296,7 +297,7 @@ function PaymentCheckoutContent() {
           <div
             className="card"
             style={{
-              background: '#FFFFFF',
+              background: 'var(--surface-card, #FFFFFF)',
               border: '1px solid var(--border-color, #E5E7EB)',
               borderRadius: '16px',
               padding: '36px 28px',
@@ -345,7 +346,7 @@ function PaymentCheckoutContent() {
 
             <div
               style={{
-                background: 'var(--surface-secondary, #F9FAFB)',
+                background: 'var(--c-bg-subtle, #F9FAFB)',
                 border: '1px solid var(--border-color, #E5E7EB)',
                 borderRadius: '12px',
                 padding: '22px',
@@ -425,13 +426,14 @@ function PaymentCheckoutContent() {
           {/* Top Brand Bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color, #E5E7EB)', flexWrap: 'wrap', gap: '12px' }}>
             <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'inherit' }}>
-              <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#0A0A0A', color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '14px' }}>
+              <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--text-primary, #0A0A0A)', color: 'var(--c-bg, #FFFFFF)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '14px' }}>
                 C
               </span>
-              <span style={{ fontSize: '18px', fontWeight: 800, color: '#0A0A0A' }}>{BRAND_NAME}</span>
+              <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary, #0A0A0A)' }}>{BRAND_NAME}</span>
             </Link>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <ThemeToggle size={15} />
               <span style={{ fontSize: '12px', fontWeight: 600, color: '#059669', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 10px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                 Razorpay Encrypted Checkout
               </span>
@@ -460,7 +462,7 @@ function PaymentCheckoutContent() {
                 display: 'inline-flex',
                 padding: '4px',
                 borderRadius: '10px',
-                background: '#EFECE4',
+                background: 'var(--c-bg-subtle, #EFECE4)',
                 border: '1px solid var(--border-color, #E5E7EB)',
                 gap: '4px',
                 flexWrap: 'wrap',
@@ -477,7 +479,7 @@ function PaymentCheckoutContent() {
                   fontWeight: 700,
                   cursor: 'pointer',
                   background: isInr ? '#FF5500' : 'transparent',
-                  color: isInr ? '#FFFFFF' : '#44403C',
+                  color: isInr ? '#FFFFFF' : 'var(--text-secondary, #44403C)',
                 }}
               >
                 ₹ INR (UPI · Wallets · NetBanking · Cards)
@@ -493,7 +495,7 @@ function PaymentCheckoutContent() {
                   fontWeight: 700,
                   cursor: 'pointer',
                   background: !isInr ? '#FF5500' : 'transparent',
-                  color: !isInr ? '#FFFFFF' : '#44403C',
+                  color: !isInr ? '#FFFFFF' : 'var(--text-secondary, #44403C)',
                 }}
               >
                 $ USD (International Cards)
@@ -508,7 +510,7 @@ function PaymentCheckoutContent() {
               onClick={() => setSelectedPlanId('starter')}
               className="card"
               style={{
-                background: '#FFFFFF',
+                background: 'var(--surface-card, #FFFFFF)',
                 border: selectedPlanId === 'starter' ? '2px solid #FF5500' : '1px solid var(--border-color, #E5E7EB)',
                 borderRadius: '14px',
                 padding: '24px 20px',
@@ -518,7 +520,7 @@ function PaymentCheckoutContent() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>{starter.name}</h2>
-                <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: selectedPlanId === 'starter' ? '5px solid #FF5500' : '2px solid #D1D5DB', background: '#FFFFFF' }} />
+                <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: selectedPlanId === 'starter' ? '5px solid #FF5500' : '2px solid var(--border-dark, #D1D5DB)', background: 'var(--surface-card, #FFFFFF)' }} />
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 14px' }}>{starter.subtitle}</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
@@ -543,7 +545,7 @@ function PaymentCheckoutContent() {
               onClick={() => setSelectedPlanId('pro')}
               className="card"
               style={{
-                background: '#FFFFFF',
+                background: 'var(--surface-card, #FFFFFF)',
                 border: selectedPlanId === 'pro' ? '2px solid #FF5500' : '1px solid var(--border-color, #E5E7EB)',
                 borderRadius: '14px',
                 padding: '24px 20px',
@@ -557,7 +559,7 @@ function PaymentCheckoutContent() {
               </span>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>{pro.name}</h2>
-                <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: selectedPlanId === 'pro' ? '5px solid #FF5500' : '2px solid #D1D5DB', background: '#FFFFFF' }} />
+                <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: selectedPlanId === 'pro' ? '5px solid #FF5500' : '2px solid var(--border-dark, #D1D5DB)', background: 'var(--surface-card, #FFFFFF)' }} />
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 14px' }}>{pro.subtitle}</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
@@ -580,7 +582,7 @@ function PaymentCheckoutContent() {
             <div
               className="card"
               style={{
-                background: '#FFFFFF',
+                background: 'var(--surface-card, #FFFFFF)',
                 border: '1px solid var(--border-color, #E5E7EB)',
                 borderRadius: '14px',
                 padding: '24px 20px',
@@ -609,7 +611,7 @@ function PaymentCheckoutContent() {
 
           {/* Checkout Details + Order Summary */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', alignItems: 'start' }}>
-            <div className="card" style={{ background: '#FFFFFF', border: '1px solid var(--border-color, #E5E7EB)', borderRadius: '14px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
+            <div className="card" style={{ background: 'var(--surface-card, #FFFFFF)', border: '1px solid var(--border-color, #E5E7EB)', borderRadius: '14px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
               <h3 style={{ fontSize: '17px', fontWeight: 800, margin: '0 0 4px' }}>Billing Details</h3>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 18px' }}>
                 Enter the account email for the workspace you are upgrading.
@@ -664,7 +666,7 @@ function PaymentCheckoutContent() {
               </form>
             </div>
 
-            <div className="card" style={{ background: '#FFFFFF', border: '1px solid var(--border-color, #E5E7EB)', borderRadius: '14px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
+            <div className="card" style={{ background: 'var(--surface-card, #FFFFFF)', border: '1px solid var(--border-color, #E5E7EB)', borderRadius: '14px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 16px' }}>Order Summary</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -685,7 +687,7 @@ function PaymentCheckoutContent() {
                 </div>
               </div>
 
-              <div style={{ marginTop: '20px', padding: '14px', borderRadius: '10px', background: 'var(--surface-secondary, #F9FAFB)', border: '1px solid var(--border-color)', fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.5 }}>
+              <div style={{ marginTop: '20px', padding: '14px', borderRadius: '10px', background: 'var(--c-bg-subtle, #F9FAFB)', border: '1px solid var(--border-color)', fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.5 }}>
                 <div><strong>Instant Digital Activation:</strong> Features unlock on your workspace right after payment verification.</div>
                 <div>
                   <strong>Simple Refunds:</strong> Need a refund? Just email{' '}

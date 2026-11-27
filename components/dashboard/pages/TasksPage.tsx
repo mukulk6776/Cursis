@@ -191,8 +191,8 @@ export default function TasksPage() {
             width: '20px',
             height: '20px',
             borderRadius: '50%',
-            border: isDone ? '1.5px solid #10B981' : '1.5px solid #D1D5DB',
-            background: isDone ? '#10B981' : '#FFFFFF',
+            border: isDone ? '1.5px solid #10B981' : '1.5px solid var(--border-dark, #D1D5DB)',
+            background: isDone ? '#10B981' : 'var(--surface-card, #FFFFFF)',
             color: '#FFFFFF',
             display: 'inline-flex',
             alignItems: 'center',
@@ -230,9 +230,9 @@ export default function TasksPage() {
                   fontWeight: 600,
                   padding: '2px 7px',
                   borderRadius: '6px',
-                  background: '#F5F2EA',
-                  color: '#4A4A4A',
-                  border: '1px solid rgba(10, 10, 10, 0.08)',
+                  background: 'var(--c-bg-subtle, #F5F2EA)',
+                  color: 'var(--text-secondary, #4A4A4A)',
+                  border: '1px solid var(--border-color, rgba(10, 10, 10, 0.08))',
                 }}
               >
                 <Folder size={10} color={proj.color || '#FF5500'} aria-hidden="true" />
@@ -732,7 +732,7 @@ export default function TasksPage() {
                       .map((dateStr) => {
                         const dayTasks = filteredTasks.filter((t) => t.deadline === dateStr);
                         return (
-                          <Card key={dateStr} style={{ padding: '14px', background: '#FCFBF8' }}>
+                          <Card key={dateStr} style={{ padding: '14px', background: 'var(--c-bg-subtle, #FCFBF8)' }}>
                             <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: 'var(--c-brand)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               <span>{formatDate(dateStr)}</span>
                               <Badge variant="secondary">{dayTasks.length}</Badge>
@@ -744,7 +744,7 @@ export default function TasksPage() {
                                   onClick={() => setSelectedTaskDetail(t)}
                                   style={{
                                     padding: '8px 10px',
-                                    background: '#FFFFFF',
+                                    background: 'var(--surface-card, #FFFFFF)',
                                     border: '1px solid var(--border-color)',
                                     borderRadius: '8px',
                                     fontSize: '12px',
@@ -791,7 +791,7 @@ export default function TasksPage() {
                         <div style={{ width: '220px', fontWeight: 600, fontSize: '12.5px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
                           {t.name}
                         </div>
-                        <div style={{ flex: 1, background: '#F3EFE4', height: '10px', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ flex: 1, background: 'var(--c-bg-subtle, #F3EFE4)', height: '10px', borderRadius: '999px', overflow: 'hidden' }}>
                           <div
                             style={{
                               height: '100%',

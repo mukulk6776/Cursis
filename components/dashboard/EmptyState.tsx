@@ -76,7 +76,7 @@ export default function EmptyState({
         justifyContent: 'center',
         textAlign: 'center',
         padding: compact ? '24px 16px' : '48px 24px',
-        background: '#FFFFFF',
+        background: 'var(--surface-card, #FFFFFF)',
         border: '1px solid var(--border-color, #E5E7EB)',
         borderRadius: '12px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
@@ -121,7 +121,7 @@ export default function EmptyState({
       <p
         style={{
           fontSize: compact ? '12px' : '13px',
-          color: '#4A4A4A',
+          color: 'var(--text-secondary, #4A4A4A)',
           maxWidth: compact ? '320px' : '440px',
           margin: compact ? '0 0 16px 0' : '0 0 20px 0',
           lineHeight: 1.5,

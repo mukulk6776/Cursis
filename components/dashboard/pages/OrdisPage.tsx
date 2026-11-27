@@ -201,13 +201,13 @@ export default function OrdisPage() {
           style={{
             padding: '36px 32px',
             textAlign: 'center',
-            background: '#FFFFFF',
+            background: 'var(--surface-card, #FFFFFF)',
             border: '1px solid var(--border-color, #E5E7EB)',
             borderRadius: '14px',
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
           }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '52px', borderRadius: '12px', background: '#0A0A0A', color: '#FFFFFF', marginBottom: '16px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '52px', borderRadius: '12px', background: 'var(--c-brand, #0A0A0A)', color: '#FFFFFF', marginBottom: '16px' }}>
             <OrdisMark size={26} />
           </div>
           <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#FF5500', marginBottom: '8px' }}>

@@ -466,3 +466,91 @@
   justify-content: space-between;
   gap: 12px;
 }
+
+:global(html[data-theme='dark']) .adminRoot {
+  background: #11100E;
+  color: #F5F0E6;
+}
+
+:global(html[data-theme='dark']) .adminHeader {
+  background: rgba(22, 20, 17, 0.94);
+  border-bottom-color: rgba(245, 240, 230, 0.22);
+}
+
+:global(html[data-theme='dark']) .brandBadge {
+  border-color: rgba(245, 240, 230, 0.35);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .statCard,
+:global(html[data-theme='dark']) .surfaceCard,
+:global(html[data-theme='dark']) .confirmCard,
+:global(html[data-theme='dark']) .toastItem {
+  background: #1B1916;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.24);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .statLabel,
+:global(html[data-theme='dark']) .statSub {
+  color: #C8C0B4;
+}
+
+:global(html[data-theme='dark']) .tabBtn,
+:global(html[data-theme='dark']) .btnSecondary {
+  background: #24211D;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.26);
+  box-shadow: 3px 3px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .tabBtn:hover,
+:global(html[data-theme='dark']) .btnSecondary:hover {
+  background: #302B25;
+}
+
+:global(html[data-theme='dark']) .tabBtnActive {
+  background: #FF5500;
+  color: #FFFFFF;
+  border-color: rgba(245, 240, 230, 0.45);
+}
+
+:global(html[data-theme='dark']) .toolbar {
+  background: #161411;
+  border-bottom-color: rgba(245, 240, 230, 0.2);
+}
+
+:global(html[data-theme='dark']) .inputControl,
+:global(html[data-theme='dark']) .selectControl {
+  background: #141210;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.28);
+}
+
+:global(html[data-theme='dark']) .adminTable th {
+  color: #F5F0E6;
+  background: #161411;
+  border-bottom-color: rgba(245, 240, 230, 0.24);
+}
+
+:global(html[data-theme='dark']) .adminTable td {
+  border-bottom-color: rgba(245, 240, 230, 0.12);
+}
+
+:global(html[data-theme='dark']) .userRow:hover {
+  background: #25221E;
+}
+
+:global(html[data-theme='dark']) .pillNeutral {
+  background: #24211D;
+  color: #E7E0D4;
+  border-color: rgba(245, 240, 230, 0.26);
+}
+
+:global(html[data-theme='dark']) .drawerPanel {
+  background: #141210;
+  color: #F5F0E6;
+  border-left-color: rgba(245, 240, 230, 0.28);
+  box-shadow: -8px 0px 0px #000000;
+}

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { BRAND_NAME } from '@/lib/site';
 import { usePathname } from 'next/navigation';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 
 export default function LandingNav() {
@@ -203,6 +204,7 @@ export default function LandingNav() {
         <div
           className="lp-nav-actions"
         >
+          <ThemeToggle className="lp-nav-theme-toggle" size={16} />
           {isAuthenticated ? (
             <>
               <Link prefetch={false}

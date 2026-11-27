@@ -84,6 +84,8 @@ export interface AuthResult {
   redirectTo?: string;
   platformRole?: 'admin' | 'user';
   requiresEmailVerification?: boolean;
+  cooldown?: boolean;
+  retryAfterSeconds?: number;
   message?: string;
 }
 
@@ -111,6 +113,8 @@ export async function signInWithEmail(email: string, pass: string, verificationC
       displayName: '',
       idToken: '',
       requiresEmailVerification: true,
+      cooldown: Boolean(data.cooldown),
+      retryAfterSeconds: typeof data.retryAfterSeconds === 'number' ? data.retryAfterSeconds : 60,
       message: data.message,
     };
   }
@@ -183,6 +187,8 @@ export async function signUpWithEmail(
       displayName: displayName.trim(),
       idToken: '',
       requiresEmailVerification: true,
+      cooldown: Boolean(data.cooldown),
+      retryAfterSeconds: typeof data.retryAfterSeconds === 'number' ? data.retryAfterSeconds : 60,
       message: data.message,
     };
   }

@@ -1,46 +1,142 @@
 import { Resend } from 'resend';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
+const SANDBOX_FROM_EMAIL = 'Cursis <onboarding@resend.dev>';
 const ADMIN_EMAIL = 'cursis.in@gmail.com';
-export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Cursis <onboarding@resend.dev>';
+
+function cleanEnvValue(value?: string): string {
+  return String(value || '').trim().replace(/^["']|["']$/g, '').trim();
+}
+
+function isPlaceholderValue(value: string): boolean {
+  if (!value) return true;
+  return /^(re_xxx|your[-_]|changeme|placeholder|example)/i.test(value) || value.includes('your-verified-domain');
+}
+
+export function getResendClient(): Resend | null {
+  const apiKey = cleanEnvValue(process.env.RESEND_API_KEY);
+  if (!apiKey || isPlaceholderValue(apiKey)) return null;
+  return new Resend(apiKey);
+}
+
+export function getFromEmail(): string {
+  const configured = cleanEnvValue(process.env.RESEND_FROM_EMAIL);
+  if (configured && !isPlaceholderValue(configured)) {
+    return configured;
+  }
+  return SANDBOX_FROM_EMAIL;
+}
+
+export const FROM_EMAIL = getFromEmail();
+
+export function getContactRecipients(): string[] {
+  const raw = [
+    process.env.CONTACT_TO_EMAIL,
+    process.env.ADMIN_EMAIL,
+    process.env.SOVEREIGN_FOUNDER_EMAIL,
+    process.env.PRIVACY_OFFICER_EMAIL,
+    'official@cursis.in',
+    ADMIN_EMAIL,
+  ];
+  const seen = new Set<string>();
+  const recipients: string[] = [];
+  for (const item of raw) {
+    const cleaned = cleanEnvValue(item).toLowerCase();
+    if (!cleaned || isPlaceholderValue(cleaned) || !cleaned.includes('@') || seen.has(cleaned)) continue;
+    seen.add(cleaned);
+    recipients.push(cleaned);
+  }
+  return recipients;
+}
+
+async function sendResendEmail(
+  payload: {
+    to: string | string[];
+    subject: string;
+    text?: string;
+    html?: string;
+    replyTo?: string;
+  },
+  idempotencyKey?: string
+): Promise<{ sent: boolean; error?: string }> {
+  const client = getResendClient();
+  if (!client) {
+    return { sent: false, error: 'RESEND_API_KEY is not configured' };
+  }
+
+  const from = getFromEmail();
+  const options = idempotencyKey ? { idempotencyKey } : undefined;
+  const emailPayload = {
+    from,
+    to: payload.to,
+    subject: payload.subject,
+    ...(payload.text ? { text: payload.text } : {}),
+    ...(payload.html ? { html: payload.html } : {}),
+    ...(payload.replyTo ? { replyTo: payload.replyTo } : {}),
+  } as Parameters<Resend['emails']['send']>[0];
+
+  const firstAttempt = await client.emails.send(emailPayload, options);
+  if (!firstAttempt.error) {
+    return { sent: true };
+  }
+
+  const errMsg = firstAttempt.error.message || 'Resend delivery failed';
+  const isDomainError = /domain|verify|verified/i.test(errMsg);
+  if (isDomainError && from !== SANDBOX_FROM_EMAIL) {
+    console.warn(`[resend] Configured sender "${from}" failed domain check (${errMsg}); retrying via ${SANDBOX_FROM_EMAIL}`);
+    const fallbackAttempt = await client.emails.send(
+      { ...emailPayload, from: SANDBOX_FROM_EMAIL } as Parameters<Resend['emails']['send']>[0],
+      options
+    );
+    if (!fallbackAttempt.error) {
+      return { sent: true };
+    }
+    const fallbackMsg = fallbackAttempt.error.message || errMsg;
+    console.warn(`[resend] Fallback send failed: ${fallbackMsg}`);
+    return { sent: false, error: fallbackMsg };
+  }
+
+  console.warn(`[resend] Send failed: ${errMsg}`);
+  return { sent: false, error: errMsg };
+}
+
+export function isResendConfigured(): boolean {
+  return Boolean(getResendClient());
+}
 
 export async function sendProgressEmail(payload: { to: string; subject: string; text: string }, idempotencyKey: string) {
-  if (!resend || !process.env.RESEND_FROM_EMAIL) throw new Error('Progress email is not configured');
-  const { error } = await resend.emails.send({ from: FROM_EMAIL, ...payload }, { idempotencyKey });
-  if (error) throw new Error('Progress email delivery failed');
+  if (!isResendConfigured()) throw new Error('Progress email is not configured');
+  const result = await sendResendEmail(payload, idempotencyKey);
+  if (!result.sent) throw new Error(result.error || 'Progress email delivery failed');
 }
 
 export function isPasswordResetEmailConfigured(): boolean {
-  return Boolean(resend && process.env.RESEND_FROM_EMAIL);
+  return isResendConfigured();
 }
 
 export function isVerificationEmailConfigured(): boolean {
-  return Boolean(resend && process.env.RESEND_FROM_EMAIL);
+  return isResendConfigured();
 }
 
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
-  if (!resend || !isPasswordResetEmailConfigured()) throw new Error('Reset email is unavailable');
-  const { error } = await resend.emails.send({
-    from: FROM_EMAIL,
+  if (!isPasswordResetEmailConfigured()) throw new Error('Reset email is unavailable');
+  const result = await sendResendEmail({
     to: email,
     subject: 'Your Cursis password reset code',
     text: `Your Cursis password reset code is ${code}. It expires in 10 minutes and can only be used once. If you did not request this, you can ignore this email. Never share this code.`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A"><h1 style="font-size:24px">Reset your Cursis password.</h1><p>Enter this code on the Forgot Password page:</p><p style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px;background:#FF5500;border:2px solid #0A0A0A;border-radius:12px">${code}</p><p>This code expires in 10 minutes and can only be used once.</p><p>If you did not request this, you can ignore this email. Never share this code.</p></div>`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A"><h1 style="font-size:24px;margin-top:0">Reset your Cursis password.</h1><p>Enter this code on the Forgot Password page:</p><p style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px;background:#FF5500;color:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;text-align:center">${code}</p><p>This code expires in 10 minutes and can only be used once.</p><p>If you did not request this, you can ignore this email. Never share this code.</p></div>`,
   });
-  if (error) throw new Error('Reset email could not be sent');
+  if (!result.sent) throw new Error(result.error || 'Reset email could not be sent');
 }
 
 export async function sendAdminVerificationEmail(email: string, code: string): Promise<void> {
-  if (!resend || !isVerificationEmailConfigured()) throw new Error('Verification email is unavailable');
-  const { error } = await resend.emails.send({
-    from: FROM_EMAIL,
+  if (!isVerificationEmailConfigured()) throw new Error('Verification email is unavailable');
+  const result = await sendResendEmail({
     to: email,
     subject: 'Verify your Cursis administrator email',
     text: `Your Cursis administrator verification code is ${code}. It expires in 10 minutes and can only be used once. If you did not try to access the Cursis Admin Console, ignore this message.`,
     html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A"><h1 style="font-size:22px;margin-top:0;">Verify your Cursis email</h1><p>Enter this 6-digit verification code to confirm ownership of your account:</p><p style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px;background:#FF5500;color:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;text-align:center;">${code}</p><p style="font-size:13px;color:#4A4A4A;">This code expires in 10 minutes and can only be used once.</p></div>`,
   });
-  if (error) throw new Error('Verification email could not be sent');
+  if (!result.sent) throw new Error(result.error || 'Verification email could not be sent');
 }
 
 export const CURSIS_PHYSICAL_ADDRESS = {
@@ -107,7 +203,7 @@ interface CustomClientWorkspaceData {
  * Sends an email notification to the admin when a custom client workspace is created
  */
 export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspaceData): Promise<void> {
-  if (!resend) {
+  if (!isResendConfigured()) {
     console.warn('Resend API key not configured, skipping admin notification email');
     return;
   }
@@ -121,6 +217,9 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
     const safeOwnerId = escapeHtml(data.ownerUserId);
     const safeOwnerName = escapeHtml(data.ownerName);
     const safeOwnerEmail = escapeHtml(data.ownerEmail);
+
+    const recipients = getContactRecipients();
+    const primaryRecipient = recipients[0] || ADMIN_EMAIL;
 
     const emailContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -201,19 +300,19 @@ export async function notifyAdminCustomClientWorkspace(data: CustomClientWorkspa
         <p style="font-size: 12px; color: #999;">
           This is an automated notification from Cursis. A new custom client workspace has been created and requires your attention.
         </p>
-        ${getCanspamEmailFooter(ADMIN_EMAIL)}
+        ${getCanspamEmailFooter(primaryRecipient)}
       </div>
     `;
 
-    const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: ADMIN_EMAIL,
+    const result = await sendResendEmail({
+      to: primaryRecipient,
+      replyTo: data.ownerEmail || undefined,
       subject: `New Custom Client Workspace: ${data.workspaceName}`,
       html: emailContent,
     });
 
-    if (error) {
-      console.error('Resend API returned error for admin notification:', error);
+    if (!result.sent) {
+      console.error('Resend API returned error for admin notification:', result.error);
       return;
     }
 
@@ -231,7 +330,7 @@ export async function sendWorkspaceWelcomeEmail(
   workspaceName: string,
   ownerName?: string
 ): Promise<void> {
-  if (!resend) {
+  if (!isResendConfigured()) {
     console.warn('Resend API key not configured, skipping welcome email');
     return;
   }
@@ -241,8 +340,7 @@ export async function sendWorkspaceWelcomeEmail(
     const safeOwner = escapeHtml(ownerName || 'there');
     const safeAppUrl = escapeHtml(process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in');
 
-    const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await sendResendEmail({
       to: email,
       subject: `Welcome to ${workspaceName} on Cursis!`,
       html: `
@@ -259,15 +357,15 @@ export async function sendWorkspaceWelcomeEmail(
           </div>
           <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
           <p style="font-size: 12px; color: #999;">
-            Questions? Reach out to us at <a href="mailto:cursis.in@gmail.com" style="color: #FF5500;">cursis.in@gmail.com</a>
+            Questions? Reach out to us at <a href="mailto:official@cursis.in" style="color: #FF5500;">official@cursis.in</a>
           </p>
           ${getCanspamEmailFooter(email)}
         </div>
       `,
     });
 
-    if (error) {
-      console.error('Resend error sending welcome email:', error);
+    if (!result.sent) {
+      console.error('Resend error sending welcome email:', result.error);
     }
   } catch (error) {
     console.error('Failed to send welcome email:', error);
@@ -292,7 +390,7 @@ export async function sendWorkspaceInvitationEmail({
   assignedRole?: string;
   reqHost?: string;
 }): Promise<{ success: boolean; error?: string }> {
-  if (!resend) {
+  if (!isResendConfigured()) {
     return { success: false, error: 'Resend API key not configured' };
   }
 
@@ -307,10 +405,9 @@ export async function sendWorkspaceInvitationEmail({
     const inviteLink = `${protocol}://${cleanHost}/dashboard?invited=true`;
     const safeInviteLink = escapeHtml(inviteLink);
 
-    const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await sendResendEmail({
       to,
-      subject: `You've been invited to join ${safeWsName} on Cursis`,
+      subject: `You've been invited to join ${workspaceName} on Cursis`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
           <h2 style="color: #FF5500;">You've been invited to ${safeWsName}!</h2>
@@ -327,9 +424,8 @@ export async function sendWorkspaceInvitationEmail({
       `,
     });
 
-    if (error) {
-      console.warn('Resend API returned error for invitation:', error);
-      return { success: false, error: error.message || 'Resend delivery error' };
+    if (!result.sent) {
+      return { success: false, error: result.error || 'Resend delivery error' };
     }
 
     return { success: true };
@@ -360,7 +456,7 @@ export async function sendProjectActivityNotificationEmail({
   detail: string;
   projectUrl?: string;
 }): Promise<{ success: boolean; error?: string }> {
-  if (!resend) {
+  if (!isResendConfigured()) {
     console.warn('Resend API key not configured, skipping project activity email');
     return { success: false, error: 'Resend API key not configured' };
   }
@@ -374,10 +470,9 @@ export async function sendProjectActivityNotificationEmail({
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in').replace(/\/$/, '');
     const safeUrl = escapeHtml(projectUrl || `${appUrl}/dashboard`);
 
-    const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await sendResendEmail({
       to,
-      subject: `[${safeProject}] ${safeUpdater} ${safeAction}: ${safeDetail}`,
+      subject: `[${projectName}] ${updaterName} ${action}: ${detail}`,
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 580px; margin: 0 auto; color: #111827; background: #ffffff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
@@ -415,9 +510,8 @@ export async function sendProjectActivityNotificationEmail({
       `,
     });
 
-    if (error) {
-      console.warn('Resend API returned error for project activity notification:', error);
-      return { success: false, error: error.message };
+    if (!result.sent) {
+      return { success: false, error: result.error };
     }
 
     return { success: true };
@@ -425,5 +519,254 @@ export async function sendProjectActivityNotificationEmail({
     console.warn('Failed to dispatch project activity notification email:', err?.message);
     return { success: false, error: err?.message };
   }
+}
+
+/**
+ * Delivers an email independently to each team recipient so one sandbox-restricted
+ * address does not block delivery to the verified team inbox.
+ */
+async function sendToTeamRecipients(payload: {
+  subject: string;
+  text: string;
+  html: string;
+  replyTo?: string;
+}): Promise<{ deliveredCount: number; lastError?: string }> {
+  const recipients = getContactRecipients();
+  let deliveredCount = 0;
+  let lastError: string | undefined;
+
+  for (const recipient of recipients) {
+    const res = await sendResendEmail({
+      to: recipient,
+      replyTo: payload.replyTo,
+      subject: payload.subject,
+      text: payload.text,
+      html: payload.html,
+    });
+    if (res.sent) {
+      deliveredCount++;
+    } else if (res.error) {
+      lastError = res.error;
+    }
+  }
+
+  return { deliveredCount, lastError };
+}
+
+/**
+ * Sends Contact Us form submissions to the Cursis team and emails a receipt
+ * confirmation to the sender via Resend.
+ */
+export async function sendContactInquiryEmails({
+  name,
+  email,
+  message,
+  inquiryId,
+}: {
+  name: string;
+  email: string;
+  message: string;
+  inquiryId?: string;
+}): Promise<{ sent: boolean; teamDelivered: number; confirmationSent: boolean; error?: string }> {
+  if (!isResendConfigured()) {
+    return { sent: false, teamDelivered: 0, confirmationSent: false, error: 'Resend API key not configured' };
+  }
+
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeMessage = escapeHtml(message).replace(/\n/g, '<br />');
+  const safeId = escapeHtml(inquiryId || 'web-contact');
+  const appUrl = escapeHtml((process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in').replace(/\/$/, ''));
+
+  const teamResult = await sendToTeamRecipients({
+    replyTo: email,
+    subject: `[Cursis Contact] Message from ${name}`,
+    text: `New Contact Us inquiry (${inquiryId || 'web-contact'})\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
+        <div style="display:inline-block;padding:4px 10px;background:#FF5500;color:#FFFFFF;font-size:11px;font-weight:800;text-transform:uppercase;border:1.5px solid #0A0A0A;border-radius:6px;margin-bottom:14px;">New Contact Inquiry</div>
+        <h2 style="margin:0 0 12px;font-size:20px;">Message from ${safeName}</h2>
+        <p style="margin:0 0 8px;font-size:13px;"><strong>From:</strong> ${safeName} (<a href="mailto:${safeEmail}" style="color:#FF5500;">${safeEmail}</a>)</p>
+        <p style="margin:0 0 16px;font-size:12px;color:#525252;"><strong>Reference:</strong> ${safeId}</p>
+        <div style="background:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;padding:16px;font-size:14px;line-height:1.6;">
+          ${safeMessage}
+        </div>
+        <p style="margin:16px 0 0;font-size:12px;color:#525252;">Reply directly to this email to respond to ${safeName}.</p>
+      </div>
+    `,
+  });
+
+  const confirmResult = await sendResendEmail({
+    to: email,
+    replyTo: getContactRecipients()[0] || 'official@cursis.in',
+    subject: 'We received your message — Cursis Support',
+    text: `Hi ${name},\n\nThanks for contacting Cursis. We received your message (Ref: ${inquiryId || 'web-contact'}) and our team will respond shortly.\n\nVisit ${process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in'} for workspace access.`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
+        <h2 style="margin:0 0 12px;font-size:22px;">Thanks for reaching out, ${safeName}.</h2>
+        <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">We received your message and routed it to our team. We typically reply within 1 business day.</p>
+        <div style="background:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;padding:14px;font-size:13px;line-height:1.5;margin-bottom:18px;">
+          <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#737373;margin-bottom:6px;">Your Message (Ref: ${safeId})</div>
+          ${safeMessage}
+        </div>
+        <a href="${appUrl}" style="display:inline-block;padding:10px 18px;background:#FF5500;color:#FFFFFF;font-weight:700;text-decoration:none;border:2px solid #0A0A0A;border-radius:10px;">Back to Cursis</a>
+      </div>
+    `,
+  });
+
+  return {
+    sent: teamResult.deliveredCount > 0 || confirmResult.sent,
+    teamDelivered: teamResult.deliveredCount,
+    confirmationSent: confirmResult.sent,
+    error: teamResult.deliveredCount === 0 && !confirmResult.sent ? (confirmResult.error || teamResult.lastError) : undefined,
+  };
+}
+
+/**
+ * Sends a confirmation email when a visitor subscribes to newsletter updates.
+ */
+export async function sendNewsletterSubscriptionEmail(email: string): Promise<{ sent: boolean; error?: string }> {
+  if (!isResendConfigured()) {
+    return { sent: false, error: 'Resend API key not configured' };
+  }
+  const appUrl = escapeHtml((process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in').replace(/\/$/, ''));
+  return sendResendEmail({
+    to: email,
+    subject: 'Subscribed to Cursis product updates',
+    text: `You are subscribed to Cursis product updates. You can unsubscribe anytime at ${(process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in').replace(/\/$/, '')}/unsubscribe?email=${encodeURIComponent(email)}.`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
+        <h2 style="margin:0 0 12px;font-size:22px;">You’re subscribed to Cursis updates.</h2>
+        <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">Thanks for subscribing! We only share meaningful product releases and workflow guides.</p>
+        <a href="${appUrl}" style="display:inline-block;padding:10px 18px;background:#FF5500;color:#FFFFFF;font-weight:700;text-decoration:none;border:2px solid #0A0A0A;border-radius:10px;">Explore Cursis</a>
+        ${getCanspamEmailFooter(email)}
+      </div>
+    `,
+  });
+}
+
+/**
+ * Sends custom Solutions Studio / Business inquiry notifications to Cursis team
+ * and receipt confirmation to the inquirer.
+ */
+export async function sendAgencyBuildInquiryEmails(data: {
+  id: string;
+  companyName: string;
+  contactEmail: string;
+  requestedService: string;
+  budgetRange: string;
+  requirements: string;
+  workspaceId: string;
+}): Promise<{ sent: boolean; teamDelivered: number; confirmationSent: boolean; error?: string }> {
+  if (!isResendConfigured()) {
+    return { sent: false, teamDelivered: 0, confirmationSent: false, error: 'Resend API key not configured' };
+  }
+
+  const safeCompany = escapeHtml(data.companyName);
+  const safeEmail = escapeHtml(data.contactEmail);
+  const safeService = escapeHtml(data.requestedService);
+  const safeBudget = escapeHtml(data.budgetRange);
+  const safeReqs = escapeHtml(data.requirements).replace(/\n/g, '<br />');
+  const safeId = escapeHtml(data.id);
+
+  const teamResult = await sendToTeamRecipients({
+    replyTo: data.contactEmail,
+    subject: `[Cursis Studio] Build Inquiry: ${data.companyName} — ${data.requestedService}`,
+    text: `New Custom Build / Business Inquiry (${data.id})\nCompany/Name: ${data.companyName}\nEmail: ${data.contactEmail}\nService: ${data.requestedService}\nBudget: ${data.budgetRange}\nWorkspace: ${data.workspaceId}\n\nRequirements:\n${data.requirements}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
+        <div style="display:inline-block;padding:4px 10px;background:#FF5500;color:#FFFFFF;font-size:11px;font-weight:800;text-transform:uppercase;border:1.5px solid #0A0A0A;border-radius:6px;margin-bottom:14px;">Business / Studio Lead</div>
+        <h2 style="margin:0 0 14px;font-size:20px;">${safeCompany} — ${safeService}</h2>
+        <div style="background:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;padding:16px;font-size:13.5px;line-height:1.65;">
+          <p style="margin:0 0 6px;"><strong>Reply Email:</strong> <a href="mailto:${safeEmail}" style="color:#FF5500;">${safeEmail}</a></p>
+          <p style="margin:0 0 6px;"><strong>Budget Range:</strong> ${safeBudget}</p>
+          <p style="margin:0 0 12px;"><strong>Request ID:</strong> ${safeId}</p>
+          <div style="border-top:1px solid #E5E7EB;padding-top:10px;">
+            <strong>Requirements:</strong><br />${safeReqs}
+          </div>
+        </div>
+      </div>
+    `,
+  });
+
+  const confirmResult = await sendResendEmail({
+    to: data.contactEmail,
+    replyTo: getContactRecipients()[0] || 'official@cursis.in',
+    subject: `Inquiry received (${data.requestedService}) — Cursis Solutions Studio`,
+    text: `Hi ${data.companyName},\n\nWe received your custom build / Business inquiry (Ref: ${data.id}) for "${data.requestedService}". The Cursis Solutions Studio will contact you within 24 hours.`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
+        <h2 style="margin:0 0 12px;font-size:21px;">Inquiry Received</h2>
+        <p style="margin:0 0 14px;font-size:14px;line-height:1.6;">Thanks, <strong>${safeCompany}</strong>. We received your request for <strong>${safeService}</strong> (${safeBudget}) and our studio team will contact you within 24 hours.</p>
+        <p style="margin:0;font-size:12px;color:#525252;">Reference ID: ${safeId}</p>
+      </div>
+    `,
+  });
+
+  return {
+    sent: teamResult.deliveredCount > 0 || confirmResult.sent,
+    teamDelivered: teamResult.deliveredCount,
+    confirmationSent: confirmResult.sent,
+    error: teamResult.deliveredCount === 0 && !confirmResult.sent ? (confirmResult.error || teamResult.lastError) : undefined,
+  };
+}
+
+/**
+ * Notifies Privacy Officer and confirms receipt with requester when a privacy
+ * rights / grievance inquiry is submitted.
+ */
+export async function sendPrivacyRequestNotificationEmails(data: {
+  id: string;
+  userEmail: string;
+  kind: string;
+  message: string;
+  acknowledgeBy: Date | string;
+  resolveBy: Date | string;
+}): Promise<{ sent: boolean; error?: string }> {
+  if (!isResendConfigured()) {
+    return { sent: false, error: 'Resend API key not configured' };
+  }
+
+  const safeKind = escapeHtml(data.kind);
+  const safeEmail = escapeHtml(data.userEmail);
+  const safeId = escapeHtml(data.id);
+  const safeMessage = escapeHtml(data.message).replace(/\n/g, '<br />');
+  const ackDate = escapeHtml(new Date(data.acknowledgeBy).toDateString());
+  const resolveDate = escapeHtml(new Date(data.resolveBy).toDateString());
+
+  const teamResult = await sendToTeamRecipients({
+    replyTo: data.userEmail,
+    subject: `[Cursis Privacy] ${data.kind.toUpperCase()} request (${data.id})`,
+    text: `New privacy / grievance request\nID: ${data.id}\nType: ${data.kind}\nFrom: ${data.userEmail}\nAcknowledge by: ${ackDate}\nResolve by: ${resolveDate}\n\nDetails:\n${data.message}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
+        <h2 style="margin:0 0 12px;font-size:20px;">Privacy Request: ${safeKind}</h2>
+        <p style="margin:0 0 6px;font-size:13px;"><strong>From:</strong> <a href="mailto:${safeEmail}" style="color:#FF5500;">${safeEmail}</a></p>
+        <p style="margin:0 0 6px;font-size:13px;"><strong>Request ID:</strong> ${safeId}</p>
+        <p style="margin:0 0 14px;font-size:12px;color:#525252;"><strong>Target deadlines:</strong> Ack ${ackDate} · Resolve ${resolveDate}</p>
+        <div style="background:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;padding:14px;font-size:13.5px;line-height:1.55;">
+          ${safeMessage}
+        </div>
+      </div>
+    `,
+  });
+
+  const confirmResult = await sendResendEmail({
+    to: data.userEmail,
+    subject: `Privacy request received (${data.id}) — Cursis`,
+    text: `We received your ${data.kind} privacy request (Reference: ${data.id}). Our resolution target is ${new Date(data.resolveBy).toDateString()}.`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
+        <h2 style="margin:0 0 12px;font-size:20px;">Privacy Request Received</h2>
+        <p style="margin:0 0 12px;font-size:14px;line-height:1.6;">We received your <strong>${safeKind}</strong> request (Ref: <code>${safeId}</code>).</p>
+        <p style="margin:0;font-size:13px;color:#525252;">Target resolution date: <strong>${resolveDate}</strong>.</p>
+      </div>
+    `,
+  });
+
+  return {
+    sent: teamResult.deliveredCount > 0 || confirmResult.sent,
+    error: teamResult.deliveredCount === 0 && !confirmResult.sent ? (confirmResult.error || teamResult.lastError) : undefined,
+  };
 }
 

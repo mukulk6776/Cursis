@@ -151,8 +151,8 @@ export default function AdminUserDetailPanel({
             </button>
           )}
         </div>
-        <div style={{ padding: '20px', background: '#FEE2E2', border: '2.5px solid #0A0A0A', borderRadius: '16px' }}>
-          <p style={{ margin: '0 0 12px', fontWeight: 700, color: '#991B1B' }}>
+        <div style={{ padding: '20px', background: 'var(--c-error-bg, #FEE2E2)', border: '2.5px solid var(--border-dark, #0A0A0A)', borderRadius: '16px' }}>
+          <p style={{ margin: '0 0 12px', fontWeight: 700, color: 'var(--c-error-text, #991B1B)' }}>
             {error || 'Unable to load this user profile.'}
           </p>
           {onRetry && (
@@ -182,8 +182,8 @@ export default function AdminUserDetailPanel({
       {/* Top User Header */}
       <div
         style={{
-          background: '#FFFFFF',
-          border: '3px solid #0A0A0A',
+          background: 'var(--surface-card, #FFFFFF)',
+          border: '3px solid var(--border-dark, #0A0A0A)',
           borderRadius: '18px',
           boxShadow: '5px 5px 0px #0A0A0A',
           padding: '20px',
@@ -234,10 +234,10 @@ export default function AdminUserDetailPanel({
               )}
               {user.emailVerified && <Badge variant="warning">Email Verified</Badge>}
             </div>
-            <div style={{ fontSize: '13.5px', color: '#4A4A4A', fontWeight: 600, marginTop: '4px' }}>
+            <div style={{ fontSize: '13.5px', color: 'var(--text-secondary, #4A4A4A)', fontWeight: 600, marginTop: '4px' }}>
               {user.email}
             </div>
-            <div style={{ fontSize: '11.5px', color: '#737373', marginTop: '3px', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary, #737373)', marginTop: '3px', fontFamily: 'var(--font-mono)' }}>
               UID: {user.uid}
             </div>
           </div>
@@ -314,8 +314,8 @@ export default function AdminUserDetailPanel({
       {/* Metadata & Subscription Details */}
       <div
         style={{
-          background: '#FFFFFF',
-          border: '3px solid #0A0A0A',
+          background: 'var(--surface-card, #FFFFFF)',
+          border: '3px solid var(--border-dark, #0A0A0A)',
           borderRadius: '18px',
           boxShadow: '4px 4px 0px #0A0A0A',
           padding: '18px 20px',
@@ -324,36 +324,36 @@ export default function AdminUserDetailPanel({
         <h3 style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 900 }}>Account &amp; Subscription Metadata</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px', fontSize: '13px' }}>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Signup Date</div>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary, #737373)', textTransform: 'uppercase' }}>Signup Date</div>
             <div style={{ fontWeight: 700, marginTop: '2px' }}>{formatDateTime(user.createdAt)}</div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Last Active</div>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary, #737373)', textTransform: 'uppercase' }}>Last Active</div>
             <div style={{ fontWeight: 700, marginTop: '2px' }}>{formatDateTime(user.lastActiveAt)}</div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Subscription Status</div>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary, #737373)', textTransform: 'uppercase' }}>Subscription Status</div>
             <div style={{ fontWeight: 700, marginTop: '2px' }}>
               {activePlan ? `${activePlan.planName} (${subStatusLabel})` : subStatusLabel}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Plan Source</div>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary, #737373)', textTransform: 'uppercase' }}>Plan Source</div>
             <div style={{ fontWeight: 700, marginTop: '2px' }}>
               {rawSub?.source === 'admin' ? 'Admin-assigned' : rawSub?.source === 'purchased' ? 'Purchased' : '—'}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Plan Start Date</div>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary, #737373)', textTransform: 'uppercase' }}>Plan Start Date</div>
             <div style={{ fontWeight: 700, marginTop: '2px' }}>{formatDateTime(rawSub?.startedAt)}</div>
           </div>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Plan Expiry</div>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary, #737373)', textTransform: 'uppercase' }}>Plan Expiry</div>
             <div style={{ fontWeight: 700, marginTop: '2px' }}>{rawSub?.expiresAt ? formatDateTime(rawSub.expiresAt) : 'No expiry'}</div>
           </div>
         </div>
         {user.accountStatus === 'suspended' && (
-          <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '10px', background: '#FEE2E2', border: '2px solid #0A0A0A', fontSize: '12.5px', fontWeight: 700, color: '#991B1B' }}>
+          <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '10px', background: 'var(--c-error-bg, #FEE2E2)', border: '2px solid var(--border-dark, #0A0A0A)', fontSize: '12.5px', fontWeight: 700, color: 'var(--c-error-text, #991B1B)' }}>
             Suspended on {formatDateTime(user.suspendedAt)} — Reason: {user.suspendedReason || 'Suspended by administrator'}
           </div>
         )}
@@ -362,8 +362,8 @@ export default function AdminUserDetailPanel({
       {/* Admin Controls: Assign/Revoke Plan & Suspend/Activate */}
       <div
         style={{
-          background: '#FFFFFF',
-          border: '3px solid #0A0A0A',
+          background: 'var(--surface-card, #FFFFFF)',
+          border: '3px solid var(--border-dark, #0A0A0A)',
           borderRadius: '18px',
           boxShadow: '4px 4px 0px #0A0A0A',
           padding: '18px 20px',
@@ -476,8 +476,8 @@ export default function AdminUserDetailPanel({
       {/* Workspaces Owned vs Member-Of */}
       <div
         style={{
-          background: '#FFFFFF',
-          border: '3px solid #0A0A0A',
+          background: 'var(--surface-card, #FFFFFF)',
+          border: '3px solid var(--border-dark, #0A0A0A)',
           borderRadius: '18px',
           boxShadow: '4px 4px 0px #0A0A0A',
           padding: '18px 20px',
@@ -493,7 +493,7 @@ export default function AdminUserDetailPanel({
           </div>
         </div>
         {workspaces.items.length === 0 ? (
-          <p style={{ margin: 0, fontSize: '13px', color: '#737373' }}>No workspaces found for this user.</p>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-tertiary, #737373)' }}>No workspaces found for this user.</p>
         ) : (
           <div style={{ display: 'grid', gap: '8px' }}>
             {workspaces.items.map((w) => (
@@ -506,13 +506,13 @@ export default function AdminUserDetailPanel({
                   gap: '12px',
                   padding: '10px 14px',
                   borderRadius: '12px',
-                  border: '2px solid #0A0A0A',
-                  background: '#FAF6EE',
+                  border: '2px solid var(--border-dark, #0A0A0A)',
+                  background: 'var(--c-bg-subtle, #FAF6EE)',
                 }}
               >
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '13.5px' }}>{w.name}</div>
-                  <div style={{ fontSize: '11.5px', color: '#525252', fontFamily: 'var(--font-mono)' }}>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-secondary, #525252)', fontFamily: 'var(--font-mono)' }}>
                     {w.id} · {w.memberCount} member{w.memberCount === 1 ? '' : 's'}
                   </div>
                 </div>
@@ -533,20 +533,20 @@ export default function AdminUserDetailPanel({
       {/* Per-Project Task Breakdown */}
       <div
         style={{
-          background: '#FFFFFF',
-          border: '3px solid #0A0A0A',
+          background: 'var(--surface-card, #FFFFFF)',
+          border: '3px solid var(--border-dark, #0A0A0A)',
           borderRadius: '18px',
           boxShadow: '4px 4px 0px #0A0A0A',
           overflow: 'hidden',
         }}
       >
-        <div style={{ padding: '16px 20px', borderBottom: '2.5px solid #0A0A0A', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '2.5px solid var(--border-dark, #0A0A0A)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900 }}>
             Projects ({projects.totalCount}) &amp; Task Breakdown ({tasks.totalCount} total tasks)
           </h3>
         </div>
         {tasks.byProject.length === 0 ? (
-          <p style={{ margin: 0, padding: '18px 20px', fontSize: '13px', color: '#737373' }}>
+          <p style={{ margin: 0, padding: '18px 20px', fontSize: '13px', color: 'var(--text-tertiary, #737373)' }}>
             No projects or tasks recorded yet for this user.
           </p>
         ) : (
@@ -563,14 +563,14 @@ export default function AdminUserDetailPanel({
               {tasks.byProject.map((row, idx) => (
                 <TableRow key={row.projectId || `standalone_${idx}`}>
                   <TableCell style={{ fontWeight: 800 }}>{row.projectName}</TableCell>
-                  <TableCell style={{ color: '#525252' }}>{row.workspaceName || '—'}</TableCell>
+                  <TableCell style={{ color: 'var(--text-secondary, #525252)' }}>{row.workspaceName || '—'}</TableCell>
                   <TableCell style={{ fontWeight: 800 }}>{row.taskCount}</TableCell>
                   <TableCell style={{ color: '#059669', fontWeight: 700 }}>{row.completedTaskCount}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
             <tfoot>
-              <tr style={{ background: '#F3EFE4', fontWeight: 900 }}>
+              <tr style={{ background: 'var(--c-bg-subtle, #F3EFE4)', fontWeight: 900 }}>
                 <td colSpan={2} style={{ padding: '12px 14px' }}>Overall Total</td>
                 <td style={{ padding: '12px 14px' }}>{tasks.totalCount}</td>
                 <td style={{ padding: '12px 14px' }}>{tasks.byProject.reduce((acc, r) => acc + r.completedTaskCount, 0)}</td>
@@ -584,8 +584,8 @@ export default function AdminUserDetailPanel({
       {payments.length > 0 && (
         <div
           style={{
-            background: '#FFFFFF',
-            border: '3px solid #0A0A0A',
+            background: 'var(--surface-card, #FFFFFF)',
+            border: '3px solid var(--border-dark, #0A0A0A)',
             borderRadius: '18px',
             boxShadow: '4px 4px 0px #0A0A0A',
             padding: '18px 20px',
@@ -596,7 +596,7 @@ export default function AdminUserDetailPanel({
             {payments.map((p) => (
               <div
                 key={p.orderId}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid #0A0A0A', background: '#FAF6EE' }}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid var(--border-dark, #0A0A0A)', background: 'var(--c-bg-subtle, #FAF6EE)' }}
               >
                 <div>
                   <strong>{p.planName}</strong> · {p.currency === 'INR' ? '₹' : '$'}{p.amount} {p.currency} ({p.orderId})
@@ -611,8 +611,8 @@ export default function AdminUserDetailPanel({
       {auditHistory.length > 0 && (
         <div
           style={{
-            background: '#FFFFFF',
-            border: '3px solid #0A0A0A',
+            background: 'var(--surface-card, #FFFFFF)',
+            border: '3px solid var(--border-dark, #0A0A0A)',
             borderRadius: '18px',
             boxShadow: '4px 4px 0px #0A0A0A',
             padding: '18px 20px',
@@ -621,12 +621,12 @@ export default function AdminUserDetailPanel({
           <h3 style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: 900 }}>Recent Admin Audit Events</h3>
           <div style={{ display: 'grid', gap: '8px' }}>
             {auditHistory.slice(0, 8).map((entry) => (
-              <div key={entry.id} style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #0A0A0A', background: '#FAF6EE', fontSize: '12px' }}>
+              <div key={entry.id} style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid var(--border-dark, #0A0A0A)', background: 'var(--c-bg-subtle, #FAF6EE)', fontSize: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontWeight: 800 }}>
                   <span>{entry.action}</span>
-                  <span style={{ color: '#737373' }}>{formatDateTime(entry.timestamp)}</span>
+                  <span style={{ color: 'var(--text-tertiary, #737373)' }}>{formatDateTime(entry.timestamp)}</span>
                 </div>
-                <div style={{ color: '#4A4A4A', marginTop: '4px' }}>
+                <div style={{ color: 'var(--text-secondary, #4A4A4A)', marginTop: '4px' }}>
                   {entry.details || `${JSON.stringify(entry.oldValue)} -> ${JSON.stringify(entry.newValue)}`}
                 </div>
               </div>

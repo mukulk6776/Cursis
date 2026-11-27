@@ -4,6 +4,7 @@ import { createCustomBuildRequest } from '@/lib/db/agency';
 import { privacyDb } from '@/lib/privacy/core';
 import { PRIVACY_VERSION } from '@/lib/privacy/config';
 import { EMAIL_REGEX } from '@/lib/db/team';
+import { sendAgencyBuildInquiryEmails } from '@/lib/email/notifications';
 
 export async function POST(request: Request) {
   try {
@@ -44,7 +45,23 @@ export async function POST(request: Request) {
       email: contactEmail.toLowerCase(), purpose: 'inquiry', granted: true, version: PRIVACY_VERSION,
       age13Attested: true, source: 'agency-form', at: new Date(), expiresAt: new Date(Date.now() + 365 * 86400000) });
 
-    return apiSuccess({ request: customRequest }, 201);
+    const emailResult = await sendAgencyBuildInquiryEmails({
+      id: customRequest.id,
+      companyName,
+      contactEmail,
+      requestedService,
+      budgetRange: customRequest.budgetRange,
+      requirements: customRequest.requirements,
+      workspaceId,
+    }).catch((err) => ({
+      sent: false,
+      error: err instanceof Error ? err.message : 'email failed',
+    }));
+    if (!emailResult.sent && emailResult.error) {
+      console.warn('[agency/request-build] Resend delivery notice:', emailResult.error);
+    }
+
+    return apiSuccess({ request: customRequest, emailSent: Boolean(emailResult.sent) }, 201);
   } catch (error: any) {
     return apiError(error.message || 'Internal Server Error', 500);
   }

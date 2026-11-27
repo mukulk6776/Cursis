@@ -406,3 +406,118 @@ body:has(#main-content.auth-signup-page) {
   .auth-signup-page .auth-signup-card { width: min(100%, 400px); max-height: none; padding: 28px 24px 24px; }
   .auth-signup-page .auth-back { position: static; }
 }
+
+/* ==========================================================================
+   CURSIS WARM OBSIDIAN DARK THEME — AUTH PAGES
+   ========================================================================== */
+html[data-theme='dark'] #main-content.auth-page,
+html[data-theme='dark'] #main-content.auth-signup-page {
+  background: radial-gradient(ellipse at 50% 20%, rgba(255, 85, 0, 0.16), transparent 65%), #11100E !important;
+  color: #F5F0E6;
+}
+
+html[data-theme='dark'] .auth-card,
+html[data-theme='dark'] .auth-signup-card,
+html[data-theme='dark'] .auth-signup-page .auth-signup-card {
+  border-color: rgba(245, 240, 230, 0.28);
+  background: linear-gradient(180deg, #241913 0%, #1B1916 150px);
+  color: #F5F0E6;
+  box-shadow: 8px 8px 0 #000000;
+}
+
+html[data-theme='dark'] .auth-brand,
+html[data-theme='dark'] .auth-card h1,
+html[data-theme='dark'] .signup-story-copy h2,
+html[data-theme='dark'] .auth-signup-card .auth-consent a {
+  color: #F5F0E6;
+}
+
+html[data-theme='dark'] .auth-brand svg path[stroke="#0A0A0A" i] {
+  stroke: #F5F0E6;
+}
+
+html[data-theme='dark'] .auth-intro,
+html[data-theme='dark'] .auth-divider,
+html[data-theme='dark'] .auth-legal,
+html[data-theme='dark'] .auth-signup,
+html[data-theme='dark'] .auth-back,
+html[data-theme='dark'] .auth-reset-help,
+html[data-theme='dark'] .auth-benefits,
+html[data-theme='dark'] .auth-close,
+html[data-theme='dark'] .auth-eye,
+html[data-theme='dark'] .signup-story-copy p,
+html[data-theme='dark'] .auth-signup-card .auth-intro,
+html[data-theme='dark'] .auth-signup-card .auth-legal,
+html[data-theme='dark'] .auth-signup-card .auth-signup,
+html[data-theme='dark'] .auth-signup-page .auth-back {
+  color: #C8C0B4;
+}
+
+html[data-theme='dark'] .auth-divider::before,
+html[data-theme='dark'] .auth-divider::after {
+  background: rgba(245, 240, 230, 0.16);
+}
+
+html[data-theme='dark'] .auth-signup-card .auth-signup {
+  border-top-color: rgba(245, 240, 230, 0.14);
+}
+
+html[data-theme='dark'] .auth-form label {
+  color: #E7E0D4;
+}
+
+html[data-theme='dark'] .auth-form input {
+  background: #141210;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.25);
+}
+
+html[data-theme='dark'] .auth-google,
+html[data-theme='dark'] .auth-signup-page .auth-signup-card .auth-google {
+  background: #24211D;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.25);
+}
+
+html[data-theme='dark'] .auth-google:hover:enabled,
+html[data-theme='dark'] .auth-signup-card .auth-google:hover:enabled {
+  background: #302B25;
+  color: #FFFFFF;
+  border-color: rgba(245, 240, 230, 0.48);
+}
+
+html[data-theme='dark'] .auth-close:hover,
+html[data-theme='dark'] .auth-eye:hover:enabled {
+  background: rgba(245, 240, 230, 0.12);
+  color: #FFFFFF;
+}
+
+html[data-theme='dark'] .auth-signup a,
+html[data-theme='dark'] .auth-card .auth-text-button,
+html[data-theme='dark'] .auth-signup-page .auth-back:hover {
+  color: #FF8A4C;
+}
+
+html[data-theme='dark'] .auth-card .auth-text-button:hover:enabled,
+html[data-theme='dark'] .auth-signup-card .auth-change-method:hover:enabled {
+  background: rgba(255, 85, 0, 0.16);
+  color: #FFA97A;
+}
+
+html[data-theme='dark'] .auth-reset-notice {
+  background: #24211D;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.3);
+}
+
+html[data-theme='dark'] .auth-error {
+  background: rgba(239, 68, 68, 0.16);
+  color: #FCA5A5;
+  border-color: rgba(248, 113, 113, 0.36);
+}
+
+html[data-theme='dark'] .auth-success {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6EE7B7;
+  border-color: rgba(52, 211, 153, 0.36);
+}

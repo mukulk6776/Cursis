@@ -97,7 +97,7 @@ export default function Compare() {
           {compareFaqs.map((item) => (
             <div key={item.question}>
               <h3 style={{ margin: '0 0 4px', fontSize: '15px' }}>{item.question}</h3>
-              <p style={{ margin: 0, fontSize: '14px', color: '#4B5563', lineHeight: 1.55 }}>{item.answer}</p>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary, #4B5563)', lineHeight: 1.55 }}>{item.answer}</p>
             </div>
           ))}
         </div>
