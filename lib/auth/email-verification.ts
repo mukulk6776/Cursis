@@ -18,6 +18,8 @@ interface VerificationRecord {
   expiresAt: Date;
 }
 
+export class VerificationStorageError extends Error {}
+
 const inMemoryChallenges = new Map<string, VerificationRecord>();
 
 function challengeKey(email: string, purpose: 'admin_signup' | 'admin_login'): string {
@@ -94,7 +96,7 @@ export async function issueAdminEmailVerificationCode(
         expiresAt,
       });
     } else {
-      throw new Error('Verification storage unavailable');
+      throw new VerificationStorageError('Verification storage unavailable');
     }
 
     await sendAdminVerificationEmail(normalized, code);

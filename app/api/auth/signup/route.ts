@@ -9,7 +9,7 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { EMAIL_REGEX } from '@/lib/db/team';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { isAdminEmail } from '@/lib/auth/admin';
-import { issueAdminEmailVerificationCode, verifyAdminEmailCode } from '@/lib/auth/email-verification';
+import { issueAdminEmailVerificationCode, verifyAdminEmailCode, VerificationStorageError } from '@/lib/auth/email-verification';
 import { isVerificationEmailConfigured } from '@/lib/email/notifications';
 import { checkRateLimit, recordAttempt, clearRateLimit, getClientIP } from '@/lib/auth/rateLimit';
 import { PrivacyError, accountBlocked, privacyDb, recordAccountConsent } from '@/lib/privacy/core';
@@ -86,6 +86,7 @@ export async function POST(request: Request) {
       const submittedCode = String(body.verificationCode || '').trim();
       if (!submittedCode) {
         let emailDeliveryFailed = false;
+        let storageUnavailable = false;
         if (isVerificationEmailConfigured()) {
           try {
             const issueResult = await issueAdminEmailVerificationCode(email, 'admin_signup');
@@ -105,17 +106,20 @@ export async function POST(request: Request) {
               { status: 202 }
             );
           } catch (mailErr) {
-            emailDeliveryFailed = true;
-            console.warn('Admin signup verification email delivery fallback:', mailErr instanceof Error ? mailErr.message : 'failed');
+            storageUnavailable = mailErr instanceof VerificationStorageError;
+            emailDeliveryFailed = !storageUnavailable;
+            console.warn('Admin signup verification fallback:', mailErr instanceof Error ? mailErr.message : 'failed');
           }
         }
         return NextResponse.json(
           {
             success: false,
             requiresGoogleVerification: true,
-            error: emailDeliveryFailed
-              ? 'Unable to deliver the OTP email via Resend right now. Verify your Resend API key and sender domain, or click "Continue with Google" to register your admin account.'
-              : 'Email verification is not configured on this server (missing RESEND_API_KEY). Click "Continue with Google" to verify ownership and register your admin account.',
+            error: storageUnavailable
+              ? 'Verification database storage is temporarily unavailable. Check MongoDB connection settings, or click "Continue with Google" to register your admin account.'
+              : emailDeliveryFailed
+                ? 'Unable to deliver the OTP email via Resend right now. Verify your Resend API key and sender domain, or click "Continue with Google" to register your admin account.'
+                : 'Email verification is not configured on this server (missing RESEND_API_KEY). Click "Continue with Google" to verify ownership and register your admin account.',
           },
           { status: 403 }
         );

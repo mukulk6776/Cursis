@@ -1,13 +1,13 @@
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getDb } from '@/lib/mongodb';
+import { getDb, getMongoDiagnosticCode } from '@/lib/mongodb';
 import type { UserProfile } from '@/lib/db/types';
 import { generateSalt, hashPasswordAsync } from '@/lib/db/users';
 import { SESSION_SECRET } from '@/lib/auth/token';
 import { getClientIP } from '@/lib/auth/rateLimit';
 import { passwordValidationError } from '@/lib/auth/password';
-import { accountBlocked } from '@/lib/privacy/core';
+import { accountBlocked, PrivacyError } from '@/lib/privacy/core';
 import { isPasswordResetEmailConfigured, sendPasswordResetEmail } from '@/lib/email/notifications';
 
 export const runtime = 'nodejs';
@@ -24,6 +24,7 @@ const digest = (value: string) => createHmac('sha256', SESSION_SECRET).update(va
 const requested = { success: true, message: 'If an account with a password uses this email, a reset code will arrive shortly. Check your spam folder too.' };
 const invalid = { error: 'This code is invalid or expired. Request a new code and try again.' };
 class ResetDeliveryError extends Error {}
+class ResetStorageError extends Error {}
 
 export async function POST(request: Request) {
   const origin = request.headers.get('origin');
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
 
   try {
     const db = await getDb();
-    if (!db) throw new Error('Storage unavailable');
+    if (!db) throw new ResetStorageError(getMongoDiagnosticCode());
     const now = new Date();
     const bucket = Math.floor(now.getTime() / 1800000);
     const limits = db.collection('password_reset_limits');
@@ -115,7 +116,15 @@ export async function POST(request: Request) {
     if (err instanceof ResetDeliveryError) {
       return reply({ error: err.message }, 503);
     }
-    console.warn('[password-reset] Route error:', err instanceof Error ? err.message : 'unknown');
-    return reply({ error: 'We could not complete this request. Please try again later.' }, 503);
+    if (err instanceof ResetStorageError) {
+      console.warn('[password-reset] Database unavailable:', err.message);
+      return reply({ error: 'Password reset storage is temporarily unavailable. Check MongoDB connection settings or try again shortly.' }, 503);
+    }
+    if (err instanceof PrivacyError) {
+      console.warn('[password-reset] Privacy check unavailable:', err.status);
+      return reply({ error: 'Password reset service is temporarily unavailable. Please try again shortly.' }, err.status);
+    }
+    console.warn('[password-reset] Route error:', err instanceof Error ? err.name : 'unknown');
+    return reply({ error: 'Unable to process this password reset request right now. Please try again later.' }, 503);
   }
 }

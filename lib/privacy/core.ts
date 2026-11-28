@@ -12,7 +12,16 @@ export async function privacyDb() {
   return db;
 }
 export function subjectKey(value: string) {
-  const secret = process.env.PRIVACY_TOMBSTONE_SECRET || (process.env.NODE_ENV !== 'production' ? SESSION_SECRET : '');
+  const explicit = (process.env.PRIVACY_TOMBSTONE_SECRET || '').trim();
+  const authSecret = (process.env.AUTH_SESSION_SECRET || '').trim();
+  const secret =
+    explicit.length >= 32
+      ? explicit
+      : authSecret.length >= 32
+        ? crypto.createHmac('sha256', authSecret).update('cursis:privacy-tombstone:v1').digest('hex')
+        : process.env.NODE_ENV !== 'production'
+          ? SESSION_SECRET
+          : '';
   if (secret.length < 32) throw new PrivacyError('Privacy account-status key is not configured.', 503);
   return crypto.createHmac('sha256', secret)
     .update(value.trim().toLowerCase()).digest('hex');

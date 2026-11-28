@@ -8,7 +8,7 @@ import { createSessionToken } from '@/lib/auth/session';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { isFounderEmail } from '@/lib/auth/founder';
 import { isAdminEmail } from '@/lib/auth/admin';
-import { issueAdminEmailVerificationCode, verifyAdminEmailCode } from '@/lib/auth/email-verification';
+import { issueAdminEmailVerificationCode, verifyAdminEmailCode, VerificationStorageError } from '@/lib/auth/email-verification';
 import { isVerificationEmailConfigured } from '@/lib/email/notifications';
 import { getCollection } from '@/lib/mongodb';
 import { inMemoryStore } from '@/lib/db/store';
@@ -123,6 +123,7 @@ export async function POST(request: Request) {
         platformRole = 'admin';
       } else {
         let emailDeliveryFailed = false;
+        let storageUnavailable = false;
         if (isVerificationEmailConfigured()) {
           try {
             const issueResult = await issueAdminEmailVerificationCode(user.email, 'admin_login');
@@ -142,17 +143,20 @@ export async function POST(request: Request) {
               { status: 202 }
             );
           } catch (mailErr) {
-            emailDeliveryFailed = true;
-            console.warn('Admin login verification email delivery fallback:', mailErr instanceof Error ? mailErr.message : 'failed');
+            storageUnavailable = mailErr instanceof VerificationStorageError;
+            emailDeliveryFailed = !storageUnavailable;
+            console.warn('Admin login verification fallback:', mailErr instanceof Error ? mailErr.message : 'failed');
           }
         }
         return NextResponse.json(
           {
             success: false,
             requiresGoogleVerification: true,
-            error: emailDeliveryFailed
-              ? 'Unable to deliver the OTP email via Resend right now. Verify your Resend API key and sender domain, or sign in once with "Continue with Google".'
-              : 'Email verification is not configured on this server (missing RESEND_API_KEY). Sign in once with "Continue with Google" to verify your email.',
+            error: storageUnavailable
+              ? 'Verification database storage is temporarily unavailable. Check MongoDB connection settings, or sign in once with "Continue with Google".'
+              : emailDeliveryFailed
+                ? 'Unable to deliver the OTP email via Resend right now. Verify your Resend API key and sender domain, or sign in once with "Continue with Google".'
+                : 'Email verification is not configured on this server (missing RESEND_API_KEY). Sign in once with "Continue with Google" to verify your email.',
           },
           { status: 403 }
         );
