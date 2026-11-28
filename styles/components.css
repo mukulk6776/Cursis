@@ -1205,3 +1205,51 @@ html[data-theme='dark'] .notif-panel-header {
   background: var(--surface-modal);
   border-color: var(--border-color);
 }
+
+html[data-theme='dark'] .btn-icon {
+  background: #24211D;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.22);
+}
+
+html[data-theme='dark'] .btn-icon:hover {
+  background: #302B25;
+  color: #FFFFFF;
+  border-color: rgba(245, 240, 230, 0.38);
+}
+
+html[data-theme='dark'] .badge-success,
+html[data-theme='dark'] .priority-medium {
+  background: rgba(16, 185, 129, 0.16);
+  color: #34D399;
+  border-color: rgba(52, 211, 153, 0.34);
+}
+
+html[data-theme='dark'] .badge-error,
+html[data-theme='dark'] .priority-urgent {
+  background: rgba(239, 68, 68, 0.18);
+  color: #FCA5A5;
+  border-color: rgba(248, 113, 113, 0.38);
+}
+
+html[data-theme='dark'] .avatar-group .avatar-count {
+  background: #24211D;
+  color: #F5F0E6;
+}
+
+html[data-theme='dark'] .toggle {
+  background: #3E3831;
+}
+
+html[data-theme='dark'] .toggle.active {
+  background: var(--c-brand, #FF5500);
+}
+
+html[data-theme='dark'] .toggle::after {
+  background: #FAF6EE;
+}
+
+html[data-theme='dark'] ::placeholder {
+  color: #948B7E;
+  opacity: 1;
+}

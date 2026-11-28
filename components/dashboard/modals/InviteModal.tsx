@@ -118,9 +118,9 @@ export default function InviteModal() {
                   fontWeight: 700,
                   padding: '2px 8px',
                   borderRadius: '6px',
-                  background: isAtCapacity ? '#FEE2E2' : '#FFFFFF',
-                  color: isAtCapacity ? '#DC2626' : '#0A0A0A',
-                  border: '2px solid #0A0A0A',
+                  background: isAtCapacity ? 'var(--c-error-bg, #FEE2E2)' : 'var(--surface-card, #FFFFFF)',
+                  color: isAtCapacity ? 'var(--c-error-text, #DC2626)' : 'var(--text-primary, #0A0A0A)',
+                  border: '2px solid var(--border-dark, #0A0A0A)',
                   boxShadow: '2px 2px 0px #0A0A0A',
                 }}
               >
@@ -149,9 +149,9 @@ export default function InviteModal() {
                 marginBottom: 'var(--sp-4)',
                 padding: 'var(--sp-3)',
                 borderRadius: '8px',
-                background: 'rgba(239, 68, 68, 0.1)',
+                background: 'var(--c-error-bg, rgba(239, 68, 68, 0.1))',
                 border: '1px solid var(--c-error)',
-                color: 'var(--c-error)',
+                color: 'var(--c-error-text, var(--c-error))',
                 fontSize: 'var(--fs-xs)',
                 lineHeight: 1.4,
               }}
@@ -185,9 +185,9 @@ export default function InviteModal() {
                 marginBottom: 'var(--sp-4)',
                 padding: 'var(--sp-3)',
                 borderRadius: '8px',
-                background: 'rgba(239, 68, 68, 0.1)',
+                background: 'var(--c-error-bg, rgba(239, 68, 68, 0.1))',
                 border: '1px solid var(--c-error)',
-                color: 'var(--c-error)',
+                color: 'var(--c-error-text, var(--c-error))',
                 fontSize: 'var(--fs-xs)',
                 lineHeight: 1.4,
               }}

@@ -23,6 +23,7 @@ const reply = (data: object, status = 200) => NextResponse.json(data, {
 const digest = (value: string) => createHmac('sha256', SESSION_SECRET).update(value).digest('hex');
 const requested = { success: true, message: 'If an account with a password uses this email, a reset code will arrive shortly. Check your spam folder too.' };
 const invalid = { error: 'This code is invalid or expired. Request a new code and try again.' };
+class ResetDeliveryError extends Error {}
 
 export async function POST(request: Request) {
   const origin = request.headers.get('origin');
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     const now = new Date();
     const bucket = Math.floor(now.getTime() / 1800000);
     const limits = db.collection('password_reset_limits');
-    await limits.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    await limits.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch(() => {});
     // The deployment proxy must overwrite client IP headers.
     const keys: [string, number][] = [[`ip:${getClientIP(request)}`, 20]];
     if (input.action === 'request') keys.push([`email:${input.email}`, 5]);
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
       } catch (mailErr) {
         console.warn('[password-reset] Delivery failed:', mailErr instanceof Error ? mailErr.message : 'unknown error');
         await users.updateOne({ email: input.email, 'passwordReset.hash': hash }, { $unset: { passwordReset: '' } });
-        throw new Error('Delivery unavailable');
+        throw new ResetDeliveryError('Unable to send reset code email right now. Please verify Resend settings or try Google sign-in.');
       }
       return reply(requested);
     }
@@ -110,7 +111,11 @@ export async function POST(request: Request) {
       ...(hostname === 'cursis.in' || hostname.endsWith('.cursis.in') ? { domain: '.cursis.in' } : {}),
     });
     return response;
-  } catch {
+  } catch (err) {
+    if (err instanceof ResetDeliveryError) {
+      return reply({ error: err.message }, 503);
+    }
+    console.warn('[password-reset] Route error:', err instanceof Error ? err.message : 'unknown');
     return reply({ error: 'We could not complete this request. Please try again later.' }, 503);
   }
 }

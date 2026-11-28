@@ -313,6 +313,18 @@ html.dark {
   --border-dark: rgba(245, 240, 230, 0.24);
   --border-strong: rgba(245, 240, 230, 0.34);
 
+  /* Accent / Pastel & Gray Scale Mapped for Obsidian */
+  --c-accent-bg: rgba(255, 194, 51, 0.14);
+  --c-brand-hover: #FF6D24;
+  --pastel-lavender: rgba(139, 92, 246, 0.18);
+  --pastel-blue: rgba(59, 130, 246, 0.18);
+  --c-gray-100: #24211D;
+  --c-gray-200: #2E2A25;
+  --c-gray-300: #3E3831;
+  --c-gray-400: #787066;
+  --c-gray-700: #D4CCC0;
+  --c-gray-900: #F5F0E6;
+
   /* Neo-Brutalist Dark Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-sm: 2px 2px 0px #000000;

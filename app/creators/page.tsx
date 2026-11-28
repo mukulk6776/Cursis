@@ -115,8 +115,8 @@ export default function Creators() {
                   fontWeight: 800,
                   padding: '2px 8px',
                   borderRadius: '999px',
-                  background: '#FFF3EB',
-                  color: '#C2410C',
+                  background: 'var(--c-brand-bg, #FFF3EB)',
+                  color: 'var(--c-brand, #C2410C)',
                   marginBottom: '8px',
                 }}
               >

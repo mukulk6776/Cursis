@@ -133,7 +133,7 @@ export default function AdminUserDetailPanel({
         </div>
         <div style={{ display: 'grid', gap: '14px' }}>
           {[1, 2, 3].map((i) => (
-            <div key={i} style={{ height: '92px', borderRadius: '16px', background: '#EDE7D9', border: '2px solid #0A0A0A' }} />
+            <div key={i} style={{ height: '92px', borderRadius: '16px', background: 'var(--c-bg-subtle, #EDE7D9)', border: '2px solid var(--border-dark, #0A0A0A)' }} />
           ))}
         </div>
       </div>
@@ -172,10 +172,10 @@ export default function AdminUserDetailPanel({
   const subStatusLabel = activePlan
     ? 'Active'
     : rawSub?.status === 'revoked'
-    ? 'Revoked'
-    : rawSub?.expiresAt && Date.parse(rawSub.expiresAt) <= Date.now()
-    ? 'Expired'
-    : 'None';
+      ? 'Revoked'
+      : rawSub?.expiresAt && Date.parse(rawSub.expiresAt) <= Date.now()
+        ? 'Expired'
+        : 'None';
 
   return (
     <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>

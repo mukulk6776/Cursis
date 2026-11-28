@@ -568,8 +568,8 @@ export default function ProjectsPage() {
                         className="badge"
                         style={{
                           cursor: 'pointer',
-                          background: isAssigned ? '#FFF3EB' : 'var(--surface-card)',
-                          color: isAssigned ? '#B53B00' : 'var(--text-secondary)',
+                          background: isAssigned ? 'var(--c-brand-bg, #FFF3EB)' : 'var(--surface-card)',
+                          color: isAssigned ? 'var(--c-brand, #B53B00)' : 'var(--text-secondary)',
                           border: `1px solid ${isAssigned ? '#FF5500' : 'var(--border-color)'}`,
                           padding: '4px 10px',
                           display: 'inline-flex',

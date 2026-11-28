@@ -185,9 +185,9 @@ export default function RedeemCodeModal() {
                   style={{
                     padding: '10px 14px',
                     borderRadius: '6px',
-                    background: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    color: '#dc2626',
+                    background: 'var(--c-error-bg, rgba(239, 68, 68, 0.1))',
+                    border: '1px solid var(--c-error, rgba(239, 68, 68, 0.3))',
+                    color: 'var(--c-error-text, #dc2626)',
                     fontSize: '12px',
                     marginBottom: 'var(--sp-4)',
                     display: 'flex',

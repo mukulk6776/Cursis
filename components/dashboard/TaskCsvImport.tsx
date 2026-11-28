@@ -163,7 +163,7 @@ export default function TaskCsvImport({
           </div>
 
           {validation && (
-            <p role="alert" style={{ fontSize: '13px', fontWeight: 600, color: '#dc2626', marginBottom: 10 }}>
+            <p role="alert" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--c-error-text, #dc2626)', marginBottom: 10 }}>
               {validation}
             </p>
           )}
@@ -210,12 +210,12 @@ export default function TaskCsvImport({
           )}
 
           {done && (
-            <p role="status" style={{ fontSize: '13px', fontWeight: 600, color: '#047857', marginTop: 8 }}>
+            <p role="status" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--c-success-text, #047857)', marginTop: 8 }}>
               Import complete. Refresh the task list if your saved tasks do not appear.
             </p>
           )}
           {error && (
-            <p role="alert" style={{ fontSize: '13px', fontWeight: 600, color: '#dc2626', marginTop: 8 }}>
+            <p role="alert" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--c-error-text, #dc2626)', marginTop: 8 }}>
               {error}
               {attempted && ' Keep this preview open and retry the same batch to avoid duplicates.'}
             </p>

@@ -142,7 +142,7 @@ export default function AutomationModal() {
  style={{
  fontSize: 'var(--fs-xs)',
  fontWeight: 'var(--fw-semibold)',
- color: '#15803d',
+ color: 'var(--c-success-text, #15803d)',
  marginBottom: 'var(--sp-2)',
  }}
  >

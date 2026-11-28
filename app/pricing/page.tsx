@@ -116,7 +116,7 @@ export default function Pricing() {
             </p>
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '52px', fontWeight: 800, lineHeight: 1, color: '#6B7280', textDecoration: 'line-through' }}>
+              <span style={{ fontSize: '52px', fontWeight: 800, lineHeight: 1, color: 'var(--text-tertiary, #6B7280)', textDecoration: 'line-through' }}>
                 ${starter.originalPriceUsd}
               </span>
               <span style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1 }}>
@@ -131,8 +131,8 @@ export default function Pricing() {
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>6 team members</strong></span></li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>5 tasks per project</strong></span></li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span><strong>10 projects</strong></span></li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7280' }}><X size={15} color="#9CA3AF" aria-hidden="true" /><span>No access to Ordis AI</span></li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7280' }}><X size={15} color="#9CA3AF" aria-hidden="true" /><span>No access to My Day feature</span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-tertiary, #6B7280)' }}><X size={15} color="var(--text-muted, #9CA3AF)" aria-hidden="true" /><span>No access to Ordis AI</span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-tertiary, #6B7280)' }}><X size={15} color="var(--text-muted, #9CA3AF)" aria-hidden="true" /><span>No access to My Day feature</span></li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Check size={15} color="#047857" aria-hidden="true" /><span>Access to all other workspace features</span></li>
             </ul>
           </div>
@@ -164,7 +164,7 @@ export default function Pricing() {
               variant="solid"
               style={{
                 margin: '0 0 10px',
-                border: '2px solid #0A0A0A',
+                border: '2px solid var(--border-dark, #0A0A0A)',
                 fontWeight: 800,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
@@ -181,7 +181,7 @@ export default function Pricing() {
             </p>
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '52px', fontWeight: 800, lineHeight: 1, color: '#6B7280', textDecoration: 'line-through' }}>
+              <span style={{ fontSize: '52px', fontWeight: 800, lineHeight: 1, color: 'var(--text-tertiary, #6B7280)', textDecoration: 'line-through' }}>
                 ${pro.originalPriceUsd}
               </span>
               <span style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1, color: '#FF5500' }}>
@@ -228,7 +228,7 @@ export default function Pricing() {
             </p>
 
             <div style={{ marginBottom: '20px' }}>
-              <span style={{ fontSize: '32px', fontWeight: 900, color: '#0A0A0A' }}>Custom</span>
+              <span style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary, #0A0A0A)' }}>Custom</span>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary, #4B5563)', marginTop: '4px' }}>
                 Scoped to your organization&apos;s requirements
               </div>

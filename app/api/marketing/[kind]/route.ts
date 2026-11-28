@@ -36,12 +36,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ kin
     const bucket = Math.floor(Date.now() / 1800000);
     const key = createHash('sha256').update(`marketing:${kind}:${ip}:${bucket}`).digest('hex');
     const limits = db.collection('marketing_rate_limits');
-    await limits.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    await limits.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch(() => {});
     const count = await limits.findOneAndUpdate({ _id: key as never }, { $inc: { count: 1 }, $setOnInsert: { expiresAt: new Date((bucket + 2) * 1800000) } }, { upsert: true, returnDocument: 'after' });
     if ((count?.count || 0) > 5) return Response.json({ error: 'Too many requests. Please try again in 30 minutes.' }, { status: 429, headers: { 'Retry-After': '1800' } });
     const now = new Date();
     if (kind === 'newsletter') {
-      await db.collection('marketing_subscribers').createIndex({ email: 1 }, { unique: true });
+      await db.collection('marketing_subscribers').createIndex({ email: 1 }, { unique: true }).catch(() => {});
       await db.collection('marketing_subscribers').updateOne({ email: parsed.data.email }, { $set: { email: parsed.data.email, consentAt: now, consentVersion: '2026-10-19', source: 'footer' } }, { upsert: true });
       await db.collection('unsubscribes').deleteOne({ email: parsed.data.email }).catch(() => {});
       const emailResult = await sendNewsletterSubscriptionEmail(parsed.data.email).catch((err) => ({

@@ -45,10 +45,10 @@ const STATUS_COLUMNS: {
   pillBg: string;
   pillFg: string;
 }[] = [
-    { id: 'in-progress', label: 'In Progress', dotColor: '#FF5500', pillBg: '#FFF3EB', pillFg: '#C2410C' },
-    { id: 'todo', label: 'To Do', dotColor: '#6B7280', pillBg: '#F3F4F6', pillFg: '#374151' },
-    { id: 'review', label: 'In Review', dotColor: '#8B5CF6', pillBg: '#F5F3FF', pillFg: '#6D28D9' },
-    { id: 'completed', label: 'Completed', dotColor: '#10B981', pillBg: '#ECFDF5', pillFg: '#047857' },
+    { id: 'in-progress', label: 'In Progress', dotColor: '#FF5500', pillBg: 'var(--c-brand-bg, #FFF3EB)', pillFg: 'var(--c-brand, #C2410C)' },
+    { id: 'todo', label: 'To Do', dotColor: '#6B7280', pillBg: 'var(--c-bg-subtle, #F3F4F6)', pillFg: 'var(--text-secondary, #374151)' },
+    { id: 'review', label: 'In Review', dotColor: '#8B5CF6', pillBg: 'var(--c-purple-bg, #F5F3FF)', pillFg: 'var(--c-purple, #6D28D9)' },
+    { id: 'completed', label: 'Completed', dotColor: '#10B981', pillBg: 'var(--c-success-bg, #ECFDF5)', pillFg: 'var(--c-success-text, #047857)' },
   ];
 
 const PRIORITY_BADGE_MAP: Record<PriorityLevel, { variant: BadgeVariant; label: string }> = {
@@ -330,7 +330,7 @@ export default function TasksPage() {
                 deleteTask(t.id);
               }
             }}
-            style={{ width: '30px', height: '30px', color: '#dc2626' }}
+            style={{ width: '30px', height: '30px', color: 'var(--c-error, #dc2626)' }}
           >
             <Trash2 size={14} aria-hidden="true" />
           </Button>

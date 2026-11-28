@@ -352,7 +352,7 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
       <main className={styles.adminContainer}>
         {/* Platform Overview Stat Cards */}
         {overviewError && (
-          <div style={{ marginBottom: '18px', padding: '12px 16px', background: '#FEE2E2', border: '2.5px solid #0A0A0A', borderRadius: '14px', fontWeight: 700, color: '#991B1B' }}>
+          <div style={{ marginBottom: '18px', padding: '12px 16px', background: 'var(--c-error-bg, #FEE2E2)', border: '2.5px solid var(--border-dark, #0A0A0A)', borderRadius: '14px', fontWeight: 700, color: 'var(--c-error-text, #991B1B)' }}>
             {overviewError}
           </div>
         )}
@@ -509,11 +509,11 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
             ) : usersLoading ? (
               <div style={{ padding: '28px', display: 'grid', gap: '10px' }}>
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} style={{ height: '48px', borderRadius: '10px', background: '#F3EFE4' }} />
+                  <div key={i} style={{ height: '48px', borderRadius: '10px', background: 'var(--c-bg-subtle, #F3EFE4)' }} />
                 ))}
               </div>
             ) : users.length === 0 ? (
-              <div style={{ padding: '40px 24px', textAlign: 'center', color: '#525252' }}>
+              <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-secondary, #525252)' }}>
                 <div style={{ fontSize: '16px', fontWeight: 900, marginBottom: '6px' }}>No matching users found</div>
                 <p style={{ margin: 0, fontSize: '13px' }}>Try clearing your search query or changing filters.</p>
               </div>
@@ -594,7 +594,7 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell style={{ fontWeight: 600, color: '#262626' }}>{u.email}</TableCell>
+                      <TableCell style={{ fontWeight: 600, color: 'var(--text-primary, #262626)' }}>{u.email}</TableCell>
                       <TableCell>
                         <Badge variant={u.accountStatus === 'suspended' ? 'destructive' : 'success'}>
                           {u.accountStatus === 'suspended' ? 'Suspended' : 'Active'}
@@ -606,11 +606,11 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
                             {u.activePlan.planName}
                           </Badge>
                         ) : (
-                          <span style={{ color: '#737373', fontWeight: 600 }}>None</span>
+                          <span style={{ color: 'var(--text-tertiary, #737373)', fontWeight: 600 }}>None</span>
                         )}
                       </TableCell>
-                      <TableCell style={{ color: '#525252' }}>{formatShortDate(u.lastActiveAt)}</TableCell>
-                      <TableCell style={{ color: '#525252' }}>{formatShortDate(u.createdAt)}</TableCell>
+                      <TableCell style={{ color: 'var(--text-secondary, #525252)' }}>{formatShortDate(u.lastActiveAt)}</TableCell>
+                      <TableCell style={{ color: 'var(--text-secondary, #525252)' }}>{formatShortDate(u.createdAt)}</TableCell>
                       <TableCell style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: 'inline-flex', gap: '6px' }}>
                           <Button
@@ -640,7 +640,7 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
             )}
 
             {/* Pagination Footer */}
-            <div style={{ padding: '14px 20px', borderTop: '2.5px solid #0A0A0A', background: '#FFFDF8', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '13px', fontWeight: 700 }}>
+            <div style={{ padding: '14px 20px', borderTop: '2.5px solid var(--border-dark, #0A0A0A)', background: 'var(--c-bg-subtle, #FFFDF8)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '13px', fontWeight: 700 }}>
               <div>
                 Showing {users.length} of {totalUsersCount} user{totalUsersCount === 1 ? '' : 's'} (Page {page} of {totalPages})
               </div>
@@ -676,11 +676,11 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
               </Button>
             </div>
             {auditError ? (
-              <div style={{ padding: '24px', color: '#B91C1C', fontWeight: 700 }}>{auditError}</div>
+              <div style={{ padding: '24px', color: 'var(--c-error-text, #B91C1C)', fontWeight: 700 }}>{auditError}</div>
             ) : auditLoading ? (
               <div style={{ padding: '24px', fontWeight: 700 }}>Loading audit entries…</div>
             ) : auditLogs.length === 0 ? (
-              <div style={{ padding: '32px', textAlign: 'center', color: '#525252', fontWeight: 600 }}>
+              <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary, #525252)', fontWeight: 600 }}>
                 No admin write actions logged yet.
               </div>
             ) : (
@@ -703,7 +703,7 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
                       <TableCell style={{ fontWeight: 700 }}>{log.adminEmail}</TableCell>
                       <TableCell>
                         <div style={{ fontWeight: 800 }}>{log.targetUserName || log.targetUserId}</div>
-                        {log.targetUserEmail && <div style={{ fontSize: '12px', color: '#525252' }}>{log.targetUserEmail}</div>}
+                        {log.targetUserEmail && <div style={{ fontSize: '12px', color: 'var(--text-secondary, #525252)' }}>{log.targetUserEmail}</div>}
                       </TableCell>
                       <TableCell>
                         <Badge variant="warning">{log.action}</Badge>
@@ -798,9 +798,9 @@ export default function AdminConsole({ currentAdmin }: AdminConsoleProps) {
               key={t.id}
               className={styles.toastItem}
               style={{
-                borderColor: t.kind === 'error' ? '#DC2626' : '#0A0A0A',
-                background: t.kind === 'error' ? '#FEE2E2' : '#FFFFFF',
-                color: t.kind === 'error' ? '#991B1B' : '#0A0A0A',
+                borderColor: t.kind === 'error' ? 'var(--c-error, #DC2626)' : 'var(--border-dark, #0A0A0A)',
+                background: t.kind === 'error' ? 'var(--c-error-bg, #FEE2E2)' : 'var(--surface-card, #FFFFFF)',
+                color: t.kind === 'error' ? 'var(--c-error-text, #991B1B)' : 'var(--text-primary, #0A0A0A)',
               }}
             >
               <span>{t.text}</span>

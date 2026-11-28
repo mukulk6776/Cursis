@@ -658,6 +658,7 @@ export default function OrdisPage() {
           height: 26px;
           background: #0A0A0A;
           color: #ffffff;
+          border: 1px solid var(--border-color, transparent);
           border-radius: 8px;
         }
 
@@ -1033,12 +1034,16 @@ export default function OrdisPage() {
           padding: 4px 12px;
           border-radius: 9999px;
           cursor: default;
-          background: rgba(255, 85, 0, 0.08);
-          border: 1px solid rgba(255, 85, 0, 0.2);
+          background: var(--c-brand-bg, rgba(255, 85, 0, 0.08));
+          border: 1px solid var(--c-brand-border, rgba(255, 85, 0, 0.2));
           font-size: 13px;
           font-weight: 700;
-          color: #B53B00;
+          color: var(--c-brand, #B53B00);
           letter-spacing: -0.01em;
+        }
+
+        :global(html[data-theme='dark']) .ordis-model-badge {
+          color: #FF8B52;
         }
 
         .ordis-model-spark {
@@ -1077,6 +1082,7 @@ export default function OrdisPage() {
           border-radius: 50%;
           background: #0A0A0A;
           color: #ffffff;
+          border: 1px solid var(--border-color, transparent);
           box-shadow: var(--shadow-sm);
           margin-bottom: 4px;
         }
@@ -1182,6 +1188,7 @@ export default function OrdisPage() {
           border-radius: 50%;
           background: #0A0A0A;
           color: #ffffff;
+          border: 1px solid var(--border-color, transparent);
           display: flex;
           align-items: center;
           justify-content: center;

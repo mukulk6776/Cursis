@@ -99,9 +99,9 @@ export default function AdminUserDetailPage() {
           <div
             className={styles.toastItem}
             style={{
-              borderColor: toast.kind === 'error' ? '#DC2626' : '#0A0A0A',
-              background: toast.kind === 'error' ? '#FEE2E2' : '#FFFFFF',
-              color: toast.kind === 'error' ? '#991B1B' : '#0A0A0A',
+              borderColor: toast.kind === 'error' ? 'var(--c-error, #DC2626)' : 'var(--border-dark, #0A0A0A)',
+              background: toast.kind === 'error' ? 'var(--c-error-bg, #FEE2E2)' : 'var(--surface-card, #FFFFFF)',
+              color: toast.kind === 'error' ? 'var(--c-error-text, #991B1B)' : 'var(--text-primary, #0A0A0A)',
             }}
           >
             {toast.text}

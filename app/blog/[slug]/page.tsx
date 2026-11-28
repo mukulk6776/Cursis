@@ -166,9 +166,9 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         }}
       >
         <div>
-          <strong>{post.author}</strong> · <span style={{ color: '#4B5563' }}>{post.authorRole}</span>
+          <strong>{post.author}</strong> · <span style={{ color: 'var(--text-secondary, #4B5563)' }}>{post.authorRole}</span>
         </div>
-        <div style={{ color: '#4B5563' }}>
+        <div style={{ color: 'var(--text-secondary, #4B5563)' }}>
           Published <time dateTime={post.date}>{post.date}</time> · Updated{' '}
           <time dateTime={post.updated}>{post.updated}</time> · {post.readTime}
         </div>

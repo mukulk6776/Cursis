@@ -733,3 +733,26 @@ div[data-nextjs-dialog-overlay] {
   display: none !important;
 }
 
+/* ---- Dark Mode Navigation & Chrome Overrides ---- */
+html[data-theme='dark'] .sidebar-item.active {
+  background: rgba(255, 85, 0, 0.16);
+  color: #F5F0E6;
+  border-color: rgba(255, 85, 0, 0.38);
+}
+
+html[data-theme='dark'] .sidebar-item-badge {
+  background: #24211D;
+  color: #C8C0B4;
+  border-color: rgba(245, 240, 230, 0.16);
+}
+
+html[data-theme='dark'] .sidebar-user-status,
+html[data-theme='dark'] .topbar-action-btn .notif-dot {
+  border-color: var(--surface-card, #1B1916);
+}
+
+html[data-theme='dark'] .topbar-workspace:hover,
+html[data-theme='dark'] .topbar-user:hover {
+  border-color: var(--border-dark);
+}
+

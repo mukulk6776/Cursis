@@ -686,3 +686,9 @@ html[data-theme='dark'] .cursis-task-card {
 html[data-theme='dark'] .cursis-task-card:hover {
   border-color: rgba(245, 240, 230, 0.32);
 }
+
+html[data-theme='dark'] .ui-badge--destructive {
+  background: var(--c-error-bg, #2C1515);
+  color: var(--c-error-text, #FECACA);
+  border-color: rgba(248, 113, 113, 0.38);
+}

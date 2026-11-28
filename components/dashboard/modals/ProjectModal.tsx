@@ -67,7 +67,7 @@ export default function ProjectModal() {
  <form onSubmit={handleSubmit}>
  <div className="modal-body">
  {atProjectLimit && (
- <div style={{ marginBottom: '14px', padding: '10px 12px', borderRadius: '8px', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', fontSize: '12px', fontWeight: 600 }}>
+ <div style={{ marginBottom: '14px', padding: '10px 12px', borderRadius: '8px', background: 'var(--c-error-bg, #FEF2F2)', border: '1px solid var(--c-error, #FCA5A5)', color: 'var(--c-error-text, #DC2626)', fontSize: '12px', fontWeight: 600 }}>
  Project limit reached ({planLimits.maxProjects} projects max).{' '}
  <a href="/pay?plan=pro" style={{ color: '#FF5500', fontWeight: 700 }}>Upgrade to Pro for unlimited projects →</a>
  </div>

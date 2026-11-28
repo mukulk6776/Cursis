@@ -554,3 +554,17 @@
   border-left-color: rgba(245, 240, 230, 0.28);
   box-shadow: -8px 0px 0px #000000;
 }
+
+:global(html[data-theme='dark']) .pillDanger {
+  background: #351814;
+  color: #FECACA;
+  border-color: rgba(248, 113, 113, 0.45);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .pillMint,
+:global(html[data-theme='dark']) .pillOrange,
+:global(html[data-theme='dark']) .pillGold {
+  border-color: rgba(245, 240, 230, 0.32);
+  box-shadow: 2px 2px 0px #000000;
+}

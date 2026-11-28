@@ -229,17 +229,17 @@ export default async function CompetitorComparisonPage({
             gap: '12px',
           }}
         >
-          <div style={{ padding: '14px', borderRadius: '10px', background: '#FAF6EE', border: '1px solid #E5E7EB' }}>
+          <div style={{ padding: '14px', borderRadius: '10px', background: 'var(--c-bg-subtle, #FAF6EE)', border: '1px solid var(--border-color, #E5E7EB)' }}>
             <div style={{ fontWeight: 700, fontSize: '13.5px', marginBottom: '4px' }}>
               Choose {guide.competitorName} if:
             </div>
-            <div style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.5 }}>{guide.chooseCompetitorWhen}</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary, #4B5563)', lineHeight: 1.5 }}>{guide.chooseCompetitorWhen}</div>
           </div>
-          <div style={{ padding: '14px', borderRadius: '10px', background: '#FFF3EB', border: '1px solid #FFD5B8' }}>
-            <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#B53B00', marginBottom: '4px' }}>
+          <div style={{ padding: '14px', borderRadius: '10px', background: 'var(--c-brand-bg, #FFF3EB)', border: '1px solid var(--c-brand-border, #FFD5B8)' }}>
+            <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--c-brand, #B53B00)', marginBottom: '4px' }}>
               Choose Cursis if:
             </div>
-            <div style={{ fontSize: '13px', color: '#1A1A1A', lineHeight: 1.5 }}>{guide.chooseCursisWhen}</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-primary, #1A1A1A)', lineHeight: 1.5 }}>{guide.chooseCursisWhen}</div>
           </div>
         </div>
       </section>
@@ -272,7 +272,7 @@ export default async function CompetitorComparisonPage({
           {guide.faqs.map((item) => (
             <div key={item.question}>
               <h3 style={{ margin: '0 0 4px', fontSize: '15px' }}>{item.question}</h3>
-              <p style={{ margin: 0, fontSize: '14px', color: '#4B5563', lineHeight: 1.55 }}>{item.answer}</p>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary, #4B5563)', lineHeight: 1.55 }}>{item.answer}</p>
             </div>
           ))}
         </div>

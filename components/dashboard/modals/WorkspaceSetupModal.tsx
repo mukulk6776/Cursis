@@ -201,10 +201,10 @@ export default function WorkspaceSetupModal() {
           maxWidth: '560px',
           width: '100%',
           maxHeight: '90vh',
-          background: '#FFFFFF',
+          background: 'var(--surface-modal, #FFFFFF)',
           borderRadius: '16px',
-          border: '1px solid #E5E7EB',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          border: '1px solid var(--border-color, #E5E7EB)',
+          boxShadow: 'var(--shadow-modal, 0 20px 25px -5px rgba(0, 0, 0, 0.1))',
           overflowY: 'auto',
           position: 'relative',
           padding: '36px 36px 32px',
@@ -220,7 +220,7 @@ export default function WorkspaceSetupModal() {
                 width: '60px',
                 height: '4px',
                 borderRadius: '999px',
-                background: s <= step ? '#FF5500' : '#E5E7EB',
+                background: s <= step ? '#FF5500' : 'var(--border-color, #E5E7EB)',
                 transition: 'background-color 0.25s ease',
               }}
             />
@@ -236,14 +236,14 @@ export default function WorkspaceSetupModal() {
                 style={{
                   fontSize: '24px',
                   fontWeight: 800,
-                  color: '#111827',
+                  color: 'var(--text-primary, #111827)',
                   margin: '0 0 8px 0',
                   letterSpacing: '-0.02em',
                 }}
               >
                 How do you want to use CURSIS?
               </h1>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary, #6B7280)', margin: 0 }}>
                 This helps customize your workspace experience
               </p>
             </div>
@@ -262,8 +262,8 @@ export default function WorkspaceSetupModal() {
                       gap: '14px',
                       padding: '16px 18px',
                       borderRadius: '12px',
-                      border: `1.5px solid ${isSelected ? '#FF5500' : '#E5E7EB'}`,
-                      background: isSelected ? 'rgba(255, 85, 0, 0.04)' : '#FFFFFF',
+                      border: `1.5px solid ${isSelected ? '#FF5500' : 'var(--border-color, #E5E7EB)'}`,
+                      background: isSelected ? 'var(--c-brand-bg, rgba(255, 85, 0, 0.04))' : 'var(--surface-card, #FFFFFF)',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                       boxShadow: isSelected ? '0 0 0 1px #FF5500' : '0 1px 2px rgba(0, 0, 0, 0.04)',
@@ -274,7 +274,7 @@ export default function WorkspaceSetupModal() {
                         width: '40px',
                         height: '40px',
                         borderRadius: '10px',
-                        background: isSelected ? '#FFF3EB' : '#F9FAFB',
+                        background: isSelected ? 'var(--c-brand-bg, #FFF3EB)' : 'var(--c-bg-subtle, #F9FAFB)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -284,10 +284,10 @@ export default function WorkspaceSetupModal() {
                       {opt.icon}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>
+                      <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary, #111827)', marginBottom: '2px' }}>
                         {opt.title}
                       </div>
-                      <div style={{ fontSize: '13px', color: '#6B7280' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary, #6B7280)' }}>
                         {opt.description}
                       </div>
                     </div>
@@ -324,9 +324,9 @@ export default function WorkspaceSetupModal() {
                   cursor: 'pointer',
                 }}
               />
-              <div style={{ fontSize: '12.5px', color: '#4B5563', lineHeight: 1.45 }}>
-                <strong style={{ color: '#111827' }}>Improve AI for your workspace</strong>
-                <p style={{ margin: '2px 0 0 0', color: '#6B7280' }}>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-secondary, #4B5563)', lineHeight: 1.45 }}>
+                <strong style={{ color: 'var(--text-primary, #111827)' }}>Improve AI for your workspace</strong>
+                <p style={{ margin: '2px 0 0 0', color: 'var(--text-tertiary, #6B7280)' }}>
                   Enable Ordis Copilot to learn your team's project rhythms and flag task risks before deadlines.
                 </p>
               </div>
@@ -365,21 +365,21 @@ export default function WorkspaceSetupModal() {
                 style={{
                   fontSize: '24px',
                   fontWeight: 800,
-                  color: '#111827',
+                  color: 'var(--text-primary, #111827)',
                   margin: '0 0 8px 0',
                   letterSpacing: '-0.02em',
                 }}
               >
                 Set up your workspace &amp; profile
               </h1>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary, #6B7280)', margin: 0 }}>
                 Personalize your workspace identity
               </p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '28px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #374151)', marginBottom: '6px' }}>
                   Your Name
                 </label>
                 <input
@@ -393,7 +393,7 @@ export default function WorkspaceSetupModal() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #374151)', marginBottom: '6px' }}>
                   Workspace Name
                 </label>
                 <input
@@ -407,7 +407,7 @@ export default function WorkspaceSetupModal() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #374151)', marginBottom: '6px' }}>
                   Your Role
                 </label>
                 <select
@@ -456,21 +456,21 @@ export default function WorkspaceSetupModal() {
                 style={{
                   fontSize: '24px',
                   fontWeight: 800,
-                  color: '#111827',
+                  color: 'var(--text-primary, #111827)',
                   margin: '0 0 8px 0',
                   letterSpacing: '-0.02em',
                 }}
               >
                 Create your first project
               </h1>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary, #6B7280)', margin: 0 }}>
                 Every workspace contains projects with dedicated team members
               </p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '28px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #374151)', marginBottom: '6px' }}>
                   First Project Name
                 </label>
                 <input
@@ -484,7 +484,7 @@ export default function WorkspaceSetupModal() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #374151)', marginBottom: '6px' }}>
                   Initial Task
                 </label>
                 <input
@@ -499,10 +499,10 @@ export default function WorkspaceSetupModal() {
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', margin: 0 }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #374151)', margin: 0 }}>
                     Invite Teammates (Optional)
                   </label>
-                  <span style={{ fontSize: '11px', color: '#6B7280' }}>Based on active plan quota</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary, #6B7280)' }}>Based on active plan quota</span>
                 </div>
                 <input
                   type="text"
@@ -512,7 +512,7 @@ export default function WorkspaceSetupModal() {
                   placeholder="teammate@company.com, colleague@work.com"
                   style={{ width: '100%' }}
                 />
-                <span style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '4px', display: 'block' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary, #9CA3AF)', marginTop: '4px', display: 'block' }}>
                   Separate multiple emails with commas. You can also invite teammates later.
                 </span>
               </div>
@@ -544,7 +544,7 @@ export default function WorkspaceSetupModal() {
               <button
                 type="button"
                 onClick={handleSkip}
-                style={{ background: 'none', border: 'none', color: '#6B7280', fontSize: '12.5px', cursor: 'pointer', fontWeight: 600 }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-tertiary, #6B7280)', fontSize: '12.5px', cursor: 'pointer', fontWeight: 600 }}
               >
                 Skip setup for now
               </button>

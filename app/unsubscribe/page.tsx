@@ -98,22 +98,22 @@ function UnsubscribeContent() {
         <div
           style={{
             padding: '20px',
-            backgroundColor: '#F0FDF4',
-            border: '1.5px solid #16A34A',
+            backgroundColor: 'var(--c-success-bg, #F0FDF4)',
+            border: '1.5px solid var(--c-success, #16A34A)',
             borderRadius: '10px',
             textAlign: 'center',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px', color: '#16A34A' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px', color: 'var(--c-success, #16A34A)' }}>
             <CheckCircle2 size={28} aria-hidden="true" />
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 800, color: '#166534', marginBottom: '6px' }}>
+          <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--c-success-text, #166534)', marginBottom: '6px' }}>
             Unsubscribe Confirmed
           </div>
-          <p style={{ fontSize: '13px', color: '#15803D', lineHeight: 1.4, margin: '0 0 16px 0' }}>
+          <p style={{ fontSize: '13px', color: 'var(--c-success-text, #15803D)', lineHeight: 1.4, margin: '0 0 16px 0' }}>
             {message}
           </p>
-          <p style={{ fontSize: '11.5px', color: '#4B5563', margin: '0 0 16px 0' }}>
+          <p style={{ fontSize: '11.5px', color: 'var(--text-secondary, #4B5563)', margin: '0 0 16px 0' }}>
             Please note that you may still receive essential transactional emails (password resets, security alerts, or workspace team invites).
           </p>
           <Link
@@ -121,8 +121,9 @@ function UnsubscribeContent() {
             style={{
               display: 'inline-block',
               padding: '10px 20px',
-              backgroundColor: '#0A0A0A',
+              backgroundColor: 'var(--c-brand, #0A0A0A)',
               color: '#FFFFFF',
+              border: '1px solid var(--border-dark, transparent)',
               fontWeight: 700,
               fontSize: '13px',
               textDecoration: 'none',
@@ -138,11 +139,11 @@ function UnsubscribeContent() {
             <div
               style={{
                 padding: '10px 14px',
-                backgroundColor: '#FEF2F2',
-                border: '1px solid #FECACA',
+                backgroundColor: 'var(--c-error-bg, #FEF2F2)',
+                border: '1px solid var(--c-error, #FECACA)',
                 borderRadius: '8px',
                 fontSize: '12px',
-                color: '#991B1B',
+                color: 'var(--c-error-text, #991B1B)',
                 fontWeight: 600,
               }}
             >

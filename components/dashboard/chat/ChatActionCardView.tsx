@@ -120,8 +120,8 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
       style={{
         marginTop: '10px',
         padding: '14px 16px',
-        background: '#FAF6EE',
-        border: '3px solid #0A0A0A',
+        background: 'var(--c-bg-subtle, #FAF6EE)',
+        border: '3px solid var(--border-dark, #0A0A0A)',
         borderRadius: '14px',
         display: 'flex',
         flexDirection: 'column',
@@ -134,9 +134,9 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '15px' }}>{getIcon()}</span>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontWeight: 700, fontSize: '13px', color: '#0A0A0A' }}>{card.title}</span>
+            <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary, #0A0A0A)' }}>{card.title}</span>
             {card.subtitle && (
-              <span style={{ fontSize: '11px', color: '#4A4A4A' }}>{card.subtitle}</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary, #4A4A4A)' }}>{card.subtitle}</span>
             )}
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
               borderRadius: '9999px',
               background: card.badgeColor ? `${card.badgeColor}22` : 'rgba(255, 85, 0, 0.12)',
               color: card.badgeColor || '#FF5500',
-              border: `1.5px solid ${card.badgeColor ? `${card.badgeColor}66` : '#0A0A0A'}`,
+              border: `1.5px solid ${card.badgeColor ? `${card.badgeColor}66` : 'var(--border-dark, #0A0A0A)'}`,
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
               whiteSpace: 'nowrap',
@@ -166,19 +166,19 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
         <div
           style={{
             fontSize: '11.5px',
-            color: '#1A1A1A',
+            color: 'var(--text-primary, #1A1A1A)',
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
             gap: '8px 12px',
             padding: '10px 12px',
-            background: '#FFFFFF',
+            background: 'var(--surface-card, #FFFFFF)',
             borderRadius: '10px',
-            border: '2px solid #0A0A0A',
+            border: '2px solid var(--border-dark, #0A0A0A)',
           }}
         >
           {card.meta.priority && (
             <div>
-              <span style={{ color: '#4A4A4A' }}>Priority: </span>
+              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Priority: </span>
               <strong style={{ color: card.meta.priority === 'urgent' ? '#EF4444' : '#FF5500' }}>
                 {card.meta.priority}
               </strong>
@@ -187,35 +187,35 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
 
           {card.meta.deadline && (
             <div>
-              <span style={{ color: '#4A4A4A' }}>Due: </span>
+              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Due: </span>
               <span style={{ fontWeight: 600 }}>{card.meta.deadline}</span>
             </div>
           )}
 
           {card.meta.time && (
             <div>
-              <span style={{ color: '#4A4A4A' }}>Time: </span>
+              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Time: </span>
               <span style={{ fontWeight: 600 }}>{card.meta.time}</span>
             </div>
           )}
 
           {card.meta.value && (
             <div>
-              <span style={{ color: '#4A4A4A' }}>Value: </span>
+              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Value: </span>
               <strong style={{ color: '#10B981' }}>{card.meta.value}</strong>
             </div>
           )}
 
           {card.meta.client && (
             <div>
-              <span style={{ color: '#4A4A4A' }}>Client: </span>
+              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Client: </span>
               <span style={{ fontWeight: 600 }}>{card.meta.client}</span>
             </div>
           )}
 
           {card.meta.stage && (
             <div>
-              <span style={{ color: '#4A4A4A' }}>Stage: </span>
+              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Stage: </span>
               <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{card.meta.stage}</span>
             </div>
           )}
@@ -223,10 +223,10 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
           {card.meta.progress !== undefined && (
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ color: '#4A4A4A', fontWeight: 600 }}>Milestone Progress</span>
-                <span style={{ fontWeight: 700, color: '#0A0A0A' }}>{card.meta.progress}%</span>
+                <span style={{ color: 'var(--text-secondary, #4A4A4A)', fontWeight: 600 }}>Milestone Progress</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-primary, #0A0A0A)' }}>{card.meta.progress}%</span>
               </div>
-              <div style={{ width: '100%', height: '8px', background: '#E5E7EB', borderRadius: '4px', border: '1.5px solid #0A0A0A', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '8px', background: 'var(--border-color, #E5E7EB)', borderRadius: '4px', border: '1.5px solid var(--border-dark, #0A0A0A)', overflow: 'hidden' }}>
                 <div
                   style={{
                     width: `${card.meta.progress}%`,
@@ -240,23 +240,23 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
 
           {card.meta.themeColor && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: '#4A4A4A' }}>Accent: </span>
+              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Accent: </span>
               <div
                 style={{
                   width: '14px',
                   height: '14px',
                   borderRadius: '3px',
                   background: card.meta.themeColor,
-                  border: '1.5px solid #0A0A0A',
+                  border: '1.5px solid var(--border-dark, #0A0A0A)',
                 }}
               />
-              <code style={{ fontSize: '10px', color: '#0A0A0A', fontWeight: 600 }}>{card.meta.themeColor}</code>
+              <code style={{ fontSize: '10px', color: 'var(--text-primary, #0A0A0A)', fontWeight: 600 }}>{card.meta.themeColor}</code>
             </div>
           )}
 
           {card.meta.keyPrefix && (
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-              <code style={{ background: '#F3EFE4', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', color: '#B53B00', border: '1.5px solid #0A0A0A', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 700 }}>
+              <code style={{ background: 'var(--c-bg-subtle, #F3EFE4)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', color: 'var(--c-brand, #B53B00)', border: '1.5px solid var(--border-dark, #0A0A0A)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 700 }}>
                 {card.meta.keyPrefix}••••••••••••••••
               </code>
               <button
@@ -268,7 +268,7 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
                   fontWeight: 700,
                   background: copied ? '#10B981' : '#0A0A0A',
                   color: '#FFFFFF',
-                  border: '2px solid #0A0A0A',
+                  border: '2px solid var(--border-dark, #0A0A0A)',
                   borderRadius: '6px',
                   cursor: 'pointer',
                   boxShadow: '2px 2px 0px #0A0A0A',
@@ -282,8 +282,8 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
 
           {card.meta.when && card.meta.then && (
             <div style={{ gridColumn: '1 / -1' }}>
-              <div><span style={{ color: '#4A4A4A' }}>When: </span><span style={{ color: '#B53B00', fontWeight: 600 }}>{card.meta.when}</span></div>
-              <div style={{ marginTop: '2px' }}><span style={{ color: '#4A4A4A' }}>Then: </span><span style={{ color: '#10B981', fontWeight: 600 }}>{card.meta.then}</span></div>
+              <div><span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>When: </span><span style={{ color: 'var(--c-brand, #B53B00)', fontWeight: 600 }}>{card.meta.when}</span></div>
+              <div style={{ marginTop: '2px' }}><span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Then: </span><span style={{ color: '#10B981', fontWeight: 600 }}>{card.meta.then}</span></div>
             </div>
           )}
         </div>
@@ -344,9 +344,9 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
               padding: '8px 14px',
               fontSize: '12px',
               fontWeight: 700,
-              background: taskCompleted ? '#10B981' : '#FFFFFF',
-              color: taskCompleted ? '#FFFFFF' : '#0A0A0A',
-              border: '3px solid #0A0A0A',
+              background: taskCompleted ? '#10B981' : 'var(--surface-card, #FFFFFF)',
+              color: taskCompleted ? '#FFFFFF' : 'var(--text-primary, #0A0A0A)',
+              border: '3px solid var(--border-dark, #0A0A0A)',
               borderRadius: '10px',
               boxShadow: '3px 3px 0px #0A0A0A',
               cursor: 'pointer',
@@ -357,12 +357,12 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
               transition: 'transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              if (!taskCompleted) e.currentTarget.style.background = '#FAF6EE';
+              if (!taskCompleted) e.currentTarget.style.background = 'var(--surface-hover, #FAF6EE)';
               e.currentTarget.style.transform = 'translate(-1px, -1px)';
               e.currentTarget.style.boxShadow = '4px 4px 0px #0A0A0A';
             }}
             onMouseLeave={(e) => {
-              if (!taskCompleted) e.currentTarget.style.background = '#FFFFFF';
+              if (!taskCompleted) e.currentTarget.style.background = 'var(--surface-card, #FFFFFF)';
               e.currentTarget.style.transform = 'none';
               e.currentTarget.style.boxShadow = '3px 3px 0px #0A0A0A';
             }}

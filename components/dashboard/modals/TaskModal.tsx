@@ -129,9 +129,9 @@ export default function TaskModal() {
             {errorMsg && (
               <div
                 style={{
-                  background: '#FEF2F2',
-                  border: '1px solid #FCA5A5',
-                  color: '#DC2626',
+                  background: 'var(--c-error-bg, #FEF2F2)',
+                  border: '1px solid var(--c-error, #FCA5A5)',
+                  color: 'var(--c-error-text, #DC2626)',
                   padding: '8px 12px',
                   borderRadius: '6px',
                   fontSize: '13px',
@@ -149,7 +149,7 @@ export default function TaskModal() {
             {/* Task Name */}
             <div className="input-group">
               <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
-                Task Title <span style={{ color: '#DC2626' }}>*</span>
+                Task Title <span style={{ color: 'var(--c-error, #DC2626)' }}>*</span>
               </label>
               <input
                 className="input"
@@ -169,7 +169,7 @@ export default function TaskModal() {
               {/* Assignee */}
               <div className="input-group">
                 <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
-                  Assignee (Person Responsible) <span style={{ color: '#DC2626' }}>*</span>
+                  Assignee (Person Responsible) <span style={{ color: 'var(--c-error, #DC2626)' }}>*</span>
                 </label>
                 <select
                   className="input select"
@@ -192,7 +192,7 @@ export default function TaskModal() {
               {/* Deadline */}
               <div className="input-group">
                 <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
-                  Deadline / Due Date <span style={{ color: '#DC2626' }}>*</span>
+                  Deadline / Due Date <span style={{ color: 'var(--c-error, #DC2626)' }}>*</span>
                 </label>
                 <input
                   className="input"
@@ -212,7 +212,7 @@ export default function TaskModal() {
               {/* Project */}
               <div className="input-group">
                 <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
-                  Project <span style={{ color: '#DC2626' }}>*</span>
+                  Project <span style={{ color: 'var(--c-error, #DC2626)' }}>*</span>
                 </label>
                 <select
                   className="input select"
@@ -243,7 +243,7 @@ export default function TaskModal() {
               {/* Status */}
               <div className="input-group">
                 <label className="input-label" style={{ fontWeight: 600, fontSize: '13px' }}>
-                  Initial Status <span style={{ color: '#DC2626' }}>*</span>
+                  Initial Status <span style={{ color: 'var(--c-error, #DC2626)' }}>*</span>
                 </label>
                 <select
                   className="input select"

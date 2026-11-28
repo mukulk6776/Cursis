@@ -360,7 +360,7 @@ export default function SettingsPage() {
                         height: '32px',
                         borderRadius: 'var(--border-radius-md)',
                         background: color,
-                        border: wsForm.accentColor === color ? '3px solid #000' : '1px solid var(--border-color)',
+                        border: wsForm.accentColor === color ? '3px solid var(--text-primary, #000)' : '1px solid var(--border-color)',
                         outline: wsForm.accentColor === color ? '2px solid var(--c-accent)' : 'none',
                         cursor: 'pointer',
                         transition: 'transform 0.1s ease',

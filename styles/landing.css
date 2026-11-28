@@ -4348,7 +4348,23 @@ body.lp-body,
   box-shadow: 3.5px 3.5px 0 0 #0A0A0A;
 }
 
-html[data-theme='dark'] body.lp-body {
+html[data-theme='dark'],
+html[data-theme='dark'] body,
+html[data-theme='dark'] body.lp-body,
+html[data-theme='dark'] .lp-body,
+html[data-theme='dark'] #main-content,
+html[data-theme='dark'] .lp-home,
+html[data-theme='dark'] .lp-section {
+  --c-bg: #11100E;
+  --c-cream: #11100E;
+  --c-paper: #1B1916;
+  --c-surface: #1B1916;
+  --c-bg-subtle: #24211D;
+  --surface-card: #1B1916;
+  --text-primary: #F5F0E6;
+  --text-secondary: #C8C0B4;
+  --text-tertiary: #948B7E;
+  --border-color: rgba(245, 240, 230, 0.2);
   background-color: #11100E !important;
   color: #F5F0E6 !important;
 }
@@ -4366,9 +4382,24 @@ html[data-theme='dark'] .lp-nav-theme-toggle:hover {
   box-shadow: 3.5px 3.5px 0 0 #000000;
 }
 
+html[data-theme='dark'] .lp-nav,
 html[data-theme='dark'] .lp-nav.lp-nav-scrolled {
-  background: rgba(17, 16, 14, 0.92);
-  border-bottom-color: rgba(245, 240, 230, 0.12);
+  background: rgba(17, 16, 14, 0.88) !important;
+}
+
+html[data-theme='dark'] .lp-nav.lp-nav-scrolled {
+  border-bottom-color: rgba(245, 240, 230, 0.14);
+}
+
+html[data-theme='dark'] .lp-nav-btn-signout {
+  background: #2C1515;
+  color: #FECACA;
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+html[data-theme='dark'] .lp-nav-btn-signout:hover {
+  background: #3D1B1B;
+  color: #FFFFFF;
 }
 
 html[data-theme='dark'] .lp-nav-container {
@@ -4525,7 +4556,7 @@ html[data-theme='dark'] :is(
   .lp-workflow-timeline-card,
   .lp-bento-card,
   .lp-bento-log-item,
-  .tano-module-card:not(.tano-module-cta),
+  .tano-module-card:not(.tano-module-cta):not(.tano-module-featured),
   .tano-agency-card,
   .lp-step-circle,
   .lp-stat-bar-track,
@@ -4543,6 +4574,139 @@ html[data-theme='dark'] :is(
   color: #F5F0E6;
   border-color: rgba(245, 240, 230, 0.26) !important;
   box-shadow: 5px 5px 0 0 #000000;
+}
+
+html[data-theme='dark'] .lp-demo-container {
+  background: #1B1916 !important;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.28) !important;
+  box-shadow: 8px 8px 0 0 #000000 !important;
+}
+
+html[data-theme='dark'] :is(
+  .lp-demo-step,
+  .lp-pipeline-tano-item:not(.completed),
+  .lp-role-tano-item:not(.selected),
+  .lp-bento-log-box,
+  .lp-roster-row,
+  .lp-bento-stat-card,
+  .lp-prompt-reply,
+  .lp-pipeline-col,
+  .tano-tag-badge
+) {
+  background: #221F1B;
+  color: #F5F0E6;
+  border-color: rgba(245, 240, 230, 0.24);
+}
+
+html[data-theme='dark'] :is(
+  .lp-section-subtitle,
+  .lp-hero-text,
+  .hero-subtitle,
+  .lp-card-desc,
+  .lp-bento-desc,
+  .lp-timeline-sub,
+  .lp-timeline-text,
+  .lp-bento-metric,
+  .lp-mockup-view-subtitle,
+  .lp-metric-label,
+  .lp-metric-sub,
+  .lp-member-role,
+  .lp-pipeline-card span,
+  .lp-ordis-subtitle,
+  .lp-roster-info span,
+  .lp-card-hint,
+  .lp-pipeline-tano-desc,
+  .lp-role-tano-duty,
+  .tano-module-card:not(.tano-module-cta):not(.tano-module-featured) .tano-module-desc,
+  .trust-stat span,
+  .vp-card p,
+  .fg-item p,
+  .sp-container cite span,
+  .tano-card-label
+) {
+  color: #C8C0B4;
+}
+
+html[data-theme='dark'] :is(.lp-prompt-reply p, .tano-agency-desc, .lp-footer-link, .lp-footer-desc, .lp-footer-bottom, .lp-comparison-list li span) {
+  color: #D6CFC2;
+}
+
+html[data-theme='dark'] :is(
+  .tano-brand-rh-tag,
+  .tano-brand-csm-tag,
+  .tano-brand-lakai-tag,
+  .tano-brand-avatar
+) {
+  background: #24211D;
+  color: #F5F0E6;
+  border: 1.5px solid rgba(245, 240, 230, 0.28);
+}
+
+html[data-theme='dark'] :is(
+  .lp-section-label,
+  .lp-comparison-card.positive,
+  .lp-comparison-card.positive .lp-card-headline,
+  .lp-comparison-card.positive .lp-card-desc,
+  .lp-workflow-timeline-card:nth-child(1),
+  .lp-workflow-timeline-card:nth-child(2),
+  .lp-workflow-timeline-card:nth-child(4),
+  .lp-workflow-timeline-card:nth-child(5),
+  .lp-pipeline-card.urgent,
+  .lp-pipeline-card.urgent strong,
+  .lp-pipeline-card.urgent span,
+  .lp-pipeline-card.done,
+  .lp-pipeline-card.done strong,
+  .lp-home .lp-reasons .marketing-card:first-child,
+  .lp-home .lp-reasons .marketing-card:nth-child(3),
+  .lp-home .lp-comparison-strip > div + div,
+  .tano-module-card.tano-module-featured,
+  .tano-module-card.tano-module-featured .tano-module-name,
+  .tano-module-card.tano-module-featured .tano-module-desc,
+  .lp-pipeline-tano-item.completed,
+  .lp-pipeline-tano-item.completed .lp-pipeline-tano-label,
+  .lp-pipeline-tano-item.completed .lp-pipeline-tano-desc,
+  .lp-role-tano-item.selected,
+  .lp-role-tano-item.selected .lp-role-tano-title,
+  .lp-role-tano-item.selected .lp-role-tano-duty,
+  .lp-bento-log-item.active,
+  .lp-bento-log-item.active .lp-log-time,
+  .lp-bento-log-item.active .lp-log-text,
+  .lp-stage-step.active,
+  .lp-stage-step.active > span:last-child,
+  .lp-stage-step.active .lp-stage-num,
+  .tano-modal-success,
+  .lp-ordis-success-box,
+  .lp-demo-header,
+  .lp-demo-step-highlight,
+  .lp-prompt-sender,
+  .tano-agency-icon,
+  .lp-card-tag-tano,
+  .tano-modal-eyebrow,
+  .lp-home .lp-cta-inner .lp-cta-title,
+  .lp-home .lp-cta-inner .lp-cta-subtitle,
+  .lp-home .lp-cta-inner .lp-cta-note
+) {
+  color: #0A0A0A !important;
+}
+
+html[data-theme='dark'] :is(
+  .lp-home .lp-reasons .marketing-card:first-child *,
+  .lp-home .lp-reasons .marketing-card:nth-child(3) *,
+  .lp-comparison-card.positive :is(h3, p, strong, li, span:not(.lp-card-pill)),
+  .tano-module-card.tano-module-featured :is(h3, p, span:not(.tano-module-badge))
+) {
+  color: #0A0A0A;
+}
+
+html[data-theme='dark'] .lp-body .marketing-link:hover,
+html[data-theme='dark'] .lp-body .marketing-link:hover * {
+  background: #FFCC00;
+  color: #0A0A0A;
+}
+
+html[data-theme='dark'] .tano-case-card:has(.tano-tag-badge) {
+  color: #0A0A0A;
 }
 
 html[data-theme='dark'] :is(
@@ -4748,4 +4912,17 @@ html[data-theme='dark'] .policy-summary {
 html[data-theme='dark'] .policy-nav a:hover {
   background: #2C251C;
   color: #FFFFFF;
+}
+
+html[data-theme='dark'] .policy-nav a[aria-current="page"] {
+  background: #FF5500;
+  color: #FFFFFF !important;
+}
+
+html[data-theme='dark'] .marketing-faq details {
+  color: #F5F0E6;
+}
+
+html[data-theme='dark'] .marketing-faq details p {
+  color: #C8C0B4;
 }

@@ -37,7 +37,7 @@ export default function LinkPreviewCard({ preview, loading, onRemove }: LinkPrev
           style={{
             width: '100%',
             height: '200px',
-            background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+            background: 'linear-gradient(90deg, var(--c-bg-subtle, #f1f5f9) 25%, var(--surface-hover, #e2e8f0) 50%, var(--c-bg-subtle, #f1f5f9) 75%)',
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.5s infinite',
           }}
@@ -47,7 +47,7 @@ export default function LinkPreviewCard({ preview, loading, onRemove }: LinkPrev
             style={{
               height: '16px',
               width: '70%',
-              background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+              background: 'linear-gradient(90deg, var(--c-bg-subtle, #f1f5f9) 25%, var(--surface-hover, #e2e8f0) 50%, var(--c-bg-subtle, #f1f5f9) 75%)',
               backgroundSize: '200% 100%',
               animation: 'shimmer 1.5s infinite',
               borderRadius: '4px',
@@ -58,7 +58,7 @@ export default function LinkPreviewCard({ preview, loading, onRemove }: LinkPrev
             style={{
               height: '12px',
               width: '90%',
-              background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+              background: 'linear-gradient(90deg, var(--c-bg-subtle, #f1f5f9) 25%, var(--surface-hover, #e2e8f0) 50%, var(--c-bg-subtle, #f1f5f9) 75%)',
               backgroundSize: '200% 100%',
               animation: 'shimmer 1.5s infinite',
               borderRadius: '4px',

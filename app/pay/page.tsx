@@ -391,7 +391,7 @@ function PaymentCheckoutContent() {
               </div>
 
               {paymentDetails.isDemo && (
-                <div style={{ marginTop: '14px', padding: '10px 12px', borderRadius: '6px', background: '#FEF3C7', border: '1px solid #FCD34D', fontSize: '12px', color: '#92400E' }}>
+                <div style={{ marginTop: '14px', padding: '10px 12px', borderRadius: '6px', background: 'var(--c-warning-bg, #FEF3C7)', border: '1px solid var(--c-warning, #FCD34D)', fontSize: '12px', color: 'var(--c-warning-text, #92400E)' }}>
                   <strong>Preview Mode:</strong> Live Razorpay keys are not configured in this environment, so this transaction was simulated for preview testing.
                 </div>
               )}
@@ -618,7 +618,7 @@ function PaymentCheckoutContent() {
               </p>
 
               {errorMessage && (
-                <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '14px' }}>
+                <div style={{ background: 'var(--c-error-bg, #FEF2F2)', border: '1px solid var(--c-error, #FCA5A5)', color: 'var(--c-error-text, #DC2626)', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '14px' }}>
                   {errorMessage}
                 </div>
               )}

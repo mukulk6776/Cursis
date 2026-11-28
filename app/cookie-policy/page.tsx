@@ -39,28 +39,28 @@ export default function CookiePolicyPage() {
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '12px' }}>
-          <div style={{ padding: '16px', background: '#F5F5F0', borderRadius: '8px', border: '1px solid #E5E0D8' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 6px 0' }}>
+          <div style={{ padding: '16px', background: 'var(--c-bg-subtle, #F5F5F0)', borderRadius: '8px', border: '1px solid var(--border-color, #E5E0D8)' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #0A0A0A)', margin: '0 0 6px 0' }}>
               Essential Cookies (Always Active)
             </h3>
-            <p style={{ fontSize: '13px', color: '#525252', margin: '0 0 8px 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary, #525252)', margin: '0 0 8px 0' }}>
               These cookies are strictly necessary for the platform to function and cannot be deactivated in our systems.
             </p>
-            <ul style={{ fontSize: '13px', color: '#262626', paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <ul style={{ fontSize: '13px', color: 'var(--text-primary, #262626)', paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <li><strong>Authentication:</strong> Keeps you logged into your secure workspace session.</li>
               <li><strong>Security &amp; CSRF Defense:</strong> Protects against Cross-Site Request Forgery attacks.</li>
               <li><strong>Load Balancing:</strong> Routes client traffic to the closest low-latency region server.</li>
             </ul>
           </div>
 
-          <div style={{ padding: '16px', background: '#F5F5F0', borderRadius: '8px', border: '1px solid #E5E0D8' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0A0A0A', margin: '0 0 6px 0' }}>
+          <div style={{ padding: '16px', background: 'var(--c-bg-subtle, #F5F5F0)', borderRadius: '8px', border: '1px solid var(--border-color, #E5E0D8)' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #0A0A0A)', margin: '0 0 6px 0' }}>
               Functional Cookies (Preferences)
             </h3>
-            <p style={{ fontSize: '13px', color: '#525252', margin: '0 0 8px 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary, #525252)', margin: '0 0 8px 0' }}>
               These cookies remember your interface customization preferences.
             </p>
-            <ul style={{ fontSize: '13px', color: '#262626', paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <ul style={{ fontSize: '13px', color: 'var(--text-primary, #262626)', paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <li><strong>Workspace State:</strong> Stores active workspace selection and sidebar layout state.</li>
               <li><strong>Theme Settings:</strong> Remembers your display preferences and accessibility settings.</li>
             </ul>
@@ -86,7 +86,7 @@ export default function CookiePolicyPage() {
         <p style={{ margin: '0 0 12px 0' }}>
           You can adjust your browser settings to block or notify you about cookies, or modify your preferences on Cursis directly. Please note: disabling essential cookies may impact authentication and prevent workspace features from functioning properly.
         </p>
-        <div style={{ padding: '14px', background: '#FEF3C7', border: '1.5px solid #D97706', borderRadius: '8px', fontSize: '13px', color: '#92400E', lineHeight: 1.6, marginBottom: '16px' }}>
+        <div style={{ padding: '14px', background: 'var(--c-warning-bg, #FEF3C7)', border: '1.5px solid var(--c-warning, #D97706)', borderRadius: '8px', fontSize: '13px', color: 'var(--c-warning-text, #92400E)', lineHeight: 1.6, marginBottom: '16px' }}>
           <strong>Note:</strong> Cursis fully respects the <em>Do Not Track (DNT)</em> and <em>Global Privacy Control (GPC)</em> browser signals by default.
         </div>
         <CookiePreferenceButton className="policy-cookie-button" />

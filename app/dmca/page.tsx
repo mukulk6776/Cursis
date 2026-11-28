@@ -30,50 +30,50 @@ export default function DmcaPage() {
 
         <div
           style={{
-            backgroundColor: '#FAF8F5',
-            border: '1.5px solid #0A0A0A',
+            backgroundColor: 'var(--c-bg-subtle, #FAF8F5)',
+            border: '1.5px solid var(--border-dark, #0A0A0A)',
             borderRadius: '10px',
             padding: '20px',
-            boxShadow: '2px 2px 0 0 #0A0A0A',
+            boxShadow: '2px 2px 0 0 var(--border-dark, #0A0A0A)',
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
             gap: '16px',
           }}
         >
           <div>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Designated Agent &amp; Organization</div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0A0A0A', marginTop: '2px' }}>Saransh Vashistha and Mukul Kumar</div>
-            <div style={{ fontSize: '13px', color: '#333' }}>Cursis</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-tertiary, #666)', fontWeight: 700 }}>Designated Agent &amp; Organization</div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary, #0A0A0A)', marginTop: '2px' }}>Saransh Vashistha and Mukul Kumar</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary, #333)' }}>Cursis</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-tertiary, #666)', marginTop: '4px' }}>
               Alternate DBAs: Cursis, Cursis.in, Cursis AI, Cursis Agency OS
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Direct Contact</div>
-            <div style={{ fontSize: '13px', color: '#0A0A0A', marginTop: '2px' }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-tertiary, #666)', fontWeight: 700 }}>Direct Contact</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-primary, #0A0A0A)', marginTop: '2px' }}>
               <strong>Dedicated Email:</strong>{' '}
               <a href="mailto:official@cursis.in" style={{ color: '#FF5500', fontWeight: 700 }}>official@cursis.in</a>
             </div>
-            <div style={{ fontSize: '13px', color: '#0A0A0A', marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-primary, #0A0A0A)', marginTop: '2px' }}>
               <strong>Secondary:</strong>{' '}
               <a href="mailto:official@cursis.in" style={{ color: '#FF5500' }}>official@cursis.in</a>
             </div>
-            <div style={{ fontSize: '13px', color: '#0A0A0A', marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-primary, #0A0A0A)', marginTop: '2px' }}>
               <strong>Contact method:</strong> Email
             </div>
           </div>
 
           <div style={{ gridColumn: '1 / -1' }}>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Physical Addresses for Legal Service</div>
-            <div style={{ fontSize: '13px', color: '#333', marginTop: '4px' }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-tertiary, #666)', fontWeight: 700 }}>Physical Addresses for Legal Service</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary, #333)', marginTop: '4px' }}>
               <strong>Headquarters:</strong> Cursis, Business contact address awaiting confirmation<br />
               <strong>U.S. Service Office:</strong> Cursis Legal &amp; Compliance, Agent appointment not confirmed
             </div>
           </div>
         </div>
 
-        <div style={{ marginTop: '16px', padding: '12px 14px', backgroundColor: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '8px', fontSize: '12px', color: '#0369A1' }}>
+        <div style={{ marginTop: '16px', padding: '12px 14px', backgroundColor: 'var(--c-info-bg, #F0F9FF)', border: '1px solid var(--c-info, #BAE6FD)', borderRadius: '8px', fontSize: '12px', color: 'var(--c-info-text, #0369A1)' }}>
           <strong>U.S. Copyright Office Registration:</strong> No U.S. statutory-agent registration has been confirmed. The official directory is available at <a href="https://dmca.copyright.gov/osp/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline', fontWeight: 700 }}>dmca.copyright.gov/osp/</a>.
         </div>
       </section>
