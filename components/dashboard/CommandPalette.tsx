@@ -14,6 +14,7 @@ interface CommandAction {
 
 export default function CommandPalette() {
  const {
+ user,
  commandPaletteOpen,
  closeCommandPalette,
  openModal,
@@ -21,6 +22,7 @@ export default function CommandPalette() {
  signOut,
  sendOrdisMessage,
  } = useDashboard();
+ const canAssignTasks = ['owner', 'admin'].includes(user.workspaceRole || 'member');
 
  const [query, setQuery] = useState('');
  const [selectedIndex, setSelectedIndex] = useState(0);
@@ -55,14 +57,18 @@ export default function CommandPalette() {
  setCurrentPage('ordis');
  },
  },
+ ...(canAssignTasks
+ ? [
  {
  id: 'new-task',
- group: 'Quick Actions',
+ group: 'Quick Actions' as const,
  icon: 'T',
  text: 'Create New Task',
  shortcut: '/task',
  action: () => openModal('task-modal'),
  },
+ ]
+ : []),
  {
  id: 'new-project',
  group: 'Quick Actions',
@@ -70,15 +76,6 @@ export default function CommandPalette() {
  text: 'Create New Project',
  shortcut: '/project',
  action: () => openModal('project-modal'),
- },
-
- {
- id: 'agency-req',
- group: 'Quick Actions',
- icon: 'AI',
- text: 'Request Cursis Custom AI Solution',
- shortcut: '/agency',
- action: () => openModal('agency-modal'),
  },
  {
  id: 'new-meeting',

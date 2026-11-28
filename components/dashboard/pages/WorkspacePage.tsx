@@ -2,15 +2,14 @@
 
 import React, { useState } from 'react';
 import { useDashboard } from '@/lib/dashboard/DashboardContext';
-import { formatCurrency, formatDate, INITIAL_AGENCY_SERVICES, INITIAL_CASE_STUDIES } from '@/lib/dashboard/data';
+import { formatCurrency, formatDate } from '@/lib/dashboard/data';
 
-type WorkspaceTab = 'crm' | 'contacts' | 'followups' | 'agency-store';
+type WorkspaceTab = 'crm' | 'contacts' | 'followups';
 
 export default function WorkspacePage() {
  const {
  user,
  crm,
- openModal,
  addDeal,
  updateDealStage,
  addContact,
@@ -123,12 +122,6 @@ export default function WorkspacePage() {
  >
  AI Follow-Up Queue ({crm.followUps.length})
  </span>
- <span
- className={`tab ${activeTab === 'agency-store' ? 'active' : ''}`}
- onClick={() => setActiveTab('agency-store')}
- >
- Cursis Agency Solutions
- </span>
  </div>
 
  <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
@@ -140,11 +133,6 @@ export default function WorkspacePage() {
  {activeTab === 'contacts' && (
  <button className="btn btn-primary btn-sm" onClick={() => setContactModalOpen(true)}>
  + New Contact
- </button>
- )}
- {activeTab === 'agency-store' && (
- <button className="btn btn-primary btn-sm" onClick={() => openModal('agency-modal')}>
- Request Custom Build →
  </button>
  )}
  </div>
@@ -336,49 +324,6 @@ export default function WorkspacePage() {
  );
  })
  )}
- </div>
- </div>
- )}
-
- {/* Cursis Agency Storefront */}
- {activeTab === 'agency-store' && (
- <div>
- <div className="card" style={{ padding: 'var(--sp-5)', marginBottom: 'var(--sp-5)', background: 'var(--surface-card)', borderLeft: '6px solid var(--c-brand)' }}>
- <span className="badge badge-brand" style={{ marginBottom: 'var(--sp-2)' }}>CURSIS AI SOLUTIONS AGENCY</span>
- <h2 style={{ margin: '0 0 var(--sp-2) 0', fontSize: 'var(--fs-2xl)' }}>Custom AI Engineering &amp; Client Workspaces</h2>
- <p style={{ margin: '0 0 var(--sp-4) 0', color: 'var(--text-secondary)', maxWidth: '720px' }}>
- We design and engineer bespoke AI platforms, paperwork automation engines, custom CRM pipelines, and enterprise integrations.
- </p>
- <button className="btn btn-primary" onClick={() => openModal('agency-modal')}>
- Request a Custom Client Solution →
- </button>
- </div>
-
- <h3 style={{ marginBottom: 'var(--sp-3)' }}>Bespoke Solution Offerings</h3>
- <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--sp-4)', marginBottom: 'var(--sp-6)' }}>
- {INITIAL_AGENCY_SERVICES.map((s) => (
- <div key={s.id} className="card" style={{ padding: 'var(--sp-4)' }}>
- <div className="badge badge-neutral" style={{ marginBottom: 'var(--sp-2)', fontSize: '10px' }}>{s.category}</div>
- <h4 style={{ margin: '0 0 var(--sp-1) 0', fontSize: 'var(--fs-md)' }}>{s.name}</h4>
- <p style={{ margin: 0, fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>{s.desc}</p>
- </div>
- ))}
- </div>
-
- <h3 style={{ marginBottom: 'var(--sp-3)' }}>Client Case Studies</h3>
- <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--sp-4)' }}>
- {INITIAL_CASE_STUDIES.map((cs) => (
- <div key={cs.id} className="card" style={{ padding: 'var(--sp-4)' }}>
- <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-2)' }}>
- <span style={{ fontWeight: 'var(--fw-bold)' }}>{cs.client}</span>
- <span className="badge badge-brand">{cs.value}</span>
- </div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-brand)', fontWeight: 'bold', marginBottom: '4px' }}>
- {cs.solution}
- </div>
- <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>{cs.outcome}</div>
- </div>
- ))}
  </div>
  </div>
  )}

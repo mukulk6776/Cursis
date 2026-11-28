@@ -55,6 +55,15 @@ export async function PATCH(
     }
 
     const body = await request.json().catch(() => ({}));
+    const isModifyingAssignee =
+      body.assigneeId !== undefined ||
+      body.assigneeName !== undefined ||
+      body.assignee !== undefined ||
+      body.assignees !== undefined;
+    if (isModifyingAssignee && !['owner', 'admin'].includes(auth.role)) {
+      return apiError('Forbidden: Only Workspace Owners or Admins can assign or reassign tasks.', 403);
+    }
+
     const nextProjectId = body.projectId || body.project;
     if (nextProjectId && nextProjectId !== task.projectId) {
       const limitBlock = await checkTaskPerProjectLimit(task.workspaceId, nextProjectId, authUser.email);
@@ -96,7 +105,7 @@ export async function DELETE(
       return apiError('Task not found or access denied.', 404);
     }
 
-    const isOwnerOrAdmin = ['owner', 'admin', 'manager'].includes(auth.role);
+    const isOwnerOrAdmin = ['owner', 'admin'].includes(auth.role);
     const isCreator = task.creatorId === authUser.uid;
     if (!isOwnerOrAdmin && !isCreator) {
       return apiError('Forbidden: Only workspace admins or the task creator can delete this task.', 403);

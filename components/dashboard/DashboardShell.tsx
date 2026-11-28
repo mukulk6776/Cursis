@@ -21,7 +21,6 @@ import MeetingModal from './modals/MeetingModal';
 import EventModal from './modals/EventModal';
 import MemberModal from './modals/MemberModal';
 import MeetingNotesModal from './modals/MeetingNotesModal';
-import AgencyModal from './modals/AgencyModal';
 import InviteModal from './modals/InviteModal';
 import GenericModal from './modals/GenericModal';
 import RedeemCodeModal from './modals/RedeemCodeModal';
@@ -107,7 +106,6 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <EventModal />
       <MemberModal />
       <MeetingNotesModal />
-      <AgencyModal />
       <InviteModal />
       <GenericModal />
       <RedeemCodeModal />

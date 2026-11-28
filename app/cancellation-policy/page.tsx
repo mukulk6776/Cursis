@@ -6,45 +6,44 @@ import { BRAND_NAME, SUPPORT_EMAIL } from '@/lib/site';
 export const metadata = marketingMetadata(
   '/cancellation-policy',
   'Cancellation & Refund Policy',
-  'Cancel your Cursis plan anytime without fees. Request a refund by email within our simple refund process.'
+  'All Cursis purchases are final with no refunds after purchasing. You can cancel your subscription anytime to stop future renewals.'
 );
 
 export default function CancellationPolicyPage() {
   return (
     <PolicyLayout
       title="Cancellation & Refund Policy"
-      badge="Billing, cancellation & refunds"
+      badge="Billing, cancellation & no-refund policy"
       lastUpdated="Updated 25 November 2026"
       activeSlug="cancellation-policy"
       contactEmail="official@cursis.in"
       dpoEmail="official@cursis.in"
       summary={
         <p>
-          Cancel your {BRAND_NAME} workspace anytime with zero lock-in fees. Need a refund? Email{' '}
-          <a href="mailto:official@cursis.in" style={{ color: '#FF5500', fontWeight: 600 }}>official@cursis.in</a>{' '}
-          with your payment details and we will refund you back to your original payment method.
+          All {BRAND_NAME} purchases and plan upgrades are final — <strong>no refunds are provided after purchasing</strong>. You can cancel your subscription at any time with zero lock-in fees to stop future renewals. Questions? Email{' '}
+          <a href="mailto:official@cursis.in" style={{ color: '#FF5500', fontWeight: 600 }}>official@cursis.in</a>.
         </p>
       }
     >
       <section>
-        <h2>Cancel anytime without lock-in fees</h2>
+        <h2>No refunds after purchasing</h2>
         <p>
-          There are no long-term contracts or cancellation penalties. You may stop using your Starter ($9/mo) or Pro ($20/mo) plan or close your workspace at any time without mandatory notice periods or early-termination fees.
+          All payments, subscription upgrades, and digital plan activations on {BRAND_NAME} are final once processed. There is <strong>no refund after purchasing</strong> — including for unused subscription time, partial billing cycles, forgotten cancellations, or accidental purchases.
         </p>
       </section>
 
       <section>
-        <h2>Refund eligibility &amp; how to request a refund</h2>
+        <h2>Cancel anytime to stop future renewals</h2>
         <p>
-          If you are unsatisfied with your workspace upgrade, changed your mind, or were billed in error, simply send an email to{' '}
-          <a href="mailto:official@cursis.in">official@cursis.in</a> (or <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>) from the email address used during checkout. Include your Razorpay Payment ID, Order ID, or receipt reference so we can locate your transaction right away.
+          There are no long-term contracts or cancellation fees. You may cancel your Starter ($9/mo) or Pro ($20/mo) plan at any time to prevent future recurring charges, and you will retain access to your paid features until the end of your current paid billing period.
         </p>
       </section>
 
       <section>
-        <h2>Refund processing timeline</h2>
+        <h2>Duplicate billing or technical errors</h2>
         <p>
-          Approved refund requests are initiated promptly through Razorpay. Once initiated, refunds are typically credited back to your original payment method (card, bank, or wallet) within <strong>5–7 business days</strong>, depending on your card issuer or bank processing times.
+          If you were charged more than once due to a verified duplicate billing or payment-gateway error, send an email to{' '}
+          <a href="mailto:official@cursis.in">official@cursis.in</a> (or <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>) from your billing email with your Razorpay Payment ID, Order ID, or receipt reference so our billing team can investigate, unless otherwise required by applicable law.
         </p>
       </section>
 

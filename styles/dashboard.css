@@ -34,6 +34,7 @@
    ============================================ */
 
 .cursis-dashboard-root {
+  color-scheme: light;
   --c-cream: #f7f7f8;
   --c-paper: #ffffff;
   --c-ink: #18181b;
@@ -434,12 +435,66 @@ html[data-theme='dark'] .cursis-dashboard-root {
 .cursis-dashboard-root .ui-input,
 .cursis-dashboard-root input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
 .cursis-dashboard-root textarea,
-.cursis-dashboard-root select {
-  background: var(--surface-primary);
+.cursis-dashboard-root select:not(.cursis-task-status-select) {
+  background-color: var(--surface-primary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   caret-color: var(--text-primary);
+}
+
+.cursis-dashboard-root .cursis-task-status-select {
+  background-color: var(--c-bg-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 12px 12px !important;
+}
+
+.cursis-dashboard-root select option,
+.cursis-dashboard-root select optgroup {
+  background-color: #ffffff;
+  color: #18181b;
+}
+
+.cursis-dashboard-root select option:checked,
+.cursis-dashboard-root select option:hover,
+.cursis-dashboard-root select option:focus {
+  background-color: #e4e4e7;
+  color: #09090b;
+}
+
+html[data-theme='dark'] .cursis-dashboard-root select option,
+html[data-theme='dark'] .cursis-dashboard-root select optgroup {
+  background-color: #18181b;
+  color: #f4f4f5;
+}
+
+html[data-theme='dark'] .cursis-dashboard-root select option:checked,
+html[data-theme='dark'] .cursis-dashboard-root select option:hover,
+html[data-theme='dark'] .cursis-dashboard-root select option:focus {
+  background-color: #3f3f46;
+  color: #ffffff;
+}
+
+.cursis-dashboard-root::selection,
+.cursis-dashboard-root ::selection {
+  background-color: #27272a !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+}
+
+html[data-theme='dark'] .cursis-dashboard-root {
+  color-scheme: dark;
+}
+
+html[data-theme='dark'] .cursis-dashboard-root::selection,
+html[data-theme='dark'] .cursis-dashboard-root ::selection {
+  background-color: #e4e4e7 !important;
+  color: #09090b !important;
+  -webkit-text-fill-color: #09090b;
 }
 
 .cursis-dashboard-root .input:focus,

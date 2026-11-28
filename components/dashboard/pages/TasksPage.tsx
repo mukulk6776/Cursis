@@ -64,6 +64,7 @@ function statusConfig(status: TaskStatus) {
 
 export default function TasksPage() {
   const {
+    user,
     tasks,
     projects,
     getProject,
@@ -74,6 +75,7 @@ export default function TasksPage() {
     openModal,
     showToast,
   } = useDashboard();
+  const canAssignTasks = ['owner', 'admin'].includes(user.workspaceRole || 'member');
 
   const [currentView, setCurrentView] = useState<ViewMode>('list');
   const [searchQuery, setSearchQuery] = useState('');
@@ -269,7 +271,7 @@ export default function TasksPage() {
               style={{
                 backgroundColor: sCfg.pillBg,
                 color: sCfg.pillFg,
-                borderColor: 'rgba(10, 10, 10, 0.12)',
+                borderColor: 'var(--border-color)',
               }}
             >
               <option value="todo">To Do</option>
@@ -389,26 +391,30 @@ export default function TasksPage() {
             })}
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setCsvOpen((v) => !v)}
-            aria-expanded={csvOpen}
-          >
-            <Upload size={13} aria-hidden="true" />
-            Import CSV
-          </Button>
+          {canAssignTasks && (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCsvOpen((v) => !v)}
+                aria-expanded={csvOpen}
+              >
+                <Upload size={13} aria-hidden="true" />
+                Import CSV
+              </Button>
 
-          <Button type="button" size="sm" onClick={() => openModal('task-modal')}>
-            <Plus size={14} aria-hidden="true" />
-            New Task
-          </Button>
+              <Button type="button" size="sm" onClick={() => openModal('task-modal')}>
+                <Plus size={14} aria-hidden="true" />
+                New Task
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
       {/* Collapsible CSV Import Panel */}
-      <TaskCsvImport open={csvOpen} onOpenChange={setCsvOpen} hideTrigger />
+      {canAssignTasks && <TaskCsvImport open={csvOpen} onOpenChange={setCsvOpen} hideTrigger />}
 
       {/* Search & Project Filter Toolbar */}
       <div
@@ -503,13 +509,15 @@ export default function TasksPage() {
             title={tasks.length === 0 ? 'No tasks in this workspace yet' : 'No tasks match active filters'}
             description={
               tasks.length === 0
-                ? 'Start organizing your sprint deliverables. Give the work a name, assign an owner, and set a deadline.'
+                ? (canAssignTasks
+                  ? 'Start organizing your sprint deliverables. Give the work a name, assign an owner, and set a deadline.'
+                  : 'Tasks assigned by a workspace Owner or Admin will appear here.')
                 : 'No tasks match your selected filter or search criteria. Try clearing filters or switching project views.'
             }
-            actionLabel={tasks.length === 0 ? 'Create Your First Task' : 'Reset Filters'}
+            actionLabel={tasks.length === 0 ? (canAssignTasks ? 'Create Your First Task' : undefined) : 'Reset Filters'}
             onAction={
               tasks.length === 0
-                ? () => openModal('task-modal')
+                ? (canAssignTasks ? () => openModal('task-modal') : undefined)
                 : () => {
                   setProjectFilter('all');
                   setSearchQuery('');
@@ -565,16 +573,18 @@ export default function TasksPage() {
                           </Badge>
                         </button>
 
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openModal('task-modal')}
-                          style={{ height: '26px', fontSize: '11.5px', color: 'var(--text-secondary)' }}
-                        >
-                          <Plus size={12} aria-hidden="true" />
-                          Add task
-                        </Button>
+                        {canAssignTasks && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openModal('task-modal')}
+                            style={{ height: '26px', fontSize: '11.5px', color: 'var(--text-secondary)' }}
+                          >
+                            <Plus size={12} aria-hidden="true" />
+                            Add task
+                          </Button>
+                        )}
                       </div>
 
                       {!collapsed && <div>{groupTasks.map(renderGroupRow)}</div>}
@@ -622,16 +632,18 @@ export default function TasksPage() {
                             {colTasks.length}
                           </Badge>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Add task in ${col.label}`}
-                          onClick={() => openModal('task-modal')}
-                          style={{ width: '26px', height: '26px' }}
-                        >
-                          <Plus size={13} aria-hidden="true" />
-                        </Button>
+                        {canAssignTasks && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Add task in ${col.label}`}
+                            onClick={() => openModal('task-modal')}
+                            style={{ width: '26px', height: '26px' }}
+                          >
+                            <Plus size={13} aria-hidden="true" />
+                          </Button>
+                        )}
                       </div>
 
                       {colTasks.length === 0 ? (
@@ -721,9 +733,13 @@ export default function TasksPage() {
                   <EmptyState
                     compact
                     title="No scheduled tasks on the calendar"
-                    description="None of your active tasks have deadlines set. Assign due dates to view them on the calendar."
-                    actionLabel="Schedule Task"
-                    onAction={() => openModal('task-modal')}
+                    description={
+                      canAssignTasks
+                        ? 'None of your active tasks have deadlines set. Assign due dates to view them on the calendar.'
+                        : 'No scheduled tasks have deadlines set yet.'
+                    }
+                    actionLabel={canAssignTasks ? 'Schedule Task' : undefined}
+                    onAction={canAssignTasks ? () => openModal('task-modal') : undefined}
                   />
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '12px' }}>
@@ -870,21 +886,23 @@ export default function TasksPage() {
               </div>
             </div>
 
-            <DialogFooter style={{ justifyContent: 'space-between', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  if (window.confirm(`Are you sure you want to delete task "${selectedTaskDetail.name}"?`)) {
-                    deleteTask(selectedTaskDetail.id);
-                    setSelectedTaskDetail(null);
-                  }
-                }}
-              >
-                <Trash2 size={13} aria-hidden="true" />
-                Delete Task
-              </Button>
+            <DialogFooter style={{ justifyContent: canAssignTasks ? 'space-between' : 'flex-end', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+              {canAssignTasks && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to delete task "${selectedTaskDetail.name}"?`)) {
+                      deleteTask(selectedTaskDetail.id);
+                      setSelectedTaskDetail(null);
+                    }
+                  }}
+                >
+                  <Trash2 size={13} aria-hidden="true" />
+                  Delete Task
+                </Button>
+              )}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <Button type="button" variant="outline" size="sm" onClick={() => setSelectedTaskDetail(null)}>
                   Close

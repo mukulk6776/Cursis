@@ -33,7 +33,7 @@ export const workCommand = z.discriminatedUnion('action', [
 ]);
 export type WorkCommand = z.infer<typeof workCommand>;
 type StoredTask = Task & { _id: string };
-const manager = (auth: WorkspaceAuthResult) => ['owner', 'admin', 'manager'].includes(auth.role);
+const manager = (auth: WorkspaceAuthResult) => ['owner', 'admin'].includes(auth.role);
 const assigned = (task: Task, uid: string) => task.assigneeId === uid || task.assignees?.includes(uid);
 
 export async function workCollections() {
@@ -106,6 +106,7 @@ export async function executeWork(auth: WorkspaceAuthResult, command: WorkComman
     return { message };
   }
   if (command.action === 'dock') {
+    if (!manager(auth)) throw new WorkError('Only workspace owners and admins can assign tasks.', 403);
     const message = await messages.findOne({ id: command.messageId, workspaceId });
     if (!message) throw new WorkError('Message not found.', 404);
     await member(command.assigneeId);
@@ -203,6 +204,9 @@ export async function executeWork(auth: WorkspaceAuthResult, command: WorkComman
     saveCache(next); return { task: next };
   }
   taskEditor(task);
+  if (command.assigneeId !== undefined && command.assigneeId !== task.assigneeId && !manager(auth)) {
+    throw new WorkError('Only workspace owners and admins can assign or reassign tasks.', 403);
+  }
   if (command.assigneeId) await member(command.assigneeId);
   if (command.status === 'done' && thread.approvals.some(request => request.status === 'pending')) throw new WorkError('Resolve the approval gate before completing this task.', 409);
   const updates: Partial<Task> = { updatedAt: now };

@@ -17,8 +17,8 @@ export async function POST(request: Request) {
       return apiError('Task not found', 404);
     }
 
-    // Enforce workspace membership — only managers/admins/owners can reassign
-    const auth = await authorizeWorkspaceAccess(request, task.workspaceId, ['owner', 'admin', 'manager']);
+    // Enforce workspace membership — only admins/owners can reassign
+    const auth = await authorizeWorkspaceAccess(request, task.workspaceId, ['owner', 'admin']);
     if (auth.errorResponse) return auth.errorResponse;
 
     if (!body.newAssigneeId) {

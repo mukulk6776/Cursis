@@ -17,8 +17,6 @@ export default function ProjectsPage() {
     meetings,
     openModal,
     showToast,
-    addProject,
-    addTask,
     updateProject,
     planLimits,
   } = useDashboard();
@@ -30,40 +28,6 @@ export default function ProjectsPage() {
   const getTasksForProject = (projectId: string) => tasks.filter((t) => t.project === projectId);
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
-
-  const handleLoadTemplate = (t: { name: string; desc: string; tasks: number }) => {
-    const projId = 'proj_' + Date.now();
-    addProject({
-      id: projId,
-      name: t.name,
-      desc: t.desc,
-      color: '#FF5500',
-      icon: 'folder',
-      status: 'In Progress',
-      progress: 0,
-      deadline: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
-      team: employees.slice(0, 2).map((e) => e.id),
-      tasks: t.tasks,
-      completed: 0,
-    });
-    const templateTaskNames = [
-      `Kickoff & Scope Alignment: ${t.name}`,
-      `Technical Architecture & Review`,
-      `Design System & Deliverables Specification`,
-      `Sprint Execution & Verification`,
-    ];
-    templateTaskNames.forEach((taskTitle) => {
-      addTask({
-        name: taskTitle,
-        project: projId,
-        priority: 'high',
-        status: 'todo',
-        assignee: employees[0]?.id || '',
-        deadline: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
-      });
-    });
-    showToast(`Project "${t.name}" created with starter tasks`);
-  };
 
   return (
     <div className="page active" id="page-projects" style={{ maxWidth: '1080px', margin: '0 auto' }}>
@@ -435,32 +399,6 @@ export default function ProjectsPage() {
           )}
         </>
       )}
-
-      {/* Project Templates */}
-      <div style={{ marginTop: '24px' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>Quick Project Templates</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '8px' }}>
-          {[
-            { name: 'Product Launch', desc: 'Lifecycle from ideation to market release', tasks: 28 },
-            { name: 'Marketing Campaign', desc: 'Multi-channel campaign planning', tasks: 18 },
-            { name: 'Client Onboarding', desc: 'Intake and technical setup workflow', tasks: 15 },
-            { name: 'Software Sprint', desc: '2-week sprint with stories and reviews', tasks: 20 },
-          ].map((t, idx) => (
-            <div
-              key={idx}
-              className="card"
-              style={{ padding: '10px 14px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--surface-card)' }}
-              onClick={() => handleLoadTemplate(t)}
-            >
-              <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-primary)' }}>+ {t.name}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{t.desc}</div>
-              <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '6px' }}>
-                {t.tasks} pre-built tasks
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Project Detail Modal */}
       {selectedProject && (

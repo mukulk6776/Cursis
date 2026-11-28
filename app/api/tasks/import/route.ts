@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   try {
     const parsed = z.object({ workspaceId: z.string().min(1).max(128), batchId: z.string().uuid(), csv: z.string().min(1).max(64000) }).strict().safeParse(await readAppBody(request, 100000));
     if (!parsed.success) return apiError('Invalid import request.', 400);
-    const auth = await authorizeWorkspaceAccess(request, parsed.data.workspaceId);
+    const auth = await authorizeWorkspaceAccess(request, parsed.data.workspaceId, ['owner', 'admin']);
     if (auth.errorResponse) return auth.errorResponse;
     const db = await getDb();
     if (!db) throw new Error('Import storage unavailable');

@@ -1871,6 +1871,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
  // ---- Task Mutations ----
  const addTask = (taskData: Partial<Task> & { name: string }) => {
+ if (!['owner', 'admin'].includes(user.workspaceRole || 'member')) {
+ showToast('Only workspace owners and admins can create or assign tasks.');
+ return;
+ }
  const explicitProject = taskData.project || '';
  if (explicitProject && planLimits.maxTasksPerProject !== null) {
  const projTaskCount = tasks.filter((t) => t.project === explicitProject).length;
@@ -1989,6 +1993,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  };
 
   const updateTask = (id: string, updates: Partial<Task>) => {
+  if (
+    (updates.assignee !== undefined || updates.assignees !== undefined) &&
+    !['owner', 'admin'].includes(user.workspaceRole || 'member')
+  ) {
+    showToast('Only workspace owners and admins can assign or reassign tasks.');
+    return;
+  }
   setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
   showToast('Task updated ');
 
@@ -2066,6 +2077,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     showToast('Task deleted successfully');
   };
   const assignTask = (taskId: string, assigneeIds: string[]) => {
+    if (!['owner', 'admin'].includes(user.workspaceRole || 'member')) {
+      showToast('Only workspace owners and admins can assign tasks.');
+      return;
+    }
     const primary = assigneeIds[0] || user.id;
     const emp = employees.find((e) => e.id === primary);
     setTasks((prev) =>

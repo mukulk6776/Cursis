@@ -128,6 +128,11 @@ ul, ol {
   color: var(--c-near-black);
 }
 
+html[data-theme='dark'] ::selection {
+  background: #e4e4e7;
+  color: #09090b;
+}
+
 /* Utility */
 .sr-only {
   position: absolute;

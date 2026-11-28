@@ -46,6 +46,7 @@ export default function HomePage() {
   const inProgressTasks = tasks.filter((t) => t.status !== 'completed').length;
   const overdueTasks = tasks.filter((t) => isOverdue(t.deadline) && t.status !== 'completed');
   const upcomingMeetings = meetings.filter((m) => m.status !== 'completed');
+  const canAssignTasks = ['owner', 'admin'].includes(user.workspaceRole || 'member');
 
   const handleSendPrompt = (promptText?: string) => {
     const text = (promptText || aiInput).trim();
@@ -100,14 +101,16 @@ export default function HomePage() {
             <Calendar size={14} aria-hidden="true" />
             Schedule Sync
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => openModal('task-modal')}
-          >
-            <Plus size={14} aria-hidden="true" />
-            New Task
-          </Button>
+          {canAssignTasks && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => openModal('task-modal')}
+            >
+              <Plus size={14} aria-hidden="true" />
+              New Task
+            </Button>
+          )}
         </div>
       </div>
 
@@ -380,9 +383,13 @@ export default function HomePage() {
               <EmptyState
                 compact
                 title="No tasks in this view"
-                description={tasks.length === 0 ? "Get started by adding your team's first deliverable." : "All tasks in this view are completed or cleared."}
-                actionLabel="+ Create Task"
-                onAction={() => openModal('task-modal')}
+                description={
+                  tasks.length === 0
+                    ? (canAssignTasks ? "Get started by adding your team's first deliverable." : "Tasks assigned by a workspace Owner or Admin will appear here.")
+                    : "All tasks in this view are completed or cleared."
+                }
+                actionLabel={canAssignTasks ? '+ Create Task' : undefined}
+                onAction={canAssignTasks ? () => openModal('task-modal') : undefined}
               />
             ) : (
               filteredTasks.slice(0, 6).map((task) => {

@@ -26,8 +26,6 @@ export default function SettingsPage() {
     workspaceSettings,
     updateWorkspaceSettings,
     saveWorkspaceName,
-    teamSettings,
-    updateTeamSettings,
     notificationSettings,
     updateNotificationSettings,
 
@@ -76,7 +74,6 @@ export default function SettingsPage() {
       window.removeEventListener('storage', onStorage);
     };
   }, []);
-  const [teamForm, setTeamForm] = useState(teamSettings);
   const [notifForm, setNotifForm] = useState(notificationSettings);
 
   const [ordisForm, setOrdisForm] = useState(ordisSettings);
@@ -86,10 +83,6 @@ export default function SettingsPage() {
   useEffect(() => {
     setWsForm(workspaceSettings);
   }, [workspaceSettings]);
-
-  useEffect(() => {
-    setTeamForm(teamSettings);
-  }, [teamSettings]);
 
   useEffect(() => {
     setNotifForm(notificationSettings);
@@ -109,11 +102,6 @@ export default function SettingsPage() {
   const handleSaveWorkspace = (e: React.FormEvent) => {
     e.preventDefault();
     updateWorkspaceSettings(wsForm);
-  };
-
-  const handleSaveTeam = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateTeamSettings(teamForm);
   };
 
   const handleSaveNotifications = (e: React.FormEvent) => {
@@ -143,7 +131,7 @@ export default function SettingsPage() {
         <div>
           <h1 className="page-title">Workspace Settings</h1>
           <p className="page-subtitle">
-            Configure workspace preferences, manage team governance, notifications, calendar rules, security, and Ordis AI behavior.
+            Configure workspace preferences, manage team permissions, notifications, security, and Ordis AI behavior.
           </p>
         </div>
       </div>
@@ -618,13 +606,11 @@ export default function SettingsPage() {
                           <select
                             className="input select"
                             style={{ padding: '2px 8px', fontSize: '11px', height: '28px' }}
-                            value={emp.workspaceRole === 'owner' ? 'member' : emp.workspaceRole}
+                            value={emp.workspaceRole === 'admin' ? 'admin' : 'member'}
                             onChange={(e) => updateEmployee(emp.id, { workspaceRole: e.target.value })}
                           >
                             <option value="admin">Admin</option>
-                            <option value="manager">Manager</option>
                             <option value="member">Member</option>
-                            <option value="viewer">Viewer</option>
                           </select>
                         )}
                       </td>
@@ -707,99 +693,6 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
-
-          {/* Team Governance & Policies Form */}
-          <form onSubmit={handleSaveTeam} className="card" style={{ padding: 'var(--sp-5)' }}>
-            <h3 style={{ marginBottom: 'var(--sp-2)', fontSize: 'var(--fs-base)', fontWeight: 'var(--fw-bold)' }}>
-              Team Governance &amp; Policies
-            </h3>
-            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--sp-4)' }}>
-              Default roles for newcomers and workspace invitation policies.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--sp-4)', marginBottom: 'var(--sp-4)' }}>
-              <div className="input-group">
-                <label className="input-label">Default Role for New Invites</label>
-                <select
-                  className="input select"
-                  value={teamForm.defaultRole}
-                  onChange={(e) => setTeamForm({ ...teamForm, defaultRole: e.target.value })}
-                >
-                  <option value="member">Member (Standard Workspace User)</option>
-                  <option value="manager">Manager (Can manage projects &amp; assign)</option>
-                  <option value="admin">Admin (Full workspace administration)</option>
-                  <option value="viewer">Viewer (Read-only access)</option>
-                </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', borderTop: '1px solid var(--c-gray-200)', paddingTop: 'var(--sp-4)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
-                <div>
-                  <div style={{ fontWeight: 'var(--fw-bold)' }}>Allow Member Invites</div>
-                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Allow existing members to invite new collaborators</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={teamForm.allowMemberInvites}
-                  onChange={(e) => setTeamForm({ ...teamForm, allowMemberInvites: e.target.checked })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
-                <div>
-                  <div style={{ fontWeight: 'var(--fw-bold)' }}>Allow Guest Users</div>
-                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Allow inviting temporary external stakeholders to single projects</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={teamForm.allowGuestAccess}
-                  onChange={(e) => setTeamForm({ ...teamForm, allowGuestAccess: e.target.checked })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
-                <div>
-                  <div style={{ fontWeight: 'var(--fw-bold)' }}>Manager Invite Approval</div>
-                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Require admin review before managers can add members to billing</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={teamForm.requireAdminApprovalForInvites}
-                  onChange={(e) => setTeamForm({ ...teamForm, requireAdminApprovalForInvites: e.target.checked })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
-                <div>
-                  <div style={{ fontWeight: 'var(--fw-bold)' }}>Ordis Auto-Assign Balancing</div>
-                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>Allow Ordis to suggest task assignees based on capacity and skills</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={teamForm.autoAssignTasks}
-                  onChange={(e) => setTeamForm({ ...teamForm, autoAssignTasks: e.target.checked })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-              </label>
-            </div>
-
-            <div style={{ marginTop: 'var(--sp-5)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
-              <button type="submit" className="btn btn-primary" id="save-team-btn">
-                Save Team Settings
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => resetSettingsToDefault('team')}
-              >
-                Reset to Defaults
-              </button>
-            </div>
-          </form>
         </div>
       )}
 

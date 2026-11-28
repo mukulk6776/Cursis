@@ -47,8 +47,8 @@ export async function POST(request: Request) {
       ? String(rawWs).trim()
       : (authUser.workspaceId || `ws_${authUser.uid}`);
 
-    // Authorize workspace access
-    const auth = await authorizeWorkspaceAccess(request, workspaceId);
+    // Authorize workspace access — only owners and admins can create or assign tasks
+    const auth = await authorizeWorkspaceAccess(request, workspaceId, ['owner', 'admin']);
     if (auth.errorResponse) return auth.errorResponse;
 
     const title = body.title || body.name;
@@ -102,6 +102,15 @@ export async function PATCH(request: Request) {
     const auth = await authorizeWorkspaceAccess(request, existing.workspaceId);
     if (auth.errorResponse) return auth.errorResponse;
 
+    const isModifyingAssignee =
+      body.assigneeId !== undefined ||
+      body.assigneeName !== undefined ||
+      body.assignee !== undefined ||
+      body.assignees !== undefined;
+    if (isModifyingAssignee && !['owner', 'admin'].includes(auth.role)) {
+      return apiError('Forbidden: Only Workspace Owners or Admins can assign or reassign tasks.', 403);
+    }
+
     const nextProjectId = body.projectId || body.project;
     if (nextProjectId && nextProjectId !== existing.projectId) {
       const limitBlock = await checkTaskPerProjectLimit(existing.workspaceId, nextProjectId, authUser.email);
@@ -145,8 +154,8 @@ export async function DELETE(request: Request) {
     const auth = await authorizeWorkspaceAccess(request, existing.workspaceId);
     if (auth.errorResponse) return auth.errorResponse;
 
-    // RBAC: Only owner, admin, manager or task creator can delete
-    const isOwnerOrAdmin = ['owner', 'admin', 'manager'].includes(auth.role);
+    // RBAC: Only owner, admin or task creator can delete
+    const isOwnerOrAdmin = ['owner', 'admin'].includes(auth.role);
     const isCreator = existing.creatorId === authUser.uid;
     if (!isOwnerOrAdmin && !isCreator) {
       return apiError('Forbidden: Only workspace admins or the task creator can delete this task.', 403);

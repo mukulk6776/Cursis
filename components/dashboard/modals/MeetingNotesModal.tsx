@@ -6,7 +6,8 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { formatDate } from '@/lib/dashboard/data';
 
 export default function MeetingNotesModal() {
-  const { activeModal, closeModal, selectedMeetingNotes, getEmployee, addTask, showToast } = useDashboard();
+  const { user, activeModal, closeModal, selectedMeetingNotes, getEmployee, addTask, showToast } = useDashboard();
+  const canAssignTasks = ['owner', 'admin'].includes(user.workspaceRole || 'member');
 
   // All hooks MUST be declared unconditionally at top level
   const [converted, setConverted] = useState(false);
@@ -64,7 +65,7 @@ export default function MeetingNotesModal() {
   };
 
   const handleConvertActionItems = async () => {
-    if (converted || isConverting || actionItems.length === 0) return;
+    if (!canAssignTasks || converted || isConverting || actionItems.length === 0) return;
     setIsConverting(true);
 
     try {
@@ -316,7 +317,7 @@ export default function MeetingNotesModal() {
           <button className="btn btn-secondary" onClick={closeModal}>
             Close
           </button>
-          {actionItems.length > 0 && !converted && (
+          {canAssignTasks && actionItems.length > 0 && !converted && (
             <button
               className="btn btn-primary"
               onClick={handleConvertActionItems}

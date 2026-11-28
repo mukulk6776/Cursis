@@ -16,7 +16,6 @@ export default function Topbar() {
     workspaces,
     activeWorkspace,
     switchWorkspace,
-    openModal,
     setMobileSidebarOpen,
     setCurrentPage,
     signOut,
@@ -99,19 +98,6 @@ export default function Topbar() {
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           {unreadCount > 0 && <span className="notif-dot" />}
-        </button>
-
-        {/* Agency Services Button */}
-        <button
-          className="topbar-action-btn"
-          title="Agency Services"
-          aria-label="Request custom agency engineering build"
-          onClick={() => openModal('agency-modal')}
-          type="button"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
         </button>
 
         {/* Multi-Workspace Switcher Dropdown */}

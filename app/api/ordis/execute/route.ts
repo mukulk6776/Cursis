@@ -32,6 +32,9 @@ export async function POST(request: Request) {
 
  // 1. Task Creation
  if (lower.includes('create task') || lower.includes('add task') || lower.includes('task for')) {
+ if (!['owner', 'admin'].includes(wsAuth.role)) {
+ return apiError('Forbidden: Only Workspace Owners and Admins can create or assign tasks.', 403);
+ }
  const taskName = text.includes(':') ? text.split(':')[1].trim() : text.replace(/create task|add task|task for/gi, '').trim() || 'Sprint Deliverable';
  const newTask = await createTask(workspaceId, {
  title: taskName,

@@ -17,7 +17,7 @@ export default function InviteModal() {
   const isAtCapacity = activeCount + pendingCount >= effectiveLimit;
 
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'member' | 'admin' | 'viewer'>('member');
+  const [role, setRole] = useState<'member' | 'admin'>('member');
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -244,12 +244,11 @@ export default function InviteModal() {
                 id="invite-modal-role-select"
                 className="input select"
                 value={role}
-                onChange={(e) => setRole(e.target.value as 'member' | 'admin' | 'viewer')}
+                onChange={(e) => setRole(e.target.value as 'member' | 'admin')}
                 disabled={isSubmitting || isAtCapacity}
                 style={{ width: '100%' }}
               >
                 <option value="member">Member</option>
-                <option value="viewer">Viewer</option>
                 <option value="admin">Admin</option>
               </select>
             </div>

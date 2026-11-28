@@ -690,9 +690,9 @@ function PaymentCheckoutContent() {
               <div style={{ marginTop: '20px', padding: '14px', borderRadius: '10px', background: 'var(--c-bg-subtle, #F9FAFB)', border: '1px solid var(--border-color)', fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.5 }}>
                 <div><strong>Instant Digital Activation:</strong> Features unlock on your workspace right after payment verification.</div>
                 <div>
-                  <strong>Simple Refunds:</strong> Need a refund? Just email{' '}
+                  <strong>No-Refund Policy:</strong> All purchases are final with no refunds after purchasing. Need billing help? Email{' '}
                   <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: '#FF5500', fontWeight: 600 }}>{SUPPORT_EMAIL}</a> or{' '}
-                  <a href="mailto:official@cursis.in" style={{ color: '#FF5500', fontWeight: 600 }}>official@cursis.in</a> and we&apos;ll process it via Razorpay.
+                  <a href="mailto:official@cursis.in" style={{ color: '#FF5500', fontWeight: 600 }}>official@cursis.in</a>.
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
                   Operated by Saransh Vashistha and Mukul Kumar, operating as {BRAND_NAME}.

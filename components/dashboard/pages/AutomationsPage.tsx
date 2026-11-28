@@ -12,7 +12,6 @@ export default function AutomationsPage() {
    addAutomation,
    updateAutomation,
    deleteAutomation,
-   openModal,
    showToast,
    addAuditEntry,
  } = useDashboard();
@@ -347,9 +346,6 @@ export default function AutomationsPage() {
  Bespoke automations connecting external CRMs, PDF generation, and automated signer alerts.
  </p>
  </div>
- <button className="btn btn-secondary btn-sm" onClick={() => openModal('agency-modal')}>
- Request Custom Workflow →
- </button>
  </div>
 
  <div className="automation-list">

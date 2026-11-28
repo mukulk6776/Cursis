@@ -8,7 +8,8 @@ import { useDashboard } from '@/lib/dashboard/DashboardContext';
 import { PriorityLevel, TaskStatus } from '@/lib/dashboard/types';
 
 export default function TaskModal() {
-  const { activeModal, closeModal, addTask, projects, employees, tasks, activeWorkspace, planLimits } = useDashboard();
+  const { user, activeModal, closeModal, addTask, projects, employees, tasks, activeWorkspace, planLimits } = useDashboard();
+  const canAssignTasks = ['owner', 'admin'].includes(user.workspaceRole || 'member');
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -28,9 +29,61 @@ export default function TaskModal() {
     closeModal();
   };
 
+  if (!canAssignTasks) {
+    return (
+      <div
+        className="modal-overlay active"
+        id="task-modal"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleClose();
+        }}
+      >
+        <div
+          className="modal"
+          style={{
+            maxWidth: '460px',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)',
+          }}
+        >
+          <div className="modal-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
+            <span className="modal-title" style={{ fontSize: '16px', fontWeight: 700 }}>
+              Task Assignment Restricted
+            </span>
+            <button type="button" className="modal-close" onClick={handleClose} aria-label="Close modal">
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
+          <div className="modal-body" style={{ padding: '20px', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+            Only workspace <strong>Owners</strong> and <strong>Admins</strong> can create and assign tasks. Contact a workspace admin if you need a new task assigned.
+          </div>
+          <div
+            className="modal-footer"
+            style={{
+              padding: '14px 20px',
+              borderTop: '1px solid var(--border-color)',
+              background: 'var(--surface-secondary)',
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Close
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+
+    if (!canAssignTasks) {
+      setErrorMsg('Only workspace owners and admins can assign tasks.');
+      return;
+    }
 
     if (!name.trim()) {
       setErrorMsg('Please enter a task title.');

@@ -77,7 +77,7 @@ export const marketingFaqs = [
   {
     question: 'How do cancellations and refunds work?',
     answer:
-      'You can cancel anytime without lock-in fees. To request a refund, simply email official@cursis.in from your billing email and we will process it via Razorpay within 5–7 business days.',
+      'All Cursis purchases are final with no refunds after purchasing. You can cancel anytime without lock-in fees to stop future renewals, while keeping access until the end of your current paid period.',
   },
   {
     question: 'Can I sign in with an existing account?',
