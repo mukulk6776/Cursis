@@ -198,7 +198,7 @@ export default function ProjectsPage() {
                           borderRadius: '4px',
                           background: 'var(--c-surface)',
                           border: '1px solid var(--border-color)',
-                          color: p.status === 'In Progress' ? '#FF5500' : 'var(--text-secondary)',
+                          color: 'var(--text-primary)',
                           flexShrink: 0,
                         }}
                       >
@@ -322,7 +322,7 @@ export default function ProjectsPage() {
                               borderRadius: '4px',
                               background: 'var(--c-surface)',
                               border: '1px solid var(--border-color)',
-                              color: p.status === 'In Progress' ? '#FF5500' : 'var(--text-secondary)',
+                              color: 'var(--text-primary)',
                             }}
                           >
                             {p.status}
@@ -568,9 +568,9 @@ export default function ProjectsPage() {
                         className="badge"
                         style={{
                           cursor: 'pointer',
-                          background: isAssigned ? 'var(--c-brand-bg, #FFF3EB)' : 'var(--surface-card)',
-                          color: isAssigned ? 'var(--c-brand, #B53B00)' : 'var(--text-secondary)',
-                          border: `1px solid ${isAssigned ? '#FF5500' : 'var(--border-color)'}`,
+                          background: isAssigned ? 'var(--c-brand)' : 'var(--surface-card)',
+                          color: isAssigned ? 'var(--c-on-brand)' : 'var(--text-secondary)',
+                          border: `1px solid ${isAssigned ? 'var(--c-brand)' : 'var(--border-color)'}`,
                           padding: '4px 10px',
                           display: 'inline-flex',
                           alignItems: 'center',

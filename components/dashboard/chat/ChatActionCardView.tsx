@@ -120,13 +120,13 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
       style={{
         marginTop: '10px',
         padding: '14px 16px',
-        background: 'var(--c-bg-subtle, #FAF6EE)',
-        border: '3px solid var(--border-dark, #0A0A0A)',
-        borderRadius: '14px',
+        background: 'var(--c-bg-subtle)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '8px',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
-        boxShadow: '4px 4px 0px #0A0A0A',
+        boxShadow: 'none',
       }}
     >
       {/* Header with Title and Badge */}
@@ -145,12 +145,12 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
           <span
             style={{
               fontSize: '10px',
-              fontWeight: 700,
-              padding: '3px 8px',
+              fontWeight: 600,
+              padding: '2px 8px',
               borderRadius: '9999px',
-              background: card.badgeColor ? `${card.badgeColor}22` : 'rgba(255, 85, 0, 0.12)',
-              color: card.badgeColor || '#FF5500',
-              border: `1.5px solid ${card.badgeColor ? `${card.badgeColor}66` : 'var(--border-dark, #0A0A0A)'}`,
+              background: 'var(--surface-card)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-color)',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
               whiteSpace: 'nowrap',
@@ -171,15 +171,15 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
             gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
             gap: '8px 12px',
             padding: '10px 12px',
-            background: 'var(--surface-card, #FFFFFF)',
-            borderRadius: '10px',
-            border: '2px solid var(--border-dark, #0A0A0A)',
+            background: 'var(--surface-card)',
+            borderRadius: '6px',
+            border: '1px solid var(--border-color)',
           }}
         >
           {card.meta.priority && (
             <div>
-              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Priority: </span>
-              <strong style={{ color: card.meta.priority === 'urgent' ? '#EF4444' : '#FF5500' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Priority: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>
                 {card.meta.priority}
               </strong>
             </div>
@@ -231,7 +231,7 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
                   style={{
                     width: `${card.meta.progress}%`,
                     height: '100%',
-                    background: '#FF5500',
+                    background: 'var(--c-brand)',
                   }}
                 />
               </div>
@@ -240,23 +240,23 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
 
           {card.meta.themeColor && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Accent: </span>
+              <span style={{ color: 'var(--text-secondary)' }}>Accent: </span>
               <div
                 style={{
                   width: '14px',
                   height: '14px',
                   borderRadius: '3px',
                   background: card.meta.themeColor,
-                  border: '1.5px solid var(--border-dark, #0A0A0A)',
+                  border: '1px solid var(--border-color)',
                 }}
               />
-              <code style={{ fontSize: '10px', color: 'var(--text-primary, #0A0A0A)', fontWeight: 600 }}>{card.meta.themeColor}</code>
+              <code style={{ fontSize: '10px', color: 'var(--text-primary)', fontWeight: 600 }}>{card.meta.themeColor}</code>
             </div>
           )}
 
           {card.meta.keyPrefix && (
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-              <code style={{ background: 'var(--c-bg-subtle, #F3EFE4)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', color: 'var(--c-brand, #B53B00)', border: '1.5px solid var(--border-dark, #0A0A0A)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 700 }}>
+              <code style={{ background: 'var(--c-bg-subtle)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', color: 'var(--text-primary)', border: '1px solid var(--border-color)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>
                 {card.meta.keyPrefix}••••••••••••••••
               </code>
               <button
@@ -265,14 +265,13 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
                 style={{
                   padding: '4px 10px',
                   fontSize: '11px',
-                  fontWeight: 700,
-                  background: copied ? '#10B981' : '#0A0A0A',
-                  color: '#FFFFFF',
-                  border: '2px solid var(--border-dark, #0A0A0A)',
+                  fontWeight: 600,
+                  background: 'var(--c-brand)',
+                  color: 'var(--c-on-brand)',
+                  border: '1px solid var(--c-brand)',
                   borderRadius: '6px',
                   cursor: 'pointer',
-                  boxShadow: '2px 2px 0px #0A0A0A',
-                  transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+                  boxShadow: 'none',
                 }}
               >
                 {copied ? 'Copied ✓' : 'Copy'}
@@ -282,8 +281,8 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
 
           {card.meta.when && card.meta.then && (
             <div style={{ gridColumn: '1 / -1' }}>
-              <div><span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>When: </span><span style={{ color: 'var(--c-brand, #B53B00)', fontWeight: 600 }}>{card.meta.when}</span></div>
-              <div style={{ marginTop: '2px' }}><span style={{ color: 'var(--text-secondary, #4A4A4A)' }}>Then: </span><span style={{ color: '#10B981', fontWeight: 600 }}>{card.meta.then}</span></div>
+              <div><span style={{ color: 'var(--text-secondary)' }}>When: </span><span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{card.meta.when}</span></div>
+              <div style={{ marginTop: '2px' }}><span style={{ color: 'var(--text-secondary)' }}>Then: </span><span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{card.meta.then}</span></div>
             </div>
           )}
         </div>
@@ -300,36 +299,17 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
               minWidth: '110px',
               padding: '8px 14px',
               fontSize: '12px',
-              fontWeight: 700,
-              background: '#FF5500',
-              color: '#FFFFFF',
-              border: '3px solid #0A0A0A',
-              borderRadius: '10px',
-              boxShadow: '3px 3px 0px #0A0A0A',
+              fontWeight: 600,
+              background: 'var(--c-brand)',
+              color: 'var(--c-on-brand)',
+              border: '1px solid var(--c-brand)',
+              borderRadius: '6px',
+              boxShadow: 'none',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              transition: 'transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#FF722B';
-              e.currentTarget.style.transform = 'translate(-1px, -1px)';
-              e.currentTarget.style.boxShadow = '4px 4px 0px #0A0A0A';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#FF5500';
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '3px 3px 0px #0A0A0A';
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'translate(1px, 1px)';
-              e.currentTarget.style.boxShadow = '1px 1px 0px #0A0A0A';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'translate(-1px, -1px)';
-              e.currentTarget.style.boxShadow = '4px 4px 0px #0A0A0A';
             }}
           >
             {card.primaryAction.label}
@@ -343,36 +323,17 @@ export default function ChatActionCardView({ card }: ChatActionCardViewProps) {
             style={{
               padding: '8px 14px',
               fontSize: '12px',
-              fontWeight: 700,
-              background: taskCompleted ? '#10B981' : 'var(--surface-card, #FFFFFF)',
-              color: taskCompleted ? '#FFFFFF' : 'var(--text-primary, #0A0A0A)',
-              border: '3px solid var(--border-dark, #0A0A0A)',
-              borderRadius: '10px',
-              boxShadow: '3px 3px 0px #0A0A0A',
+              fontWeight: 600,
+              background: taskCompleted ? 'var(--c-brand)' : 'var(--surface-card)',
+              color: taskCompleted ? 'var(--c-on-brand)' : 'var(--text-primary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              boxShadow: 'none',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              transition: 'transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (!taskCompleted) e.currentTarget.style.background = 'var(--surface-hover, #FAF6EE)';
-              e.currentTarget.style.transform = 'translate(-1px, -1px)';
-              e.currentTarget.style.boxShadow = '4px 4px 0px #0A0A0A';
-            }}
-            onMouseLeave={(e) => {
-              if (!taskCompleted) e.currentTarget.style.background = 'var(--surface-card, #FFFFFF)';
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '3px 3px 0px #0A0A0A';
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'translate(1px, 1px)';
-              e.currentTarget.style.boxShadow = '1px 1px 0px #0A0A0A';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'translate(-1px, -1px)';
-              e.currentTarget.style.boxShadow = '4px 4px 0px #0A0A0A';
             }}
           >
             {taskCompleted ? 'Completed ✓' : card.secondaryAction.label}

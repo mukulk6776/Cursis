@@ -120,7 +120,7 @@ export default function HomePage() {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={15} color="#FF5500" aria-hidden="true" />
+            <Sparkles size={15} color="currentColor" aria-hidden="true" />
             <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
               Ordis Copilot
             </span>
@@ -267,14 +267,14 @@ export default function HomePage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
             <span>Overdue Tasks</span>
-            <AlertCircle size={14} color={overdueTasks.length > 0 ? '#dc2626' : 'currentColor'} aria-hidden="true" />
+            <AlertCircle size={14} color="currentColor" aria-hidden="true" />
           </div>
           <div
             style={{
               fontSize: '24px',
               fontWeight: 800,
               margin: '4px 0',
-              color: overdueTasks.length > 0 ? '#dc2626' : 'var(--text-primary)',
+              color: 'var(--text-primary)',
               letterSpacing: '-0.02em',
             }}
           >
@@ -283,7 +283,7 @@ export default function HomePage() {
           <div
             style={{
               fontSize: '12px',
-              color: overdueTasks.length > 0 ? '#dc2626' : 'var(--text-secondary)',
+              color: 'var(--text-secondary)',
               fontWeight: 600,
             }}
           >
@@ -437,7 +437,7 @@ export default function HomePage() {
                         borderRadius: '4px',
                         border: '1px solid var(--border-color)',
                         background: 'var(--c-surface)',
-                        color: task.priority === 'urgent' || task.priority === 'high' ? '#dc2626' : 'var(--text-secondary)',
+                        color: 'var(--text-secondary)',
                       }}
                     >
                       {task.priority}
@@ -549,7 +549,7 @@ export default function HomePage() {
               ) : (
                 activity.slice(0, 4).map((act) => (
                   <div key={act.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: act.dot || '#FF5500', flexShrink: 0 }} />
+                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--text-primary)', flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)', fontWeight: 500 }}>
                       {act.text}
                     </div>

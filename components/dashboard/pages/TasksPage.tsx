@@ -45,10 +45,10 @@ const STATUS_COLUMNS: {
   pillBg: string;
   pillFg: string;
 }[] = [
-    { id: 'in-progress', label: 'In Progress', dotColor: '#FF5500', pillBg: 'var(--c-brand-bg, #FFF3EB)', pillFg: 'var(--c-brand, #C2410C)' },
-    { id: 'todo', label: 'To Do', dotColor: '#6B7280', pillBg: 'var(--c-bg-subtle, #F3F4F6)', pillFg: 'var(--text-secondary, #374151)' },
-    { id: 'review', label: 'In Review', dotColor: '#8B5CF6', pillBg: 'var(--c-purple-bg, #F5F3FF)', pillFg: 'var(--c-purple, #6D28D9)' },
-    { id: 'completed', label: 'Completed', dotColor: '#10B981', pillBg: 'var(--c-success-bg, #ECFDF5)', pillFg: 'var(--c-success-text, #047857)' },
+    { id: 'in-progress', label: 'In Progress', dotColor: 'var(--text-primary)', pillBg: 'var(--c-bg-subtle)', pillFg: 'var(--text-primary)' },
+    { id: 'todo', label: 'To Do', dotColor: 'var(--text-tertiary)', pillBg: 'var(--c-bg-subtle)', pillFg: 'var(--text-secondary)' },
+    { id: 'review', label: 'In Review', dotColor: 'var(--text-secondary)', pillBg: 'var(--c-bg-subtle)', pillFg: 'var(--text-primary)' },
+    { id: 'completed', label: 'Completed', dotColor: 'var(--text-primary)', pillBg: 'var(--c-bg-subtle)', pillFg: 'var(--text-primary)' },
   ];
 
 const PRIORITY_BADGE_MAP: Record<PriorityLevel, { variant: BadgeVariant; label: string }> = {
@@ -797,7 +797,7 @@ export default function TasksPage() {
                               height: '100%',
                               width: pct,
                               borderRadius: '999px',
-                              background: t.status === 'completed' ? '#10B981' : '#FF5500',
+                              background: 'var(--text-primary)',
                               transition: 'width 0.25s ease',
                             }}
                           />

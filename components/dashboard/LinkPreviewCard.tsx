@@ -87,17 +87,15 @@ export default function LinkPreviewCard({ preview, loading, onRemove }: LinkPrev
         background: 'var(--surface-card)',
         maxWidth: '500px',
         position: 'relative',
-        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+        transition: 'border-color 0.15s ease',
         cursor: 'pointer',
       }}
       onClick={() => window.open(preview.url, '_blank', 'noopener,noreferrer')}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--c-brand)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.2))';
+        e.currentTarget.style.borderColor = 'var(--border-dark)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = 'var(--border-color)';
-        e.currentTarget.style.boxShadow = 'none';
       }}
     >
       {/* Remove button (only shown if onRemove is provided) */}

@@ -130,7 +130,7 @@ export default function TeamPage() {
             <AlertTriangle size={16} color="var(--c-error)" />
             <span>
               <strong>Team limit reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace is at maximum member capacity.{' '}
-              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700 }}>Upgrade plan →</a>
+              <a href="/pay" style={{ color: 'var(--text-primary)', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
             </span>
           </div>
           <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '4px', background: 'var(--c-error)', color: '#fff' }}>
@@ -305,9 +305,9 @@ export default function TeamPage() {
                               fontWeight: 600,
                               padding: '1px 6px',
                               borderRadius: '4px',
-                              background: 'rgba(255, 85, 0, 0.08)',
-                              color: 'var(--c-brand-text)',
-                              border: '1px solid rgba(255, 85, 0, 0.2)',
+                              background: 'var(--c-bg-subtle)',
+                              color: 'var(--text-primary)',
+                              border: '1px solid var(--border-color)',
                             }}
                           >
                             {emp.role}

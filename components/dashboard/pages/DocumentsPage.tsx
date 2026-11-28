@@ -358,8 +358,8 @@ export default function DocumentsPage() {
                 fontWeight: 800,
                 padding: '3px 8px',
                 borderRadius: '6px',
-                background: isOwner ? '#FF5500' : 'var(--c-surface)',
-                color: isOwner ? '#ffffff' : 'var(--text-secondary)',
+                background: isOwner ? 'var(--c-brand)' : 'var(--c-surface)',
+                color: isOwner ? 'var(--c-on-brand)' : 'var(--text-secondary)',
                 border: '1px solid var(--border-color)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
@@ -379,7 +379,7 @@ export default function DocumentsPage() {
               type="button"
               className="btn btn-primary btn-sm"
               onClick={() => setShowCreateModal(true)}
-              style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '2px 2px 0 0 var(--border-color)' }}
+              style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
               <span style={{ fontSize: '15px', lineHeight: 1 }}>+</span> Add New Document
             </button>
@@ -428,12 +428,11 @@ export default function DocumentsPage() {
                   borderRadius: '6px',
                   fontSize: '11px',
                   fontWeight: isActive ? 800 : 600,
-                  border: isActive ? '1px solid var(--border-color)' : '1px solid transparent',
-                  background: isActive ? '#FF5500' : 'var(--c-surface)',
-                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                  border: isActive ? '1px solid var(--c-brand)' : '1px solid transparent',
+                  background: isActive ? 'var(--c-brand)' : 'var(--c-surface)',
+                  color: isActive ? 'var(--c-on-brand)' : 'var(--text-secondary)',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  boxShadow: isActive ? '1.5px 1.5px 0 0 #000' : 'none',
+                  boxShadow: 'none',
                 }}
               >
                 {cat.label} ({count})
@@ -497,8 +496,8 @@ export default function DocumentsPage() {
               onClick={() => setViewMode('grid')}
               style={{
                 padding: '6px 10px',
-                background: viewMode === 'grid' ? '#FF5500' : 'var(--c-surface)',
-                color: viewMode === 'grid' ? '#fff' : 'var(--text-primary)',
+                background: viewMode === 'grid' ? 'var(--c-brand)' : 'var(--c-surface)',
+                color: viewMode === 'grid' ? 'var(--c-on-brand)' : 'var(--text-primary)',
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '11px',
@@ -512,8 +511,8 @@ export default function DocumentsPage() {
               onClick={() => setViewMode('table')}
               style={{
                 padding: '6px 10px',
-                background: viewMode === 'table' ? '#FF5500' : 'var(--c-surface)',
-                color: viewMode === 'table' ? '#fff' : 'var(--text-primary)',
+                background: viewMode === 'table' ? 'var(--c-brand)' : 'var(--c-surface)',
+                color: viewMode === 'table' ? 'var(--c-on-brand)' : 'var(--text-primary)',
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '11px',

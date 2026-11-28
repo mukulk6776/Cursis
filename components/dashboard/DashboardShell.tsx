@@ -85,9 +85,9 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           {planLimits.hasMyDay && <FocusStatus />}
           <motion.main
             key={pathname || 'main'}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+            initial={{ opacity: 0.96 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.1 }}
             className={`main-content ${isOrdisPage ? 'main-content-ordis' : ''}`}
           >
             {children}

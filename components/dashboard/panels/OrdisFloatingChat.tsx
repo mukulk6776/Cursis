@@ -226,10 +226,10 @@ function DisabledOrdisFloatingChat() {
  zIndex: 9999,
  display: 'flex',
  flexDirection: 'column',
- background: 'rgba(9, 13, 22, 0.97)',
- border: '1px solid rgba(255, 255, 255, 0.12)',
- borderRadius: '16px',
- boxShadow: '0 20px 35px -5px rgba(0, 0, 0, 0.5), 0 10px 15px -5px rgba(0, 0, 0, 0.3)',
+ background: 'var(--surface-modal, #0A0A0A)',
+ border: '1px solid var(--border-color, #262626)',
+ borderRadius: '10px',
+ boxShadow: 'none',
  overflow: 'hidden',
  transition: 'width 0.2s ease, height 0.2s ease',
  }}
@@ -238,8 +238,8 @@ function DisabledOrdisFloatingChat() {
  <div
  style={{
  padding: '12px 16px',
- background: 'rgba(15, 23, 42, 0.9)',
- borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+ background: 'var(--surface-primary, #0A0A0A)',
+ borderBottom: '1px solid var(--border-color, #262626)',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
@@ -249,18 +249,18 @@ function DisabledOrdisFloatingChat() {
  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '10px',
+              width: '30px',
+              height: '30px',
+              borderRadius: '8px',
               background: '#0A0A0A',
-              border: '2px solid #FFFFFF',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '2px 2px 0px #FF5500',
+              boxShadow: 'none',
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 1024 1024" fill="none">
+            <svg width="16" height="16" viewBox="0 0 1024 1024" fill="none">
               <path
                 d="M 545 240 A 282 282 0 1 0 782 566"
                 stroke="#FFFFFF"
@@ -275,13 +275,13 @@ function DisabledOrdisFloatingChat() {
                 height="156"
                 rx="42"
                 transform="rotate(-10 703 274)"
-                fill="#FF5500"
+                fill="#FFFFFF"
               />
             </svg>
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontWeight: 800, fontSize: '14px', color: '#fff' }}>Ordis AI</span>
+              <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary, #fff)' }}>Ordis</span>
               {/* Engine Model Badge */}
               <span
                 style={{
@@ -291,17 +291,10 @@ function DisabledOrdisFloatingChat() {
                   fontSize: '10px',
                   padding: '2px 7px',
                   borderRadius: '9999px',
-                  background:
-                    aiEngineStatus === 'groq'
-                      ? 'rgba(249, 115, 22, 0.15)'
-                      : 'rgba(56, 189, 248, 0.12)',
-                  border: `1px solid ${
-                    aiEngineStatus === 'groq'
-                      ? 'rgba(249, 115, 22, 0.4)'
-                      : 'rgba(56, 189, 248, 0.3)'
-                  }`,
-                  color: aiEngineStatus === 'groq' ? '#fb923c' : '#38bdf8',
-                  fontWeight: 700,
+                  background: 'var(--c-bg-subtle, #171717)',
+                  border: '1px solid var(--border-color, #262626)',
+                  color: 'var(--text-secondary, #a3a3a3)',
+                  fontWeight: 600,
                 }}
               >
                 <span
@@ -309,7 +302,7 @@ function DisabledOrdisFloatingChat() {
                     width: '5px',
                     height: '5px',
                     borderRadius: '50%',
-                    background: aiEngineStatus === 'groq' ? '#f97316' : '#FF5500',
+                    background: 'var(--text-primary, #fff)',
                   }}
                 />
                 {aiEngineStatus === 'groq'
@@ -331,11 +324,11 @@ function DisabledOrdisFloatingChat() {
             onClick={() => setSettingsOpen((prev) => !prev)}
             title="AI Settings (API Key & Model)"
             style={{
-              padding: '6px 8px',
-              borderRadius: '8px',
-              background: settingsOpen ? 'rgba(255, 85, 0, 0.25)' : 'rgba(255, 255, 255, 0.06)',
-              border: `1px solid ${settingsOpen ? '#FF5500' : 'rgba(255, 255, 255, 0.12)'}`,
-              color: settingsOpen ? '#FF5500' : '#9ca3af',
+              padding: '5px 8px',
+              borderRadius: '6px',
+              background: settingsOpen ? 'var(--c-brand)' : 'var(--c-bg-subtle)',
+              border: '1px solid var(--border-color)',
+              color: settingsOpen ? 'var(--c-on-brand)' : 'var(--text-secondary)',
               cursor: 'pointer',
               fontSize: '12px',
               display: 'flex',
@@ -351,20 +344,20 @@ function DisabledOrdisFloatingChat() {
           <span
             title="Ordis Autonomous Intelligence Active"
             style={{
-              padding: '4px 8px',
+              padding: '3px 8px',
               borderRadius: '9999px',
-              background: '#0A0A0A',
-              border: '1px solid #FF5500',
-              color: '#FF5500',
+              background: 'var(--c-bg-subtle)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-primary)',
               fontSize: '9.5px',
-              fontWeight: 900,
+              fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
               letterSpacing: '0.03em',
             }}
           >
-            <span>AUTONOMOUS</span>
+            <span>AUTO</span>
           </span>
 
  {/* Voice Mode Toggle */}
@@ -616,8 +609,8 @@ function DisabledOrdisFloatingChat() {
  <div
  style={{
  padding: '10px 16px',
- background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(255, 85, 0, 0.15) 100%)',
- borderBottom: '1px solid rgba(239, 68, 68, 0.4)',
+ background: 'var(--c-bg-subtle, #141414)',
+ borderBottom: '1px solid var(--border-color, #262626)',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
@@ -625,12 +618,7 @@ function DisabledOrdisFloatingChat() {
  }}
  >
  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
- <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
- <span style={{ width: '3px', height: '14px', background: '#ef4444', borderRadius: '2px', animation: 'pulse 1s infinite alternate' }} />
- <span style={{ width: '3px', height: '20px', background: '#ef4444', borderRadius: '2px', animation: 'pulse 0.7s infinite alternate' }} />
- <span style={{ width: '3px', height: '10px', background: '#ef4444', borderRadius: '2px', animation: 'pulse 1.2s infinite alternate' }} />
- </div>
- <span style={{ fontSize: '11px', color: '#fca5a5', fontWeight: 600 }}>
+ <span style={{ fontSize: '11px', color: 'var(--text-primary, #fff)', fontWeight: 600 }}>
  {isListening ? 'Listening to voice prompt... speak now' : 'Voice mode ready'}
  </span>
  </div>
@@ -640,9 +628,9 @@ function DisabledOrdisFloatingChat() {
  style={{
  padding: '4px 10px',
  fontSize: '10px',
- fontWeight: 700,
- background: '#ef4444',
- color: '#fff',
+ fontWeight: 600,
+ background: 'var(--c-brand)',
+ color: 'var(--c-on-brand)',
  border: 'none',
  borderRadius: '4px',
  cursor: 'pointer',
@@ -704,16 +692,14 @@ function DisabledOrdisFloatingChat() {
  >
  <div
  style={{
- padding: '12px 14px',
- borderRadius: isAi ? '14px 14px 14px 2px' : '14px 14px 2px 14px',
- background: isAi
- ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.03) 100%)'
- : 'linear-gradient(135deg, #FF5500 0%, #ff8c00 100%)',
- border: isAi ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
- color: '#f9fafb',
+ padding: '10px 14px',
+ borderRadius: '8px',
+ background: isAi ? 'var(--c-bg-subtle)' : 'var(--c-brand)',
+ border: '1px solid var(--border-color)',
+ color: isAi ? 'var(--text-primary)' : 'var(--c-on-brand)',
  fontSize: '12.5px',
  lineHeight: '1.55',
- boxShadow: isAi ? '0 1px 3px rgba(0, 0, 0, 0.2)' : '0 1px 3px rgba(255, 85, 0, 0.25)',
+ boxShadow: 'none',
  }}
  >
  {isAi && (
@@ -808,19 +794,16 @@ function DisabledOrdisFloatingChat() {
  fontSize: '11px',
  fontWeight: 600,
  borderRadius: '9999px',
- background: 'rgba(255, 85, 0, 0.12)',
- color: '#FF8844',
- border: '1px solid rgba(255, 85, 0, 0.35)',
+ background: 'var(--surface-primary, #141414)',
+ color: 'var(--text-primary)',
+ border: '1px solid var(--border-color)',
  cursor: 'pointer',
- transition: 'all 0.15s ease',
  }}
  onMouseEnter={(e) => {
- e.currentTarget.style.background = 'rgba(255, 85, 0, 0.25)';
- e.currentTarget.style.borderColor = '#FF5500';
+ e.currentTarget.style.background = 'var(--surface-hover)';
  }}
  onMouseLeave={(e) => {
- e.currentTarget.style.background = 'rgba(255, 85, 0, 0.12)';
- e.currentTarget.style.borderColor = 'rgba(255, 85, 0, 0.35)';
+ e.currentTarget.style.background = 'var(--surface-primary)';
  }}
  >
  {chip} 
@@ -881,8 +864,8 @@ function DisabledOrdisFloatingChat() {
  <div
  style={{
  padding: '12px 14px',
- background: 'rgba(15, 23, 42, 0.95)',
- borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+ background: 'var(--surface-primary)',
+ borderTop: '1px solid var(--border-color)',
  display: 'flex',
  alignItems: 'center',
  gap: '8px',
@@ -899,14 +882,14 @@ function DisabledOrdisFloatingChat() {
  flex: 1,
  padding: '10px 14px',
  fontSize: '12.5px',
- background: 'rgba(0, 0, 0, 0.55)',
- border: '1px solid rgba(255, 255, 255, 0.16)',
- borderRadius: '8px',
- color: '#ffffff',
+ background: 'var(--surface-primary)',
+ border: '1px solid var(--border-color)',
+ borderRadius: '6px',
+ color: 'var(--text-primary)',
  outline: 'none',
  }}
- onFocus={(e) => (e.currentTarget.style.borderColor = '#FF5500')}
- onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)')}
+ onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--border-dark)')}
+ onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border-color)')}
  />
 
  {/* Mic button */}
@@ -916,10 +899,10 @@ function DisabledOrdisFloatingChat() {
  title={voiceMode ? 'Voice Mode Active' : 'Start Voice Input'}
  style={{
  padding: '9px 11px',
- background: voiceMode ? '#ef4444' : 'rgba(255, 255, 255, 0.08)',
- border: '1px solid rgba(255, 255, 255, 0.12)',
- borderRadius: '8px',
- color: '#fff',
+ background: voiceMode ? 'var(--c-brand)' : 'var(--c-bg-subtle)',
+ border: '1px solid var(--border-color)',
+ borderRadius: '6px',
+ color: voiceMode ? 'var(--c-on-brand)' : 'var(--text-primary)',
  cursor: 'pointer',
  fontSize: '13px',
  }}
@@ -934,10 +917,10 @@ function DisabledOrdisFloatingChat() {
  disabled={!inputVal.trim()}
  style={{
  padding: '9px 16px',
- background: inputVal.trim() ? '#FF5500' : 'rgba(255, 255, 255, 0.1)',
- border: 'none',
- borderRadius: '8px',
- color: '#ffffff',
+ background: inputVal.trim() ? 'var(--c-brand)' : 'var(--c-bg-subtle)',
+ border: '1px solid var(--border-color)',
+ borderRadius: '6px',
+ color: inputVal.trim() ? 'var(--c-on-brand)' : 'var(--text-muted)',
  fontWeight: 700,
  fontSize: '12.5px',
  cursor: inputVal.trim() ? 'pointer' : 'default',
@@ -961,58 +944,23 @@ function DisabledOrdisFloatingChat() {
           position: 'fixed',
           bottom: '24px',
           right: '24px',
-          width: '52px',
-          height: '52px',
-          borderRadius: '16px',
-          background: '#0A0A0A',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 4px 14px rgba(255, 85, 0, 0.4)',
+          width: '46px',
+          height: '46px',
+          borderRadius: '10px',
+          background: 'var(--c-brand)',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'none',
+          color: 'var(--c-on-brand)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
           zIndex: 9998,
-          transition: 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translate(-2px, -2px)';
-          e.currentTarget.style.boxShadow = '6px 6px 0px #FF5500';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'none';
-          e.currentTarget.style.boxShadow = '4px 4px 0px #FF5500';
         }}
       >
-        <svg width="26" height="26" viewBox="0 0 1024 1024" fill="none">
-          <path
-            d="M 545 240 A 282 282 0 1 0 782 566"
-            stroke="#FFFFFF"
-            strokeWidth="142"
-            strokeLinecap="round"
-            fill="none"
-          />
-          <rect
-            x="625"
-            y="196"
-            width="156"
-            height="156"
-            rx="42"
-            transform="rotate(-10 703 274)"
-            fill="#FF5500"
-          />
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
-        <span
-          style={{
-            position: 'absolute',
-            top: '3px',
-            right: '3px',
-            width: '9px',
-            height: '9px',
-            borderRadius: '50%',
-            background: '#FF5500',
-            border: '2px solid #0A0A0A',
-          }}
-        />
       </button>
     )}
  </>

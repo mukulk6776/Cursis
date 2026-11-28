@@ -55,8 +55,8 @@ export default function EmptyState({
       height={compact ? "24" : "32"}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#FF5500"
-      strokeWidth="2.5"
+      stroke="currentColor"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -91,14 +91,14 @@ export default function EmptyState({
           width: compact ? '44px' : '56px',
           height: compact ? '44px' : '56px',
           border: '1px solid var(--border-color, #E5E7EB)',
-          borderRadius: compact ? '10px' : '12px',
-          background: 'rgba(255, 85, 0, 0.08)',
+          borderRadius: compact ? '8px' : '10px',
+          background: 'var(--c-bg-subtle)',
           boxShadow: 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: compact ? '12px' : '16px',
-          color: '#FF5500',
+          color: 'var(--text-primary)',
         }}
       >
         {icon || defaultIcon}

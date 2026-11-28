@@ -31,7 +31,7 @@ export default function MyDayTray() {
     void save([...validItems, { taskId, hours: task.estimatedHours || 2 }]);
   };
   return <>
-    {!trayOpen && <button className={styles.toggle} style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 900, boxShadow: '4px 4px 0 #0a0a0a', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setTrayOpen(true)} aria-expanded={false} aria-controls="my-day-tray">{focus && <Target size={14} aria-hidden="true" />}My Day · {validItems.length}/5</button>}
+    {!trayOpen && <button className={styles.toggle} style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 900, boxShadow: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setTrayOpen(true)} aria-expanded={false} aria-controls="my-day-tray">{focus && <Target size={14} aria-hidden="true" />}My Day · {validItems.length}/5</button>}
     {trayOpen && <aside id="my-day-tray" className={styles.tray} aria-label="My Day">
       <div className={styles.surface}>
         <div className={styles.row}><h2>My Day</h2><button aria-label="Close My Day" onClick={() => setTrayOpen(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>Close <X size={13} aria-hidden="true" /></button></div>

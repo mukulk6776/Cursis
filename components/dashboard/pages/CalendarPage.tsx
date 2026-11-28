@@ -172,7 +172,7 @@ export default function CalendarPage() {
         date: ev.startTime ? ev.startTime.split('T')[0] : (ev.date || ''),
         time: formatTimeInTimezone(ev.startTime, ev.time || '10:00'),
         type: isMilestone ? 'milestone' : 'event',
-        color: isMilestone ? 'var(--c-purple)' : '#FF5500',
+        color: 'var(--text-primary)',
         raw: ev,
       });
     });

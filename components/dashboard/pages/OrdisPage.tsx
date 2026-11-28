@@ -204,13 +204,13 @@ export default function OrdisPage() {
             background: 'var(--surface-card, #FFFFFF)',
             border: '1px solid var(--border-color, #E5E7EB)',
             borderRadius: '14px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+            boxShadow: 'none',
           }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '52px', borderRadius: '12px', background: 'var(--c-brand, #0A0A0A)', color: '#FFFFFF', marginBottom: '16px' }}>
-            <OrdisMark size={26} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '10px', background: 'var(--c-brand)', color: 'var(--c-on-brand)', marginBottom: '16px' }}>
+            <OrdisMark size={24} />
           </div>
-          <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#FF5500', marginBottom: '8px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-secondary)', marginBottom: '8px' }}>
             Pro Plan Feature
           </div>
           <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 10px', color: 'var(--text-primary)' }}>
@@ -576,7 +576,7 @@ export default function OrdisPage() {
         }
 
         .ordis-page button:focus-visible {
-          outline: 2px solid #FF5500;
+          outline: 1.5px solid var(--border-dark, #000000);
           outline-offset: 1px;
         }
 
@@ -1043,11 +1043,11 @@ export default function OrdisPage() {
         }
 
         :global(html[data-theme='dark']) .ordis-model-badge {
-          color: #FF8B52;
+          color: var(--text-primary);
         }
 
         .ordis-model-spark {
-          color: #FF5500;
+          color: var(--text-primary);
         }
 
         /* ---- Message Stream ---- */
@@ -1287,7 +1287,7 @@ export default function OrdisPage() {
         }
 
         .ordis-action-btn.is-active {
-          color: #FF5500;
+          color: var(--text-primary);
         }
 
         .ordis-follow-ups {
@@ -1350,9 +1350,9 @@ export default function OrdisPage() {
         }
 
         .ordis-composer:focus-within {
-          background: var(--surface-card, #ffffff);
-          border-color: var(--c-brand, #D1D5DB);
-          box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.2);
+          background: var(--surface-card);
+          border-color: var(--border-dark);
+          box-shadow: none;
         }
 
         .ordis-composer textarea {

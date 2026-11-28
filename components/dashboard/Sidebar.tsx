@@ -159,66 +159,14 @@ export default function Sidebar() {
           style={btnResetStyle}
         >
           <span className="sidebar-item-icon">
-            <span
-              style={{
-                width: '22px',
-                height: '22px',
-                background: '#0A0A0A',
-                borderRadius: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '1.5px 1.5px 0 0 #FF5500',
-                flexShrink: 0,
-                overflow: 'hidden',
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 1024 1024" fill="none">
-                <defs>
-                  <clipPath id="rounded-logo-ordis">
-                    <rect x="0" y="0" width="1024" height="1024" rx="180" ry="180" />
-                  </clipPath>
-                </defs>
-                <g clipPath="url(#rounded-logo-ordis)">
-                  <rect x="0" y="0" width="1024" height="1024" fill="#0A0A0A" />
-                  <path
-                    d="M 545 240 A 282 282 0 1 0 782 566"
-                    stroke="#FFFFFF"
-                    strokeWidth="142"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <rect
-                    x="625"
-                    y="196"
-                    width="156"
-                    height="156"
-                    rx="42"
-                    transform="rotate(-10 703 274)"
-                    fill="#FF5500"
-                  />
-                </g>
-              </svg>
-            </span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M9.5 9.5a3.5 3.5 0 1 1 5 5" />
+            </svg>
           </span>
-          <span className="sidebar-item-text" style={{ fontWeight: 900 }}>
-            ORDIS AI
-          </span>
+          <span className="sidebar-item-text">Ordis</span>
           {!sidebarCollapsed && (
-            <span
-              className="badge"
-              style={{
-                fontSize: '9px',
-                fontWeight: 900,
-                background: '#FF5500',
-                color: '#FFFFFF',
-                border: '1px solid #0A0A0A',
-                boxShadow: '1px 1px 0 #0A0A0A',
-                letterSpacing: '0.04em',
-                padding: '2px 6px',
-                borderRadius: '9999px',
-              }}
-            >
+            <span className="sidebar-item-badge">
               {planLimits.hasOrdisAi ? 'AI' : 'PRO'}
             </span>
           )}
@@ -375,7 +323,7 @@ export default function Sidebar() {
             href="/admin"
             className="sidebar-item"
             title="Admin Console"
-            style={{ ...btnResetStyle, textDecoration: 'none', color: '#FF5500', fontWeight: 700 }}
+            style={{ ...btnResetStyle, textDecoration: 'none', fontWeight: 600 }}
           >
             <span className="sidebar-item-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

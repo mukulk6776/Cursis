@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Crown, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { ActivePlanSummary } from '@/lib/dashboard/types';
 
@@ -26,15 +25,13 @@ export default function ActivePlanBadge({ activePlan, size = 'sm' }: ActivePlanB
     }
   }
 
-  const isProOrBiz = activePlan.plan === 'pro' || activePlan.plan === 'business';
   const padding = size === 'md' ? '4px 10px' : '2px 8px';
   const fontSize = size === 'md' ? '11.5px' : '10.5px';
-  const iconSize = size === 'md' ? 12 : 11;
 
   return (
     <Badge
       data-testid="active-plan-badge"
-      variant={isProOrBiz ? 'solid' : 'default'}
+      variant="secondary"
       title={
         activePlan.source === 'admin'
           ? `${activePlan.planName} (Admin-assigned${activePlan.expiresAt ? ` · expires ${new Date(activePlan.expiresAt).toLocaleDateString()}` : ''})`
@@ -43,16 +40,14 @@ export default function ActivePlanBadge({ activePlan, size = 'sm' }: ActivePlanB
       style={{
         padding,
         fontSize,
-        fontWeight: 800,
-        letterSpacing: '0.03em',
+        fontWeight: 600,
+        letterSpacing: '0.02em',
         lineHeight: 1.2,
-        border: '1.5px solid var(--border-dark, #0A0A0A)',
-        boxShadow: '2px 2px 0px #0A0A0A',
-        background: isProOrBiz ? '#FF5500' : '#FFC233',
-        color: isProOrBiz ? '#FFFFFF' : '#0A0A0A',
+        border: '1px solid var(--border-color)',
+        background: 'var(--c-bg-subtle)',
+        color: 'var(--text-primary)',
       }}
     >
-      {isProOrBiz ? <Crown size={iconSize} aria-hidden="true" /> : <Sparkles size={iconSize} aria-hidden="true" />}
       {activePlan.planName}
     </Badge>
   );

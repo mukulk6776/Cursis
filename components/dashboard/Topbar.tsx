@@ -136,9 +136,9 @@ export default function Topbar() {
           }}
           style={{ position: 'relative', cursor: 'pointer' }}
         >
-          <svg width="18" height="18" viewBox="0 0 1024 1024" fill="none" style={{ borderRadius: '6px', overflow: 'hidden' }}>
-            <path d="M 545 240 A 282 282 0 1 0 782 566" stroke="#18181b" strokeWidth="142" strokeLinecap="round" fill="none" />
-            <rect x="625" y="196" width="156" height="156" rx="42" transform="rotate(-10 703 274)" fill="#ff5710" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="4" />
+            <path d="M9 3v18" />
           </svg>
           <span className="topbar-workspace-name">{user.name.split(' ')[0]}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -238,7 +238,7 @@ export default function Topbar() {
               }}
             />
           ) : (
-            <div className="topbar-avatar" style={{ background: user.color }}>{user.initials}</div>
+            <div className="topbar-avatar">{user.initials}</div>
           )}
 
           {userDropdownOpen && (
@@ -312,7 +312,7 @@ export default function Topbar() {
                   href="/admin"
                   role="menuitem"
                   className="btn btn-ghost btn-sm"
-                  style={{ width: '100%', justifyContent: 'flex-start', fontSize: '12px', gap: '8px', padding: '6px 10px', color: '#FF5500', fontWeight: 700, textDecoration: 'none' }}
+                  style={{ width: '100%', justifyContent: 'flex-start', fontSize: '12px', gap: '8px', padding: '6px 10px', color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }}
                   onClick={() => setUserDropdownOpen(false)}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

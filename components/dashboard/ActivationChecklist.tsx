@@ -39,7 +39,7 @@ export default function ActivationChecklist() {
       <button className="btn btn-sm" disabled={saving} onClick={dismiss}>Dismiss checklist</button>
     </div>
     <p>{completed} of 3 steps complete</p>
-    <progress value={completed} max={3} aria-label="Getting started progress" style={{ width: '100%', accentColor: '#FF5500' }} />
+    <progress value={completed} max={3} aria-label="Getting started progress" style={{ width: '100%', accentColor: 'var(--text-primary)' }} />
     <ol style={{ display: 'flex', flexWrap: 'wrap', gap: 20, paddingLeft: 24 }}>
       {['Create a project', 'Invite a teammate by email', 'Ask Ordis a question'].map((label, index) => <li key={label}>
         {state.steps[index] ? <span>✓ {label}</span> : <button className="btn btn-sm" onClick={actions[index]}>{label}</button>}

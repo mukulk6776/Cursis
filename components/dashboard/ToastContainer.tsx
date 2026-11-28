@@ -11,16 +11,16 @@ const TOAST_STYLES: Record<string, { color: string; bg: string }> = {
     bg: 'rgba(16, 185, 129, 0.1)',
   },
   error: {
-    color: '#ef4444',
-    bg: 'rgba(239, 68, 68, 0.1)',
+    color: 'var(--text-primary)',
+    bg: 'var(--c-bg-subtle)',
   },
   warning: {
-    color: '#f59e0b',
-    bg: 'rgba(245, 158, 11, 0.1)',
+    color: 'var(--text-primary)',
+    bg: 'var(--c-bg-subtle)',
   },
   info: {
-    color: '#FF5500',
-    bg: 'rgba(255, 85, 0, 0.1)',
+    color: 'var(--text-primary)',
+    bg: 'var(--c-bg-subtle)',
   },
 };
 
@@ -187,8 +187,8 @@ export default function ToastContainer() {
                       removeToast(t.id);
                     }}
                     style={{
-                      background: 'rgba(255, 85, 0, 0.08)',
-                      color: '#FF5500',
+                      background: 'var(--c-bg-subtle)',
+                      color: 'var(--text-primary)',
                       border: 'none',
                       borderRadius: '8px',
                       padding: '5px 14px',
@@ -199,10 +199,10 @@ export default function ToastContainer() {
                       letterSpacing: '0.02em',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 85, 0, 0.15)';
+                      e.currentTarget.style.background = 'var(--surface-hover)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 85, 0, 0.08)';
+                      e.currentTarget.style.background = 'var(--c-bg-subtle)';
                     }}
                   >
                     {t.action.label}

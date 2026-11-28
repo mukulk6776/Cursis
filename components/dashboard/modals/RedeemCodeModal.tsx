@@ -67,11 +67,11 @@ export default function RedeemCodeModal() {
               style={{
                 width: '36px',
                 height: '36px',
-                borderRadius: '10px',
-                background: '#FF5500',
-                border: '2px solid #0A0A0A',
-                boxShadow: '2px 2px 0px #0A0A0A',
-                color: '#fff',
+                borderRadius: '8px',
+                background: 'var(--c-brand)',
+                border: '1px solid var(--c-brand)',
+                boxShadow: 'none',
+                color: 'var(--c-on-brand)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -165,7 +165,6 @@ export default function RedeemCodeModal() {
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
-                  style={{ background: 'linear-gradient(135deg, #7c3aed, #FF5500)', border: 'none' }}
                   onClick={() => {
                     handleClose();
                     setCurrentPage('ordis');
@@ -226,7 +225,7 @@ export default function RedeemCodeModal() {
                     letterSpacing: '1px',
                     fontWeight: 700,
                     fontSize: '14px',
-                    borderColor: inputCode.trim() ? '#7c3aed' : 'var(--border-color)',
+                    borderColor: inputCode.trim() ? 'var(--border-dark)' : 'var(--border-color)',
                   }}
                   autoFocus
                 />

@@ -27,3 +27,454 @@
   text-align: left;
   vertical-align: top;
 }
+
+/* ============================================
+   MINIMAL MONOCHROME WHITE & BLACK DASHBOARD
+   No neon colors, no glows, no heavy shadows.
+   ============================================ */
+
+.cursis-dashboard-root {
+  --c-cream: #ffffff;
+  --c-paper: #ffffff;
+  --c-ink: #000000;
+  --c-ink-soft: #111111;
+  --c-near-black: #000000;
+  --c-dark: #000000;
+  --c-dark-2: #171717;
+  --c-brand: #000000;
+  --c-brand-text: #000000;
+  --c-on-brand: #ffffff;
+  --c-brand-light: #262626;
+  --c-brand-dark: #000000;
+  --c-brand-hover: #262626;
+  --c-brand-bg: #f4f4f5;
+  --c-brand-border: #d4d4d8;
+  --c-yellow: #111111;
+  --c-mint: #111111;
+  --c-pink: #111111;
+  --c-blue: #111111;
+  --c-coral: #000000;
+  --c-purple: #000000;
+  --c-bg: #ffffff;
+  --c-bg-subtle: #f4f4f5;
+  --c-bg-elevated: #ffffff;
+  --c-bg-primary: #ffffff;
+  --c-bg-secondary: #f4f4f5;
+  --c-surface: #ffffff;
+  --c-accent: #000000;
+  --c-accent-light: #262626;
+  --c-accent-bg: #f4f4f5;
+  --c-accent-primary: #000000;
+  --c-success: #000000;
+  --c-success-bg: #f4f4f5;
+  --c-success-text: #000000;
+  --c-warning: #000000;
+  --c-warning-bg: #f4f4f5;
+  --c-warning-text: #000000;
+  --c-error: #000000;
+  --c-error-bg: #f4f4f5;
+  --c-error-text: #000000;
+  --c-info: #000000;
+  --c-info-bg: #f4f4f5;
+  --c-info-text: #000000;
+  --c-purple-bg: #f4f4f5;
+  --pastel-lavender: #f4f4f5;
+  --pastel-blue: #f4f4f5;
+  --c-gray-100: #f4f4f5;
+  --c-gray-200: #e5e5e5;
+  --c-gray-300: #d4d4d4;
+  --c-gray-400: #a3a3a3;
+  --c-gray-700: #404040;
+  --c-gray-900: #000000;
+
+  --text-primary: #000000;
+  --c-text-primary: #000000;
+  --text-secondary: #525252;
+  --c-text-secondary: #525252;
+  --text-tertiary: #737373;
+  --c-text-tertiary: #737373;
+  --text-muted: #737373;
+
+  --surface-primary: #ffffff;
+  --surface-secondary: #fafafa;
+  --surface-tertiary: #f4f4f5;
+  --surface-sidebar: #ffffff;
+  --surface-topbar: #ffffff;
+  --surface-card: #ffffff;
+  --surface-modal: #ffffff;
+  --surface-overlay: rgba(0, 0, 0, 0.35);
+  --surface-hover: #f4f4f5;
+  --surface-active: #e5e5e5;
+
+  --border-color: #e5e5e5;
+  --c-border-primary: #e5e5e5;
+  --border-light: #f0f0f0;
+  --border-dark: #000000;
+  --border-focus: #000000;
+  --border-width: 1px;
+
+  --ui-background: #ffffff;
+  --ui-foreground: #000000;
+  --ui-card: #ffffff;
+  --ui-card-foreground: #000000;
+  --ui-muted: #f4f4f5;
+  --ui-muted-foreground: #525252;
+  --ui-border: #e5e5e5;
+  --ui-border-strong: #000000;
+  --ui-primary: #000000;
+  --ui-primary-hover: #262626;
+  --ui-primary-foreground: #ffffff;
+  --ui-secondary: #f4f4f5;
+  --ui-secondary-foreground: #000000;
+  --ui-destructive: #000000;
+  --ui-destructive-foreground: #ffffff;
+  --ui-success-bg: #f4f4f5;
+  --ui-success-fg: #000000;
+  --ui-success-border: #d4d4d4;
+  --ui-warning-bg: #f4f4f5;
+  --ui-warning-fg: #000000;
+  --ui-warning-border: #d4d4d4;
+  --ui-ring: transparent;
+
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
+  --shadow-tano: none;
+  --shadow-tano-hover: none;
+  --shadow-card-hover: none;
+  --shadow-coral: none;
+  --shadow-yellow: none;
+  --shadow-mint: none;
+  --shadow-brand: none;
+  --shadow-card: none;
+  --shadow-btn: none;
+  --shadow-modal: none;
+  --ui-shadow-sm: none;
+  --ui-shadow-md: none;
+  --ui-shadow-brutal: none;
+
+  background: #ffffff;
+  color: #000000;
+}
+
+html[data-theme='dark'] .cursis-dashboard-root {
+  --c-cream: #000000;
+  --c-paper: #0a0a0a;
+  --c-ink: #ffffff;
+  --c-ink-soft: #f5f5f5;
+  --c-near-black: #ffffff;
+  --c-dark: #ffffff;
+  --c-dark-2: #e5e5e5;
+  --c-brand: #ffffff;
+  --c-brand-text: #ffffff;
+  --c-on-brand: #000000;
+  --c-brand-light: #e5e5e5;
+  --c-brand-dark: #ffffff;
+  --c-brand-hover: #e5e5e5;
+  --c-brand-bg: #171717;
+  --c-brand-border: #333333;
+  --c-yellow: #ffffff;
+  --c-mint: #ffffff;
+  --c-pink: #ffffff;
+  --c-blue: #ffffff;
+  --c-coral: #ffffff;
+  --c-purple: #ffffff;
+  --c-bg: #000000;
+  --c-bg-subtle: #121212;
+  --c-bg-elevated: #0a0a0a;
+  --c-bg-primary: #000000;
+  --c-bg-secondary: #121212;
+  --c-surface: #0a0a0a;
+  --c-accent: #ffffff;
+  --c-accent-light: #e5e5e5;
+  --c-accent-bg: #171717;
+  --c-accent-primary: #ffffff;
+  --c-success: #ffffff;
+  --c-success-bg: #141414;
+  --c-success-text: #ffffff;
+  --c-warning: #ffffff;
+  --c-warning-bg: #141414;
+  --c-warning-text: #ffffff;
+  --c-error: #ffffff;
+  --c-error-bg: #141414;
+  --c-error-text: #ffffff;
+  --c-info: #ffffff;
+  --c-info-bg: #141414;
+  --c-info-text: #ffffff;
+  --c-purple-bg: #141414;
+  --pastel-lavender: #121212;
+  --pastel-blue: #121212;
+  --c-gray-100: #141414;
+  --c-gray-200: #262626;
+  --c-gray-300: #333333;
+  --c-gray-400: #737373;
+  --c-gray-700: #d4d4d4;
+  --c-gray-900: #ffffff;
+
+  --text-primary: #ffffff;
+  --c-text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --c-text-secondary: #a3a3a3;
+  --text-tertiary: #8a8a8a;
+  --c-text-tertiary: #8a8a8a;
+  --text-muted: #737373;
+
+  --surface-primary: #000000;
+  --surface-secondary: #0a0a0a;
+  --surface-tertiary: #141414;
+  --surface-sidebar: #000000;
+  --surface-topbar: #000000;
+  --surface-card: #0a0a0a;
+  --surface-modal: #0a0a0a;
+  --surface-overlay: rgba(0, 0, 0, 0.72);
+  --surface-hover: #171717;
+  --surface-active: #222222;
+
+  --border-color: #262626;
+  --c-border-primary: #262626;
+  --border-light: #1a1a1a;
+  --border-dark: #ffffff;
+  --border-focus: #ffffff;
+  --border-strong: #404040;
+
+  --ui-background: #000000;
+  --ui-foreground: #ffffff;
+  --ui-card: #0a0a0a;
+  --ui-card-foreground: #ffffff;
+  --ui-muted: #141414;
+  --ui-muted-foreground: #a3a3a3;
+  --ui-border: #262626;
+  --ui-border-strong: #525252;
+  --ui-primary: #ffffff;
+  --ui-primary-hover: #e5e5e5;
+  --ui-primary-foreground: #000000;
+  --ui-secondary: #141414;
+  --ui-secondary-foreground: #ffffff;
+  --ui-destructive: #ffffff;
+  --ui-destructive-foreground: #000000;
+  --ui-success-bg: #141414;
+  --ui-success-fg: #ffffff;
+  --ui-success-border: #262626;
+  --ui-warning-bg: #141414;
+  --ui-warning-fg: #ffffff;
+  --ui-warning-border: #262626;
+  --ui-ring: transparent;
+
+  background: #000000;
+  color: #ffffff;
+}
+
+.cursis-dashboard-root *,
+.cursis-dashboard-root *::before,
+.cursis-dashboard-root *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.cursis-dashboard-root .hover-glow,
+.cursis-dashboard-root .hover-glow:hover,
+.cursis-dashboard-root .hover-lift:hover,
+.cursis-dashboard-root .card:hover,
+.cursis-dashboard-root .stat-card:hover,
+.cursis-dashboard-root .ui-card:hover,
+.cursis-dashboard-root .btn:hover,
+.cursis-dashboard-root .ui-btn:hover {
+  transform: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+
+.cursis-dashboard-root .pulse-online::after {
+  display: none !important;
+  animation: none !important;
+}
+
+.cursis-dashboard-root .sidebar {
+  background: var(--surface-sidebar);
+  border-right: 1px solid var(--border-color);
+}
+
+.cursis-dashboard-root .sidebar-header,
+.cursis-dashboard-root .sidebar-footer,
+.cursis-dashboard-root .topbar {
+  background: var(--surface-primary);
+  border-color: var(--border-color);
+}
+
+.cursis-dashboard-root .main-content,
+.cursis-dashboard-root .app {
+  background: var(--c-bg);
+  color: var(--text-primary);
+}
+
+.cursis-dashboard-root .sidebar-item {
+  border-radius: 6px;
+  color: var(--text-secondary);
+}
+
+.cursis-dashboard-root .sidebar-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.cursis-dashboard-root .sidebar-item.active {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+  border-color: var(--c-brand);
+  font-weight: 600;
+}
+
+.cursis-dashboard-root .sidebar-item-badge {
+  background: var(--c-bg-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.cursis-dashboard-root .sidebar-item.active .sidebar-item-badge {
+  background: var(--c-on-brand);
+  color: var(--c-brand);
+  border-color: transparent;
+}
+
+.cursis-dashboard-root .sidebar-user-avatar {
+  background: var(--c-brand) !important;
+  color: var(--c-on-brand) !important;
+  border: 1px solid var(--border-color);
+}
+
+.cursis-dashboard-root .sidebar-user-status,
+.cursis-dashboard-root .topbar-action-btn .notif-dot {
+  background: var(--text-primary) !important;
+  border-color: var(--surface-primary) !important;
+}
+
+.cursis-dashboard-root .btn-primary,
+.cursis-dashboard-root .ui-btn--primary,
+.cursis-dashboard-root .ui-btn--brutal {
+  background: var(--c-brand) !important;
+  color: var(--c-on-brand) !important;
+  border: 1px solid var(--c-brand) !important;
+  border-radius: 6px;
+}
+
+.cursis-dashboard-root .btn-primary:hover:not(:disabled),
+.cursis-dashboard-root .ui-btn--primary:hover:not(:disabled),
+.cursis-dashboard-root .ui-btn--brutal:hover:not(:disabled) {
+  background: var(--c-brand-hover) !important;
+  border-color: var(--c-brand-hover) !important;
+}
+
+.cursis-dashboard-root .btn-secondary,
+.cursis-dashboard-root .btn-ghost,
+.cursis-dashboard-root .btn-icon,
+.cursis-dashboard-root .ui-btn--secondary,
+.cursis-dashboard-root .ui-btn--outline,
+.cursis-dashboard-root .ui-btn--ghost {
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  border-radius: 6px;
+}
+
+.cursis-dashboard-root .btn-secondary:hover:not(:disabled),
+.cursis-dashboard-root .btn-ghost:hover:not(:disabled),
+.cursis-dashboard-root .btn-icon:hover:not(:disabled),
+.cursis-dashboard-root .ui-btn--outline:hover:not(:disabled),
+.cursis-dashboard-root .ui-btn--ghost:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.cursis-dashboard-root .card,
+.cursis-dashboard-root .ui-card,
+.cursis-dashboard-root .ui-card--brutal,
+.cursis-dashboard-root .stat-card {
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.cursis-dashboard-root .modal,
+.cursis-dashboard-root .modal-card,
+.cursis-dashboard-root .cursis-dialog-content,
+.cursis-dashboard-root .notification-panel,
+.cursis-dashboard-root .profile-panel,
+.cursis-dashboard-root .command-palette,
+.cursis-dashboard-root .workspace-dropdown-menu {
+  background: var(--surface-modal);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.cursis-dashboard-root .input,
+.cursis-dashboard-root .ui-input,
+.cursis-dashboard-root input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+.cursis-dashboard-root textarea,
+.cursis-dashboard-root select {
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  caret-color: var(--text-primary);
+}
+
+.cursis-dashboard-root .input:focus,
+.cursis-dashboard-root .ui-input:focus,
+.cursis-dashboard-root input:focus,
+.cursis-dashboard-root textarea:focus,
+.cursis-dashboard-root select:focus {
+  border-color: var(--border-dark) !important;
+  outline: none !important;
+}
+
+.cursis-dashboard-root .badge,
+.cursis-dashboard-root [class*='badge-'],
+.cursis-dashboard-root [class*='priority-'],
+.cursis-dashboard-root .ui-badge {
+  background: var(--c-bg-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.cursis-dashboard-root .toggle.active {
+  background: var(--c-brand);
+}
+
+.cursis-dashboard-root .progress-bar-fill,
+.cursis-dashboard-root .analytics-bar-fill,
+.cursis-dashboard-root .calendar-today-dot {
+  background: var(--c-brand) !important;
+}
+
+.cursis-dashboard-root .cursis-task-group-header {
+  background: var(--c-bg-subtle);
+}
+
+.cursis-dashboard-root .cursis-task-row,
+.cursis-dashboard-root .cursis-task-card,
+.cursis-dashboard-root .cursis-task-column {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+}
+
+.cursis-dashboard-root .cursis-task-row:hover {
+  background: var(--surface-hover);
+}
+
+.cursis-dashboard-root .cursis-task-row--selected {
+  background: var(--surface-active);
+}
+
+.cursis-dashboard-root .meeting-control-btn.danger:hover,
+.cursis-dashboard-root .btn-danger {
+  background: var(--c-brand) !important;
+  color: var(--c-on-brand) !important;
+  border-color: var(--c-brand) !important;
+}

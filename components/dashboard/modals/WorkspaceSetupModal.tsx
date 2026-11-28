@@ -85,7 +85,7 @@ export default function WorkspaceSetupModal() {
     updateWorkspaceSettings({
       name: cleanWsName,
       tagline: intent === 'work' ? 'Empowering modern teams to build unified projects' : (intent === 'agency' ? 'Bespoke client deliverables and agile operations' : 'Personal focus and task execution'),
-      accentColor: '#FF5500',
+      accentColor: '#000000',
       density: 'comfortable',
     });
 
@@ -96,7 +96,7 @@ export default function WorkspaceSetupModal() {
         id: newProjId,
         name: cleanProjectName,
         desc: `Primary operational project for ${cleanWsName}`,
-        color: '#FF5500',
+        color: '#000000',
         icon: 'folder',
         status: 'In Progress',
         progress: 0,
@@ -220,7 +220,7 @@ export default function WorkspaceSetupModal() {
                 width: '60px',
                 height: '4px',
                 borderRadius: '999px',
-                background: s <= step ? '#FF5500' : 'var(--border-color, #E5E7EB)',
+                background: s <= step ? 'var(--c-brand)' : 'var(--border-color)',
                 transition: 'background-color 0.25s ease',
               }}
             />
@@ -262,19 +262,18 @@ export default function WorkspaceSetupModal() {
                       gap: '14px',
                       padding: '16px 18px',
                       borderRadius: '12px',
-                      border: `1.5px solid ${isSelected ? '#FF5500' : 'var(--border-color, #E5E7EB)'}`,
-                      background: isSelected ? 'var(--c-brand-bg, rgba(255, 85, 0, 0.04))' : 'var(--surface-card, #FFFFFF)',
+                      border: `1px solid ${isSelected ? 'var(--border-dark)' : 'var(--border-color)'}`,
+                      background: isSelected ? 'var(--c-bg-subtle)' : 'var(--surface-card)',
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      boxShadow: isSelected ? '0 0 0 1px #FF5500' : '0 1px 2px rgba(0, 0, 0, 0.04)',
+                      boxShadow: 'none',
                     }}
                   >
                     <div
                       style={{
                         width: '40px',
                         height: '40px',
-                        borderRadius: '10px',
-                        background: isSelected ? 'var(--c-brand-bg, #FFF3EB)' : 'var(--c-bg-subtle, #F9FAFB)',
+                        borderRadius: '8px',
+                        background: 'var(--c-bg-subtle)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -292,7 +291,7 @@ export default function WorkspaceSetupModal() {
                       </div>
                     </div>
                     {isSelected && (
-                      <div style={{ color: '#FF5500', display: 'flex', alignItems: 'center' }}>
+                      <div style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center' }}>
                         <Check size={18} strokeWidth={2.5} />
                       </div>
                     )}
@@ -320,7 +319,7 @@ export default function WorkspaceSetupModal() {
                   marginTop: '3px',
                   width: '16px',
                   height: '16px',
-                  accentColor: '#FF5500',
+                  accentColor: '#000000',
                   cursor: 'pointer',
                 }}
               />
@@ -342,10 +341,10 @@ export default function WorkspaceSetupModal() {
                 padding: '12px',
                 fontSize: '14.5px',
                 fontWeight: 700,
-                borderRadius: '8px',
-                background: '#FF5500',
-                color: '#FFFFFF',
-                border: 'none',
+                borderRadius: '6px',
+                background: 'var(--c-brand)',
+                color: 'var(--c-on-brand)',
+                border: '1px solid var(--c-brand)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

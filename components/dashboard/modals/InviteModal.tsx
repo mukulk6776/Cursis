@@ -118,10 +118,10 @@ export default function InviteModal() {
                   fontWeight: 700,
                   padding: '2px 8px',
                   borderRadius: '6px',
-                  background: isAtCapacity ? 'var(--c-error-bg, #FEE2E2)' : 'var(--surface-card, #FFFFFF)',
-                  color: isAtCapacity ? 'var(--c-error-text, #DC2626)' : 'var(--text-primary, #0A0A0A)',
-                  border: '2px solid var(--border-dark, #0A0A0A)',
-                  boxShadow: '2px 2px 0px #0A0A0A',
+                  background: 'var(--surface-card)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                  boxShadow: 'none',
                 }}
               >
                 {activeCount} / {effectiveLimit} Members {pendingCount > 0 ? `(${pendingCount} pending)` : ''}
@@ -157,7 +157,7 @@ export default function InviteModal() {
               }}
             >
               <strong>Team Limit Reached ({effectiveLimit} / {effectiveLimit} members):</strong> This workspace has reached the maximum allowed limit of {effectiveLimit} team members.{' '}
-              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700 }}>Upgrade plan →</a>
+              <a href="/pay" style={{ color: 'var(--text-primary)', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
             </div>
           ) : isAtCapacity ? (
             <div
@@ -165,15 +165,15 @@ export default function InviteModal() {
                 marginBottom: 'var(--sp-4)',
                 padding: 'var(--sp-3)',
                 borderRadius: '8px',
-                background: 'rgba(245, 158, 11, 0.1)',
-                border: '1px solid #f59e0b',
-                color: '#d97706',
+                background: 'var(--c-bg-subtle)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
                 fontSize: 'var(--fs-xs)',
                 lineHeight: 1.4,
               }}
             >
               <strong>Capacity Limit Reached ({effectiveLimit} max):</strong> Workspace has {activeCount} active member{activeCount === 1 ? '' : 's'} and {pendingCount} pending invitation{pendingCount === 1 ? '' : 's'}. Revoke a pending invitation or{' '}
-              <a href="/pay" style={{ color: '#FF5500', fontWeight: 700 }}>upgrade your plan →</a>.
+              <a href="/pay" style={{ color: 'var(--text-primary)', fontWeight: 700, textDecoration: 'underline' }}>upgrade your plan →</a>.
             </div>
           ) : null}
 

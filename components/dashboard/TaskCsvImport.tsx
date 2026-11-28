@@ -111,7 +111,7 @@ export default function TaskCsvImport({
         <Card style={{ padding: 20, marginTop: hideTrigger ? 0 : 12 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <FileSpreadsheet size={18} color="#FF5500" aria-hidden="true" />
+              <FileSpreadsheet size={18} color="currentColor" aria-hidden="true" />
               <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Import tasks from CSV</h2>
             </div>
             <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close CSV import">

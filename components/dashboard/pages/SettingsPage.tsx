@@ -200,7 +200,7 @@ export default function SettingsPage() {
             style={{
               padding: 'var(--sp-4)',
               background: 'var(--surface-card)',
-              borderLeft: `5px solid ${wsForm.accentColor || '#FF5500'}`,
+              borderLeft: `3px solid ${wsForm.accentColor || 'var(--c-brand)'}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -214,14 +214,14 @@ export default function SettingsPage() {
                   width: '40px',
                   height: '40px',
                   borderRadius: 'var(--border-radius-md)',
-                  background: wsForm.accentColor || '#FF5500',
-                  color: '#fff',
+                  background: wsForm.accentColor || 'var(--c-brand)',
+                  color: 'var(--c-on-brand)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: 900,
+                  fontWeight: 700,
                   fontSize: '18px',
-                  boxShadow: 'var(--shadow-sm)',
+                  boxShadow: 'none',
                 }}
               >
                 {(wsForm.name || 'C')[0]?.toUpperCase()}
@@ -361,34 +361,31 @@ export default function SettingsPage() {
                         borderRadius: 'var(--border-radius-md)',
                         background: color,
                         border: wsForm.accentColor === color ? '3px solid var(--text-primary, #000)' : '1px solid var(--border-color)',
-                        outline: wsForm.accentColor === color ? '2px solid var(--c-accent)' : 'none',
-                        cursor: 'pointer',
-                        transition: 'transform 0.1s ease',
-                        transform: wsForm.accentColor === color ? 'scale(1.1)' : 'scale(1)',
-                      }}
-                    />
-                  ))}
-                  <div
-                    style={{
-                      position: 'relative',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: 'var(--border-radius-md)',
-                      background: wsForm.accentColor || '#FF5500',
-                      border: '2px solid var(--border-color)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      boxShadow: 'var(--shadow-xs)',
-                    }}
-                    title="Pick Custom Accent Color"
-                  >
-                    <Pipette size={14} color="#ffffff" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', pointerEvents: 'none' }} />
-                    <input
-                      type="color"
-                      value={wsForm.accentColor || '#FF5500'}
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                />
+              ))}
+              <div
+                style={{
+                  position: 'relative',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: 'var(--border-radius-md)',
+                  background: wsForm.accentColor || '#000000',
+                  border: '1px solid var(--border-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                }}
+                title="Pick Custom Accent Color"
+              >
+                <Pipette size={14} color="#ffffff" style={{ pointerEvents: 'none' }} />
+                <input
+                  type="color"
+                  value={wsForm.accentColor || '#000000'}
                       onChange={(e) => setWsForm({ ...wsForm, accentColor: e.target.value })}
                       style={{
                         position: 'absolute',
@@ -558,7 +555,7 @@ export default function SettingsPage() {
               </div>
               <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                 Manage access, adjust permission roles, or inspect workloads. Max {effectiveLimit} team members{user.activePlan ? ` on ${user.activePlan.planName}` : ''}.{' '}
-                <a href="/pay" style={{ color: '#FF5500', fontWeight: 700 }}>Upgrade plan →</a>
+                <a href="/pay" style={{ color: 'var(--text-primary)', fontWeight: 700, textDecoration: 'underline' }}>Upgrade plan →</a>
               </p>
             </div>
               <button
