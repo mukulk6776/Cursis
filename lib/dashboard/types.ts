@@ -461,6 +461,7 @@ export interface WorkspaceSettings {
   accentColor: string;
   density: 'compact' | 'comfortable' | 'spacious';
   layoutDensity?: 'comfortable' | 'compact' | 'spacious';
+  theme?: 'light' | 'dark' | 'system';
   allowGuestAccess?: boolean;
 }
 

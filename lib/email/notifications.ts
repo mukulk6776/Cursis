@@ -65,16 +65,17 @@ async function sendResendEmail(
 
   const from = getFromEmail();
   const options = idempotencyKey ? { idempotencyKey } : undefined;
-  const emailPayload = {
-    from,
-    to: payload.to,
-    subject: payload.subject,
-    ...(payload.text ? { text: payload.text } : {}),
-    ...(payload.html ? { html: payload.html } : {}),
-    ...(payload.replyTo ? { replyTo: payload.replyTo } : {}),
-  } as Parameters<Resend['emails']['send']>[0];
+  const makePayload = (sender: string) =>
+    ({
+      from: sender,
+      to: payload.to,
+      subject: payload.subject,
+      ...(payload.text ? { text: payload.text } : {}),
+      ...(payload.html ? { html: payload.html } : {}),
+      ...(payload.replyTo ? { replyTo: payload.replyTo } : {}),
+    }) as Parameters<Resend['emails']['send']>[0];
 
-  const firstAttempt = await client.emails.send(emailPayload, options);
+  const firstAttempt = await client.emails.send(makePayload(from), options);
   if (!firstAttempt.error) {
     return { sent: true };
   }
@@ -84,7 +85,7 @@ async function sendResendEmail(
   if (isDomainError && from !== SANDBOX_FROM_EMAIL) {
     console.warn(`[resend] Configured sender "${from}" failed domain check (${errMsg}); retrying via ${SANDBOX_FROM_EMAIL}`);
     const fallbackAttempt = await client.emails.send(
-      { ...emailPayload, from: SANDBOX_FROM_EMAIL } as Parameters<Resend['emails']['send']>[0],
+      makePayload(SANDBOX_FROM_EMAIL),
       options
     );
     if (!fallbackAttempt.error) {
