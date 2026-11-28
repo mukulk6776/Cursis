@@ -118,13 +118,86 @@ export function isVerificationEmailConfigured(): boolean {
   return isResendConfigured();
 }
 
+function renderEmailShell({
+  eyebrow,
+  title,
+  bodyHtml,
+  footerNote,
+  maxWidth = 520,
+}: {
+  eyebrow?: string;
+  title: string;
+  bodyHtml: string;
+  footerNote?: string;
+  maxWidth?: number;
+}): string {
+  const safeEyebrow = eyebrow ? escapeHtml(eyebrow) : '';
+  return `
+    <div style="margin:0;padding:32px 16px;background-color:#F4F4F5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111827;-webkit-font-smoothing:antialiased;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:${maxWidth}px;margin:0 auto;background-color:#FFFFFF;border:1px solid #E4E4E7;border-radius:12px;">
+        <tr>
+          <td style="padding:32px;">
+            <div style="padding-bottom:20px;margin-bottom:24px;border-bottom:1px solid #F4F4F5;">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background-color:#FF5500;vertical-align:middle;margin-right:8px;"></span>
+              <span style="font-size:15px;font-weight:700;letter-spacing:-0.02em;color:#111827;vertical-align:middle;">Cursis</span>
+              ${safeEyebrow ? `<span style="font-size:12px;font-weight:500;color:#6B7280;vertical-align:middle;margin-left:8px;">· ${safeEyebrow}</span>` : ''}
+            </div>
+            <h1 style="margin:0 0 12px 0;font-size:20px;line-height:1.35;font-weight:600;letter-spacing:-0.02em;color:#111827;">${escapeHtml(title)}</h1>
+            ${bodyHtml}
+            ${footerNote ? `
+            <div style="margin-top:28px;padding-top:20px;border-top:1px solid #F4F4F5;font-size:12px;line-height:1.55;color:#6B7280;">
+              ${footerNote}
+            </div>` : ''}
+          </td>
+        </tr>
+      </table>
+      <div style="max-width:${maxWidth}px;margin:16px auto 0;text-align:center;font-size:11px;line-height:1.5;color:#9CA3AF;">
+        Cursis · <a href="https://cursis.in" style="color:#6B7280;text-decoration:none;">cursis.in</a>
+      </div>
+    </div>
+  `.trim();
+}
+
+function renderOtpEmailHtml({
+  title,
+  intro,
+  code,
+  securityNote,
+}: {
+  title: string;
+  intro: string;
+  code: string;
+  securityNote: string;
+}): string {
+  const safeCode = escapeHtml(code);
+  return renderEmailShell({
+    eyebrow: 'Security',
+    title,
+    bodyHtml: `
+      <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;color:#4B5563;">${escapeHtml(intro)}</p>
+      <div style="background-color:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:20px 16px;margin:0 0 20px 0;text-align:center;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6B7280;margin-bottom:8px;">Verification code</div>
+        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono',monospace;font-size:30px;font-weight:700;letter-spacing:0.28em;padding-left:0.28em;color:#111827;line-height:1.2;">${safeCode}</div>
+      </div>
+      <p style="margin:0;font-size:13px;line-height:1.6;color:#6B7280;">This code expires in 10 minutes and can only be used once.</p>
+    `.trim(),
+    footerNote: escapeHtml(securityNote),
+    maxWidth: 480,
+  });
+}
+
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
   if (!isPasswordResetEmailConfigured()) throw new Error('Reset email is unavailable');
   const result = await sendResendEmail({
     to: email,
     subject: 'Your Cursis password reset code',
     text: `Your Cursis password reset code is ${code}. It expires in 10 minutes and can only be used once. If you did not request this, you can ignore this email. Never share this code.`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A"><h1 style="font-size:24px;margin-top:0">Reset your Cursis password.</h1><p>Enter this code on the Forgot Password page:</p><p style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px;background:#FF5500;color:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;text-align:center">${code}</p><p>This code expires in 10 minutes and can only be used once.</p><p>If you did not request this, you can ignore this email. Never share this code.</p></div>`,
+    html: renderOtpEmailHtml({
+      title: 'Reset your password',
+      intro: 'Enter the verification code below on the Cursis Forgot Password page to set a new password.',
+      code,
+      securityNote: 'If you did not request a password reset, you can safely ignore this email. Never share this verification code with anyone.',
+    }),
   });
   if (!result.sent) throw new Error(result.error || 'Reset email could not be sent');
 }
@@ -135,7 +208,12 @@ export async function sendAdminVerificationEmail(email: string, code: string): P
     to: email,
     subject: 'Verify your Cursis administrator email',
     text: `Your Cursis administrator verification code is ${code}. It expires in 10 minutes and can only be used once. If you did not try to access the Cursis Admin Console, ignore this message.`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A"><h1 style="font-size:22px;margin-top:0;">Verify your Cursis email</h1><p>Enter this 6-digit verification code to confirm ownership of your account:</p><p style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px;background:#FF5500;color:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;text-align:center;">${code}</p><p style="font-size:13px;color:#4A4A4A;">This code expires in 10 minutes and can only be used once.</p></div>`,
+    html: renderOtpEmailHtml({
+      title: 'Verify your email address',
+      intro: 'Enter this 6-digit verification code to confirm ownership of your Cursis administrator account.',
+      code,
+      securityNote: 'If you did not attempt to sign in or register on Cursis, you can safely ignore this email.',
+    }),
   });
   if (!result.sent) throw new Error(result.error || 'Verification email could not be sent');
 }
@@ -583,18 +661,19 @@ export async function sendContactInquiryEmails({
     replyTo: email,
     subject: `[Cursis Contact] Message from ${name}`,
     text: `New Contact Us inquiry (${inquiryId || 'web-contact'})\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
-        <div style="display:inline-block;padding:4px 10px;background:#FF5500;color:#FFFFFF;font-size:11px;font-weight:800;text-transform:uppercase;border:1.5px solid #0A0A0A;border-radius:6px;margin-bottom:14px;">New Contact Inquiry</div>
-        <h2 style="margin:0 0 12px;font-size:20px;">Message from ${safeName}</h2>
-        <p style="margin:0 0 8px;font-size:13px;"><strong>From:</strong> ${safeName} (<a href="mailto:${safeEmail}" style="color:#FF5500;">${safeEmail}</a>)</p>
-        <p style="margin:0 0 16px;font-size:12px;color:#525252;"><strong>Reference:</strong> ${safeId}</p>
-        <div style="background:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;padding:16px;font-size:14px;line-height:1.6;">
+    html: renderEmailShell({
+      eyebrow: 'Contact Inquiry',
+      title: `Message from ${name}`,
+      maxWidth: 560,
+      bodyHtml: `
+        <p style="margin:0 0 6px;font-size:13px;color:#374151;"><strong>From:</strong> ${safeName} (<a href="mailto:${safeEmail}" style="color:#FF5500;text-decoration:none;">${safeEmail}</a>)</p>
+        <p style="margin:0 0 18px;font-size:12px;color:#6B7280;"><strong>Reference:</strong> ${safeId}</p>
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;font-size:14px;line-height:1.6;color:#111827;">
           ${safeMessage}
         </div>
-        <p style="margin:16px 0 0;font-size:12px;color:#525252;">Reply directly to this email to respond to ${safeName}.</p>
-      </div>
-    `,
+      `,
+      footerNote: `Reply directly to this email to respond to ${safeName}.`,
+    }),
   });
 
   const confirmResult = await sendResendEmail({
@@ -602,17 +681,19 @@ export async function sendContactInquiryEmails({
     replyTo: getContactRecipients()[0] || 'official@cursis.in',
     subject: 'We received your message — Cursis Support',
     text: `Hi ${name},\n\nThanks for contacting Cursis. We received your message (Ref: ${inquiryId || 'web-contact'}) and our team will respond shortly.\n\nVisit ${process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in'} for workspace access.`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
-        <h2 style="margin:0 0 12px;font-size:22px;">Thanks for reaching out, ${safeName}.</h2>
-        <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">We received your message and routed it to our team. We typically reply within 1 business day.</p>
-        <div style="background:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;padding:14px;font-size:13px;line-height:1.5;margin-bottom:18px;">
-          <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#737373;margin-bottom:6px;">Your Message (Ref: ${safeId})</div>
+    html: renderEmailShell({
+      eyebrow: 'Support',
+      title: `Thanks for reaching out, ${name}.`,
+      maxWidth: 540,
+      bodyHtml: `
+        <p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#4B5563;">We received your message and routed it to our team. We typically reply within 1 business day.</p>
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.55;color:#111827;margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#6B7280;margin-bottom:6px;">Your Message · Ref ${safeId}</div>
           ${safeMessage}
         </div>
-        <a href="${appUrl}" style="display:inline-block;padding:10px 18px;background:#FF5500;color:#FFFFFF;font-weight:700;text-decoration:none;border:2px solid #0A0A0A;border-radius:10px;">Back to Cursis</a>
-      </div>
-    `,
+        <a href="${appUrl}" style="display:inline-block;padding:10px 18px;background:#111827;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;">Return to Cursis</a>
+      `,
+    }),
   });
 
   return {
@@ -635,14 +716,16 @@ export async function sendNewsletterSubscriptionEmail(email: string): Promise<{ 
     to: email,
     subject: 'Subscribed to Cursis product updates',
     text: `You are subscribed to Cursis product updates. You can unsubscribe anytime at ${(process.env.NEXT_PUBLIC_APP_URL || 'https://cursis.in').replace(/\/$/, '')}/unsubscribe?email=${encodeURIComponent(email)}.`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
-        <h2 style="margin:0 0 12px;font-size:22px;">You’re subscribed to Cursis updates.</h2>
-        <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">Thanks for subscribing! We only share meaningful product releases and workflow guides.</p>
-        <a href="${appUrl}" style="display:inline-block;padding:10px 18px;background:#FF5500;color:#FFFFFF;font-weight:700;text-decoration:none;border:2px solid #0A0A0A;border-radius:10px;">Explore Cursis</a>
+    html: renderEmailShell({
+      eyebrow: 'Newsletter',
+      title: 'Subscribed to Cursis product updates',
+      maxWidth: 540,
+      bodyHtml: `
+        <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#4B5563;">Thanks for subscribing. We only send meaningful product releases and workflow guides.</p>
+        <a href="${appUrl}" style="display:inline-block;padding:10px 18px;background:#111827;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;">Explore Cursis</a>
         ${getCanspamEmailFooter(email)}
-      </div>
-    `,
+      `,
+    }),
   });
 }
 
@@ -674,20 +757,21 @@ export async function sendAgencyBuildInquiryEmails(data: {
     replyTo: data.contactEmail,
     subject: `[Cursis Studio] Build Inquiry: ${data.companyName} — ${data.requestedService}`,
     text: `New Custom Build / Business Inquiry (${data.id})\nCompany/Name: ${data.companyName}\nEmail: ${data.contactEmail}\nService: ${data.requestedService}\nBudget: ${data.budgetRange}\nWorkspace: ${data.workspaceId}\n\nRequirements:\n${data.requirements}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
-        <div style="display:inline-block;padding:4px 10px;background:#FF5500;color:#FFFFFF;font-size:11px;font-weight:800;text-transform:uppercase;border:1.5px solid #0A0A0A;border-radius:6px;margin-bottom:14px;">Business / Studio Lead</div>
-        <h2 style="margin:0 0 14px;font-size:20px;">${safeCompany} — ${safeService}</h2>
-        <div style="background:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;padding:16px;font-size:13.5px;line-height:1.65;">
-          <p style="margin:0 0 6px;"><strong>Reply Email:</strong> <a href="mailto:${safeEmail}" style="color:#FF5500;">${safeEmail}</a></p>
+    html: renderEmailShell({
+      eyebrow: 'Studio Lead',
+      title: `${data.companyName} — ${data.requestedService}`,
+      maxWidth: 560,
+      bodyHtml: `
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;font-size:13.5px;line-height:1.65;color:#111827;">
+          <p style="margin:0 0 6px;"><strong>Reply Email:</strong> <a href="mailto:${safeEmail}" style="color:#FF5500;text-decoration:none;">${safeEmail}</a></p>
           <p style="margin:0 0 6px;"><strong>Budget Range:</strong> ${safeBudget}</p>
           <p style="margin:0 0 12px;"><strong>Request ID:</strong> ${safeId}</p>
-          <div style="border-top:1px solid #E5E7EB;padding-top:10px;">
+          <div style="border-top:1px solid #E5E7EB;padding-top:10px;color:#374151;">
             <strong>Requirements:</strong><br />${safeReqs}
           </div>
         </div>
-      </div>
-    `,
+      `,
+    }),
   });
 
   const confirmResult = await sendResendEmail({
@@ -695,13 +779,15 @@ export async function sendAgencyBuildInquiryEmails(data: {
     replyTo: getContactRecipients()[0] || 'official@cursis.in',
     subject: `Inquiry received (${data.requestedService}) — Cursis Solutions Studio`,
     text: `Hi ${data.companyName},\n\nWe received your custom build / Business inquiry (Ref: ${data.id}) for "${data.requestedService}". The Cursis Solutions Studio will contact you within 24 hours.`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
-        <h2 style="margin:0 0 12px;font-size:21px;">Inquiry Received</h2>
-        <p style="margin:0 0 14px;font-size:14px;line-height:1.6;">Thanks, <strong>${safeCompany}</strong>. We received your request for <strong>${safeService}</strong> (${safeBudget}) and our studio team will contact you within 24 hours.</p>
-        <p style="margin:0;font-size:12px;color:#525252;">Reference ID: ${safeId}</p>
-      </div>
-    `,
+    html: renderEmailShell({
+      eyebrow: 'Solutions Studio',
+      title: 'Inquiry Received',
+      maxWidth: 540,
+      bodyHtml: `
+        <p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#4B5563;">Thanks, <strong style="color:#111827;">${safeCompany}</strong>. We received your request for <strong style="color:#111827;">${safeService}</strong> (${safeBudget}) and our studio team will contact you within 24 hours.</p>
+        <p style="margin:0;font-size:12px;color:#6B7280;">Reference ID: ${safeId}</p>
+      `,
+    }),
   });
 
   return {
@@ -739,30 +825,34 @@ export async function sendPrivacyRequestNotificationEmails(data: {
     replyTo: data.userEmail,
     subject: `[Cursis Privacy] ${data.kind.toUpperCase()} request (${data.id})`,
     text: `New privacy / grievance request\nID: ${data.id}\nType: ${data.kind}\nFrom: ${data.userEmail}\nAcknowledge by: ${ackDate}\nResolve by: ${resolveDate}\n\nDetails:\n${data.message}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
-        <h2 style="margin:0 0 12px;font-size:20px;">Privacy Request: ${safeKind}</h2>
-        <p style="margin:0 0 6px;font-size:13px;"><strong>From:</strong> <a href="mailto:${safeEmail}" style="color:#FF5500;">${safeEmail}</a></p>
-        <p style="margin:0 0 6px;font-size:13px;"><strong>Request ID:</strong> ${safeId}</p>
-        <p style="margin:0 0 14px;font-size:12px;color:#525252;"><strong>Target deadlines:</strong> Ack ${ackDate} · Resolve ${resolveDate}</p>
-        <div style="background:#FFFFFF;border:2px solid #0A0A0A;border-radius:12px;padding:14px;font-size:13.5px;line-height:1.55;">
+    html: renderEmailShell({
+      eyebrow: 'Privacy Desk',
+      title: `Privacy Request: ${data.kind}`,
+      maxWidth: 560,
+      bodyHtml: `
+        <p style="margin:0 0 6px;font-size:13px;color:#374151;"><strong>From:</strong> <a href="mailto:${safeEmail}" style="color:#FF5500;text-decoration:none;">${safeEmail}</a></p>
+        <p style="margin:0 0 6px;font-size:13px;color:#374151;"><strong>Request ID:</strong> ${safeId}</p>
+        <p style="margin:0 0 16px;font-size:12px;color:#6B7280;"><strong>Target deadlines:</strong> Ack ${ackDate} · Resolve ${resolveDate}</p>
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#111827;">
           ${safeMessage}
         </div>
-      </div>
-    `,
+      `,
+    }),
   });
 
   const confirmResult = await sendResendEmail({
     to: data.userEmail,
     subject: `Privacy request received (${data.id}) — Cursis`,
     text: `We received your ${data.kind} privacy request (Reference: ${data.id}). Our resolution target is ${new Date(data.resolveBy).toDateString()}.`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px;background:#FAF6EE;color:#0A0A0A;border:3px solid #0A0A0A;border-radius:16px;box-shadow:6px 6px 0 #0A0A0A;">
-        <h2 style="margin:0 0 12px;font-size:20px;">Privacy Request Received</h2>
-        <p style="margin:0 0 12px;font-size:14px;line-height:1.6;">We received your <strong>${safeKind}</strong> request (Ref: <code>${safeId}</code>).</p>
-        <p style="margin:0;font-size:13px;color:#525252;">Target resolution date: <strong>${resolveDate}</strong>.</p>
-      </div>
-    `,
+    html: renderEmailShell({
+      eyebrow: 'Privacy & Compliance',
+      title: 'Privacy Request Received',
+      maxWidth: 540,
+      bodyHtml: `
+        <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#4B5563;">We received your <strong style="color:#111827;">${safeKind}</strong> request (Ref: <code style="background:#F4F4F5;padding:2px 6px;border-radius:4px;font-size:12px;">${safeId}</code>).</p>
+        <p style="margin:0;font-size:13px;color:#6B7280;">Target resolution date: <strong style="color:#111827;">${resolveDate}</strong>.</p>
+      `,
+    }),
   });
 
   return {
